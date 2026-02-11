@@ -1,0 +1,31 @@
+FROM node:20-alpine
+
+WORKDIR /usr/src/app
+
+# Install dependencies
+RUN apk add --no-cache openssl
+
+COPY package*.json ./
+COPY nest-cli.json ./
+COPY tsconfig*.json ./
+COPY prisma ./prisma/
+
+RUN npm install
+RUN npx prisma generate
+
+# Copy source
+COPY . .
+
+# Build
+RUN npm run build
+
+# Copy entrypoint (reuse the same script)
+COPY entrypoint.sh ./
+RUN chmod +x entrypoint.sh
+
+# Environment settings for Worker
+ENV NODE_ENV=production
+ENV PROCESS_TYPE=worker
+
+# Start as Worker
+CMD ["./entrypoint.sh"]

@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procurea DB Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            color: #e2e8f0;
+        }
+
+        .app {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: rgba(15, 23, 42, 0.9);
+            border-right: 1px solid rgba(148, 163, 184, 0.1);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title {
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 20px 0 10px;
+        }
+
+        .table-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .table-item:hover {
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+        .table-item.active {
+            background: rgba(59, 130, 246, 0.3);
+            border: 1px solid #3b82f6;
+        }
+
+        .table-icon {
+            font-size: 18px;
+        }
+
+        .table-name {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .table-count {
+            font-size: 12px;
+            color: #64748b;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .stat-card {
+            background: rgba(30, 41, 59, 0.5);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        /* Main Content */
+        .main {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            padding: 16px 24px;
+            background: rgba(15, 23, 42, 0.7);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+        .tab.active {
+            background: #3b82f6;
+        }
+
+        /* Content Area */
+        .content {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel {
+            display: none;
+            flex: 1;
+            overflow: hidden;
+            flex-direction: column;
+        }
+
+        .panel.active {
+            display: flex;
+        }
+
+        /* AI Chat Panel */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 16px;
+        }
+
+        .message {
+            margin-bottom: 16px;
+            max-width: 85%;
+        }
+
+        .message.user {
+            margin-left: auto;
+        }
+
+        .message-content {
+            padding: 12px 16px;
+            border-radius: 12px;
+        }
+
+        .message.user .message-content {
+            background: #3b82f6;
+        }
+
+        .message.ai .message-content {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .message-sql {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+            font-family: monospace;
+            font-size: 13px;
+            color: #a5f3fc;
+            overflow-x: auto;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 12px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 16px 20px;
+            border-radius: 12px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            color: #e2e8f0;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .chat-input:focus {
+            border-color: #3b82f6;
+        }
+
+        .chat-input::placeholder {
+            color: #64748b;
+        }
+
+        .send-btn {
+            padding: 16px 24px;
+            border-radius: 12px;
+            background: #3b82f6;
+            border: none;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .send-btn:hover {
+            background: #2563eb;
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* SQL Editor Panel */
+        .sql-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            gap: 16px;
+        }
+
+        .sql-editor {
+            width: 100%;
+            min-height: 120px;
+            padding: 16px;
+            border-radius: 12px;
+            background: #1e293b;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            color: #a5f3fc;
+            font-family: 'Menlo', 'Monaco', monospace;
+            font-size: 14px;
+            resize: vertical;
+            outline: none;
+        }
+
+        .sql-editor:focus {
+            border-color: #3b82f6;
+        }
+
+        .sql-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .exec-btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+
+        .exec-btn.primary {
+            background: #10b981;
+            color: white;
+        }
+
+        .exec-btn.secondary {
+            background: rgba(30, 41, 59, 0.8);
+            color: #e2e8f0;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        /* Results Table */
+        .results-container {
+            flex: 1;
+            overflow: auto;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 12px;
+        }
+
+        .results-header {
+            padding: 12px 16px;
+            background: rgba(30, 41, 59, 0.8);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .results-info {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            background: #1e293b;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #94a3b8;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        td {
+            padding: 10px 16px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        tr:hover td {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        /* Schema Panel */
+        .schema-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .schema-table {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .schema-table-header {
+            padding: 16px;
+            background: rgba(59, 130, 246, 0.2);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .schema-table-header:hover {
+            background: rgba(59, 130, 246, 0.3);
+        }
+
+        .schema-columns {
+            padding: 0;
+        }
+
+        .schema-column {
+            display: flex;
+            padding: 10px 16px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            align-items: center;
+        }
+
+        .column-name {
+            flex: 1;
+            font-family: monospace;
+            color: #a5f3fc;
+        }
+
+        .column-type {
+            font-size: 12px;
+            padding: 2px 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            color: #64748b;
+        }
+
+        .column-pk {
+            font-size: 10px;
+            padding: 2px 6px;
+            background: #f59e0b;
+            color: #000;
+            border-radius: 4px;
+            margin-left: 8px;
+            font-weight: bold;
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: #64748b;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(59, 130, 246, 0.3);
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 12px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Error */
+        .error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            padding: 16px;
+            border-radius: 8px;
+            color: #fca5a5;
+            margin: 16px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <div class="logo">🗄️ DB Explorer</div>
+
+            <div class="stats-grid" id="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-tables">-</div>
+                    <div class="stat-label">Tabel</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-rows">-</div>
+                    <div class="stat-label">Rekordów</div>
+                </div>
+            </div>
+
+            <div class="section-title">Tabele</div>
+            <div id="tables-list"></div>
+        </aside>
+
+        <main class="main">
+            <header class="header">
+                <div class="tab active" data-panel="chat">💬 AI Asystent</div>
+                <div class="tab" data-panel="sql">📝 SQL Editor</div>
+                <div class="tab" data-panel="schema">🗂️ Schema</div>
+            </header>
+
+            <div class="content">
+                <!-- AI Chat Panel -->
+                <div class="panel active" id="panel-chat">
+                    <div class="chat-container">
+                        <div class="chat-messages" id="chat-messages">
+                            <div class="message ai">
+                                <div class="message-content">
+                                    👋 Cześć! Jestem asystentem bazy danych Procurea. Możesz mnie zapytać o dane w
+                                    języku naturalnym, np.:
+                                    <ul style="margin-top: 12px; padding-left: 20px; color: #94a3b8;">
+                                        <li>Pokaż 10 ostatnich kampanii</li>
+                                        <li>Ilu mamy dostawców z Polski?</li>
+                                        <li>Jaki jest średni score analizy dostawców?</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-input-container">
+                            <input type="text" class="chat-input" id="chat-input" placeholder="Zapytaj o dane..." />
+                            <button class="send-btn" id="send-btn">Wyślij</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SQL Editor Panel -->
+                <div class="panel" id="panel-sql">
+                    <div class="sql-container">
+                        <textarea class="sql-editor" id="sql-editor"
+                            placeholder='SELECT * FROM "Campaign" LIMIT 10'></textarea>
+                        <div class="sql-buttons">
+                            <button class="exec-btn primary" id="exec-btn">▶ Wykonaj</button>
+                            <button class="exec-btn secondary" id="clear-btn">Wyczyść</button>
+                        </div>
+                        <div class="results-container">
+                            <div class="results-header">
+                                <span>Wyniki</span>
+                                <span class="results-info" id="results-info"></span>
+                            </div>
+                            <div id="results-table"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Schema Panel -->
+                <div class="panel" id="panel-schema">
+                    <div class="schema-container" id="schema-container">
+                        <div class="loading">
+                            <div class="spinner"></div> Ładowanie schematu...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_BASE = '/api/db';
+
+        // State
+        let schema = null;
+        let selectedTable = null;
+
+        // DOM Elements
+        const tablesList = document.getElementById('tables-list');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+        const sqlEditor = document.getElementById('sql-editor');
+        const execBtn = document.getElementById('exec-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const resultsTable = document.getElementById('results-table');
+        const resultsInfo = document.getElementById('results-info');
+        const schemaContainer = document.getElementById('schema-container');
+
+        // Initialize
+        async function init() {
+            await loadSchema();
+            await loadStats();
+            setupEventListeners();
+        }
+
+        async function loadSchema() {
+            try {
+                const response = await fetch(`${API_BASE}/schema`);
+                schema = await response.json();
+                renderTablesList();
+                renderSchema();
+            } catch (error) {
+                console.error('Failed to load schema:', error);
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/stats`);
+                const stats = await response.json();
+                document.getElementById('stat-tables').textContent = stats.tables;
+                document.getElementById('stat-rows').textContent = stats.totalRows.toLocaleString();
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        function renderTablesList() {
+            tablesList.innerHTML = schema.tables.map(table => `
+                <div class="table-item" data-table="${table.name}">
+                    <span class="table-icon">📋</span>
+                    <span class="table-name">${table.name}</span>
+                    <span class="table-count">${table.rowCount}</span>
+                </div>
+            `).join('');
+
+            // Add click handlers
+            tablesList.querySelectorAll('.table-item').forEach(item => {
+                item.addEventListener('click', () => selectTable(item.dataset.table));
+            });
+        }
+
+        function renderSchema() {
+            schemaContainer.innerHTML = schema.tables.map(table => `
+                <div class="schema-table">
+                    <div class="schema-table-header">
+                        📋 ${table.name}
+                        <span style="margin-left: auto; font-size: 12px; color: #64748b;">${table.rowCount} rows</span>
+                    </div>
+                    <div class="schema-columns">
+                        ${table.columns.map(col => `
+                            <div class="schema-column">
+                                <span class="column-name">${col.name}</span>
+                                ${col.isPrimaryKey ? '<span class="column-pk">PK</span>' : ''}
+                                <span class="column-type">${col.type}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectTable(tableName) {
+            selectedTable = tableName;
+
+            // Update UI
+            tablesList.querySelectorAll('.table-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.table === tableName);
+            });
+
+            // Load table data
+            sqlEditor.value = `SELECT * FROM "${tableName}" LIMIT 50`;
+            executeQuery();
+
+            // Switch to SQL tab
+            switchTab('sql');
+        }
+
+        function setupEventListeners() {
+            // Tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => switchTab(tab.dataset.panel));
+            });
+
+            // Chat
+            sendBtn.addEventListener('click', sendMessage);
+            chatInput.addEventListener('keypress', e => {
+                if (e.key === 'Enter') sendMessage();
+            });
+
+            // SQL
+            execBtn.addEventListener('click', executeQuery);
+            clearBtn.addEventListener('click', () => {
+                sqlEditor.value = '';
+                resultsTable.innerHTML = '';
+                resultsInfo.textContent = '';
+            });
+            sqlEditor.addEventListener('keydown', e => {
+                if (e.ctrlKey && e.key === 'Enter') executeQuery();
+            });
+        }
+
+        function switchTab(panelId) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+
+            document.querySelector(`.tab[data-panel="${panelId}"]`).classList.add('active');
+            document.getElementById(`panel-${panelId}`).classList.add('active');
+        }
+
+        async function sendMessage() {
+            const question = chatInput.value.trim();
+            if (!question) return;
+
+            // Add user message
+            addMessage(question, 'user');
+            chatInput.value = '';
+            sendBtn.disabled = true;
+
+            // Add loading message
+            const loadingId = addMessage('<div class="loading"><div class="spinner"></div> Analizuję pytanie...</div>', 'ai', true);
+
+            try {
+                const response = await fetch(`${API_BASE}/ask`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question })
+                });
+
+                const result = await response.json();
+
+                // Remove loading message
+                document.getElementById(loadingId)?.remove();
+
+                if (result.error) {
+                    addMessage(`<div class="error">❌ ${result.error}</div><div class="message-sql">${result.sql || 'Brak SQL'}</div>`, 'ai', true);
+                } else {
+                    let content = `<p>${result.explanation}</p>`;
+                    content += `<div class="message-sql">${result.sql}</div>`;
+
+                    if (result.results.rows.length > 0) {
+                        content += `<p style="margin-top: 12px; color: #64748b;">📊 ${result.results.rowCount} wyników (${result.results.executionTime}ms)</p>`;
+                        content += renderMiniTable(result.results);
+                    }
+
+                    addMessage(content, 'ai', true);
+                }
+            } catch (error) {
+                document.getElementById(loadingId)?.remove();
+                addMessage(`<div class="error">❌ Błąd: ${error.message}</div>`, 'ai', true);
+            }
+
+            sendBtn.disabled = false;
+        }
+
+        function addMessage(content, type, isHtml = false) {
+            const id = 'msg-' + Date.now();
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = `message ${type}`;
+            div.innerHTML = `<div class="message-content">${isHtml ? content : escapeHtml(content)}</div>`;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return id;
+        }
+
+        function renderMiniTable(results) {
+            if (results.rows.length === 0) return '<p style="color: #64748b;">Brak wyników</p>';
+
+            const cols = results.columns.slice(0, 5);
+            const rows = results.rows.slice(0, 5);
+
+            return `
+                <table style="margin-top: 12px; font-size: 12px;">
+                    <tr>${cols.map(c => `<th style="padding: 6px 10px;">${c}</th>`).join('')}</tr>
+                    ${rows.map(row => `
+                        <tr>${cols.map(c => `<td style="padding: 6px 10px;">${formatValue(row[c])}</td>`).join('')}</tr>
+                    `).join('')}
+                </table>
+                ${results.rows.length > 5 ? `<p style="color: #64748b; font-size: 11px; margin-top: 8px;">...i ${results.rows.length - 5} więcej</p>` : ''}
+            `;
+        }
+
+        async function executeQuery() {
+            const sql = sqlEditor.value.trim();
+            if (!sql) return;
+
+            resultsTable.innerHTML = '<div class="loading"><div class="spinner"></div> Wykonuję zapytanie...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/query`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sql })
+                });
+
+                const result = await response.json();
+
+                if (result.error || result.message) {
+                    resultsTable.innerHTML = `<div class="error" style="margin: 16px;">❌ ${result.error || result.message}</div>`;
+                    resultsInfo.textContent = '';
+                } else {
+                    renderResults(result);
+                }
+            } catch (error) {
+                resultsTable.innerHTML = `<div class="error" style="margin: 16px;">❌ ${error.message}</div>`;
+            }
+        }
+
+        function renderResults(results) {
+            resultsInfo.textContent = `${results.rowCount} wyników • ${results.executionTime}ms`;
+
+            if (results.rows.length === 0) {
+                resultsTable.innerHTML = '<p style="padding: 40px; text-align: center; color: #64748b;">Brak wyników</p>';
+                return;
+            }
+
+            resultsTable.innerHTML = `
+                <table>
+                    <thead><tr>${results.columns.map(c => `<th>${c}</th>`).join('')}</tr></thead>
+                    <tbody>
+                        ${results.rows.map(row => `
+                            <tr>${results.columns.map(c => `<td title="${escapeHtml(String(row[c] ?? ''))}">${formatValue(row[c])}</td>`).join('')}</tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function formatValue(val) {
+            if (val === null || val === undefined) return '<span style="color: #64748b;">null</span>';
+            if (typeof val === 'object') return escapeHtml(JSON.stringify(val)).substring(0, 50);
+            const str = String(val);
+            return escapeHtml(str.length > 50 ? str.substring(0, 50) + '...' : str);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+
+</html>
