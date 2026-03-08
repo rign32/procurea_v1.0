@@ -332,10 +332,10 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                   </div>
                 </div>
 
-                {/* Supplier Types — toggle buttons */}
+                {/* Supplier Types — checkboxes */}
                 <div>
-                  <label className="block text-sm font-medium mb-3">Typy dostawców</label>
-                  <div className="flex gap-3">
+                  <label className="block text-sm font-medium mb-2">Typy dostawców <span className="text-muted-foreground font-normal">(wielokrotny wybór)</span></label>
+                  <div className="space-y-2">
                     {[
                       { value: 'PRODUCENT', label: 'Producenci', desc: 'Firmy które same wytwarzają produkty' },
                       { value: 'HANDLOWIEC', label: 'Handlowcy / Dystrybutorzy', desc: 'Sklepy, hurtownie, pośrednicy' },
@@ -343,29 +343,29 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                       const currentTypes = form.watch('supplierTypes') || ['PRODUCENT'];
                       const isSelected = currentTypes.includes(opt.value);
                       return (
-                        <button
+                        <label
                           key={opt.value}
-                          type="button"
-                          onClick={() => {
-                            const current = form.getValues('supplierTypes') || ['PRODUCENT'];
-                            const updated = isSelected
-                              ? current.filter((t: string) => t !== opt.value)
-                              : [...current, opt.value];
-                            // At least one type must be selected
-                            if (updated.length > 0) {
-                              form.setValue('supplierTypes', updated, { shouldValidate: true });
-                            }
-                          }}
-                          className={cn(
-                            'flex-1 flex flex-col items-start p-4 rounded-lg border-2 transition-all text-left',
-                            isSelected
-                              ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
-                              : 'border-input hover:border-primary/40 hover:bg-muted/30'
-                          )}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg border cursor-pointer hover:bg-muted/30 transition-colors"
                         >
-                          <p className="font-medium text-sm">{opt.label}</p>
-                          <p className="text-xs text-muted-foreground mt-1">{opt.desc}</p>
-                        </button>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => {
+                              const current = form.getValues('supplierTypes') || ['PRODUCENT'];
+                              const updated = isSelected
+                                ? current.filter((t: string) => t !== opt.value)
+                                : [...current, opt.value];
+                              if (updated.length > 0) {
+                                form.setValue('supplierTypes', updated, { shouldValidate: true });
+                              }
+                            }}
+                            className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
+                          />
+                          <div>
+                            <p className="font-medium text-sm">{opt.label}</p>
+                            <p className="text-xs text-muted-foreground">{opt.desc}</p>
+                          </div>
+                        </label>
                       );
                     })}
                   </div>

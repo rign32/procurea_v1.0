@@ -75,6 +75,11 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
             )`,
             // 20260303174422_add_user_plan_field
             `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "plan" TEXT NOT NULL DEFAULT 'research'`,
+            // 20260308123615_add_company_type_fields
+            `ALTER TABLE "Supplier" ADD COLUMN IF NOT EXISTS "companyType" TEXT DEFAULT 'NIEJASNY'`,
+            `ALTER TABLE "Supplier" ADD COLUMN IF NOT EXISTS "companyTypeConfidence" INTEGER DEFAULT 0`,
+            `ALTER TABLE "Supplier" ADD COLUMN IF NOT EXISTS "needsManualClassification" BOOLEAN NOT NULL DEFAULT false`,
+            `ALTER TABLE "Supplier" ADD COLUMN IF NOT EXISTS "sourceType" TEXT DEFAULT 'SEARCH'`,
         ];
 
         let applied = 0;
