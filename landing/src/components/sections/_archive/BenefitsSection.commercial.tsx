@@ -92,7 +92,7 @@ const benefitCards = [
   {
     title: "Więcej ofert = lepsza cena",
     description:
-      "Docierasz do dostawców, do których normalnie byś nie trafił. Większy zasięg i automatyczne wzbogacanie danych oznaczają większą bazę dostawców i lepszą pozycję negocjacyjną — średnio 6% niższe ceny.",
+      "Docierasz do dostawców, do których normalnie byś nie trafił. Automatyczne follow-upy zwiększają liczbę odpowiedzi. Więcej ofert oznacza lepszą pozycję negocjacyjną i średnio 6% niższe ceny.",
     gradient: "from-emerald-500 to-cyan-500",
     lightBg: "bg-gradient-to-br from-emerald-50/50 to-cyan-50/30",
   },

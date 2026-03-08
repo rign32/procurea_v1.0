@@ -48,7 +48,14 @@ export class EnrichmentAgentService {
         ];
     }
 
-    async execute(analystData: any, originalUrl: string): Promise<any> {
+    private static readonly LANGUAGE_NAMES: Record<string, string> = {
+        pl: 'polskim', en: 'English', de: 'Deutsch', fr: 'français',
+        it: 'italiano', es: 'español', cs: 'čeština', nl: 'Nederlands',
+        sv: 'svenska', da: 'dansk', ro: 'română', hu: 'magyar',
+        pt: 'português', fi: 'suomi', ja: '日本語', ko: '한국어', zh: '中文',
+    };
+
+    async execute(analystData: any, originalUrl: string, userLanguage: string = 'pl'): Promise<any> {
         const companyName = analystData.company_name || 'Unknown';
         const targetDomain = this.normalizeToRootDomain(originalUrl);
         const targetDisplayDomain = this.extractDomainForDisplay(targetDomain);
@@ -83,6 +90,9 @@ ZADANIA:
 2. Wielkość Firmy: np. "50-200", "200-500"
 3. Specjalizacja: max 5 słów
 4. Certyfikaty: lista ISO/IATF/AS9100
+
+JĘZYK WYJŚCIA: Wszystkie pola tekstowe (specialization, country, city) MUSZĄ być w języku ${EnrichmentAgentService.LANGUAGE_NAMES[userLanguage] || userLanguage}.
+Nazwy firm pozostaw oryginalne — NIE tłumacz nazw własnych.
 
 Zwróć JSON:
 {

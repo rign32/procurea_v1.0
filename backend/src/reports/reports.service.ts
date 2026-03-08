@@ -1,10 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { GeminiService } from '../common/services/gemini.service';
 import { normalizeCountry } from '../common/normalize-country';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const PDFDocument = require('pdfkit');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const PptxGenJS = require('pptxgenjs');
 
 @Injectable()
 export class ReportsService {
-    constructor(private readonly prisma: PrismaService) { }
+    private readonly logger = new Logger(ReportsService.name);
+
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly geminiService: GeminiService,
+    ) { }
 
     /**
      * Campaign report: suppliers, sequence progress per step, country breakdown
@@ -210,6 +220,518 @@ export class ReportsService {
     /**
      * Top suppliers by response rate and average score
      */
+    /**
+     * AI-generated campaign summary with market insights
+     */
+    async generateAiSummary(campaignId: string) {
+        // Check cache (24h TTL)
+        const campaign = await this.prisma.campaign.findUnique({
+            where: { id: campaignId },
+            select: {
+                aiSummary: true,
+                aiSummaryGeneratedAt: true,
+                name: true,
+                status: true,
+                rfqRequest: { select: { productName: true, category: true, material: true } },
+                suppliers: {
+                    where: { deletedAt: null },
+                    select: {
+                        name: true,
+                        country: true,
+                        specialization: true,
+                        analysisScore: true,
+                        companyType: true,
+                        employeeCount: true,
+                        certificates: true,
+                        city: true,
+                    },
+                },
+            },
+        });
+
+        if (!campaign) return null;
+
+        // Return cached summary if fresh (< 24h)
+        if (campaign.aiSummary && campaign.aiSummaryGeneratedAt) {
+            const age = Date.now() - campaign.aiSummaryGeneratedAt.getTime();
+            if (age < 24 * 60 * 60 * 1000) {
+                return JSON.parse(campaign.aiSummary);
+            }
+        }
+
+        const suppliers = campaign.suppliers;
+        if (suppliers.length === 0) {
+            return { error: 'No suppliers found for this campaign' };
+        }
+
+        const productName = campaign.rfqRequest?.productName || campaign.name;
+
+        // Company type breakdown
+        const typeBreakdown: Record<string, number> = {};
+        for (const s of suppliers) {
+            const t = s.companyType || 'NIEJASNY';
+            typeBreakdown[t] = (typeBreakdown[t] || 0) + 1;
+        }
+
+        // Country breakdown
+        const countryBreakdown: Record<string, number> = {};
+        for (const s of suppliers) {
+            const c = normalizeCountry(s.country);
+            countryBreakdown[c] = (countryBreakdown[c] || 0) + 1;
+        }
+
+        const prompt = `Jesteś analitykiem zakupowym. Przeanalizuj wyniki kampanii sourcingowej.
+
+PRODUKT: ${productName}
+KATEGORIA: ${campaign.rfqRequest?.category || 'N/A'}
+MATERIAŁ: ${campaign.rfqRequest?.material || 'N/A'}
+DOSTAWCY (${suppliers.length}):
+${JSON.stringify(suppliers.map(s => ({
+    name: s.name,
+    country: normalizeCountry(s.country),
+    city: s.city,
+    specialization: s.specialization,
+    score: s.analysisScore,
+    type: s.companyType,
+    employees: s.employeeCount,
+    certificates: s.certificates,
+})), null, 2)}
+
+ROZKŁAD TYPÓW: ${JSON.stringify(typeBreakdown)}
+ROZKŁAD KRAJÓW: ${JSON.stringify(countryBreakdown)}
+
+Wygeneruj raport w formacie JSON:
+{
+  "marketOverview": "2-3 zdania podsumowujące rynek dostawców tego produktu",
+  "keyPlayers": [{"name": "Nazwa firmy", "why": "Dlaczego wyróżniający się"}],
+  "geographicAnalysis": "Analiza rozkładu geograficznego dostawców",
+  "coverageAssessment": "HIGH|MEDIUM|LOW",
+  "coverageNote": "Wyjaśnienie oceny pokrycia rynku",
+  "recommendations": ["Rekomendacja 1", "Rekomendacja 2", "Rekomendacja 3"],
+  "riskFactors": ["Ryzyko 1", "Ryzyko 2"],
+  "priceInsight": "Szacunkowy kontekst cenowy na podstawie wielkości firm i regionu",
+  "companyTypeBreakdown": ${JSON.stringify(typeBreakdown)},
+  "countryBreakdown": ${JSON.stringify(countryBreakdown)}
+}
+
+ZASADY:
+- keyPlayers: max 5, posortowane od najważniejszego
+- recommendations: 3-5 praktycznych rekomendacji
+- riskFactors: 2-3 kluczowe ryzyka
+- coverageAssessment: HIGH (>15 dostawców, dobry rozkład), MEDIUM (8-15), LOW (<8)
+- Pisz po polsku
+- Zwróć TYLKO JSON, bez komentarzy`;
+
+        try {
+            const response = await this.geminiService.generateContent(prompt);
+            const jsonString = response.replace(/```json/g, '').replace(/```/g, '').trim();
+            const summary = JSON.parse(jsonString);
+
+            // Cache in DB
+            await this.prisma.campaign.update({
+                where: { id: campaignId },
+                data: {
+                    aiSummary: JSON.stringify(summary),
+                    aiSummaryGeneratedAt: new Date(),
+                },
+            });
+
+            return summary;
+        } catch (error: any) {
+            this.logger.error(`AI summary generation failed: ${error.message}`);
+            return { error: 'Failed to generate AI summary' };
+        }
+    }
+
+    /**
+     * Shared helper: get AI summary + supplier data for PDF/PPTX export
+     */
+    private async getReportData(campaignId: string) {
+        const campaign = await this.prisma.campaign.findUnique({
+            where: { id: campaignId },
+            select: {
+                name: true,
+                status: true,
+                createdAt: true,
+                aiSummary: true,
+                rfqRequest: { select: { productName: true, category: true, material: true } },
+                suppliers: {
+                    where: { deletedAt: null },
+                    orderBy: { analysisScore: 'desc' },
+                    select: {
+                        name: true,
+                        country: true,
+                        city: true,
+                        specialization: true,
+                        analysisScore: true,
+                        companyType: true,
+                        certificates: true,
+                        website: true,
+                    },
+                },
+            },
+        });
+
+        if (!campaign) return null;
+
+        let aiSummary = campaign.aiSummary ? JSON.parse(campaign.aiSummary) : null;
+        if (!aiSummary) {
+            aiSummary = await this.generateAiSummary(campaignId);
+            if (aiSummary?.error) aiSummary = null;
+        }
+
+        const countryBreakdown: Record<string, number> = {};
+        for (const s of campaign.suppliers) {
+            const c = normalizeCountry(s.country);
+            countryBreakdown[c] = (countryBreakdown[c] || 0) + 1;
+        }
+
+        return {
+            campaignName: campaign.name,
+            productName: campaign.rfqRequest?.productName || campaign.name,
+            category: campaign.rfqRequest?.category || null,
+            material: campaign.rfqRequest?.material || null,
+            createdAt: campaign.createdAt,
+            aiSummary,
+            suppliers: campaign.suppliers,
+            countryBreakdown,
+        };
+    }
+
+    /**
+     * Generate branded PDF report
+     */
+    async generatePdf(campaignId: string): Promise<Buffer> {
+        const data = await this.getReportData(campaignId);
+        if (!data) throw new Error('Campaign not found');
+
+        const BRAND_COLOR = '#2563eb';
+        const GRAY = '#6b7280';
+        const DARK = '#111827';
+
+        return new Promise((resolve, reject) => {
+            const doc = new PDFDocument({ size: 'A4', margin: 50 });
+            const chunks: Buffer[] = [];
+            doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+            doc.on('end', () => resolve(Buffer.concat(chunks)));
+            doc.on('error', reject);
+
+            // --- HEADER ---
+            doc.fontSize(24).fillColor(BRAND_COLOR).text('Procurea', 50, 50);
+            doc.fontSize(9).fillColor(GRAY).text('Raport analizy sourcingowej', 50, 78);
+            doc.moveTo(50, 95).lineTo(545, 95).strokeColor(BRAND_COLOR).lineWidth(2).stroke();
+
+            // --- TITLE ---
+            doc.moveDown(1);
+            doc.fontSize(18).fillColor(DARK).text(data.campaignName, 50, 110);
+            const meta: string[] = [];
+            if (data.category) meta.push(`Kategoria: ${data.category}`);
+            if (data.material) meta.push(`Materiał: ${data.material}`);
+            meta.push(`Dostawców: ${data.suppliers.length}`);
+            meta.push(`Data: ${new Date(data.createdAt).toLocaleDateString('pl-PL')}`);
+            doc.fontSize(9).fillColor(GRAY).text(meta.join('  |  '), 50, 135);
+
+            let y = 160;
+
+            if (data.aiSummary) {
+                const s = data.aiSummary;
+
+                // Market Overview
+                y = this.pdfSection(doc, 'Przegląd rynku', s.marketOverview, y, BRAND_COLOR, DARK, GRAY);
+
+                // Coverage
+                const coverageLabel = s.coverageAssessment === 'HIGH' ? 'Wysokie' : s.coverageAssessment === 'MEDIUM' ? 'Średnie' : 'Niskie';
+                y = this.pdfSection(doc, `Pokrycie rynku: ${coverageLabel}`, s.coverageNote, y, BRAND_COLOR, DARK, GRAY);
+
+                // Key Players
+                if (s.keyPlayers?.length > 0) {
+                    y = this.pdfCheckPage(doc, y, 80);
+                    doc.fontSize(12).fillColor(BRAND_COLOR).text('Kluczowi gracze', 50, y);
+                    y += 18;
+                    for (const kp of s.keyPlayers.slice(0, 5)) {
+                        y = this.pdfCheckPage(doc, y, 20);
+                        doc.fontSize(9).fillColor(DARK).text(`• ${kp.name}`, 55, y, { continued: true })
+                            .fillColor(GRAY).text(` — ${kp.why}`, { continued: false });
+                        y += 14;
+                    }
+                    y += 6;
+                }
+
+                // Geographic + Price
+                if (s.geographicAnalysis) {
+                    y = this.pdfSection(doc, 'Analiza geograficzna', s.geographicAnalysis, y, BRAND_COLOR, DARK, GRAY);
+                }
+                if (s.priceInsight) {
+                    y = this.pdfSection(doc, 'Kontekst cenowy', s.priceInsight, y, BRAND_COLOR, DARK, GRAY);
+                }
+
+                // Recommendations
+                if (s.recommendations?.length > 0) {
+                    y = this.pdfCheckPage(doc, y, 60);
+                    doc.fontSize(12).fillColor(BRAND_COLOR).text('Rekomendacje', 50, y);
+                    y += 18;
+                    for (const r of s.recommendations) {
+                        y = this.pdfCheckPage(doc, y, 20);
+                        doc.fontSize(9).fillColor(DARK).text(`✓ ${r}`, 55, y);
+                        y += 14;
+                    }
+                    y += 6;
+                }
+
+                // Risk Factors
+                if (s.riskFactors?.length > 0) {
+                    y = this.pdfCheckPage(doc, y, 60);
+                    doc.fontSize(12).fillColor(BRAND_COLOR).text('Czynniki ryzyka', 50, y);
+                    y += 18;
+                    for (const r of s.riskFactors) {
+                        y = this.pdfCheckPage(doc, y, 20);
+                        doc.fontSize(9).fillColor(DARK).text(`⚠ ${r}`, 55, y);
+                        y += 14;
+                    }
+                    y += 6;
+                }
+            }
+
+            // --- COUNTRY BREAKDOWN ---
+            const countries = Object.entries(data.countryBreakdown)
+                .sort((a, b) => b[1] - a[1]).slice(0, 10);
+            if (countries.length > 0) {
+                y = this.pdfCheckPage(doc, y, 40 + countries.length * 14);
+                doc.fontSize(12).fillColor(BRAND_COLOR).text('Rozkład krajów', 50, y);
+                y += 18;
+                for (const [country, count] of countries) {
+                    doc.fontSize(9).fillColor(DARK).text(`${country}: ${count}`, 55, y);
+                    y += 14;
+                }
+                y += 10;
+            }
+
+            // --- TOP SUPPLIERS TABLE ---
+            const topSuppliers = data.suppliers.slice(0, 20);
+            if (topSuppliers.length > 0) {
+                doc.addPage();
+                y = 50;
+                doc.fontSize(14).fillColor(BRAND_COLOR).text('Top dostawcy', 50, y);
+                y += 25;
+
+                // Table header
+                doc.fontSize(8).fillColor(GRAY);
+                doc.text('Firma', 50, y);
+                doc.text('Kraj', 220, y);
+                doc.text('Miasto', 300, y);
+                doc.text('Specjalizacja', 370, y);
+                doc.text('Score', 510, y);
+                y += 14;
+                doc.moveTo(50, y).lineTo(545, y).strokeColor('#e5e7eb').lineWidth(0.5).stroke();
+                y += 6;
+
+                for (const sup of topSuppliers) {
+                    y = this.pdfCheckPage(doc, y, 16);
+                    doc.fontSize(8).fillColor(DARK);
+                    doc.text((sup.name || '').substring(0, 30), 50, y, { width: 165 });
+                    doc.text(normalizeCountry(sup.country) || '', 220, y, { width: 75 });
+                    doc.text((sup.city || '').substring(0, 15), 300, y, { width: 65 });
+                    doc.text((sup.specialization || '').substring(0, 25), 370, y, { width: 135 });
+                    const score = sup.analysisScore != null ? `${Math.round(sup.analysisScore * 10)}%` : '—';
+                    doc.text(score, 510, y, { width: 35 });
+                    y += 14;
+                }
+            }
+
+            // --- WATERMARK FOOTER (every page) ---
+            const pages = doc.bufferedPageRange();
+            for (let i = 0; i < pages.count; i++) {
+                doc.switchToPage(i);
+                doc.fontSize(8).fillColor(GRAY)
+                    .text('Wygenerowano przez Procurea', 50, 780, { align: 'center', width: 495 });
+            }
+
+            doc.end();
+        });
+    }
+
+    private pdfSection(doc: any, title: string, text: string, y: number,
+        brandColor: string, dark: string, gray: string): number {
+        y = this.pdfCheckPage(doc, y, 50);
+        doc.fontSize(12).fillColor(brandColor).text(title, 50, y);
+        y += 18;
+        doc.fontSize(9).fillColor(dark).text(text || '', 50, y, { width: 495, lineGap: 3 });
+        y += doc.heightOfString(text || '', { width: 495, lineGap: 3 }) + 12;
+        return y;
+    }
+
+    private pdfCheckPage(doc: any, y: number, needed: number): number {
+        if (y + needed > 760) {
+            doc.addPage();
+            return 50;
+        }
+        return y;
+    }
+
+    /**
+     * Generate branded PowerPoint report
+     */
+    async generatePptx(campaignId: string): Promise<Buffer> {
+        const data = await this.getReportData(campaignId);
+        if (!data) throw new Error('Campaign not found');
+
+        const pptx = new PptxGenJS();
+        pptx.layout = 'LAYOUT_WIDE';
+        pptx.author = 'Procurea';
+        pptx.title = `Analiza: ${data.campaignName}`;
+
+        const BRAND = '2563EB';
+        const DARK = '111827';
+        const GRAY = '6B7280';
+        const LIGHT_BG = 'F3F4F6';
+        const WHITE = 'FFFFFF';
+
+        const addBranding = (slide: any) => {
+            // Top bar
+            slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: '100%', h: 0.6, fill: { color: BRAND } });
+            slide.addText('Procurea', { x: 0.5, y: 0.1, w: 3, h: 0.4, fontSize: 18, bold: true, color: WHITE, fontFace: 'Arial' });
+            // Footer
+            slide.addText('Wygenerowano przez Procurea', { x: 0, y: 7.0, w: '100%', h: 0.3, fontSize: 8, color: GRAY, align: 'center', fontFace: 'Arial' });
+        };
+
+        // --- SLIDE 1: Title ---
+        const slide1 = pptx.addSlide();
+        addBranding(slide1);
+        slide1.addText(data.campaignName, { x: 0.5, y: 1.5, w: 12, h: 1.2, fontSize: 32, bold: true, color: DARK, fontFace: 'Arial' });
+        const metaLines: string[] = [];
+        if (data.productName) metaLines.push(`Produkt: ${data.productName}`);
+        if (data.category) metaLines.push(`Kategoria: ${data.category}`);
+        if (data.material) metaLines.push(`Materiał: ${data.material}`);
+        metaLines.push(`Dostawców: ${data.suppliers.length}`);
+        metaLines.push(`Data: ${new Date(data.createdAt).toLocaleDateString('pl-PL')}`);
+        slide1.addText(metaLines.join('\n'), { x: 0.5, y: 2.8, w: 12, h: 1.5, fontSize: 14, color: GRAY, fontFace: 'Arial', lineSpacing: 22 });
+
+        if (data.aiSummary) {
+            const s = data.aiSummary;
+
+            // --- SLIDE 2: Market Overview + Coverage ---
+            const slide2 = pptx.addSlide();
+            addBranding(slide2);
+            slide2.addText('Przegląd rynku', { x: 0.5, y: 0.8, w: 12, h: 0.5, fontSize: 22, bold: true, color: DARK, fontFace: 'Arial' });
+            slide2.addText(s.marketOverview || '', { x: 0.5, y: 1.5, w: 12, h: 1.5, fontSize: 13, color: DARK, fontFace: 'Arial', lineSpacing: 20 });
+
+            const coverageLabel = s.coverageAssessment === 'HIGH' ? 'Wysokie' : s.coverageAssessment === 'MEDIUM' ? 'Średnie' : 'Niskie';
+            const coverageColor = s.coverageAssessment === 'HIGH' ? '16A34A' : s.coverageAssessment === 'MEDIUM' ? 'CA8A04' : 'DC2626';
+            slide2.addShape(pptx.ShapeType.rect, { x: 0.5, y: 3.3, w: 12, h: 1.2, fill: { color: LIGHT_BG }, rectRadius: 0.1 });
+            slide2.addText(`Pokrycie rynku: ${coverageLabel}`, { x: 0.7, y: 3.4, w: 5, h: 0.4, fontSize: 14, bold: true, color: coverageColor, fontFace: 'Arial' });
+            slide2.addText(s.coverageNote || '', { x: 0.7, y: 3.8, w: 11.5, h: 0.6, fontSize: 11, color: GRAY, fontFace: 'Arial' });
+
+            // --- SLIDE 3: Key Players ---
+            if (s.keyPlayers?.length > 0) {
+                const slide3 = pptx.addSlide();
+                addBranding(slide3);
+                slide3.addText('Kluczowi gracze', { x: 0.5, y: 0.8, w: 12, h: 0.5, fontSize: 22, bold: true, color: DARK, fontFace: 'Arial' });
+
+                const rows: any[][] = [
+                    [
+                        { text: '#', options: { bold: true, fontSize: 11, color: WHITE, fill: { color: BRAND }, align: 'center' } },
+                        { text: 'Firma', options: { bold: true, fontSize: 11, color: WHITE, fill: { color: BRAND } } },
+                        { text: 'Dlaczego wyróżniający się', options: { bold: true, fontSize: 11, color: WHITE, fill: { color: BRAND } } },
+                    ],
+                ];
+                s.keyPlayers.slice(0, 5).forEach((kp: any, i: number) => {
+                    const bg = i % 2 === 0 ? LIGHT_BG : WHITE;
+                    rows.push([
+                        { text: `${i + 1}`, options: { fontSize: 11, align: 'center', fill: { color: bg } } },
+                        { text: kp.name, options: { fontSize: 11, bold: true, fill: { color: bg } } },
+                        { text: kp.why, options: { fontSize: 10, color: GRAY, fill: { color: bg } } },
+                    ]);
+                });
+
+                slide3.addTable(rows, { x: 0.5, y: 1.5, w: 12, colW: [0.6, 3.5, 7.9], border: { type: 'solid', pt: 0.5, color: 'E5E7EB' } });
+            }
+
+            // --- SLIDE 4: Geographic + Price ---
+            if (s.geographicAnalysis || s.priceInsight) {
+                const slide4 = pptx.addSlide();
+                addBranding(slide4);
+                let yPos = 0.8;
+                if (s.geographicAnalysis) {
+                    slide4.addText('Analiza geograficzna', { x: 0.5, y: yPos, w: 12, h: 0.5, fontSize: 22, bold: true, color: DARK, fontFace: 'Arial' });
+                    yPos += 0.6;
+                    slide4.addText(s.geographicAnalysis, { x: 0.5, y: yPos, w: 12, h: 1.5, fontSize: 12, color: DARK, fontFace: 'Arial', lineSpacing: 20 });
+                    yPos += 1.8;
+                }
+                if (s.priceInsight) {
+                    slide4.addText('Kontekst cenowy', { x: 0.5, y: yPos, w: 12, h: 0.5, fontSize: 22, bold: true, color: DARK, fontFace: 'Arial' });
+                    yPos += 0.6;
+                    slide4.addText(s.priceInsight, { x: 0.5, y: yPos, w: 12, h: 1.5, fontSize: 12, color: DARK, fontFace: 'Arial', lineSpacing: 20 });
+                }
+            }
+
+            // --- SLIDE 5: Recommendations + Risks ---
+            if (s.recommendations?.length > 0 || s.riskFactors?.length > 0) {
+                const slide5 = pptx.addSlide();
+                addBranding(slide5);
+
+                if (s.recommendations?.length > 0) {
+                    slide5.addText('Rekomendacje', { x: 0.5, y: 0.8, w: 6, h: 0.5, fontSize: 18, bold: true, color: DARK, fontFace: 'Arial' });
+                    const recText = s.recommendations.map((r: string) => `✓  ${r}`).join('\n');
+                    slide5.addText(recText, { x: 0.5, y: 1.4, w: 6, h: 3, fontSize: 11, color: DARK, fontFace: 'Arial', lineSpacing: 22 });
+                }
+                if (s.riskFactors?.length > 0) {
+                    slide5.addText('Czynniki ryzyka', { x: 6.8, y: 0.8, w: 6, h: 0.5, fontSize: 18, bold: true, color: DARK, fontFace: 'Arial' });
+                    const riskText = s.riskFactors.map((r: string) => `⚠  ${r}`).join('\n');
+                    slide5.addText(riskText, { x: 6.8, y: 1.4, w: 6, h: 3, fontSize: 11, color: 'B45309', fontFace: 'Arial', lineSpacing: 22 });
+                }
+            }
+        }
+
+        // --- SLIDE: Country Breakdown ---
+        const countries = Object.entries(data.countryBreakdown)
+            .sort((a, b) => b[1] - a[1]).slice(0, 10);
+        if (countries.length > 0) {
+            const slideC = pptx.addSlide();
+            addBranding(slideC);
+            slideC.addText('Rozkład krajów', { x: 0.5, y: 0.8, w: 12, h: 0.5, fontSize: 22, bold: true, color: DARK, fontFace: 'Arial' });
+
+            const maxCount = countries[0][1];
+            countries.forEach(([country, count], i) => {
+                const yPos = 1.6 + i * 0.5;
+                slideC.addText(country, { x: 0.5, y: yPos, w: 2.5, h: 0.4, fontSize: 12, color: DARK, fontFace: 'Arial' });
+                const barWidth = Math.max(0.3, (count / maxCount) * 7);
+                slideC.addShape(pptx.ShapeType.rect, { x: 3.2, y: yPos + 0.05, w: barWidth, h: 0.3, fill: { color: BRAND }, rectRadius: 0.05 });
+                slideC.addText(`${count}`, { x: 3.2 + barWidth + 0.2, y: yPos, w: 1, h: 0.4, fontSize: 12, bold: true, color: DARK, fontFace: 'Arial' });
+            });
+        }
+
+        // --- SLIDE: Top Suppliers ---
+        const topSuppliers = data.suppliers.slice(0, 15);
+        if (topSuppliers.length > 0) {
+            const slideSup = pptx.addSlide();
+            addBranding(slideSup);
+            slideSup.addText('Top dostawcy', { x: 0.5, y: 0.8, w: 12, h: 0.5, fontSize: 22, bold: true, color: DARK, fontFace: 'Arial' });
+
+            const headerRow: any[] = [
+                { text: 'Firma', options: { bold: true, fontSize: 10, color: WHITE, fill: { color: BRAND } } },
+                { text: 'Kraj', options: { bold: true, fontSize: 10, color: WHITE, fill: { color: BRAND } } },
+                { text: 'Specjalizacja', options: { bold: true, fontSize: 10, color: WHITE, fill: { color: BRAND } } },
+                { text: 'Score', options: { bold: true, fontSize: 10, color: WHITE, fill: { color: BRAND }, align: 'center' } },
+            ];
+            const supRows: any[][] = [headerRow];
+            topSuppliers.forEach((sup, i) => {
+                const bg = i % 2 === 0 ? LIGHT_BG : WHITE;
+                const score = sup.analysisScore != null ? `${Math.round(sup.analysisScore * 10)}%` : '—';
+                supRows.push([
+                    { text: (sup.name || '').substring(0, 35), options: { fontSize: 9, fill: { color: bg } } },
+                    { text: normalizeCountry(sup.country) || '', options: { fontSize: 9, fill: { color: bg } } },
+                    { text: (sup.specialization || '').substring(0, 30), options: { fontSize: 9, fill: { color: bg } } },
+                    { text: score, options: { fontSize: 9, fill: { color: bg }, align: 'center' } },
+                ]);
+            });
+
+            slideSup.addTable(supRows, { x: 0.5, y: 1.5, w: 12, colW: [4, 2.5, 4, 1.5], border: { type: 'solid', pt: 0.5, color: 'E5E7EB' } });
+        }
+
+        const output = await pptx.write({ outputType: 'nodebuffer' });
+        return output as Buffer;
+    }
+
     async getSupplierPerformance(_limit = 20) {
         const suppliers = await this.prisma.supplier.findMany({
             include: {

@@ -2,10 +2,9 @@ import { Link } from "react-router-dom"
 
 const footerLinks = {
   produkt: [
-    { label: "Funkcje", href: "#funkcje" },
+    { label: "Co zyskujesz", href: "#co-zyskujesz" },
     { label: "Jak to działa", href: "#jak-to-dziala" },
     { label: "Dla kogo", href: "#dla-kogo" },
-    { label: "Cennik", href: "#cennik" },
     { label: "FAQ", href: "#faq" },
   ],
   firma: [
@@ -33,7 +32,7 @@ export function Footer() {
               <span className="text-lg font-bold text-white">Procurea</span>
             </Link>
             <p className="text-sm text-gray-500 leading-relaxed max-w-xs">
-              Platforma AI do inteligentnego sourcingu dostawców dla firm produkcyjnych.
+              Polskie narzędzie AI do wyszukiwania dostawców. Obecnie w beta testach.
             </p>
           </div>
 

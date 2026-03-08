@@ -8,10 +8,9 @@ import { cn } from "@/lib/utils"
 const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 
 const navLinks = [
-  { label: "Funkcje", href: "#funkcje" },
   { label: "Jak to działa", href: "#jak-to-dziala" },
+  { label: "Co zyskujesz", href: "#co-zyskujesz" },
   { label: "Dla kogo", href: "#dla-kogo" },
-  { label: "Cennik", href: "#cennik" },
   { label: "FAQ", href: "#faq" },
 ]
 
@@ -37,6 +36,9 @@ export function Navbar() {
                 <span className="text-sm font-bold">P</span>
               </div>
               <span className="text-lg font-bold tracking-tight">Procurea</span>
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
+                Beta
+              </span>
             </Link>
 
             {/* Desktop Nav */}
@@ -68,7 +70,7 @@ export function Navbar() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center px-5 py-2 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all duration-200 hover:shadow-md"
               >
-                Rozpocznij za darmo
+                Testuj za darmo
               </a>
             </div>
 

@@ -22,6 +22,7 @@ import { LoggerModule } from './common/logger/logger.module';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { AuthMeLoggerMiddleware } from './common/middleware/auth-me-logger.middleware';
 
+import { FeedbackModule } from './feedback/feedback.module';
 import { PostHogModule } from './posthog/posthog.module';
 import { SentryModule } from '@sentry/nestjs/setup';
 
@@ -53,6 +54,7 @@ import { SentryModule } from '@sentry/nestjs/setup';
     PortalModule,
     UploadsModule,
     ReportsModule,
+    FeedbackModule,
     PostHogModule,
   ],
   controllers: [AppController],

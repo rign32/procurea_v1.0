@@ -2,7 +2,7 @@ import { Injectable, Logger, NotFoundException, Optional } from '@nestjs/common'
 import { normalizeCountry, getLanguageForCountry } from '../common/normalize-country';
 import { PrismaService } from '../prisma/prisma.service';
 import { ProductContext } from './agents/screener.agent';
-import { StrategyAgentService, REGION_LANGUAGE_CONFIG } from './agents/strategy.agent';
+import { StrategyAgentService, REGION_LANGUAGE_CONFIG, SANCTIONED_COUNTRIES } from './agents/strategy.agent';
 import { ScreenerAgentService } from './agents/screener.agent';
 import { EnrichmentAgentService } from './agents/enrichment.agent';
 import { AuditorAgentService } from './agents/auditor.agent';
@@ -56,6 +56,33 @@ const SHOP_DOMAINS = new Set([
 function isPortalDomain(domain: string): boolean {
     const clean = domain.replace(/^www\./, '').toLowerCase();
     return PORTAL_DOMAINS.has(clean) || [...PORTAL_DOMAINS].some(p => clean.endsWith('.' + p));
+}
+
+/**
+ * Infer country from domain TLD when enrichment couldn't determine it.
+ * Only uses country-code TLDs (.pl, .de, .cz etc.), NOT generic TLDs (.com, .net, .org).
+ */
+function inferCountryFromTLD(domain: string): string | null {
+    const clean = domain.replace(/^www\./, '').toLowerCase();
+    const parts = clean.split('.');
+    const tld = parts[parts.length - 1];
+    const TLD_TO_COUNTRY: Record<string, string> = {
+        'pl': 'Polska', 'de': 'Niemcy', 'cz': 'Czechy', 'sk': 'Słowacja',
+        'hu': 'Węgry', 'at': 'Austria', 'fr': 'Francja', 'it': 'Włochy',
+        'es': 'Hiszpania', 'nl': 'Holandia', 'be': 'Belgia', 'ch': 'Szwajcaria',
+        'se': 'Szwecja', 'dk': 'Dania', 'no': 'Norwegia', 'fi': 'Finlandia',
+        'pt': 'Portugalia', 'ro': 'Rumunia', 'bg': 'Bułgaria', 'hr': 'Chorwacja',
+        'si': 'Słowenia', 'lt': 'Litwa', 'lv': 'Łotwa', 'ee': 'Estonia',
+        'ie': 'Irlandia', 'lu': 'Luksemburg', 'uk': 'Wielka Brytania',
+        'jp': 'Japonia', 'kr': 'Korea Południowa', 'cn': 'Chiny', 'tw': 'Tajwan',
+        'in': 'Indie', 'br': 'Brazylia', 'mx': 'Meksyk', 'au': 'Australia',
+        'tr': 'Turcja', 'ua': 'Ukraina', 'ru': 'Rosja',
+    };
+    // Handle compound TLDs like .co.uk, .co.jp
+    if (parts.length >= 3 && parts[parts.length - 2] === 'co') {
+        return TLD_TO_COUNTRY[tld] || null;
+    }
+    return TLD_TO_COUNTRY[tld] || null;
 }
 
 function parseEmployeeCount(raw: string | undefined): number | null {
@@ -159,12 +186,30 @@ interface LanguageWorkerResult {
     errors: string[];
 }
 
+// URL collected during Phase 2A (search-only), processed in Phase 2B
+interface CollectedUrl {
+    url: string;
+    originLanguage: string;
+    originCountry: string;
+    workerTag: string;
+}
+
 @Injectable()
 export class SourcingService {
     private readonly logger = new Logger(SourcingService.name);
 
     // Concurrency limit for parallel URL processing within each worker
-    private readonly urlLimit = pLimit(parseInt(process.env.URL_LIMIT || '10', 10));
+    private readonly urlLimit = pLimit(parseInt(process.env.URL_LIMIT || '20', 10));
+
+    // Deep Research counter per campaign (cap expensive subpage scraping)
+    private readonly deepResearchCounts = new Map<string, number>();
+    private readonly MAX_DEEP_RESEARCH = parseInt(process.env.MAX_DEEP_RESEARCH || '30', 10);
+
+    // Campaign cancellation flags (in-memory, per-instance)
+    private readonly cancelledCampaigns = new Set<string>();
+    private readonly campaignStartTimes = new Map<string, number>();
+    private readonly PIPELINE_TIMEOUT_MS = parseInt(process.env.PIPELINE_TIMEOUT_MS || '1200000', 10); // 20 min
+    private readonly PIPELINE_SUPPLIER_LIMIT = parseInt(process.env.PIPELINE_SUPPLIER_LIMIT || '250', 10);
 
     constructor(
         private readonly prisma: PrismaService,
@@ -248,8 +293,15 @@ export class SourcingService {
             }
         });
 
+        // Fetch user language for translated pipeline output
+        let userLanguage = 'pl';
+        if (userId) {
+            const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { language: true } });
+            userLanguage = user?.language || 'pl';
+        }
+
         // Run async to not block request
-        this.runMultimodalPipeline(campaign.id, dto).catch(async err => {
+        this.runMultimodalPipeline(campaign.id, dto, userLanguage).catch(async err => {
             this.logger.error(`Campaign ${campaign.id} failed`, err);
             await this.prisma.campaign.update({
                 where: { id: campaign.id },
@@ -449,6 +501,25 @@ export class SourcingService {
         });
     }
 
+    async stopCampaign(id: string) {
+        this.cancelledCampaigns.add(id);
+        await this.log(id, `[STOP] Campaign manually stopped by user`);
+        await this.prisma.campaign.update({
+            where: { id },
+            data: { status: 'STOPPED' },
+        });
+        this.sourcingGateway?.emitCompleted(id);
+        return { success: true, message: 'Campaign stop signal sent' };
+    }
+
+    private shouldStop(campaignId: string, qualifiedCount: number): string | null {
+        if (this.cancelledCampaigns.has(campaignId)) return 'USER_STOPPED';
+        const startTime = this.campaignStartTimes.get(campaignId);
+        if (startTime && Date.now() - startTime > this.PIPELINE_TIMEOUT_MS) return 'TIMEOUT_20MIN';
+        if (qualifiedCount >= this.PIPELINE_SUPPLIER_LIMIT) return 'SUPPLIER_LIMIT_250';
+        return null;
+    }
+
     async getLogs(campaignId: string, since?: string) {
         const whereClause: any = { campaignId };
 
@@ -599,13 +670,17 @@ OUTPUT FORMAT (JSON only):
      * 4. All workers run SIMULTANEOUSLY (Promise.allSettled)
      * 5. Aggregate and deduplicate results
      */
-    private async runMultimodalPipeline(id: string, dto: CreateCampaignDto) {
+    private async runMultimodalPipeline(id: string, dto: CreateCampaignDto, userLanguage: string = 'pl') {
         const { searchCriteria } = dto;
         const processedDomains = new Set<string>(); // Global deduplication by domain
         const processedCompanyNames = new Set<string>(); // Global deduplication by company name
         let globalQualifiedCount = 0;
-        const MAX_TOTAL_QUALIFIED = parseInt(process.env.MAX_TOTAL_QUALIFIED || '200', 10);
-        const MAX_PER_LANGUAGE = parseInt(process.env.MAX_PER_LANGUAGE || '60', 10);
+
+        // Register pipeline start time for auto-stop
+        this.campaignStartTimes.set(id, Date.now());
+        this.cancelledCampaigns.delete(id); // Clear stale cancel flag
+        const MAX_TOTAL_QUALIFIED = parseInt(process.env.MAX_TOTAL_QUALIFIED || '300', 10);
+        const MAX_PER_LANGUAGE = parseInt(process.env.MAX_PER_LANGUAGE || '80', 10);
 
         try {
             // Extract clean product name — strip "Kampania: ..." prefix from ANY source
@@ -738,38 +813,106 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 await this.log(id, `[FALLBACK] Generated ${languageStrategies.length} fallback strategies with ${fallbackQueries.length} queries each`);
             }
 
-            await this.log(id, `🔍 [SCANNING] Spawning ${languageStrategies.length} parallel language workers...`);
-
-            // --- PHASE 2: EXECUTE LANGUAGE WORKERS IN PARALLEL ---
+            // --- PHASE 2: TWO-PHASE ARCHITECTURE (Search-First, Process-Second) ---
             const optimizedStrategies = languageStrategies;
 
-            // Adaptive parallelism: match the number of strategies, cap at MAX_WORKER_LIMIT
+            // Adaptive parallelism for search phase
             const maxWorkerLimit = parseInt(process.env.MAX_WORKER_LIMIT || '15', 10);
             const effectiveWorkers = Math.min(optimizedStrategies.length, maxWorkerLimit);
-            const effectiveWorkerLimit = pLimit(effectiveWorkers);
-            await this.log(id, `⚡ [SCANNING] Starting ${optimizedStrategies.length} language workers (${effectiveWorkers} parallel)...`);
+            const searchWorkerLimit = pLimit(effectiveWorkers);
 
-            const workerPromises = optimizedStrategies.map(langStrategy =>
-                effectiveWorkerLimit(() =>
-                    this.executeLanguageWorker(
+            // Per-worker budget reservation
+            const totalBudget = this.searchService.getRemainingBudget(id, 'main');
+            const budgetPerWorker = Math.max(3, Math.floor(totalBudget / optimizedStrategies.length));
+            await this.log(id, `🔍 [PHASE 2A] Starting URL collection: ${optimizedStrategies.length} strategies (${effectiveWorkers} parallel), budget: ${totalBudget} total, ${budgetPerWorker} per worker`);
+
+            // --- PHASE 2A: SEARCH COLLECTION (search only, no processing) ---
+            const allCollectedUrls: CollectedUrl[] = [];
+
+            const searchPromises = optimizedStrategies.map(langStrategy =>
+                searchWorkerLimit(() =>
+                    this.collectUrlsForStrategy(
                         id,
-                        dto,
                         langStrategy,
-                        processedDomains,
-                        processedCompanyNames,
-                        MAX_PER_LANGUAGE,
-                        () => globalQualifiedCount,
-                        () => MAX_TOTAL_QUALIFIED,
-                        (count: number) => { globalQualifiedCount += count; },
-                        productContext || undefined
+                        budgetPerWorker,
                     )
                 )
             );
 
-            const workerResults = await Promise.allSettled(workerPromises);
+            const searchResults = await Promise.allSettled(searchPromises);
+            const perCountryCollected = new Map<string, number>();
+
+            for (const result of searchResults) {
+                if (result.status === 'fulfilled') {
+                    allCollectedUrls.push(...result.value);
+                    // Track per-country stats for expansion
+                    for (const item of result.value) {
+                        const key = item.workerTag;
+                        perCountryCollected.set(key, (perCountryCollected.get(key) || 0) + 1);
+                    }
+                }
+            }
+
+            // Global deduplication after all workers finish (prevents race condition where
+            // fast workers claim .com domains before slower workers can collect them)
+            const deduplicatedUrls: CollectedUrl[] = [];
+            const globalSeenDomains = new Set<string>();
+            for (const item of allCollectedUrls) {
+                const domain = this.extractDomain(item.url);
+                if (globalSeenDomains.has(domain)) continue;
+                globalSeenDomains.add(domain);
+                deduplicatedUrls.push(item);
+            }
+            // Merge into processedDomains for Phase 2B (prevents re-processing cached suppliers)
+            for (const d of globalSeenDomains) processedDomains.add(d);
+
+            await this.log(id, `✅ [PHASE 2A] Collected ${allCollectedUrls.length} total URLs → ${deduplicatedUrls.length} unique after global dedup`);
+            this.sourcingGateway?.emitProgress(id, 'SEARCH', 100);
+
+            // --- PHASE 2B: BATCH PROCESSING (all URLs in parallel) ---
+            await this.log(id, `⚡ [PHASE 2B] Processing ${deduplicatedUrls.length} URLs (pLimit ${parseInt(process.env.URL_LIMIT || '20', 10)} parallel)...`);
+
+            let processedCount = 0;
+            const totalToProcess = deduplicatedUrls.length;
+
+            const urlProcessPromises = deduplicatedUrls.map(item =>
+                this.urlLimit(async () => {
+                    const stopReason = this.shouldStop(id, globalQualifiedCount);
+                    if (stopReason || globalQualifiedCount >= MAX_TOTAL_QUALIFIED) return 0;
+                    const result = await this.processSupplierUrl(
+                        id, dto, item.url, item.workerTag,
+                        processedCompanyNames, item.originLanguage, item.originCountry,
+                        productContext || undefined, processedDomains, 0,
+                        userLanguage, knownManufacturers
+                    );
+                    // Increment counter in real-time (safe in single-threaded JS)
+                    if (result > 0) {
+                        globalQualifiedCount += result;
+                    }
+                    processedCount++;
+                    // Emit progress every 50 URLs
+                    if (processedCount % 50 === 0) {
+                        const pct = Math.round((processedCount / totalToProcess) * 100);
+                        await this.log(id, `[PHASE 2B] Progress: ${processedCount}/${totalToProcess} (${pct}%) — qualified: ${globalQualifiedCount}`);
+                        this.sourcingGateway?.emitProgress(id, 'PROCESSING', pct);
+                    }
+                    return result;
+                })
+            );
+
+            await Promise.allSettled(urlProcessPromises);
+
+            await this.log(id, `✅ [PHASE 2B] Batch processing complete. Qualified: ${globalQualifiedCount}/${MAX_TOTAL_QUALIFIED}`);
+
+            // Check stop conditions after Phase 2B
+            const stopAfter2B = this.shouldStop(id, globalQualifiedCount);
+            if (stopAfter2B) {
+                const elapsed = Math.round((Date.now() - (this.campaignStartTimes.get(id) || Date.now())) / 1000);
+                await this.log(id, `[STOP] Pipeline stopped after Phase 2B: ${stopAfter2B} (${elapsed}s elapsed, ${globalQualifiedCount} suppliers)`);
+            }
 
             // --- PHASE 2.5: EXPANSION PASS (second sweep for missed suppliers) ---
-            if (globalQualifiedCount < MAX_TOTAL_QUALIFIED * 0.8) {
+            if (!stopAfter2B && globalQualifiedCount < MAX_TOTAL_QUALIFIED * 0.8) {
                 await this.log(id, `[EXPANSION] Coverage at ${globalQualifiedCount}/${MAX_TOTAL_QUALIFIED} (${Math.round(globalQualifiedCount / MAX_TOTAL_QUALIFIED * 100)}%) — running expansion pass...`);
                 this.sourcingGateway?.emitProgress(id, 'EXPANSION', 0);
 
@@ -790,15 +933,20 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                             countryCounts.set(key, { count: 0, language: strategy.language });
                         }
                     }
-                    workerResults.forEach((result, idx) => {
-                        if (result.status === 'fulfilled') {
-                            const wr = result.value as LanguageWorkerResult;
-                            const key = languageStrategies[idx]?.country;
-                            if (key && countryCounts.has(key)) {
-                                countryCounts.get(key)!.count = wr.suppliersFound;
+                    // Count qualified suppliers per country from DB
+                    const suppliersByCountry = await this.prisma.supplier.groupBy({
+                        by: ['originCountry'],
+                        where: { campaignId: id, deletedAt: null },
+                        _count: true,
+                    });
+                    for (const sc of suppliersByCountry) {
+                        const key = sc.originCountry || '';
+                        for (const [cKey, cVal] of countryCounts) {
+                            if (cKey.toLowerCase() === key.toLowerCase()) {
+                                cVal.count = sc._count;
                             }
                         }
-                    });
+                    }
                     const lowCoverageCountries = Array.from(countryCounts.entries())
                         .filter(([_, v]) => v.count < 3)
                         .map(([country, v]) => ({ country, language: v.language, count: v.count }));
@@ -819,7 +967,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
 
                     await this.log(id, `[EXPANSION] Generated ${expansionResult.expansion_queries.length} expansion queries`);
 
-                    // Group expansion queries by language/country and execute through worker pipeline
+                    // Group expansion queries by language/country
                     const expansionStrategies = new Map<string, { country: string; language: string; queries: string[]; negatives: string[] }>();
 
                     for (const eq of expansionResult.expansion_queries) {
@@ -835,27 +983,53 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                         expansionStrategies.get(key)!.queries.push(eq.query);
                     }
 
-                    const expansionWorkerPromises = Array.from(expansionStrategies.values()).map(strategy =>
-                        effectiveWorkerLimit(() =>
-                            this.executeLanguageWorker(
-                                id, dto, strategy,
-                                processedDomains, processedCompanyNames,
-                                MAX_PER_LANGUAGE,
-                                () => globalQualifiedCount,
-                                () => MAX_TOTAL_QUALIFIED,
-                                (count: number) => { globalQualifiedCount += count; },
-                                productContext || undefined
-                            )
+                    // Expansion also uses collect-then-process
+                    const expansionBudgetPerWorker = Math.max(2, Math.floor(
+                        this.searchService.getRemainingBudget(id, 'main') / Math.max(1, expansionStrategies.size)
+                    ));
+
+                    const expansionCollectPromises = Array.from(expansionStrategies.values()).map(strategy =>
+                        searchWorkerLimit(() =>
+                            this.collectUrlsForStrategy(id, strategy, expansionBudgetPerWorker)
                         )
                     );
 
-                    const expansionWorkerResults = await Promise.allSettled(expansionWorkerPromises);
+                    const expansionCollectResults = await Promise.allSettled(expansionCollectPromises);
+                    const expansionUrlsRaw: CollectedUrl[] = [];
+                    for (const result of expansionCollectResults) {
+                        if (result.status === 'fulfilled') expansionUrlsRaw.push(...result.value);
+                    }
+
+                    // Dedup expansion URLs against already-processed domains
+                    const expansionUrls: CollectedUrl[] = [];
+                    for (const item of expansionUrlsRaw) {
+                        const domain = this.extractDomain(item.url);
+                        if (processedDomains.has(domain)) continue;
+                        processedDomains.add(domain);
+                        expansionUrls.push(item);
+                    }
+                    await this.log(id, `[EXPANSION] Collected ${expansionUrlsRaw.length} → ${expansionUrls.length} unique expansion URLs`);
+
                     let expansionFound = 0;
-                    expansionWorkerResults.forEach(result => {
-                        if (result.status === 'fulfilled') {
-                            expansionFound += (result.value as LanguageWorkerResult).suppliersFound;
-                        }
-                    });
+                    const expansionProcessPromises = expansionUrls.map(item =>
+                        this.urlLimit(async () => {
+                            const expStop = this.shouldStop(id, globalQualifiedCount);
+                            if (expStop || globalQualifiedCount >= MAX_TOTAL_QUALIFIED) return 0;
+                            const result = await this.processSupplierUrl(
+                                id, dto, item.url, item.workerTag,
+                                processedCompanyNames, item.originLanguage, item.originCountry,
+                                productContext || undefined, processedDomains, 0,
+                                userLanguage, knownManufacturers
+                            );
+                            if (result > 0) {
+                                globalQualifiedCount += result;
+                                expansionFound += result;
+                            }
+                            return result;
+                        })
+                    );
+
+                    await Promise.allSettled(expansionProcessPromises);
 
                     await this.log(id, `[EXPANSION] Expansion pass found ${expansionFound} additional suppliers. Total: ${globalQualifiedCount}`);
                     this.sourcingGateway?.emitProgress(id, 'EXPANSION', 100);
@@ -867,7 +1041,8 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             }
 
             // --- PHASE 2.7: COVERAGE CHECK — find missing known manufacturers ---
-            if (knownManufacturers.length > 0) {
+            const stopBeforeCoverage = this.shouldStop(id, globalQualifiedCount);
+            if (!stopBeforeCoverage && knownManufacturers.length > 0) {
                 try {
                     const foundSuppliers = await this.prisma.supplier.findMany({
                         where: { campaignId: id, deletedAt: null },
@@ -901,7 +1076,8 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                                     const result = await this.processSupplierUrl(
                                         id, dto, leader.website, '[LEADER-DIRECT]',
                                         processedCompanyNames, 'en', leader.country || 'EU',
-                                        productContext || undefined, processedDomains, 0
+                                        productContext || undefined, processedDomains, 0,
+                                        userLanguage, knownManufacturers
                                     );
                                     if (result > 0) {
                                         globalQualifiedCount += result;
@@ -923,7 +1099,8 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                                         const result = await this.processSupplierUrl(
                                             id, dto, sr.link, '[LEADER-SEARCH]',
                                             processedCompanyNames, 'en', leader.country || 'EU',
-                                            productContext || undefined, processedDomains, 0
+                                            productContext || undefined, processedDomains, 0,
+                                            userLanguage, knownManufacturers
                                         );
                                         if (result > 0) {
                                             globalQualifiedCount += result;
@@ -947,39 +1124,46 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             }
 
             // --- PHASE 3: AGGREGATE RESULTS ---
-            let totalFound = 0;
-            let totalErrors = 0;
-            const languageStats: string[] = [];
-
             // Re-count from DB for accuracy (includes expansion results)
             const finalSupplierCount = await this.prisma.supplier.count({
                 where: { campaignId: id, deletedAt: null },
             });
-            totalFound = finalSupplierCount;
 
-            workerResults.forEach((result, idx) => {
-                const lang = languageStrategies[idx]?.language || 'unknown';
-                const country = languageStrategies[idx]?.country || 'unknown';
-
-                if (result.status === 'fulfilled') {
-                    const workerResult = result.value as LanguageWorkerResult;
-                    languageStats.push(`${country}/${lang}: ${workerResult.suppliersFound} suppliers`);
-                } else {
-                    totalErrors++;
-                    languageStats.push(`${country}/${lang}: FAILED`);
-                }
+            // Per-country stats from DB
+            const countryStats = await this.prisma.supplier.groupBy({
+                by: ['originCountry'],
+                where: { campaignId: id, deletedAt: null },
+                _count: true,
             });
+            const languageStats = countryStats
+                .map(cs => `${cs.originCountry || '?'}: ${cs._count}`)
+                .sort((a, b) => parseInt(b.split(': ')[1]) - parseInt(a.split(': ')[1]));
 
-            await this.log(id, `[MULTIMODAL] Results: ${languageStats.join(' | ')}`);
-            await this.log(id, `[ANALYSIS] Total suppliers found: ${totalFound} (including expansion pass)`);
-            await this.log(id, `[COMPLETED] Pipeline finished successfully!`);
+            const elapsed = Math.round((Date.now() - (this.campaignStartTimes.get(id) || Date.now())) / 1000);
+            const finalStopReason = this.shouldStop(id, globalQualifiedCount);
 
+            await this.log(id, `[RESULTS] Per-country: ${languageStats.join(' | ')}`);
+            await this.log(id, `[ANALYSIS] Total suppliers found: ${finalSupplierCount} | URLs processed: ${processedCount}/${totalToProcess} | Time: ${elapsed}s`);
+
+            if (finalStopReason) {
+                await this.log(id, `[STOPPED] Pipeline stopped: ${finalStopReason} (${elapsed}s, ${finalSupplierCount} suppliers)`);
+            } else {
+                await this.log(id, `[COMPLETED] Pipeline finished successfully!`);
+            }
+
+            // Use STOPPED status only if manually cancelled, otherwise COMPLETED
+            const finalStatus = this.cancelledCampaigns.has(id) ? 'STOPPED' : 'COMPLETED';
             await this.prisma.campaign.update({
                 where: { id },
-                data: { stage: 'COMPLETED', status: 'COMPLETED' }
+                data: { stage: 'COMPLETED', status: finalStatus }
             });
             this.sourcingGateway?.emitProgress(id, 'COMPLETED', 100);
             this.sourcingGateway?.emitCompleted(id);
+
+            // Cleanup
+            this.cancelledCampaigns.delete(id);
+            this.campaignStartTimes.delete(id);
+            this.deepResearchCounts.delete(id);
 
         } catch (e: any) {
             this.logger.error(`Pipeline error: ${e.message}`);
@@ -989,6 +1173,10 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             });
             await this.log(id, `Error: ${e.message}`);
             this.sourcingGateway?.emitError(id, e.message);
+            // Cleanup on error
+            this.cancelledCampaigns.delete(id);
+            this.campaignStartTimes.delete(id);
+            this.deepResearchCounts.delete(id);
         }
     }
 
@@ -1004,12 +1192,14 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
         dto: CreateCampaignDto,
         langStrategy: { country: string; language: string; queries: string[]; negatives: string[] },
         globalProcessedDomains: Set<string>,
-        globalProcessedCompanyNames: Set<string>, // NEW: Company name deduplication
+        globalProcessedCompanyNames: Set<string>,
         maxPerLanguage: number,
         getGlobalCount: () => number,
         getMaxTotal: () => number,
         incrementGlobalCount: (count: number) => void,
-        productContext?: ProductContext
+        productContext?: ProductContext,
+        userLanguage: string = 'pl',
+        knownManufacturers: { name: string; country?: string; website?: string; size?: string }[] = []
     ): Promise<LanguageWorkerResult> {
         const { country, language, queries, negatives } = langStrategy;
         const workerTag = `[${country.toUpperCase()}/${language.toUpperCase()}]`;
@@ -1017,23 +1207,10 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
         await this.log(campaignId, `${workerTag} Worker started with ${queries.length} queries`);
 
         let localQualified = 0;
-        let consecutiveRejects = 0;
-        let totalRejects = 0;
-        const MAX_CONSECUTIVE_REJECTS_PER_QUERY = parseInt(process.env.MAX_CONSECUTIVE_REJECTS || '15', 10);
-        const MAX_TOTAL_REJECTS = parseInt(process.env.MAX_TOTAL_REJECTS || '50', 10);
         const errors: string[] = [];
 
         try {
             for (const query of queries) {
-                // Reset per-query consecutive rejects (don't let one bad query kill the next good one)
-                consecutiveRejects = 0;
-
-                // Check total rejects safety net
-                if (totalRejects >= MAX_TOTAL_REJECTS) {
-                    await this.log(campaignId, `${workerTag} Total reject limit (${MAX_TOTAL_REJECTS}) reached. Stopping worker.`);
-                    break;
-                }
-
                 // Check global limit
                 if (getGlobalCount() >= getMaxTotal()) {
                     await this.log(campaignId, `${workerTag} Global limit reached. Stopping.`);
@@ -1116,7 +1293,9 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                                 country,
                                 productContext,
                                 globalProcessedDomains,
-                                0
+                                0,
+                                userLanguage,
+                                knownManufacturers
                             );
                         })
                     )
@@ -1127,21 +1306,9 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                         const count = result.value as number;
                         localQualified += count;
                         incrementGlobalCount(count);
-                        consecutiveRejects = 0; // reset on success
-                        totalRejects = 0; // reset total on any success
-                    } else {
-                        consecutiveRejects++;
-                        totalRejects++;
-                        if (result.status === 'rejected') {
-                            errors.push(result.reason?.message || 'Unknown error');
-                        }
+                    } else if (result.status === 'rejected') {
+                        errors.push(result.reason?.message || 'Unknown error');
                     }
-                }
-
-                // Smart termination: stop this query if too many consecutive rejects
-                if (consecutiveRejects >= MAX_CONSECUTIVE_REJECTS_PER_QUERY) {
-                    await this.log(campaignId, `${workerTag} Diminishing returns for current query (${consecutiveRejects} consecutive rejects). Moving to next query.`);
-                    continue; // Move to next query instead of killing the entire worker
                 }
             }
 
@@ -1167,6 +1334,94 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
 
     /**
      * ========================================
+     * PHASE 2A: COLLECT URLs FOR STRATEGY
+     * ========================================
+     * Search-only: executes all queries for a single language strategy,
+     * collects and deduplicates URLs. No processing — returns URLs for batch processing.
+     */
+    private async collectUrlsForStrategy(
+        campaignId: string,
+        langStrategy: { country: string; language: string; queries: string[]; negatives: string[] },
+        budgetForWorker: number,
+    ): Promise<CollectedUrl[]> {
+        const { country, language, queries, negatives } = langStrategy;
+        const workerTag = `[${country.toUpperCase()}/${language.toUpperCase()}]`;
+        const collected: CollectedUrl[] = [];
+        const localSeenDomains = new Set<string>();
+        let searchesUsed = 0;
+
+        await this.log(campaignId, `${workerTag} [COLLECT] Starting URL collection (${queries.length} queries, budget: ${budgetForWorker})`);
+
+        for (const query of queries) {
+            // Per-worker budget check
+            if (searchesUsed >= budgetForWorker) {
+                await this.log(campaignId, `${workerTag} [COLLECT] Worker budget exhausted (${searchesUsed}/${budgetForWorker})`);
+                break;
+            }
+
+            // Also check global budget
+            const remaining = this.searchService.getRemainingBudget(campaignId, 'main');
+            if (remaining <= 0) {
+                await this.log(campaignId, `${workerTag} [COLLECT] Global budget exhausted`);
+                break;
+            }
+
+            const fullQuery = `${query} ${negatives.join(' ')}`;
+
+            let urls: string[] = [];
+            const cachedResults = await this.queryCache.getCachedResults(query);
+
+            if (cachedResults) {
+                urls = cachedResults.map(r => r.link);
+                await this.log(campaignId, `${workerTag} [CACHE] "${query.substring(0, 30)}..." (${urls.length} URLs)`);
+            } else {
+                const locale = languageToGoogleLocale(language);
+
+                if (language === 'en') {
+                    const [usResults, gbResults] = await Promise.all([
+                        this.searchService.searchExtended(fullQuery, { gl: 'us', hl: 'en' }, undefined, campaignId),
+                        this.searchService.searchExtended(fullQuery, { gl: 'gb', hl: 'en' }, undefined, campaignId),
+                    ]);
+                    searchesUsed += 2;
+                    const seen = new Set<string>();
+                    const rawResults: { title: string; link: string; snippet: string }[] = [];
+                    for (const r of [...usResults, ...gbResults]) {
+                        if (!seen.has(r.link)) { seen.add(r.link); rawResults.push(r); }
+                    }
+                    urls = rawResults.map(r => r.link);
+                    if (rawResults.length > 0) {
+                        await this.queryCache.cacheResults(query, rawResults);
+                    }
+                } else {
+                    const rawResults = await this.searchService.searchExtended(fullQuery, locale, undefined, campaignId);
+                    searchesUsed += 1;
+                    urls = rawResults.map(r => r.link);
+                    if (rawResults.length > 0) {
+                        await this.queryCache.cacheResults(query, rawResults);
+                    }
+                }
+            }
+
+            // Per-worker deduplication only (global dedup happens after all workers finish)
+            for (const url of urls) {
+                const domain = this.extractDomain(url);
+                if (localSeenDomains.has(domain)) continue;
+                localSeenDomains.add(domain);
+                collected.push({
+                    url,
+                    originLanguage: language,
+                    originCountry: country,
+                    workerTag,
+                });
+            }
+        }
+
+        await this.log(campaignId, `${workerTag} [COLLECT] Done. ${collected.length} unique URLs, ${searchesUsed} searches used`);
+        return collected;
+    }
+
+    /**
+     * ========================================
      * PROCESS SINGLE SUPPLIER URL
      * ========================================
      * Full A-Z pipeline for one URL:
@@ -1182,7 +1437,9 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
         originCountry: string,
         productContext?: ProductContext,
         globalProcessedDomains?: Set<string>,
-        depth: number = 0
+        depth: number = 0,
+        userLanguage: string = 'pl',
+        knownManufacturers: { name: string; country?: string; website?: string; size?: string }[] = []
     ): Promise<number> {
         try {
             const domain = this.extractDomain(url);
@@ -1204,20 +1461,25 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             if (isPortalDomain(domain)) {
                 await this.log(campaignId, `${workerTag} [PORTAL] ${domain} — forcing directory mining`);
                 const content = await this.scrapingService.fetchContent(url);
-                const screenerResult = await this.screenerAgent.execute(url, content, dto, productContext);
+                const screenerResult = await this.screenerAgent.execute(url, content, dto, productContext, userLanguage);
                 const mentionedCompanies = screenerResult.mentioned_companies || [];
                 if (depth === 0 && mentionedCompanies.length > 0) {
                     await this.log(campaignId, `${workerTag} [PORTAL] ${domain} → ${mentionedCompanies.length} companies to mine`);
                     let mined = 0;
+                    let portalFollowed = 0;
+                    const MAX_PORTAL_LEADS = 10;
                     for (const company of mentionedCompanies) {
+                        if (portalFollowed >= MAX_PORTAL_LEADS) break;
                         if (!company.url) continue;
                         const companyDomain = this.extractDomain(company.url);
                         if (globalProcessedDomains?.has(companyDomain)) continue;
                         globalProcessedDomains?.add(companyDomain);
+                        portalFollowed++;
                         const result = await this.processSupplierUrl(
                             campaignId, dto, company.url, workerTag,
                             processedCompanyNames, originLanguage, originCountry,
-                            productContext, globalProcessedDomains, 1
+                            productContext, globalProcessedDomains, 1,
+                            userLanguage, knownManufacturers
                         );
                         mined += result;
                     }
@@ -1263,7 +1525,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             this.sourcingGateway?.emitSupplierUpdate(campaignId, { url, status: 'SCREENING' });
 
             const content = await this.scrapingService.fetchContent(url);
-            const screenerResult = await this.screenerAgent.execute(url, content, dto, productContext);
+            const screenerResult = await this.screenerAgent.execute(url, content, dto, productContext, userLanguage);
 
             if (!screenerResult.is_relevant) {
                 // DIRECTORY MINING: extract leads from industry portals
@@ -1275,18 +1537,23 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                     await this.log(campaignId, `${workerTag} [DIRECTORY] ${domain} → ${mentionedCompanies.length} mentioned companies`);
 
                     let directoryQualified = 0;
+                    let directoryFollowed = 0;
+                    const MAX_DIRECTORY_LEADS = 5;
                     for (const company of mentionedCompanies) {
+                        if (directoryFollowed >= MAX_DIRECTORY_LEADS) break;
                         if (!company.url) continue;
 
                         const companyDomain = this.extractDomain(company.url);
                         if (globalProcessedDomains?.has(companyDomain)) continue;
                         globalProcessedDomains?.add(companyDomain);
 
+                        directoryFollowed++;
                         await this.log(campaignId, `${workerTag} [DIRECTORY] Following lead: ${company.name} → ${companyDomain}`);
                         const result = await this.processSupplierUrl(
                             campaignId, dto, company.url, workerTag,
                             processedCompanyNames, originLanguage, originCountry,
-                            productContext, globalProcessedDomains, 1
+                            productContext, globalProcessedDomains, 1,
+                            userLanguage, knownManufacturers
                         );
                         directoryQualified += result;
                     }
@@ -1306,16 +1573,21 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 if (depth === 0 && mentionedFromLowScore.length > 0) {
                     await this.log(campaignId, `${workerTag} [DIRECTORY] Low-score page ${domain} (${capScore}%) has ${mentionedFromLowScore.length} leads — mining before rejecting`);
                     let mined = 0;
+                    let lowScoreFollowed = 0;
+                    const MAX_LOW_SCORE_LEADS = 5;
                     for (const company of mentionedFromLowScore) {
+                        if (lowScoreFollowed >= MAX_LOW_SCORE_LEADS) break;
                         if (!company.url) continue;
                         const companyDomain = this.extractDomain(company.url);
                         if (globalProcessedDomains?.has(companyDomain)) continue;
                         globalProcessedDomains?.add(companyDomain);
+                        lowScoreFollowed++;
                         await this.log(campaignId, `${workerTag} [DIRECTORY] Following lead: ${company.name} → ${companyDomain}`);
                         const result = await this.processSupplierUrl(
                             campaignId, dto, company.url, workerTag,
                             processedCompanyNames, originLanguage, originCountry,
-                            productContext, globalProcessedDomains, 1
+                            productContext, globalProcessedDomains, 1,
+                            userLanguage, knownManufacturers
                         );
                         mined += result;
                     }
@@ -1335,16 +1607,21 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 const mentionedFromBorderline = screenerResult.mentioned_companies || [];
                 if (depth === 0 && mentionedFromBorderline.length > 0) {
                     await this.log(campaignId, `${workerTag} [DIRECTORY] Borderline page ${domain} has ${mentionedFromBorderline.length} leads — mining in parallel`);
+                    let borderlineFollowed = 0;
+                    const MAX_BORDERLINE_LEADS = 5;
                     for (const company of mentionedFromBorderline) {
+                        if (borderlineFollowed >= MAX_BORDERLINE_LEADS) break;
                         if (!company.url) continue;
                         const companyDomain = this.extractDomain(company.url);
                         if (globalProcessedDomains?.has(companyDomain)) continue;
                         globalProcessedDomains?.add(companyDomain);
+                        borderlineFollowed++;
                         // Fire-and-forget directory mining (don't block borderline processing)
                         this.processSupplierUrl(
                             campaignId, dto, company.url, workerTag,
                             processedCompanyNames, originLanguage, originCountry,
-                            productContext, globalProcessedDomains, 1
+                            productContext, globalProcessedDomains, 1,
+                            userLanguage, knownManufacturers
                         ).catch(() => {});
                     }
                 }
@@ -1360,17 +1637,26 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             }
 
             // 1.6. DEEP RESEARCH — when classification is unclear, scrape subpages for more evidence
-            if (companyType === 'NIEJASNY' || (screenerResult.company_type_confidence || 0) < 60) {
-                await this.log(campaignId, `${workerTag} DEEP RESEARCH: ${domain} (type=${companyType}, conf=${screenerResult.company_type_confidence})`);
+            // Capped at MAX_DEEP_RESEARCH per campaign to prevent expensive subpage scraping from dominating pipeline
+            const campaignDeepCount = this.deepResearchCounts.get(campaignId) || 0;
+            const shouldDeepResearch =
+                (companyType === 'NIEJASNY' || (screenerResult.company_type_confidence || 0) < 60) &&
+                capScore >= 35 && capScore <= 65 &&  // Only borderline cases worth investigating
+                campaignDeepCount < this.MAX_DEEP_RESEARCH;
+
+            if (shouldDeepResearch) {
+                this.deepResearchCounts.set(campaignId, campaignDeepCount + 1);
+                await this.log(campaignId, `${workerTag} DEEP RESEARCH: ${domain} (type=${companyType}, conf=${screenerResult.company_type_confidence}, deep#${campaignDeepCount + 1}/${this.MAX_DEEP_RESEARCH})`);
 
                 const deepResearchPaths = ['/o-nas', '/about', '/about-us', '/o-firmie',
-                    '/produkty', '/products', '/oferta', '/ueber-uns', '/kontakt', '/impressum'];
+                    '/produkty', '/products', '/oferta', '/ueber-uns', '/kontakt', '/impressum',
+                    '/production', '/produkcja', '/unternehmen', '/prodotti', '/technologie', '/technology'];
 
                 let combinedContent = content;
                 let pagesChecked = 0;
 
                 for (const path of deepResearchPaths) {
-                    if (pagesChecked >= 3) break;
+                    if (pagesChecked >= 3) break;  // Reduced from 5 to 3 — get key pages only
                     try {
                         const subpageUrl = new URL(path, url).toString();
                         const subContent = await this.scrapingService.fetchContent(subpageUrl);
@@ -1382,7 +1668,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 }
 
                 if (pagesChecked > 0) {
-                    const deepResult = await this.screenerAgent.execute(url, combinedContent, dto, productContext);
+                    const deepResult = await this.screenerAgent.execute(url, combinedContent, dto, productContext, userLanguage);
                     if (deepResult.company_type !== 'NIEJASNY' ||
                         (deepResult.company_type_confidence || 0) > (screenerResult.company_type_confidence || 0)) {
                         Object.assign(screenerResult, deepResult);
@@ -1394,6 +1680,37 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                         await this.log(campaignId, `${workerTag} DEEP RESEARCH -> HANDLOWIEC ODRZUCONY: ${domain}`);
                         return 0;
                     }
+                }
+            }
+
+            // 1.7. KNOWN MANUFACTURER PROMOTION — if screener returned NIEJASNY but company is in known manufacturers list
+            if ((screenerResult.company_type === 'NIEJASNY' || !screenerResult.company_type) && knownManufacturers.length > 0) {
+                const companyName = (screenerResult.extracted_data?.company_name || '').toLowerCase();
+                const isKnown = knownManufacturers.some(m => {
+                    const mDomain = m.website ? this.extractDomain(m.website) : '';
+                    return (mDomain && domain.includes(mDomain.replace('www.', ''))) ||
+                           (companyName && companyName.length > 3 && (
+                               companyName.includes(m.name.toLowerCase()) ||
+                               m.name.toLowerCase().includes(companyName)
+                           ));
+                });
+                if (isKnown) {
+                    screenerResult.company_type = 'PRODUCENT';
+                    screenerResult.company_type_confidence = 75;
+                    await this.log(campaignId, `${workerTag} KNOWN MANUFACTURER PROMOTED: ${domain}`);
+                }
+            }
+
+            // 1.8. NIEJASNY GATE — never show unclassified companies to users
+            const finalCompanyType = screenerResult.company_type || 'NIEJASNY';
+            const finalConfidence = screenerResult.company_type_confidence || 0;
+            if (finalCompanyType === 'NIEJASNY') {
+                if (finalConfidence >= 30) {
+                    screenerResult.company_type = 'PRODUCENT';
+                    await this.log(campaignId, `${workerTag} NIEJASNY->PRODUCENT: ${domain} (conf=${finalConfidence})`);
+                } else {
+                    await this.log(campaignId, `${workerTag} NIEJASNY ODRZUCONY: ${domain} (conf=${finalConfidence})`);
+                    return 0;
                 }
             }
 
@@ -1419,7 +1736,37 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 await this.log(campaignId, `${workerTag} FAST TRACK (${capScore}%): ${domain} [${currentCompanyType}] — skipping enrichment`);
             } else {
                 this.sourcingGateway?.emitSupplierUpdate(campaignId, { url, status: 'ENRICHING' });
-                enrichmentResult = await this.enrichmentAgent.execute(screenerResult.extracted_data || {}, url);
+                enrichmentResult = await this.enrichmentAgent.execute(screenerResult.extracted_data || {}, url, userLanguage);
+            }
+
+            // 2.5. LOCAL SUBSIDIARY DETECTION — if supplier is from another country, search for local entity
+            const supplierCountryForLocal = normalizeCountry(
+                enrichmentResult?.enriched_data?.country || screenerResult.extracted_data?.country || ''
+            );
+            const userCountry = 'Polska'; // TODO: from organization settings
+            if (supplierCountryForLocal !== userCountry && supplierCountryForLocal !== 'Nieznany') {
+                const companyNameForLocal = enrichmentResult?.enriched_data?.company_name || screenerResult.extracted_data?.company_name || '';
+                if (companyNameForLocal) {
+                    try {
+                        const localQuery = `"${companyNameForLocal}" Polska`;
+                        const localResults = await this.searchService.searchExtended(
+                            localQuery, { gl: 'pl', hl: 'pl' }, undefined, campaignId
+                        );
+                        if (localResults.length > 0) {
+                            const localUrl = localResults[0].link;
+                            const localDomain = this.extractDomain(localUrl);
+                            if (!isPortalDomain(localDomain) && !SHOP_DOMAINS.has(localDomain.replace(/^www\./, '').toLowerCase())) {
+                                const localContent = await this.scrapingService.fetchContent(localUrl);
+                                const shortName = normalizeCompanyNameForDedup(companyNameForLocal);
+                                if (localContent && localContent.length > 200 && localContent.toLowerCase().includes(shortName)) {
+                                    enrichmentResult.enriched_data = enrichmentResult.enriched_data || {};
+                                    enrichmentResult.enriched_data.local_subsidiary_url = localUrl;
+                                    await this.log(campaignId, `${workerTag} LOCAL SUBSIDIARY: ${companyNameForLocal} → ${localDomain}`);
+                                }
+                            }
+                        }
+                    } catch { /* non-fatal — local subsidiary search is optional */ }
+                }
             }
 
             // 3. AUDITOR - STRICT VALIDATION
@@ -1430,7 +1777,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 status: 'Active',
                 company_type: screenerResult.company_type || 'NIEJASNY',
             };
-            const auditorResult = await this.auditorAgent.execute(enrichedData, registryData);
+            const auditorResult = await this.auditorAgent.execute(enrichedData, registryData, userLanguage);
 
             // CRITICAL: Filter out rejected records
             if (auditorResult.validation_result === 'REJECTED' || auditorResult.is_valid === false) {
@@ -1454,18 +1801,47 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 }
             }
 
-            // 3.1. COUNTRY EXCLUSION — hard filter based on region config
+            // 3.1. COUNTRY VALIDATION — hard filters based on region config
             const regionKey = dto.searchCriteria?.region;
             const regionConfig = regionKey ? REGION_LANGUAGE_CONFIG[regionKey] : undefined;
+            let supplierCountryNorm = normalizeCountry(
+                enrichmentResult?.enriched_data?.country || screenerResult.extracted_data?.country || ''
+            );
+
+            // COUNTRY INFERENCE — when enrichment couldn't determine country, infer from context
+            if (supplierCountryNorm === 'Nieznany') {
+                const tldCountry = inferCountryFromTLD(domain);
+                if (tldCountry) {
+                    supplierCountryNorm = tldCountry;
+                    await this.log(campaignId, `${workerTag} COUNTRY INFERRED FROM TLD: ${domain} → ${tldCountry}`);
+                } else if (originCountry && originCountry !== 'Global') {
+                    supplierCountryNorm = normalizeCountry(originCountry);
+                    await this.log(campaignId, `${workerTag} COUNTRY INFERRED FROM WORKER: ${domain} → ${normalizeCountry(originCountry)}`);
+                }
+            }
+
+            // 3.1.1 SANCTIONS — universal hard filter
+            if (SANCTIONED_COUNTRIES.has(supplierCountryNorm)) {
+                await this.log(campaignId, `${workerTag} SANCTIONED COUNTRY: "${enrichedData.company_name}" from ${supplierCountryNorm}`);
+                return 0;
+            }
+
+            // 3.1.2 EXCLUDED COUNTRIES — negative filter from region config
             if (regionConfig?.excludedCountries) {
-                const supplierCountry = normalizeCountry(
-                    enrichmentResult?.enriched_data?.country || screenerResult.extracted_data?.country || ''
-                );
                 const excluded = regionConfig.excludedCountries.some(
-                    (ex: string) => supplierCountry.toLowerCase().includes(ex.toLowerCase())
+                    (ex: string) => supplierCountryNorm.toLowerCase().includes(ex.toLowerCase())
                 );
                 if (excluded) {
-                    await this.log(campaignId, `${workerTag} EXCLUDED COUNTRY: "${enrichedData.company_name}" from ${supplierCountry}`);
+                    await this.log(campaignId, `${workerTag} EXCLUDED COUNTRY: "${enrichedData.company_name}" from ${supplierCountryNorm}`);
+                    return 0;
+                }
+            }
+
+            // 3.1.3 ALLOWED COUNTRIES — positive filter (e.g., EU region only allows European countries)
+            // Rejects suppliers with unknown country too — if we can't confirm the country, we can't confirm they're in the region
+            if (regionConfig?.allowedCountries && regionConfig.allowedCountries.length > 0) {
+                if (!regionConfig.allowedCountries.includes(supplierCountryNorm)) {
+                    await this.log(campaignId, `${workerTag} REGION MISMATCH: "${enrichedData.company_name}" from ${supplierCountryNorm} — not in ${regionKey}`);
                     return 0;
                 }
             }
@@ -1495,9 +1871,27 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             }
 
             // 4. SAVE (only approved, non-duplicate records with email)
+
+            // FINAL NIEJASNY SAFETY NET — no supplier should ever be saved as NIEJASNY
+            let saveCompanyType = (verifiedType && verifiedType !== 'NIEJASNY')
+                ? verifiedType
+                : (screenerResult.company_type || 'PRODUCENT');
+
+            if (saveCompanyType === 'NIEJASNY') {
+                saveCompanyType = 'PRODUCENT';
+                await this.log(campaignId, `${workerTag} NIEJASNY->PRODUCENT (forced, score -15%): ${domain}`);
+            }
+
             const capabilityScore = screenerResult.capability_match_score || 50;
             const trustScore = enrichmentResult.verification?.confidence_score || 50;
-            const finalScore = Math.round((capabilityScore * 0.6) + (trustScore * 0.4));
+            let finalScore = Math.round((capabilityScore * 0.6) + (trustScore * 0.4));
+
+            // Penalty for forced PRODUCENT classification (was NIEJASNY)
+            if (screenerResult.company_type === 'NIEJASNY') {
+                const originalScore = finalScore;
+                finalScore = Math.max(10, finalScore - 15);
+                await this.log(campaignId, `${workerTag} Score penalty: ${originalScore}% → ${finalScore}% (uncertain classification)`);
+            }
 
             // Use enriched website (discovered real domain) instead of original URL
             const finalWebsite = enrichedData.website || this.normalizeToRootDomain(url);
@@ -1551,7 +1945,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                     sourceAgent: 'ParallelPipeline',
 
                     // Company Classification
-                    companyType: verifiedType || screenerResult.company_type || 'NIEJASNY',
+                    companyType: saveCompanyType,
                     companyTypeConfidence: screenerResult.company_type_confidence || 0,
                     needsManualClassification: ((screenerResult.company_type || 'NIEJASNY') === 'NIEJASNY' && (screenerResult.company_type_confidence || 0) < 60),
                     sourceType: workerTag.includes('LEADER') ? (workerTag.includes('DIRECT') ? 'LEADER_DIRECT' : 'LEADER_SEARCH') : 'SEARCH',
@@ -1607,16 +2001,45 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 processedCompanyNames.add(normalizedCompanyName);
             }
 
-            // COUNTRY EXCLUSION — same filter as fresh pipeline
-            const supplierCountry = normalizeCountry(enrichedData.country || '');
+            // COUNTRY VALIDATION — same filter as fresh pipeline
+            let supplierCountry = normalizeCountry(enrichedData.country || '');
             const regionKey = dto?.searchCriteria?.region;
             const regionConfig = regionKey ? REGION_LANGUAGE_CONFIG[regionKey] : undefined;
+
+            // COUNTRY INFERENCE — when enrichment couldn't determine country, infer from context
+            if (supplierCountry === 'Nieznany') {
+                const cachedDomain = cachedSupplier.domain || '';
+                const tldCountry = inferCountryFromTLD(cachedDomain);
+                if (tldCountry) {
+                    supplierCountry = tldCountry;
+                    await this.log(campaignId, `${workerTag} CACHE COUNTRY INFERRED FROM TLD: ${cachedDomain} → ${tldCountry}`);
+                } else if (originCountry && originCountry !== 'Global') {
+                    supplierCountry = normalizeCountry(originCountry);
+                    await this.log(campaignId, `${workerTag} CACHE COUNTRY INFERRED FROM WORKER: ${cachedDomain} → ${normalizeCountry(originCountry)}`);
+                }
+            }
+
+            // SANCTIONS — universal hard filter
+            if (SANCTIONED_COUNTRIES.has(supplierCountry)) {
+                await this.log(campaignId, `${workerTag} CACHE SANCTIONED: "${companyName}" from ${supplierCountry}`);
+                return false;
+            }
+
             if (regionConfig?.excludedCountries) {
                 const excluded = regionConfig.excludedCountries.some(
                     (ex: string) => supplierCountry.toLowerCase().includes(ex.toLowerCase())
                 );
                 if (excluded) {
                     await this.log(campaignId, `${workerTag} CACHE EXCLUDED COUNTRY: "${companyName}" from ${supplierCountry}`);
+                    return false;
+                }
+            }
+
+            // ALLOWED COUNTRIES — positive filter
+            // Rejects suppliers with unknown country too — can't confirm they're in the region
+            if (regionConfig?.allowedCountries && regionConfig.allowedCountries.length > 0) {
+                if (!regionConfig.allowedCountries.includes(supplierCountry)) {
+                    await this.log(campaignId, `${workerTag} CACHE REGION MISMATCH: "${companyName}" from ${supplierCountry} — not in ${regionKey}`);
                     return false;
                 }
             }

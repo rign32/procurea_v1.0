@@ -24,7 +24,14 @@ export class AuditorAgentService {
         }
     }
 
-    async execute(websiteData: any, registryData: any): Promise<any> {
+    private static readonly LANGUAGE_NAMES: Record<string, string> = {
+        pl: 'polskim', en: 'English', de: 'Deutsch', fr: 'français',
+        it: 'italiano', es: 'español', cs: 'čeština', nl: 'Nederlands',
+        sv: 'svenska', da: 'dansk', ro: 'română', hu: 'magyar',
+        pt: 'português', fi: 'suomi', ja: '日本語', ko: '한국어', zh: '中文',
+    };
+
+    async execute(websiteData: any, registryData: any, userLanguage: string = 'pl'): Promise<any> {
         this.logger.log('Executing Auditor Agent - STRICT VALIDATION MODE...');
 
         // Pre-validation checks
@@ -96,6 +103,9 @@ Przy wątpliwościach używaj "NEEDS_REVIEW" zamiast "REJECTED".
 2. Wykryj wszelkie oznaki fałszywych danych.
 3. Zwróć "Golden Record" TYLKO jeśli dane przejdą walidację.
 4. Jeśli dane są PODEJRZANE lub NIESPÓJNE → ustaw is_valid: false i wyjaśnij dlaczego.
+
+JĘZYK WYJŚCIA: Wszystkie pola tekstowe (rejection_reason, warnings, specialization, country, city) MUSZĄ być w języku ${AuditorAgentService.LANGUAGE_NAMES[userLanguage] || userLanguage}.
+Nazwy firm pozostaw oryginalne — NIE tłumacz nazw własnych.
 
 Zwróć JSON:
 {

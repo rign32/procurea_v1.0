@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Globe, Loader2, Users, Download, Search, Check, X, Factory, Store, HelpCircle } from 'lucide-react';
+import { Globe, Loader2, Users, Download, Search, Check, X, Factory, Store } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { SearchInput } from '@/components/ui/search-input';
@@ -292,7 +292,6 @@ export function SuppliersPage() {
           { value: '', label: 'Wszystkie', icon: null },
           { value: 'PRODUCENT', label: 'Producenci', icon: Factory },
           { value: 'HANDLOWIEC', label: 'Handlowcy', icon: Store },
-          { value: 'NEEDS_REVIEW', label: 'Do weryfikacji', icon: HelpCircle },
         ].map(({ value, label, icon: Icon }) => (
           <Button
             key={value}

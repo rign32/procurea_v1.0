@@ -10,8 +10,11 @@ import {
   BarChart3,
   Shield,
   MapPin,
+  Sparkles,
+  FileText,
   Building2,
   BookOpen,
+  Mail,
   Settings,
   LayoutDashboard,
   Search,
@@ -22,16 +25,18 @@ import {
 const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 
 const heroStats = [
+  { value: "30x", label: "szybciej", icon: Zap, color: "text-amber-500" },
+  { value: "6%", label: "tańsze oferty", icon: TrendingDown, color: "text-emerald-500" },
   { value: "5", label: "agentów AI", icon: Users, color: "text-indigo-500" },
-  { value: "12+", label: "języków", icon: Zap, color: "text-amber-500" },
-  { value: "5-10", label: "min na sourcing", icon: TrendingDown, color: "text-emerald-500" },
 ]
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", active: false },
   { icon: Search, label: "Kampanie", active: true },
+  { icon: FileText, label: "Zapytania ofertowe", active: false },
   { icon: Building2, label: "Dostawcy", active: false },
   { icon: BookOpen, label: "Rejestr", active: false },
+  { icon: Mail, label: "Sekwencje", active: false },
   { icon: Settings, label: "Ustawienia", active: false },
 ]
 
@@ -148,13 +153,13 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 16, filter: "blur(8px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-100 text-sm font-medium text-emerald-700 mb-8"
+            className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-indigo-50 border border-indigo-100 text-sm font-medium text-indigo-700 mb-8"
           >
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500" />
             </span>
-            Polskie narzędzie AI · Darmowe beta testy
+            Platforma AI dla zakupów w przemyśle
           </motion.div>
 
           {/* Headline */}
@@ -164,12 +169,11 @@ export function HeroSection() {
             transition={{ duration: 0.7, delay: 0.15 }}
             className="text-4xl sm:text-5xl lg:text-[3.5rem] xl:text-6xl font-extrabold tracking-tight leading-[1.08] mb-6"
           >
-            AI przeszuka internet
+            Znajdź najlepszych dostawców
             <br />
             <span className="bg-gradient-to-r from-indigo-600 via-violet-600 to-blue-500 bg-clip-text text-transparent">
-              za Ciebie
+              30x szybciej niż ręcznie
             </span>
-            {" "}i znajdzie dostawców
           </motion.h1>
 
           {/* Subheadline */}
@@ -179,9 +183,9 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.35 }}
             className="text-lg lg:text-xl text-muted-foreground leading-relaxed mb-10 max-w-2xl mx-auto"
           >
-            Procurea to polskie narzędzie AI, które automatycznie wyszukuje,
-            analizuje i weryfikuje dostawców na rynkach całego świata.
-            Testuj za darmo w ramach zamkniętych beta testów.
+            Procurea automatycznie wyszukuje, analizuje i weryfikuje producentów
+            na całym świecie. Docieraj do lepszych ofert — średnio 6% tańszych
+            — dzięki wieloetapowemu agentowi AI.
           </motion.p>
 
           {/* CTAs */}
@@ -193,7 +197,7 @@ export function HeroSection() {
           >
             <a href={APP_URL} target="_blank" rel="noopener noreferrer">
               <Button size="lg" className="group text-base px-8 py-4 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 transition-all">
-                Dołącz do beta testów
+                Rozpocznij za darmo
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
             </a>
@@ -213,7 +217,7 @@ export function HeroSection() {
           >
             <span className="flex items-center gap-1.5">
               <CheckCircle className="h-4 w-4 text-emerald-500" />
-              Pełny dostęp za darmo
+              3 procesy za darmo
             </span>
             <span className="flex items-center gap-1.5">
               <CheckCircle className="h-4 w-4 text-emerald-500" />
@@ -221,7 +225,7 @@ export function HeroSection() {
             </span>
             <span className="flex items-center gap-1.5">
               <CheckCircle className="h-4 w-4 text-emerald-500" />
-              Zamknięte beta testy
+              Pay as you go
             </span>
           </motion.div>
         </div>

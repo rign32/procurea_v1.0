@@ -74,12 +74,11 @@ export const api = onRequest(
     {
         region: 'europe-west1',
 
-        // Memory: 1GiB for NestJS + sourcing pipeline (AI calls, concurrent scraping)
-        memory: '1GiB',
+        // Memory: 4GiB for NestJS + sourcing pipeline (AI calls, concurrent scraping, 2000+ URLs in batch)
+        memory: '4GiB',
 
-        // Timeout: 540s (max for 2nd Gen) — sourcing pipeline can run 3-15 min
-        // Regular API endpoints return fast; sourcing runs in background within the same request lifecycle
-        timeoutSeconds: 540,
+        // Timeout: 1800s (30 min) — two-phase pipeline: search collection ~60s + batch processing ~10-15 min
+        timeoutSeconds: 1800,
 
         // Concurrency: Handle multiple requests per instance (HUGE cost savings!)
         // Default is 1, meaning 1 request = 1 instance
@@ -112,6 +111,7 @@ export const api = onRequest(
             'TWILIO_VERIFY_SERVICE_SID',
             'FIREBASE_STORAGE_BUCKET',
             'STAGING_SECRET',
+            'SCRAPING_API_KEY',
         ],
     },
     expressApp

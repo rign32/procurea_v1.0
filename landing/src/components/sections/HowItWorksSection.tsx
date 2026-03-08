@@ -52,7 +52,7 @@ const steps = [
     icon: ListChecks,
     title: "Gotowa lista",
     description:
-      "Zweryfikowana lista dostawców z ocenami AI. Wyślij zapytanie ofertowe jednym kliknięciem.",
+      "Zweryfikowana lista dostawców z ocenami AI, danymi kontaktowymi i certyfikatami. Gotowa do wykorzystania.",
     gradient: "from-emerald-500 to-emerald-600",
     iconBg: "bg-emerald-50",
     iconColor: "text-emerald-600",

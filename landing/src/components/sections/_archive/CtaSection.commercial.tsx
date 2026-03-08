@@ -5,9 +5,9 @@ import { ArrowRight, CheckCircle } from "lucide-react"
 const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 
 const trustPoints = [
-  "Pełny dostęp za darmo",
+  "Darmowy start",
   "Bez karty kredytowej",
-  "Polskie narzędzie AI",
+  "Wsparcie po polsku",
 ]
 
 export function CtaSection() {
@@ -34,16 +34,15 @@ export function CtaSection() {
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center relative z-10">
         <RevealOnScroll>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white mb-6">
-            Wypróbuj AI sourcing
+            Gotowy na inteligentny
             <br />
             <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-blue-400 bg-clip-text text-transparent">
-              na swoim zapytaniu
+              sourcing?
             </span>
           </h2>
           <p className="text-base sm:text-lg text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed">
-            Załóż darmowe konto, opisz czego szukasz i pozwól
-            agentom AI znaleźć dostawców za Ciebie.
-            Beta testy — pełny dostęp bez opłat.
+            Zacznij korzystać z Procurea już dziś. Dołącz do zespołów zakupowych,
+            które zamieniły tygodnie ręcznego wyszukiwania na minuty.
           </p>
 
           {/* CTA */}
@@ -59,7 +58,7 @@ export function CtaSection() {
               {/* Glow */}
               <div className="absolute -inset-1.5 rounded-xl bg-gradient-to-r from-indigo-500 via-violet-500 to-blue-500 opacity-60 blur-lg group-hover:opacity-80 transition-opacity" />
               <span className="relative inline-flex items-center gap-2.5 px-9 py-4 rounded-xl bg-white text-gray-900 text-base font-semibold shadow-xl">
-                Dołącz do beta testów
+                Rozpocznij za darmo
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </span>
             </motion.a>
@@ -67,7 +66,7 @@ export function CtaSection() {
               href="mailto:kontakt@procurea.pl"
               className="text-sm font-medium text-gray-400 hover:text-white transition-colors underline underline-offset-4 decoration-gray-600 hover:decoration-gray-400"
             >
-              Napisz do nas
+              Umów prezentację
             </a>
           </div>
 

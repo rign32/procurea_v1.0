@@ -9,7 +9,7 @@ export class ScrapingService {
     private readonly CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
     private readonly MAX_RETRIES = 3;
     private readonly CONTENT_LIMIT = 25000;
-    private readonly JS_RENDER_MIN_CONTENT = 200; // Threshold: if static content < 200 chars, try JS rendering
+    private readonly JS_RENDER_MIN_CONTENT = 500; // Threshold: if static content < 500 chars, try JS rendering
 
     async fetchContent(url: string): Promise<string> {
         // Check cache first

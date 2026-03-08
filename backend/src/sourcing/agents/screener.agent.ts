@@ -35,7 +35,14 @@ export class ScreenerAgentService {
 
     constructor(private readonly geminiService: GeminiService) { }
 
-    async execute(url: string, content: string, rfqData: any, productContext?: ProductContext): Promise<{
+    private static readonly LANGUAGE_NAMES: Record<string, string> = {
+        pl: 'polskim', en: 'English', de: 'Deutsch', fr: 'français',
+        it: 'italiano', es: 'español', cs: 'čeština', nl: 'Nederlands',
+        sv: 'svenska', da: 'dansk', ro: 'română', hu: 'magyar',
+        pt: 'português', fi: 'suomi', ja: '日本語', ko: '한국어', zh: '中文',
+    };
+
+    async execute(url: string, content: string, rfqData: any, productContext?: ProductContext, userLanguage: string = 'pl'): Promise<{
         company_type: 'PRODUCENT' | 'HANDLOWIEC' | 'NIEJASNY';
         company_type_confidence: number;
         company_type_evidence: string;
@@ -107,9 +114,17 @@ Określ typ firmy na podstawie treści strony. SĄ TYLKO 3 KATEGORIE:
 PRODUCENT — firma SAMA WYTWARZA produkty:
   Sygnały: "zakład produkcyjny", "fabryka", "linia produkcyjna", "produkujemy",
            "manufacturing", "Herstellung", "wir produzieren", "our factory",
+           "Produktionsstandort", "production facility", "usine de production",
+           "impianto di produzione", "eigen productie", "we manufacture",
+           "our production", "zakład chemiczny", "synteza", "linia technologiczna",
            własne produkty z własnymi markami, opisy procesów technologicznych,
            zdjęcia hal produkcyjnych, maszyn, laboratoriów,
-           jeden producent z własnymi produktami
+           jeden producent z własnymi produktami,
+           karty techniczne (TDS/SDS), własny katalog produktów ze specyfikacjami,
+           opisy procesów R&D, laboratoria badawcze, kontrola jakości
+
+REGUŁA: Firma posiadająca WŁASNY katalog produktów z kartami technicznymi
+(TDS, SDS, specyfikacje techniczne) = PRODUCENT z confidence >= 75.
 
 HANDLOWIEC — firma ODSPRZEDAJE produkty innych (dystrybutor, sklep, retailer, hurtownia,
              e-commerce, pośrednik — to JEDNO I TO SAMO z perspektywy sourcingu):
@@ -151,7 +166,7 @@ ${rfqBlock}
 URL: ${url}
 
 TREŚĆ STRONY:
-${content.substring(0, 20000)}
+${content.substring(0, 25000)}
 
 === SKALA OCENY capability_match_score (TYLKO DOPASOWANIE PRODUKTOWE) ===
 80-100: Firma ma ten dokładny produkt w ofercie (dowody na stronie)
@@ -227,6 +242,10 @@ FORMAT WYJŚCIOWY (JSON Only):
   ]
 }
 UWAGA: "mentioned_companies" zwracaj TYLKO gdy page_type = "Directory". W pozostałych przypadkach pomiń to pole.
+
+JĘZYK WYJŚCIA: Wszystkie pola tekstowe (reason, match_reason, risks, company_type_evidence,
+specialization, extracted_data.specialization) MUSZĄ być w języku ${ScreenerAgentService.LANGUAGE_NAMES[userLanguage] || userLanguage}.
+Nazwy firm pozostaw oryginalne — NIE tłumacz nazw własnych.
         `;
 
         try {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronRight, Download, Loader2, AlertTriangle, Trash2, BarChart3, CheckCircle2, Mail, Clock, Send } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Download, Loader2, AlertTriangle, Trash2, BarChart3, CheckCircle2, Mail, Clock, Send, FileDown } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -83,11 +83,41 @@ export function CampaignDetailPage() {
   };
 
   const [report, setReport] = useState<any>(null);
+  const [aiSummary, setAiSummary] = useState<any>(null);
+  const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
+  const [downloadingPptx, setDownloadingPptx] = useState(false);
+
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  };
+
+  const handleDownloadPptx = async () => {
+    if (!id) return;
+    setDownloadingPptx(true);
+    try {
+      const { data } = await apiClient.get(`/reports/campaign/${id}/pptx`, { responseType: 'blob' });
+      downloadBlob(data, `procurea-raport-${campaign?.name || id}.pptx`);
+    } catch { toast.error('Błąd generowania PowerPoint'); }
+    finally { setDownloadingPptx(false); }
+  };
 
   // Fetch report for completed/accepted/sending campaigns
   useEffect(() => {
     if (id && campaign && ['COMPLETED', 'ACCEPTED', 'SENDING', 'DONE'].includes(campaign.status)) {
       apiClient.get(`/reports/campaign/${id}`).then(({ data }) => setReport(data)).catch(() => { });
+      // Fetch AI summary
+      setAiSummaryLoading(true);
+      apiClient.get(`/reports/campaign/${id}/ai-summary`)
+        .then(({ data }) => { if (!data.error) setAiSummary(data); })
+        .catch(() => { })
+        .finally(() => setAiSummaryLoading(false));
     }
   }, [id, campaign?.status]);
 
@@ -149,7 +179,12 @@ export function CampaignDetailPage() {
     if (campaign.status === 'ACCEPTED') return <Badge className="bg-green-600">Zaakceptowana</Badge>;
     if (campaign.status === 'DONE') return <Badge className="bg-emerald-700">Zakończona</Badge>;
     if (isCompleted) return <Badge variant="default">{PL.campaigns.status.completed}</Badge>;
-    return <Badge variant="secondary">{PL.campaigns.status.running}</Badge>;
+    return (
+      <Badge variant="secondary" className="animate-pulse bg-blue-100 text-blue-700 border-blue-200">
+        <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+        {PL.campaigns.status.running}
+      </Badge>
+    );
   };
 
   const qualifiedCount = isAccepted ? (report?.qualifiedCount || suppliers.length) : 0;
@@ -201,12 +236,6 @@ export function CampaignDetailPage() {
                 {accepting ? 'Akceptowanie...' : PL.campaigns.detail.acceptAllSuppliers}
               </Button>
             )}
-            {(isCompleted || isAccepted) && (
-              <Button variant="outline" onClick={handleExport} disabled={exportMutation.isPending}>
-                <Download className="mr-2 h-4 w-4" />
-                {PL.campaigns.detail.exportCSV}
-              </Button>
-            )}
             <Button variant="outline" onClick={() => setShowDelete(true)} className="text-destructive hover:bg-destructive/10">
               <Trash2 className="mr-2 h-4 w-4" />
               {PL.campaigns.deleteCampaign}
@@ -240,19 +269,21 @@ export function CampaignDetailPage() {
       {/* COMPLETED/ACCEPTED: Stats Cards */}
       {
         (isCompleted || isAccepted) && (
-          <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <motion.div variants={itemVariants} className={`grid grid-cols-1 gap-4 ${isFullPlan ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">{PL.campaigns.detail.suppliersFound}</CardTitle>
               </CardHeader>
               <CardContent><p className="text-3xl font-bold">{report?.totalSuppliers || suppliers.length}</p></CardContent>
             </Card>
+            {isFullPlan && (
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">{PL.campaigns.detail.qualified}</CardTitle>
               </CardHeader>
               <CardContent><p className="text-3xl font-bold text-green-600">{qualifiedCount}</p></CardContent>
             </Card>
+            )}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">{PL.campaigns.detail.rejected}</CardTitle>
@@ -264,6 +295,129 @@ export function CampaignDetailPage() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">{PL.campaigns.detail.averageScore}</CardTitle>
               </CardHeader>
               <CardContent><p className="text-3xl font-bold">{avgScore}%</p></CardContent>
+            </Card>
+          </motion.div>
+        )
+      }
+
+      {/* AI SUMMARY */}
+      {
+        (isCompleted || isAccepted) && (
+          <motion.div variants={itemVariants}>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    Analiza AI
+                  </CardTitle>
+                  {aiSummary && (
+                    <Button variant="outline" size="sm" onClick={handleDownloadPptx} disabled={downloadingPptx}>
+                      {downloadingPptx ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <FileDown className="mr-1.5 h-4 w-4" />}
+                      PowerPoint
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                {aiSummaryLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mr-3" />
+                    <span className="text-muted-foreground">Generowanie analizy AI...</span>
+                  </div>
+                ) : aiSummary ? (
+                  <div className="space-y-6">
+                    {/* Market Overview */}
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2">Przegląd rynku</h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{aiSummary.marketOverview}</p>
+                    </div>
+
+                    {/* Coverage */}
+                    <div className="p-3 rounded-lg bg-muted/50">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium">Pokrycie rynku</span>
+                        <Badge variant={
+                          aiSummary.coverageAssessment === 'HIGH' ? 'default' :
+                          aiSummary.coverageAssessment === 'MEDIUM' ? 'secondary' : 'destructive'
+                        }>
+                          {aiSummary.coverageAssessment === 'HIGH' ? 'Wysokie' :
+                           aiSummary.coverageAssessment === 'MEDIUM' ? 'Średnie' : 'Niskie'}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{aiSummary.coverageNote}</p>
+                    </div>
+
+                    {/* Key Players */}
+                    {aiSummary.keyPlayers?.length > 0 && (
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2">Kluczowi gracze</h4>
+                        <div className="space-y-2">
+                          {aiSummary.keyPlayers.map((kp: any, i: number) => (
+                            <div key={i} className="flex items-start gap-2 text-sm">
+                              <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0 mt-0.5">{i + 1}</span>
+                              <div>
+                                <span className="font-medium">{kp.name}</span>
+                                <span className="text-muted-foreground"> — {kp.why}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Geographic + Price */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {aiSummary.geographicAnalysis && (
+                        <div>
+                          <h4 className="text-sm font-semibold mb-1">Analiza geograficzna</h4>
+                          <p className="text-xs text-muted-foreground">{aiSummary.geographicAnalysis}</p>
+                        </div>
+                      )}
+                      {aiSummary.priceInsight && (
+                        <div>
+                          <h4 className="text-sm font-semibold mb-1">Kontekst cenowy</h4>
+                          <p className="text-xs text-muted-foreground">{aiSummary.priceInsight}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Recommendations + Risks */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {aiSummary.recommendations?.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-semibold mb-2">Rekomendacje</h4>
+                          <ul className="space-y-1">
+                            {aiSummary.recommendations.map((r: string, i: number) => (
+                              <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
+                                <CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0 mt-0.5" />
+                                {r}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {aiSummary.riskFactors?.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-semibold mb-2">Czynniki ryzyka</h4>
+                          <ul className="space-y-1">
+                            {aiSummary.riskFactors.map((r: string, i: number) => (
+                              <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
+                                <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
+                                {r}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground py-4 text-center">
+                    Analiza AI niedostępna
+                  </p>
+                )}
+              </CardContent>
             </Card>
           </motion.div>
         )
@@ -539,8 +693,15 @@ export function CampaignDetailPage() {
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <div className="flex justify-between">
+                  <span className="text-muted-foreground">Status:</span>
+                  <span className="font-medium text-blue-600 flex items-center gap-1">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Wyszukiwanie trwa...
+                  </span>
+                </div>
+                <div className="flex justify-between">
                   <span className="text-muted-foreground">{PL.campaigns.detail.suppliersFound}:</span>
-                  <span className="font-semibold">{suppliers.length}</span>
+                  <span className="font-semibold text-lg">{suppliers.length}</span>
                 </div>
                 {campaign.rfqRequest && (
                   <div className="border-t pt-3 mt-3 space-y-2">
@@ -556,6 +717,9 @@ export function CampaignDetailPage() {
                     )}
                   </div>
                 )}
+                <div className="text-xs text-muted-foreground mt-3 p-2.5 bg-muted/50 rounded-lg">
+                  Możesz opuścić tę stronę — kampania działa w tle. Wyniki pojawią się automatycznie.
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -564,6 +728,15 @@ export function CampaignDetailPage() {
 
       {/* Suppliers Feed */}
       <motion.div variants={itemVariants}>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold">Lista dostawców ({suppliers.length})</h2>
+          {(isCompleted || isAccepted) && (
+            <Button variant="outline" size="sm" onClick={handleExport} disabled={exportMutation.isPending}>
+              <Download className="mr-2 h-4 w-4" />
+              {PL.campaigns.detail.exportCSV}
+            </Button>
+          )}
+        </div>
         <LiveSupplierFeed
           suppliers={suppliers}
           campaignId={id}

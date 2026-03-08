@@ -2,10 +2,17 @@ import { Injectable, Logger } from '@nestjs/common';
 import { GeminiService } from '../../common/services/gemini.service';
 import { ProductContext } from './screener.agent';
 
+// Sanctioned countries — universal hard filter (Polish-normalized names)
+export const SANCTIONED_COUNTRIES = new Set([
+  'Rosja', 'Iran', 'Korea Północna', 'Syria', 'Białoruś',
+  'Kuba', 'Myanmar', 'Wenezuela', 'Afganistan',
+]);
+
 // Region-specific language configurations
 export const REGION_LANGUAGE_CONFIG: Record<string, {
   countries: string[];
   excludedCountries?: string[];
+  allowedCountries?: string[];
   languages: { code: string; name: string; queryPrefix: string }[];
   searchSuffix: string[];
   negatives: string[];
@@ -13,6 +20,7 @@ export const REGION_LANGUAGE_CONFIG: Record<string, {
   // Poland only - Polish language
   PL: {
     countries: ['Poland'],
+    allowedCountries: ['Polska'],
     languages: [
       { code: 'pl', name: 'Polish', queryPrefix: '' }
     ],
@@ -23,6 +31,13 @@ export const REGION_LANGUAGE_CONFIG: Record<string, {
   // Europe - 12 major EU languages (economically weighted)
   EU: {
     countries: ['Germany', 'Poland', 'Czech Republic', 'France', 'Italy', 'Spain', 'Portugal', 'Netherlands', 'Belgium', 'Austria', 'Switzerland', 'Sweden', 'Romania', 'Denmark', 'Finland', 'Hungary'],
+    allowedCountries: [
+      'Niemcy', 'Polska', 'Czechy', 'Słowacja', 'Węgry', 'Austria', 'Francja',
+      'Włochy', 'Hiszpania', 'Portugalia', 'Holandia', 'Belgia', 'Szwajcaria',
+      'Szwecja', 'Rumunia', 'Dania', 'Finlandia', 'Norwegia', 'Wielka Brytania',
+      'Irlandia', 'Chorwacja', 'Słowenia', 'Bułgaria', 'Litwa', 'Łotwa',
+      'Estonia', 'Luksemburg', 'Grecja',
+    ],
     languages: [
       { code: 'de', name: 'German', queryPrefix: '' },
       { code: 'pl', name: 'Polish', queryPrefix: '' },
@@ -181,7 +196,7 @@ ${translationsBlock || '  (brak — przetłumacz samodzielnie)'}
     const systemPrompt = `
 Jesteś Ekspertem Strategii Sourcingu Przemysłowego (Industrial Sourcing Strategist).
 Twoim celem jest znalezienie JAK NAJWIĘKSZEJ LICZBY REALNYCH PRODUCENTÓW dla podanego produktu/surowca.
-CHCEMY ZNALEŹĆ 30-100 PRODUCENTÓW w wybranym regionie.
+CHCEMY ZNALEŹĆ 200-300 PRODUCENTÓW w wybranym regionie. GENERUJ MAKSYMALNĄ LICZBĘ UNIKALNYCH ZAPYTAŃ.
 ${productContextBlock}
 === PRODUKT / SUROWIEC DO ZNALEZIENIA ===
 **NAZWA:** "${effectiveProductName}"
@@ -205,7 +220,7 @@ Używaj następujących JĘZYKÓW w zapytaniach:
 ${languageInstructions}
 
 === KRYTYCZNE WYMAGANIA ===
-1. Generuj 15-20 zapytań PER JĘZYK/KRAJ — potrzebujemy MAKSYMALNEJ RÓŻNORODNOŚCI i pokrycia!
+1. Generuj 20-30 zapytań PER JĘZYK/KRAJ — potrzebujemy MAKSYMALNEJ RÓŻNORODNOŚCI i pokrycia!
 2. Każde zapytanie MUSI być bezpośrednio związane z "${effectiveProductName}" — NIE zgaduj pokrewnych kategorii!
 3. Używaj RÓŻNYCH strategii (WSZYSTKIE poniższe typy dla każdego języka):
    - TECHNOLOGICZNA: proces produkcyjny / technologia + "${effectiveProductName}"
@@ -228,7 +243,7 @@ KRYTYCZNE ZASADY:
 1. Każde zapytanie MUSI zawierać przetłumaczoną nazwę produktu + słowo "producent/manufacturer/Hersteller/fabricant"
 2. NIGDY nie wymyślaj nowych kategorii produktów — trzymaj się DOKŁADNIE tego co podał użytkownik
 3. Dodaj negatywne słowa kluczowe: ${negativeKeywords}
-4. 15-20 queries per kraj — każde musi być unikalne, precyzyjne i pokrywać INNY typ strategii
+4. 20-30 queries per kraj — każde musi być unikalne, precyzyjne i pokrywać INNY typ strategii
 5. WYKLUCZ kraje objęte sankcjami: Rosja, Iran, Korea Północna, Syria, Afganistan, Kuba, Wenezuela, Myanmar, Białoruś
 6. Dla KAŻDEGO kraju musisz mieć przynajmniej po 1 zapytaniu z typów: TARGOWA, STOWARZYSZENIOWA, KATALOG B2B, ŁAŃCUCH DOSTAW
 

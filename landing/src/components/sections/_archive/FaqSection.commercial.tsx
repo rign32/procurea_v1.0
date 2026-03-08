@@ -14,14 +14,14 @@ const faqs = [
       "Możesz wyszukiwać dostawców w Polsce, całej Unii Europejskiej lub globalnie. System generuje zapytania w ponad 12 językach, w tym niemieckim, francuskim, włoskim, hiszpańskim, czeskim i wielu innych, dzięki czemu dociera do dostawców, których nie znajdziesz standardowym wyszukiwaniem.",
   },
   {
-    question: "Co dokładnie jest dostępne w beta testach?",
+    question: "Czy moi dostawcy muszą mieć konto?",
     answer:
-      "W ramach beta testów masz pełny dostęp do wyszukiwarki AI dostawców, włącznie z wieloetapowym wyszukiwaniem w 12+ językach, automatycznym wzbogacaniem danych kontaktowych, bazą dostawców i monitoringiem na żywo. Funkcje takie jak zapytania ofertowe i sekwencje email są w fazie rozwoju i pojawią się w pełnej wersji produktu.",
+      "Nie. Dostawcy otrzymują unikalny link do portalu ofertowego, gdzie mogą zapoznać się z zapytaniem i złożyć ofertę bez rejestracji i logowania. To maksymalnie upraszcza proces dla obu stron.",
   },
   {
-    question: "Jak długo trwają beta testy?",
+    question: "Jak wyglądają ceny?",
     answer:
-      "Beta testy planujemy na okres 2–3 miesięcy. W tym czasie zbieramy opinie i udoskonalamy narzędzie. Po zakończeniu beta testów otrzymasz darmowe kredyty na start w pełnej wersji produktu.",
+      "Procurea oferuje darmowy okres próbny, abyś mógł przetestować platformę na rzeczywistym zapytaniu. Skontaktuj się z nami po szczegóły cenowe dopasowane do wielkości i potrzeb Twojej organizacji.",
   },
   {
     question: "Czy moje dane są bezpieczne?",
@@ -29,9 +29,9 @@ const faqs = [
       "Tak. Korzystamy z infrastruktury Google Cloud (region europa-west1), szyfrowania danych w transmisji i spoczynku oraz uwierzytelniania OAuth 2.0 przez Google i Microsoft. Twoje dane nigdy nie opuszczają infrastruktury europejskiej.",
   },
   {
-    question: "Czy muszę coś płacić po zakończeniu beta?",
+    question: "Czy mogę zintegrować Procurea z istniejącymi systemami?",
     answer:
-      "Nie. Udział w beta testach jest całkowicie darmowy i nie zobowiązuje do zakupu. Po zakończeniu beta otrzymasz darmowe kredyty jako podziękowanie. Dalsze korzystanie z platformy będzie opcjonalne.",
+      "Pracujemy nad integracjami z popularnymi systemami ERP i e-procurement. Aktualnie dostępny jest eksport danych oraz API umożliwiające integrację z Twoimi narzędziami. Skontaktuj się z nami, aby omówić konkretne potrzeby.",
   },
 ]
 
@@ -51,7 +51,7 @@ export function FaqSection() {
               Często zadawane pytania
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground">
-              Wszystko co musisz wiedzieć o beta testach Procurea
+              Wszystko co musisz wiedzieć o Procurea
             </p>
           </div>
         </RevealOnScroll>

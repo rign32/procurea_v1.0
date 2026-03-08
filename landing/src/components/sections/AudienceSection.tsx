@@ -21,8 +21,8 @@ const personas = [
     icon: Target,
     title: "Kierownicy zaopatrzenia",
     description:
-      "Zarządzanie kampaniami sourcingowymi i zapytaniami ofertowymi. Porównywanie ofert i wybór dostawców.",
-    tags: ["Kampanie", "RFQ", "Negocjacje"],
+      "Zarządzanie kampaniami sourcingowymi. Szybkie znajdowanie i porównywanie dostawców.",
+    tags: ["Kampanie", "Analiza", "Negocjacje"],
     iconBg: "bg-gradient-to-br from-violet-500 to-violet-600",
     iconColor: "text-white",
     tagBg: "bg-violet-50",

@@ -433,6 +433,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                 </div>
 
                 {/* Delivery location */}
+                {isFullPlan && (
                 <div>
                   <label className="block text-sm font-medium mb-2">{PL.campaigns.wizard.logistics.deliveryLocation}</label>
                   <select {...form.register('deliveryLocationId')} className="w-full px-3 py-2.5 border rounded-md bg-background text-sm">
@@ -449,6 +450,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                     </p>
                   )}
                 </div>
+                )}
               </div>
             )}
 

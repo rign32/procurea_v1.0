@@ -1,4 +1,4 @@
-import { Mail, Award, MapPin, ExternalLink, XCircle, Globe, ChevronRight, ShieldAlert, Factory, Store, HelpCircle, Users } from 'lucide-react';
+import { Mail, Award, MapPin, ExternalLink, XCircle, Globe, ChevronRight, ShieldAlert, Factory, Store, Users } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -55,11 +55,6 @@ export function SupplierCard({
               {supplier.companyType === 'HANDLOWIEC' && (
                 <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 bg-amber-100 text-amber-700 border-amber-200 shrink-0">
                   <Store className="mr-0.5 h-3 w-3" />Handlowiec
-                </Badge>
-              )}
-              {supplier.needsManualClassification && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 bg-orange-100 text-orange-700 border-orange-200 shrink-0">
-                  <HelpCircle className="mr-0.5 h-3 w-3" />Do weryfikacji
                 </Badge>
               )}
             </div>

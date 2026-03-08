@@ -135,7 +135,7 @@ export function useExportCampaign() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `campaign-${id}-${Date.now()}.csv`;
+      a.download = `campaign-${id}-${Date.now()}.xlsx`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);

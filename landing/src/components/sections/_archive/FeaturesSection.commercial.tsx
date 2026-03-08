@@ -1,6 +1,6 @@
 import { motion } from "framer-motion"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
-import { Sparkles, Database, Activity, CheckCircle } from "lucide-react"
+import { Sparkles, FileText, Globe, Mail, Database, Activity } from "lucide-react"
 
 const features = [
   {
@@ -14,10 +14,37 @@ const features = [
     featured: true,
   },
   {
+    icon: FileText,
+    title: "Zapytania ofertowe",
+    description:
+      "Tworzenie, wysyłanie i zarządzanie zapytaniami ofertowymi. Porównywanie ofert od wielu dostawców w jednym widoku.",
+    iconBg: "bg-blue-50",
+    iconColor: "text-blue-600",
+    ringColor: "ring-blue-100",
+  },
+  {
+    icon: Globe,
+    title: "Portal dostawcy",
+    description:
+      "Dostawcy składają oferty przez dedykowany portal bez konieczności zakładania konta. Prosty link i gotowe.",
+    iconBg: "bg-emerald-50",
+    iconColor: "text-emerald-600",
+    ringColor: "ring-emerald-100",
+  },
+  {
+    icon: Mail,
+    title: "Sekwencje email",
+    description:
+      "Konfigurowalne sekwencje follow-up z personalizowanymi szablonami i automatycznym harmonogramem wysyłki.",
+    iconBg: "bg-violet-50",
+    iconColor: "text-violet-600",
+    ringColor: "ring-violet-100",
+  },
+  {
     icon: Database,
     title: "Baza dostawców",
     description:
-      "Centralny rejestr dostawców z ocenami AI, danymi kontaktowymi, certyfikatami i informacjami o możliwościach produkcyjnych.",
+      "Centralny rejestr dostawców z ocenami AI, historią współpracy, danymi kontaktowymi i certyfikatami.",
     iconBg: "bg-amber-50",
     iconColor: "text-amber-600",
     ringColor: "ring-amber-100",
@@ -31,12 +58,6 @@ const features = [
     iconColor: "text-cyan-600",
     ringColor: "ring-cyan-100",
   },
-]
-
-const testerExpectations = [
-  "Przeprowadź minimum 2–3 procesy sourcingu na rzeczywistych zapytaniach",
-  "Podziel się opinią — co działa, co nie, czego brakuje",
-  "Poświęć 15 minut na krótką ankietę po zakończeniu testów",
 ]
 
 const containerVariants = {
@@ -56,7 +77,7 @@ const cardVariants = {
 
 export function FeaturesSection() {
   return (
-    <section id="co-zyskujesz" className="py-24 lg:py-32 relative overflow-hidden">
+    <section id="funkcje" className="py-24 lg:py-32 relative overflow-hidden">
       {/* Background decorations */}
       <div className="absolute top-40 left-0 w-[600px] h-[600px] rounded-full bg-indigo-500/[0.02] blur-[100px] pointer-events-none" />
       <div className="absolute bottom-20 right-0 w-[400px] h-[400px] rounded-full bg-violet-500/[0.03] blur-[80px] pointer-events-none" />
@@ -65,16 +86,16 @@ export function FeaturesSection() {
         <RevealOnScroll>
           <div className="text-center max-w-3xl mx-auto mb-16">
             <p className="text-sm font-semibold text-indigo-600 tracking-wide uppercase mb-3">
-              Beta testy
+              Funkcje
             </p>
             <h2 className="text-3xl sm:text-4xl lg:text-[2.75rem] font-bold tracking-tight mb-5">
-              Co zyskujesz w beta testach
+              Wszystko czego potrzebujesz
               <br />
-              <span className="text-muted-foreground">Pełny dostęp do wyszukiwarki AI — za darmo</span>
+              <span className="text-muted-foreground">do inteligentnego sourcingu</span>
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
-              Jako beta tester otrzymujesz pełny dostęp do narzędzia AI,
-              które zastępuje tygodnie ręcznego wyszukiwania dostawców.
+              Kompleksowa platforma zastępująca arkusze kalkulacyjne,
+              ręczne wyszukiwanie i chaotyczne skrzynki email.
             </p>
           </div>
         </RevealOnScroll>
@@ -84,7 +105,7 @@ export function FeaturesSection() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
-          className="grid md:grid-cols-3 gap-5"
+          className="grid md:grid-cols-2 lg:grid-cols-3 gap-5"
         >
           {features.map((feature) => (
             <motion.div
@@ -131,23 +152,6 @@ export function FeaturesSection() {
             </motion.div>
           ))}
         </motion.div>
-
-        {/* Tester expectations */}
-        <RevealOnScroll delay={0.2}>
-          <div className="mt-14 rounded-2xl border border-amber-200/60 bg-gradient-to-br from-amber-50/50 to-orange-50/30 p-8 lg:p-10 max-w-3xl mx-auto">
-            <h3 className="text-lg font-bold mb-5">Co oczekujemy od testerów?</h3>
-            <div className="flex flex-col gap-3.5">
-              {testerExpectations.map((item) => (
-                <div key={item} className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
-                  <span className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                    {item}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </RevealOnScroll>
       </div>
     </section>
   )

@@ -80,6 +80,9 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
             `ALTER TABLE "Supplier" ADD COLUMN IF NOT EXISTS "companyTypeConfidence" INTEGER DEFAULT 0`,
             `ALTER TABLE "Supplier" ADD COLUMN IF NOT EXISTS "needsManualClassification" BOOLEAN NOT NULL DEFAULT false`,
             `ALTER TABLE "Supplier" ADD COLUMN IF NOT EXISTS "sourceType" TEXT DEFAULT 'SEARCH'`,
+            // 20260308_add_ai_summary
+            `ALTER TABLE "Campaign" ADD COLUMN IF NOT EXISTS "aiSummary" TEXT`,
+            `ALTER TABLE "Campaign" ADD COLUMN IF NOT EXISTS "aiSummaryGeneratedAt" TIMESTAMP(3)`,
         ];
 
         let applied = 0;

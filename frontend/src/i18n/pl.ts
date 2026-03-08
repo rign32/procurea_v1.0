@@ -235,7 +235,7 @@ export const PL = {
       completedSummary: 'Podsumowanie',
       sendRfqToAll: 'Wyślij RFQ do wszystkich',
       acceptAllSuppliers: 'Zaakceptuj wszystkich dostawców',
-      exportCSV: 'Eksportuj CSV',
+      exportCSV: 'Eksportuj do Excela',
     },
     deleteCampaign: 'Usuń kampanię',
     deleteConfirm: 'Czy na pewno chcesz usunąć tę kampanię? Ta operacja jest nieodwracalna.',
@@ -388,7 +388,7 @@ export const PL = {
     },
 
     actions: {
-      exportCSV: 'Eksportuj CSV',
+      exportCSV: 'Eksportuj do Excela',
       bulkVerify: 'Weryfikacja grupowa',
       analytics: 'Dashboard analityczny',
     },

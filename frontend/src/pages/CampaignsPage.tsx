@@ -24,6 +24,7 @@ export function CampaignsPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const isFullPlan = user?.plan === 'full';
 
   const deleteMutation = useMutation({
     mutationFn: campaignsService.delete,
@@ -189,21 +190,23 @@ export function CampaignsPage() {
                     </div>
                   </CardHeader>
 
-                  <CardContent className="space-y-4 flex-1 flex flex-col justify-end">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
+                  <CardContent className="flex-1 flex flex-col pt-0">
+                    <div className="flex items-center justify-between text-sm">
+                      {isFullPlan && (
+                        <div>
+                          <p className="text-muted-foreground">Zakwalifikowanych</p>
+                          <p className="text-2xl font-bold text-green-600">
+                            {campaign.suppliersQualified || 0}
+                          </p>
+                        </div>
+                      )}
+                      <div className="text-right ml-auto">
                         <p className="text-muted-foreground">Dostawców</p>
                         <p className="text-2xl font-bold">{campaign.suppliersFound || 0}</p>
                       </div>
-                      <div>
-                        <p className="text-muted-foreground">Zakwalifikowanych</p>
-                        <p className="text-2xl font-bold text-green-600">
-                          {campaign.suppliersQualified || 0}
-                        </p>
-                      </div>
                     </div>
 
-                    <div className="text-xs text-muted-foreground border-t pt-4">
+                    <div className="text-xs text-muted-foreground border-t pt-4 mt-auto">
                       <p>Utworzono: {new Date(campaign.createdAt).toLocaleDateString('pl-PL')}</p>
                     </div>
                   </CardContent>

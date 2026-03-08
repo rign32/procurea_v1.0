@@ -261,6 +261,57 @@ export class EmailService {
         }
     }
 
+    async sendFeedbackRequestEmail(
+        email: string,
+        campaignName: string,
+        campaignId: string,
+    ): Promise<boolean> {
+        const tallyBaseUrl = process.env.TALLY_FEEDBACK_URL || 'https://tally.so/r/Ek117r';
+        const surveyUrl = `${tallyBaseUrl}?campaignName=${encodeURIComponent(campaignName)}&campaignId=${campaignId}`;
+
+        if (!this.resend) {
+            this.logger.log(`[MOCK EMAIL] Feedback request to: ${email} | Campaign: ${campaignName} | URL: ${surveyUrl}`);
+            return true;
+        }
+
+        try {
+            const { to, subject } = this.getDebugRouting(email, `Procurea - Jak oceniasz kampanię "${campaignName}"?`);
+            const f = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+            await this.resend.emails.send({
+                from: this.fromEmail,
+                to,
+                subject,
+                html: `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#FFFFFF;-webkit-font-smoothing:antialiased;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;">
+<tr><td align="center" style="padding:40px 20px;">
+<table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
+  <tr><td style="height:3px;background:#4F46E5;"></td></tr>
+  <tr><td style="padding:28px 0 20px 0;font-family:${f};font-size:18px;font-weight:700;color:#4F46E5;">Procurea</td></tr>
+  <tr><td style="height:1px;background:#F1F5F9;"></td></tr>
+  <tr><td style="padding:28px 0 8px 0;font-family:${f};color:#374151;font-size:15px;line-height:1.75;">
+    <p style="margin:0 0 6px 0;font-weight:600;color:#111827;font-size:17px;">Twoja opinia ma dla nas znaczenie</p>
+    <p style="margin:0 0 12px 0;">Kampania sourcingowa <strong>${campaignName}</strong> została zakończona.</p>
+    <p style="margin:0 0 12px 0;">Chcielibyśmy poznać Twoją opinię, aby nieustannie ulepszać nasze narzędzie. Wypełnienie krótkiej ankiety zajmie około 2 minuty.</p>
+  </td></tr>
+  <tr><td align="center" style="padding:12px 0 14px 0;">
+    <a href="${surveyUrl}" style="display:inline-block;background:#4F46E5;color:#FFFFFF;padding:12px 36px;text-decoration:none;border-radius:6px;font-family:${f};font-weight:600;font-size:14px;">Oceń kampanię</a>
+  </td></tr>
+  <tr><td style="padding:8px 0 28px 0;font-family:${f};font-size:13px;color:#94A3B8;text-align:center;">
+    Twoja odpowiedź jest dla nas bardzo cenna i pomoże nam lepiej dostosować Procurea do Twoich potrzeb.
+  </td></tr>
+  <tr><td style="height:1px;background:#F1F5F9;"></td></tr>
+  <tr><td style="padding:16px 0 0 0;font-family:${f};font-size:11px;color:#D1D5DB;">&copy; ${new Date().getFullYear()} Procurea</td></tr>
+</table></td></tr></table></body></html>`,
+            });
+            this.logger.log(`Feedback request email sent to ${email} for campaign "${campaignName}"`);
+            return true;
+        } catch (error) {
+            this.logger.error(`Failed to send feedback email to ${email}`, error);
+            return false;
+        }
+    }
+
     /**
      * Build HTML footer from Organization footer fields.
      */

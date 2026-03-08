@@ -158,6 +158,16 @@ export const campaignsService = {
     const { data } = await apiClient.get(`/campaigns/${id}/export`, { responseType: 'blob' });
     return data;
   },
+
+  downloadPdf: async (id: string): Promise<Blob> => {
+    const { data } = await apiClient.get(`/reports/campaign/${id}/pdf`, { responseType: 'blob' });
+    return data;
+  },
+
+  downloadPptx: async (id: string): Promise<Blob> => {
+    const { data } = await apiClient.get(`/reports/campaign/${id}/pptx`, { responseType: 'blob' });
+    return data;
+  },
 };
 
 export default campaignsService;

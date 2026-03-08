@@ -48,7 +48,7 @@ export class GoogleSearchService {
 
   // Rate limiting
   private lastRequestTime = 0;
-  private readonly MIN_DELAY_MS = parseInt(process.env.MIN_SEARCH_DELAY_MS || '600', 10);
+  private readonly MIN_DELAY_MS = parseInt(process.env.MIN_SEARCH_DELAY_MS || '200', 10);
   private requestQueue: Promise<void> = Promise.resolve();
 
   constructor(

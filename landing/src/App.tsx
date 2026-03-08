@@ -7,7 +7,7 @@ import { HowItWorksSection } from "@/components/sections/HowItWorksSection"
 import { FeaturesSection } from "@/components/sections/FeaturesSection"
 import { BenefitsSection } from "@/components/sections/BenefitsSection"
 import { AudienceSection } from "@/components/sections/AudienceSection"
-import { PricingSection } from "@/components/sections/PricingSection"
+import { BetaSignupSection } from "@/components/sections/BetaSignupSection"
 import { CtaSection } from "@/components/sections/CtaSection"
 import { FaqSection } from "@/components/sections/FaqSection"
 import { RegulaminPage } from "@/pages/RegulaminPage"
@@ -25,9 +25,9 @@ function LandingPage() {
         <FeaturesSection />
         <BenefitsSection />
         <AudienceSection />
-        <PricingSection />
-        <CtaSection />
+        <BetaSignupSection />
         <FaqSection />
+        <CtaSection />
       </main>
       <Footer />
     </div>

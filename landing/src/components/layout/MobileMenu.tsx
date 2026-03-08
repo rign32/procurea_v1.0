@@ -66,7 +66,7 @@ export function MobileMenu({ open, onClose, links, appUrl }: MobileMenuProps) {
                 </a>
                 <a href={appUrl} target="_blank" rel="noopener noreferrer">
                   <Button variant="primary" className="w-full">
-                    Rozpocznij za darmo
+                    Testuj za darmo
                   </Button>
                 </a>
               </div>

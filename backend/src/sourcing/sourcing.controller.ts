@@ -78,6 +78,11 @@ export class SourcingController {
         return this.sourcingService.acceptCampaign(id, body.excludedSupplierIds || []);
     }
 
+    @Post(':id/stop')
+    stopCampaign(@Param('id') id: string) {
+        return this.sourcingService.stopCampaign(id);
+    }
+
     @Delete(':id')
     deleteCampaign(@Param('id') id: string) {
         return this.sourcingService.softDelete(id);

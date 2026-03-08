@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Activity, Target, FileText, Users, Plus, Sparkles, ArrowRight } from 'lucide-react';
+import { Target, FileText, Users, Sparkles, ArrowRight, Plus } from 'lucide-react';
 import { useCampaigns } from '@/hooks/useCampaigns';
 import { useAuthStore } from '@/stores/auth.store';
 import { PL } from '@/i18n/pl';
@@ -18,25 +18,18 @@ export default function Dashboard() {
   const totalCampaigns = campaigns?.length || 0;
   const totalSuppliers = campaigns?.reduce((sum, c) => sum + (c.suppliersFound || 0), 0) || 0;
   const pendingOffers = campaigns?.reduce((sum, c) => sum + (c.pendingOffers || 0), 0) || 0;
-  const aiStatus = activeCampaigns > 0 ? 'Aktywny' : 'Gotowy';
   const isFullPlan = user?.plan === 'full';
 
   return (
     <div className="flex flex-col gap-6">
       {/* Welcome Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            {PL.dashboard.welcome}, {user?.name || 'User'}!
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            AI-Powered Sourcing - inteligentne wyszukiwanie producentów
-          </p>
-        </div>
-        <Button size="lg" onClick={() => navigate('/campaigns/new')}>
-          <Plus className="mr-2 h-5 w-5" />
-          {PL.campaigns.createNew}
-        </Button>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">
+          {PL.dashboard.welcome}, {user?.name || 'User'}!
+        </h1>
+        <p className="text-muted-foreground mt-1">
+          AI-Powered Sourcing - inteligentne wyszukiwanie producentów
+        </p>
       </div>
 
       {/* Hero CTA Card */}
@@ -71,9 +64,9 @@ export default function Dashboard() {
       </motion.div>
 
       {/* Stats Cards */}
-      <div className={`grid gap-4 md:grid-cols-2 ${isFullPlan ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>
+      <div className={`grid gap-4 md:grid-cols-2 ${isFullPlan ? 'lg:grid-cols-3' : 'lg:grid-cols-2'}`}>
         {isLoading ? (
-          Array.from({ length: isFullPlan ? 4 : 3 }).map((_, i) => (
+          Array.from({ length: isFullPlan ? 3 : 2 }).map((_, i) => (
             <Card key={i}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <Skeleton className="h-4 w-24" />
@@ -96,13 +89,12 @@ export default function Dashboard() {
             }}
             initial="hidden"
             animate="show"
-            className={`col-span-1 md:col-span-2 ${isFullPlan ? 'lg:col-span-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4' : 'lg:col-span-3 grid gap-4 md:grid-cols-2 lg:grid-cols-3'}`}
+            className={`col-span-1 md:col-span-2 ${isFullPlan ? 'lg:col-span-3 grid gap-4 md:grid-cols-2 lg:grid-cols-3' : 'lg:col-span-2 grid gap-4 md:grid-cols-2'}`}
           >
             {[
               { title: PL.dashboard.metrics.activeCampaigns, icon: Target, val: totalCampaigns, desc: `${activeCampaigns} aktywnych`, link: '/campaigns' },
               { title: PL.dashboard.metrics.activeSuppliers, icon: Users, val: totalSuppliers, desc: 'znalezionych we wszystkich', link: '/suppliers' },
-              ...(isFullPlan ? [{ title: PL.dashboard.metrics.pendingOffers, icon: FileText, val: pendingOffers, desc: 'oczekujących na odpowiedź', link: '/rfqs' }] : []),
-              { title: 'Status AI', icon: Activity, val: aiStatus, desc: 'Gemini 2.0 Flash + SerpAPI', link: null, valClass: aiStatus === 'Aktywny' ? 'text-green-600' : 'text-muted-foreground' }
+              ...(isFullPlan ? [{ title: PL.dashboard.metrics.pendingOffers, icon: FileText, val: pendingOffers, desc: 'oczekujących na odpowiedź', link: '/rfqs' }] : [])
             ].map((stat, i) => (
               <motion.div
                 key={i}
@@ -117,7 +109,7 @@ export default function Dashboard() {
                     <stat.icon className="h-4 w-4 text-primary opacity-80" />
                   </CardHeader>
                   <CardContent>
-                    <div className={`text-3xl font-bold tracking-tight ${stat.valClass || ''}`}>{stat.val}</div>
+                    <div className="text-3xl font-bold tracking-tight">{stat.val}</div>
                     <p className="text-xs text-muted-foreground mt-1">
                       {stat.desc}
                     </p>

@@ -22,7 +22,7 @@ export function SettingsPage() {
     ...(isFullPlan ? [
       { key: 'organization' as TabKey, label: PL.settings.tabs.organization, icon: <Building className="h-4 w-4" /> },
     ] : []),
-    { key: 'locations', label: PL.settings.tabs.locations, icon: <MapPin className="h-4 w-4" /> },
+    ...(isFullPlan ? [{ key: 'locations' as TabKey, label: PL.settings.tabs.locations, icon: <MapPin className="h-4 w-4" /> }] : []),
     { key: 'team', label: PL.settings.tabs.team, icon: <Users className="h-4 w-4" /> },
     { key: 'notifications', label: PL.settings.tabs.notifications, icon: <Bell className="h-4 w-4" /> },
     ...(isFullPlan ? [

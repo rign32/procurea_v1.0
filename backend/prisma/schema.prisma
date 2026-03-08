@@ -159,6 +159,13 @@ model Campaign {
   sequenceTemplateId String?
   sequenceTemplate   SequenceTemplate? @relation(fields: [sequenceTemplateId], references: [id])
 
+  // AI Campaign Summary
+  aiSummary            String?
+  aiSummaryGeneratedAt DateTime?
+
+  // Feedback Survey
+  feedbackEmailSentAt  DateTime?
+
   logs      Log[]
   suppliers Supplier[]
   rfqRequest RfqRequest?
