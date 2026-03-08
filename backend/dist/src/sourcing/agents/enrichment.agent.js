@@ -96,7 +96,7 @@ let EnrichmentAgentService = EnrichmentAgentService_1 = class EnrichmentAgentSer
             return null;
         }
     }
-    async aggressiveEmailDiscovery(companyName, domain) {
+    async aggressiveEmailDiscovery(companyName, domain, campaignId) {
         const emails = new Set();
         const displayDomain = this.extractDomainForDisplay(domain);
         this.logger.log(`[EMAIL DISCOVERY] Starting optimized search for: ${companyName} (${displayDomain})`);
@@ -104,7 +104,12 @@ let EnrichmentAgentService = EnrichmentAgentService_1 = class EnrichmentAgentSer
             `"${companyName}" email contact info site:${displayDomain} OR site:linkedin.com`
         ];
         try {
-            const searchPromises = emailQueries.map(q => this.googleSearch.searchExtended(q).catch(() => []));
+            const remaining = this.googleSearch.getRemainingBudget(campaignId);
+            if (remaining <= 2) {
+                this.logger.log(`[EMAIL DISCOVERY] Budget low (${remaining}), using generated emails for ${displayDomain}`);
+                return [`info@${displayDomain}`, `contact@${displayDomain}`, `sales@${displayDomain}`];
+            }
+            const searchPromises = emailQueries.map(q => this.googleSearch.searchExtended(q, undefined, undefined, campaignId).catch(() => []));
             const allResults = await Promise.all(searchPromises);
             const flatResults = allResults.flat();
             const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
@@ -147,12 +152,12 @@ let EnrichmentAgentService = EnrichmentAgentService_1 = class EnrichmentAgentSer
             return false;
         return true;
     }
-    async execute(analystData, originalUrl) {
+    async execute(analystData, originalUrl, campaignId) {
         const companyName = analystData.company_name || 'Unknown';
         const targetDomain = this.normalizeToRootDomain(originalUrl);
         const targetDisplayDomain = this.extractDomainForDisplay(targetDomain);
         const domainSource = 'original';
-        const discoveredEmails = await this.aggressiveEmailDiscovery(companyName, targetDomain);
+        const discoveredEmails = await this.aggressiveEmailDiscovery(companyName, targetDomain, campaignId);
         let searchContext = "";
         searchContext = `Analyst Extracted Data: ${JSON.stringify(analystData)}`;
         const systemPrompt = `

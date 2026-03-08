@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Environment files (contain secrets)
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Database (dev)
+*.db
+*.db-journal
+
+# Cache
+.cache/
+
+# Firebase
+.firebase/
+
+# Secrets / credentials
+client_secret_*.json
+*.credentials.json
+
+# Runtime logs
+backend/error-logs.json
+
+# Screenshots
+screeny/

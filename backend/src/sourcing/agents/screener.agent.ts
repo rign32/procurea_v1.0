@@ -1,0 +1,282 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { GeminiService } from '../../common/services/gemini.service';
+
+/**
+ * Product context provided by the pipeline's Phase 0 analysis.
+ * Used to distinguish PRODUCERS of a product from companies that merely USE it.
+ */
+export interface ProductContext {
+    coreProduct: string;              // "farba proszkowa / powder coating paint"
+    productCategory: string;          // "Paints & Coatings"
+    specAttributes: string[];         // ["RAL 9005"] — ambiguous terms
+    positiveSignals: string[];        // ["paint manufacturer", "powder coating", "lakiernia"]
+    negativeSignals: string[];        // ["door manufacturer", "window frames", "roofing"]
+    disambiguationNote: string;       // Explanation for downstream agents
+    productTranslations: Record<string, string>;  // {"de": "Pulverlack RAL 9005"}
+    // Extended fields for strategy diversification
+    industryAssociations?: string[];  // ["European Powder Coating Association"]
+    majorTradeShows?: string[];       // ["PaintExpo", "European Coatings Show"]
+    alternativeNames?: string[];      // ["powder paint", "thermosetting paint"]
+    supplyChainPosition?: string;     // "raw material" | "component" | "finished good"
+}
+
+/**
+ * Screener Agent = merged Explorer + Analyst
+ * Single Gemini call that:
+ *   1. Determines if page belongs to a real manufacturer (Explorer role)
+ *   2. Extracts structured company data and scores match (Analyst role)
+ *   3. Validates PRODUCES-vs-USES distinction using product context
+ *
+ * This saves 1 Gemini round-trip per URL while maintaining the same quality.
+ */
+@Injectable()
+export class ScreenerAgentService {
+    private readonly logger = new Logger(ScreenerAgentService.name);
+
+    constructor(private readonly geminiService: GeminiService) { }
+
+    async execute(url: string, content: string, rfqData: any, productContext?: ProductContext): Promise<{
+        company_type: 'PRODUCENT' | 'HANDLOWIEC' | 'NIEJASNY';
+        company_type_confidence: number;
+        company_type_evidence: string;
+        is_relevant: boolean;
+        page_type: string;
+        reason: string;
+        capability_match_score: number;
+        match_reason: string;
+        risks: string[];
+        extracted_data: {
+            company_name: string;
+            vat_id?: string;
+            address?: string;
+            country?: string;
+            city?: string;
+            email?: string;
+            phone?: string;
+            website?: string;
+            specialization?: string;
+            certificates?: string[];
+            employee_count?: string;
+        };
+        mentioned_companies?: { name: string; url?: string }[];
+    }> {
+        this.logger.log(`Executing Screener Agent for ${url}...`);
+
+        // Build product context block for prompt
+        let productContextBlock = '';
+        if (productContext) {
+            productContextBlock = `
+=== KONTEKST PRODUKTU (KRYTYCZNY) ===
+PRODUKT DOCELOWY: ${productContext.coreProduct}
+KATEGORIA: ${productContext.productCategory}
+ATRYBUTY SPECYFIKACJI (mogą być niejednoznaczne): ${productContext.specAttributes.join(', ') || 'brak'}
+
+SYGNAŁY POZYTYWNE (firma PRODUKUJE ten produkt):
+${productContext.positiveSignals.map(s => `  ✅ ${s}`).join('\n')}
+
+SYGNAŁY NEGATYWNE (firma UŻYWA tego produktu, ale go NIE PRODUKUJE):
+${productContext.negativeSignals.map(s => `  ❌ ${s}`).join('\n')}
+
+UWAGA DISAMBIGUACYJNA: ${productContext.disambiguationNote}
+
+KRYTYCZNA DYSTYNKCJA — PRODUKUJE vs UŻYWA:
+Firma która jest REALNYM producentem, ale INNEGO produktu = is_relevant: false!
+Przykłady:
+- Producent drzwi, którego drzwi są malowane farbą RAL 9005 → is_relevant: false, page_type: "Wrong Product Manufacturer", score: 0 (UŻYWA farby)
+- Producent farb proszkowych sprzedający RAL 9005 → is_relevant: true (PRODUKUJE farbę)
+- Lakiernia oferująca malowanie proszkowe RAL 9005 → is_relevant: true (PRODUKUJE usługę malowania)
+
+Jeśli firma to realny producent ale ZŁEGO PRODUKTU:
+  is_relevant: false, page_type: "Wrong Product Manufacturer", capability_match_score: 0
+`;
+        }
+
+        // Build RFQ data block — use structured context if available, otherwise fallback to JSON
+        const rfqBlock = productContext
+            ? `PRODUKT: ${productContext.coreProduct}\nKATEGORIA: ${productContext.productCategory}`
+            : `DANE RFQ:\n${JSON.stringify(rfqData)}`;
+
+        const systemPrompt = `
+Jesteś Autonomicznym Skautem i Analitykiem Przemysłowym (Industrial Screener & Analyst).
+Masz TRZY zadania w jednym kroku:
+
+=== KLASYFIKACJA FIRMY (KRYTYCZNE — wykonaj NAJPIERW) ===
+
+Określ typ firmy na podstawie treści strony. SĄ TYLKO 3 KATEGORIE:
+
+PRODUCENT — firma SAMA WYTWARZA produkty:
+  Sygnały: "zakład produkcyjny", "fabryka", "linia produkcyjna", "produkujemy",
+           "manufacturing", "Herstellung", "wir produzieren", "our factory",
+           własne produkty z własnymi markami, opisy procesów technologicznych,
+           zdjęcia hal produkcyjnych, maszyn, laboratoriów,
+           jeden producent z własnymi produktami
+
+HANDLOWIEC — firma ODSPRZEDAJE produkty innych (dystrybutor, sklep, retailer, hurtownia,
+             e-commerce, pośrednik — to JEDNO I TO SAMO z perspektywy sourcingu):
+  Sygnały: "dystrybutor", "sklep", "shop", "koszyk", "dodaj do koszyka", "kup teraz",
+           "buy now", "add to cart", "cena brutto/netto", "autoryzowany dealer",
+           "w ofercie mamy produkty firmy X, Y, Z", "distributor", "reseller",
+           wiele marek w jednym miejscu, porównywarka cen, marketplace,
+           "reprezentujemy", "jesteśmy wyłącznym przedstawicielem",
+           domena zawiera "sklep", "shop", "store"
+
+NIEJASNY — brak wystarczających dowodów na którykolwiek typ.
+  UWAGA: Niejasny to TYMCZASOWY status — wymaga pogłębionego researchu.
+
+Ustaw company_type_confidence: 0-100 (jak pewny jesteś klasyfikacji).
+Ustaw company_type_evidence: krótki cytat ze strony lub obserwacja uzasadniająca klasyfikację.
+
+=== ZADANIE 1 — SCREENING ===
+Oceń czy strona należy do REALNEGO PRODUCENTA/DOSTAWCY.
+Typy stron: "Manufacturer", "Distributor", "Directory", "Blog/Article", "Wrong Product Manufacturer", "Irrelevant"
+Jeśli strona to katalog, blog, artykuł lub inna nie-firmowa strona → is_relevant: false.
+
+=== ZADANIE 2 — DIRECTORY MINING (tylko jeśli page_type = "Directory") ===
+Jeśli strona to PORTAL BRANŻOWY / KATALOG FIRM (np. Plastech, tworzywa.pl, Europages):
+  - is_relevant: false (portal sam w sobie NIE jest dostawcą)
+  - Ale WYLISTUJ firmy wymienione na stronie, które mogą być producentami docelowego produktu
+  - Podaj ich nazwy i URL-e STRON FIRMOWYCH (NIE URL profilu na portalu!)
+  - Jeśli na stronie jest link do strony firmy (np. "www.mkkolibri.pl"), użyj TEGO linku
+  - Jeśli brak bezpośredniego linku do strony firmy, zostaw url jako pusty string ""
+  - Limit: max 10 firm, tylko te powiązane z docelowym produktem
+  - Zwróć w polu "mentioned_companies"
+
+=== ZADANIE 3 — ANALIZA ===
+Jeśli strona jest relevantna (is_relevant: true), wydobądź TWARDE DANE o dostawcy.
+Jeśli is_relevant: false, zwróć puste extracted_data i capability_match_score: 0.
+${productContextBlock}
+DANE WEJŚCIOWE:
+${rfqBlock}
+
+URL: ${url}
+
+TREŚĆ STRONY:
+${content.substring(0, 20000)}
+
+=== SKALA OCENY capability_match_score (TYLKO DOPASOWANIE PRODUKTOWE) ===
+80-100: Firma ma ten dokładny produkt w ofercie (dowody na stronie)
+60-79:  Firma jest w odpowiedniej branży, prawdopodobnie ma ten produkt
+40-59:  Niejasne — powiązanie tangencjalne
+0-39:   Zła branża — firma jedynie wspomina/używa produktu, ale go nie produkuje
+UWAGA: company_type jest NIEZALEŻNY od capability_match_score.
+Handlowiec może mieć score 90 (bo sprzedaje dokładnie ten produkt).
+Producent może mieć score 40 (bo jest w powiązanej branży).
+
+=== TRUDNE PRZYPADKI (Borderline) ===
+Wielu REALNYCH PRODUCENTÓW ma kiepskie strony internetowe. NIE KARZ za:
+- Brak nowoczesnego designu strony (mały producent = normalne)
+- Krótkie/minimalne opisy produktów
+- Brak certyfikatów na stronie (mogą istnieć, ale nie są wymienione)
+- Strony w jednym języku (mały producent krajowy)
+- Mało treści na stronie (niektóre firmy mają minimalistyczne strony)
+
+NATOMIAST ZDECYDOWANIE KAR za:
+- "dodaj do koszyka", "kup teraz", "buy now", "add to cart"
+- Strona z cenami wielu produktów różnych marek
+- URL/domena zawiera "sklep", "shop", "store", "buy"
+- Porównywarka cen, marketplace
+- "dystrybutor", "reseller", "autoryzowany dealer"
+- Wiele marek/producentów w ofercie
+- Artykuły blogowe/newsowe o produkcie (nie producent)
+- Strony spamowe lub SEO-baitowe
+
+WAŻNE: Domena zawierająca "sklep" lub "shop" = SILNY sygnał handlowca.
+Przykłady:
+- "pokrycia-dachowe-sklep.pl" → company_type: "HANDLOWIEC"
+- "styropian-sklep.pl" → company_type: "HANDLOWIEC"
+- "cherbsloeh.pl" pisze na stronie "dystrybutor" → company_type: "HANDLOWIEC"
+
+GDY WĄTPLIWOŚCI (score 40-59): Ustaw is_relevant: true z niższym score.
+Lepiej przepuścić wątpliwy wynik do etapu enrichment niż odrzucić potencjalnego producenta.
+Nasz kolejny etap (enrichment + auditor) zweryfikuje firmę dokładniej.
+
+INSTRUKCJE EKSTRAKCJI (tylko jeśli is_relevant: true):
+1. Przeanalizuj treść pod kątem dopasowania do RFQ.
+2. Wydobądź dane firmy. Jeśli nazwy firmy nie ma wprost (np. w stopce), UŻYJ NAZWY DOMENY jako nazwy firmy (np. "granulat.com" -> "Granulat"). NIE zwracaj "Unknown" ani "Należy ustalić".
+3. Lokalizacja: Jeśli brak adresu, wywnioskuj kraj z domeny (.pl -> Polska, .de -> Niemcy) lub numeru telefonu (+48 -> Polska). Wpisz miasto, jeśli znajdziesz.
+4. Certyfikaty: Szukaj słów kluczowych: ISO 9001, IATF 16949, ISO 14001, UL. Wypisz je w tablicy.
+5. Specjalizacja: Krótkie zdanie opisujące co robią (np. "Wtrysk tworzyw sztucznych i budowa form").
+6. Wielkość: Szukaj haseł typu "employees", "staff", "pracowników". Jeśli brak, oszacuj lub zostaw pusty string.
+
+FORMAT WYJŚCIOWY (JSON Only):
+{
+  "company_type": "PRODUCENT|HANDLOWIEC|NIEJASNY",
+  "company_type_confidence": 0-100,
+  "company_type_evidence": "Cytat lub obserwacja uzasadniająca klasyfikację",
+  "is_relevant": true,
+  "page_type": "Manufacturer",
+  "reason": "Krótkie uzasadnienie screeningu",
+  "capability_match_score": 0-100,
+  "match_reason": "Zwięzłe uzasadnienie oceny dopasowania (1 zdanie).",
+  "risks": ["Ryzyko 1", "Ryzyko 2"],
+  "extracted_data": {
+    "company_name": "Pełna nazwa lub Domena (z dużej litery)",
+    "vat_id": "Numer NIP/VAT (jeśli znaleziono)",
+    "address": "Ulica, Miasto, Kraj",
+    "country": "Kod kraju (PL, DE, etc.) lub pełna nazwa",
+    "city": "Miasto (jeśli znaleziono)",
+    "email": "Email kontaktowy",
+    "phone": "Telefon",
+    "website": "URL strony głównej",
+    "specialization": "Krótki opis działalności (max 5-7 słów)",
+    "certificates": ["ISO 9001", "IATF 16949"],
+    "employee_count": "Liczba pracowników (np. '50-100' lub '500+')"
+  },
+  "mentioned_companies": [
+    {"name": "Nazwa Firmy", "url": "https://firmowa-strona.pl"}
+  ]
+}
+UWAGA: "mentioned_companies" zwracaj TYLKO gdy page_type = "Directory". W pozostałych przypadkach pomiń to pole.
+        `;
+
+        try {
+            const responseText = await this.geminiService.generateContent(systemPrompt);
+            const jsonString = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+            return JSON.parse(jsonString);
+        } catch (e) {
+            this.logger.error('Failed to execute Screener Agent', e);
+
+            // FALLBACK: Use productContext signals for smarter keyword matching when available
+            const baseKeywords = ['manufacturer', 'producent', 'factory', 'fabryka', 'cnc', 'machining', 'obróbka'];
+            const positiveKeywords = productContext?.positiveSignals?.length
+                ? [...baseKeywords, ...productContext.positiveSignals]
+                : baseKeywords;
+
+            const contentLower = content.toLowerCase();
+            const hasPositive = positiveKeywords.some(k => contentLower.includes(k.toLowerCase()));
+
+            // If product context exists, also check for negative signals (wrong product)
+            let hasNegative = false;
+            if (productContext?.negativeSignals?.length) {
+                hasNegative = productContext.negativeSignals.some(k => contentLower.includes(k.toLowerCase()));
+            }
+
+            const isRelevant = hasPositive && !hasNegative;
+
+            // Fallback company_type classification
+            const shopSignals = ['sklep', 'shop', 'store', 'koszyk', 'cart', 'dystrybutor', 'distributor', 'reseller'];
+            const hasShopSignal = shopSignals.some(k => contentLower.includes(k));
+            const manufacturerSignals = ['producent', 'manufacturer', 'fabryka', 'factory', 'zakład produkcyjny', 'manufacturing'];
+            const hasMfgSignal = manufacturerSignals.some(k => contentLower.includes(k));
+
+            const fallbackCompanyType = hasShopSignal ? 'HANDLOWIEC' as const
+                : (hasMfgSignal ? 'PRODUCENT' as const : 'NIEJASNY' as const);
+
+            return {
+                company_type: fallbackCompanyType,
+                company_type_confidence: hasShopSignal || hasMfgSignal ? 60 : 20,
+                company_type_evidence: 'Fallback keyword match',
+                is_relevant: isRelevant,
+                page_type: isRelevant ? 'Manufacturer (Fallback)' : (hasNegative ? 'Wrong Product Manufacturer (Fallback)' : 'Irrelevant'),
+                reason: 'AI unavailable, fallback keyword match.',
+                capability_match_score: isRelevant ? 50 : 0,
+                match_reason: 'AI unavailable. Pre-qualified by keyword match.',
+                risks: [],
+                extracted_data: {
+                    company_name: 'Detected Supplier',
+                    country: 'Unknown',
+                },
+            };
+        }
+    }
+}

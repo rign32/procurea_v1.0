@@ -14,14 +14,17 @@ exports.EmailService = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const resend_1 = require("resend");
+const prisma_service_1 = require("../prisma/prisma.service");
 let EmailService = EmailService_1 = class EmailService {
     configService;
+    prisma;
     resend = null;
     logger = new common_1.Logger(EmailService_1.name);
     fromEmail;
     overrideEmail;
-    constructor(configService) {
+    constructor(configService, prisma) {
         this.configService = configService;
+        this.prisma = prisma;
         const apiKey = this.configService.get('RESEND_API_KEY');
         this.fromEmail = this.configService.get('FROM_EMAIL') || 'noreply@procurea.pl';
         this.overrideEmail = process.env.NODE_ENV === 'production' ? '' : (this.configService.get('OVERRIDE_EMAIL') || '');
@@ -148,12 +151,19 @@ let EmailService = EmailService_1 = class EmailService {
             return true;
         }
         try {
+            let finalHtml = options.html;
+            if (options.organizationId) {
+                const footerHtml = await this.getFooterHtmlForOrg(options.organizationId);
+                if (footerHtml) {
+                    finalHtml = finalHtml.replace(/(<div[^>]*text-align:\s*center[^>]*margin-top:\s*30px)/, `${footerHtml}$1`);
+                }
+            }
             const { to, subject } = this.getDebugRouting(options.to, options.subject);
             await this.resend.emails.send({
                 from: this.fromEmail,
                 to: to,
                 subject: subject,
-                html: options.html
+                html: finalHtml,
             });
             this.logger.log(`Email sent to ${options.to}`);
             return true;
@@ -163,10 +173,49 @@ let EmailService = EmailService_1 = class EmailService {
             return false;
         }
     }
+    buildFooterHtml(org) {
+        if (!org.footerEnabled)
+            return '';
+        const lines = [];
+        if (org.footerFirstName || org.footerLastName) {
+            lines.push(`<strong>${(org.footerFirstName || '')} ${(org.footerLastName || '')}</strong>`.trim());
+        }
+        if (org.footerPosition)
+            lines.push(org.footerPosition);
+        if (org.footerCompany)
+            lines.push(org.footerCompany);
+        if (org.footerEmail)
+            lines.push(`<a href="mailto:${org.footerEmail}" style="color: #4F46E5; text-decoration: none;">${org.footerEmail}</a>`);
+        if (org.footerPhone)
+            lines.push(org.footerPhone);
+        if (lines.length === 0)
+            return '';
+        return `
+            <div style="border-top: 1px solid #E2E8F0; margin-top: 24px; padding-top: 16px;">
+                <p style="color: #64748B; font-size: 13px; line-height: 1.8; margin: 0;">
+                    ${lines.join('<br/>')}
+                </p>
+            </div>
+        `;
+    }
+    async getFooterHtmlForOrg(organizationId) {
+        try {
+            const org = await this.prisma.organization.findUnique({
+                where: { id: organizationId },
+            });
+            if (!org)
+                return '';
+            return this.buildFooterHtml(org);
+        }
+        catch {
+            return '';
+        }
+    }
 };
 exports.EmailService = EmailService;
 exports.EmailService = EmailService = EmailService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [config_1.ConfigService])
+    __metadata("design:paramtypes", [config_1.ConfigService,
+        prisma_service_1.PrismaService])
 ], EmailService);
 //# sourceMappingURL=email.service.js.map

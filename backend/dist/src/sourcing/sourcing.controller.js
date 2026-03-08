@@ -23,8 +23,8 @@ let SourcingController = class SourcingController {
     create(createCampaignDto) {
         return this.sourcingService.create(createCampaignDto);
     }
-    findAll() {
-        return this.sourcingService.findAll();
+    findAll(status, search) {
+        return this.sourcingService.findAll({ status, search });
     }
     findOne(id) {
         return this.sourcingService.findOne(id);
@@ -32,8 +32,23 @@ let SourcingController = class SourcingController {
     async getLogs(id, since) {
         return this.sourcingService.getLogs(id, since);
     }
+    async exportCSV(id, res) {
+        const csv = await this.sourcingService.exportCSV(id);
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="campaign-${id}.csv"`);
+        res.send(csv);
+    }
+    updateCampaign(id, body) {
+        return this.sourcingService.updateCampaign(id, body);
+    }
     updateStatus(id, status) {
         return this.sourcingService.updateStatus(id, status);
+    }
+    acceptCampaign(id, body) {
+        return this.sourcingService.acceptCampaign(id, body.excludedSupplierIds || []);
+    }
+    deleteCampaign(id) {
+        return this.sourcingService.softDelete(id);
     }
 };
 exports.SourcingController = SourcingController;
@@ -46,8 +61,10 @@ __decorate([
 ], SourcingController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
+    __param(0, (0, common_1.Query)('status')),
+    __param(1, (0, common_1.Query)('search')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], SourcingController.prototype, "findAll", null);
 __decorate([
@@ -66,6 +83,22 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], SourcingController.prototype, "getLogs", null);
 __decorate([
+    (0, common_1.Get)(':id/export'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], SourcingController.prototype, "exportCSV", null);
+__decorate([
+    (0, common_1.Patch)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], SourcingController.prototype, "updateCampaign", null);
+__decorate([
     (0, common_1.Patch)(':id/status'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)('status')),
@@ -73,6 +106,21 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], SourcingController.prototype, "updateStatus", null);
+__decorate([
+    (0, common_1.Post)(':id/accept'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], SourcingController.prototype, "acceptCampaign", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], SourcingController.prototype, "deleteCampaign", null);
 exports.SourcingController = SourcingController = __decorate([
     (0, common_1.Controller)('campaigns'),
     __metadata("design:paramtypes", [sourcing_service_1.SourcingService])

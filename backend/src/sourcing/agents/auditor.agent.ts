@@ -53,7 +53,14 @@ Twoją GŁÓWNĄ odpowiedzialnością jest WYKRYCIE I ODRZUCENIE fałszywych lub
 2. **WYKRYWANIE ARTYKUŁÓW/BLOGÓW**:
    - Jeśli URL zawiera "/blog/", "/news/", "/article/", "/post/" → to NIE jest strona firmy, ODRZUĆ!
    
-3. **WYKRYWANIE DYSTRYBUTORÓW**:
+3. **WERYFIKACJA TYPU FIRMY**:
+   - Screener zaklasyfikował firmę jako: ${websiteData.company_type || 'NIEJASNY'}
+   - ZWERYFIKUJ tę klasyfikację na podstawie danych.
+   - Jeśli screener mówi PRODUCENT ale dane wskazują na handlowca → ZMIEŃ klasyfikację
+   - Pole "verified_company_type" w golden_record MUSI być wypełnione
+   - Użyj tylko: "PRODUCENT" | "HANDLOWIEC" | "NIEJASNY"
+
+4. **WYKRYWANIE DYSTRYBUTORÓW**:
    - Jeśli na stronie są produkty WIELU różnych producentów → to DYSTRYBUTOR/SKLEP, oznacz!
    
 4. **WALIDACJA LOKALIZACJI**:
@@ -68,6 +75,21 @@ ${JSON.stringify(registryData, null, 2)}
 
 DOMENA DO WALIDACJI: ${websiteDomain}
 RDZEŃ DOMENY: ${coreDomainName}
+
+=== WAŻNE: NIE ODRZUCAJ ZBYT AGRESYWNIE ===
+Wiele LEGALNYCH firm ma nazwy domen RÓŻNE od nazwy firmy. Oto POPRAWNE przykłady:
+- Domena "tecpol.pl" → Firma "Technoplast Polska Sp. z o.o." = POPRAWNE (skrót)
+- Domena "abc-solutions.de" → Firma "ABC Kunststofftechnik GmbH" = POPRAWNE (osobna marka)
+- Domena "mkg.pl" → Firma "MKG Granulaty Sp. z o.o." = POPRAWNE (akronim)
+- Domena "eurocomposites.lu" → Firma "Euro-Composites S.A." = POPRAWNE (wariant nazwy)
+
+Odrzuć (REJECTED) TYLKO gdy:
+1. Domena i nazwa firmy są KOMPLETNIE NIEZWIĄZANE (np. domena o plastiku, firma stalowa)
+2. URL wyraźnie wskazuje na blog/artykuł (/blog/, /news/, /article/)
+3. Dane są ewidentnie sfabrykowane (nierealna kombinacja)
+
+validation_result: "APPROVED" powinno być DOMYŚLNE, chyba że są KONKRETNE DOWODY na falsyfikat.
+Przy wątpliwościach używaj "NEEDS_REVIEW" zamiast "REJECTED".
 
 === ZADANIE ===
 1. Oceń czy dane są SPÓJNE i WIARYGODNE.
@@ -98,7 +120,8 @@ Zwróć JSON:
     "employee_count": "Liczba pracowników lub null",
     "certificates": ["ISO 9001"],
     "contact_emails": ["email@company.com"],
-    "is_verified_manufacturer": true/false
+    "is_verified_manufacturer": true/false,
+    "verified_company_type": "PRODUCENT|HANDLOWIEC|NIEJASNY"
   }
 }
         `;
@@ -165,7 +188,8 @@ Zwróć JSON:
                     employee_count: websiteData?.employee_count || null,
                     certificates: websiteData?.certificates || [],
                     contact_emails: websiteData?.contact_emails || [],
-                    is_verified_manufacturer: true
+                    is_verified_manufacturer: false,
+                    verified_company_type: 'NIEJASNY'
                 }
             };
         }

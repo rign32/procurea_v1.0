@@ -1,8 +1,16 @@
-import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, UnauthorizedException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ApiUsageService } from '../common/services/api-usage.service';
+import { ErrorTrackingService } from '../common/services/error-tracking.service';
+import { HealthService } from '../common/services/health.service';
+import { AuthLogsService } from '../common/logger/auth-logs.service';
 import { EmailService } from '../email/email.service';
+import { TokensService } from '../auth/tokens.service';
 import * as crypto from 'crypto';
+
+// Hardcoded admin credentials for testing
+const ADMIN_USERNAME = 'admin';
+const ADMIN_PASSWORD = 'admin';
 
 @Injectable()
 export class AdminService {
@@ -11,8 +19,85 @@ export class AdminService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly apiUsageService: ApiUsageService,
+        private readonly errorTrackingService: ErrorTrackingService,
+        private readonly healthService: HealthService,
+        private readonly authLogsService: AuthLogsService,
         private readonly emailService: EmailService,
+        private readonly tokensService: TokensService,
     ) { }
+
+    // =====================
+    // Admin Authentication
+    // =====================
+
+    async adminLogin(username: string, password: string) {
+        if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+            throw new UnauthorizedException('Invalid admin credentials');
+        }
+
+        // Find or create the admin user in DB
+        let adminUser = await this.prisma.user.findFirst({
+            where: { role: 'ADMIN' },
+        });
+
+        if (!adminUser) {
+            // Create a system admin user
+            adminUser = await this.prisma.user.create({
+                data: {
+                    email: 'admin@procurea.pl',
+                    name: 'System Admin',
+                    role: 'ADMIN',
+                    isEmailVerified: true,
+                    onboardingCompleted: true,
+                },
+            });
+            this.logger.log('System admin user created');
+        }
+
+        // Generate tokens
+        const accessToken = this.tokensService.generateAccessToken(
+            adminUser.id,
+            adminUser.email,
+            adminUser.role,
+        );
+
+        return {
+            accessToken,
+            user: {
+                id: adminUser.id,
+                email: adminUser.email,
+                name: adminUser.name,
+                role: adminUser.role,
+            },
+        };
+    }
+
+    // =====================
+    // User Impersonation
+    // =====================
+
+    async impersonateUser(userId: string) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            include: { organization: true },
+        });
+
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        const accessToken = this.tokensService.generateAccessToken(
+            user.id,
+            user.email,
+            user.role,
+        );
+
+        const refreshToken = await this.tokensService.generateRefreshToken(user.id);
+
+        this.logger.log(`Admin impersonating user: ${user.email} (${user.id})`);
+
+        return { accessToken, refreshToken };
+    }
 
     // =====================
     // Dashboard
@@ -91,6 +176,8 @@ export class AdminService {
                     blockedReason: true,
                     createdAt: true,
                     lastLoginAt: true,
+                    onboardingCompleted: true,
+                    ssoProvider: true,
                     organization: {
                         select: { id: true, name: true, domain: true },
                     },
@@ -290,6 +377,256 @@ export class AdminService {
                 totalCalls,
                 totalCost,
             },
+        };
+    }
+
+    // =====================
+    // Error Logs
+    // =====================
+
+    async getErrorLogs(category?: string, limit: number = 50) {
+        if (category === 'auth') {
+            // Get auth-specific error logs from in-memory auth log service
+            const authLogs = this.authLogsService.getRecentLogs(limit, {});
+            const authErrors = authLogs.filter(log => !log.success);
+            return {
+                category: 'auth',
+                total: authErrors.length,
+                logs: authErrors,
+            };
+        }
+
+        if (category === 'sourcing') {
+            // Get sourcing/API error logs from the DATABASE (ApiUsageLog where status='error')
+            const dbErrors = await this.prisma.apiUsageLog.findMany({
+                where: {
+                    status: 'error',
+                    service: { in: ['gemini', 'serpapi', 'serper'] },
+                },
+                orderBy: { createdAt: 'desc' },
+                take: limit,
+                include: {
+                    user: { select: { id: true, email: true, name: true } },
+                },
+            });
+
+            // Also merge any in-memory errors from ErrorTrackingService
+            const inMemoryErrors = this.errorTrackingService.getRecentErrors(limit);
+
+            return {
+                category: 'sourcing',
+                total: dbErrors.length + inMemoryErrors.length,
+                dbErrors: dbErrors.map(e => ({
+                    id: e.id,
+                    timestamp: e.createdAt,
+                    service: e.service,
+                    endpoint: e.endpoint,
+                    errorMessage: e.errorMessage,
+                    requestPayload: e.requestPayload,
+                    responseTimeMs: e.responseTimeMs,
+                    tokensUsed: e.tokensUsed,
+                    user: e.user,
+                })),
+                systemErrors: inMemoryErrors,
+            };
+        }
+
+        // Return all errors combined
+        const authLogs = this.authLogsService.getRecentLogs(limit, {});
+        const authErrors = authLogs.filter(log => !log.success);
+
+        // Get API errors from the database 
+        const dbErrors = await this.prisma.apiUsageLog.findMany({
+            where: { status: 'error' },
+            orderBy: { createdAt: 'desc' },
+            take: limit,
+            include: {
+                user: { select: { id: true, email: true, name: true } },
+            },
+        });
+
+        const inMemoryErrors = this.errorTrackingService.getRecentErrors(limit);
+
+        // Get per-service error counts from DB
+        const errorsByService = await this.prisma.apiUsageLog.groupBy({
+            by: ['service'],
+            where: { status: 'error' },
+            _count: { id: true },
+        });
+
+        const serviceErrorMap: Record<string, number> = {};
+        for (const entry of errorsByService) {
+            serviceErrorMap[entry.service] = entry._count.id;
+        }
+
+        return {
+            category: 'all',
+            auth: {
+                total: authErrors.length,
+                logs: authErrors.slice(0, 20),
+            },
+            sourcing: {
+                total: dbErrors.length + inMemoryErrors.length,
+                dbErrors: dbErrors.map(e => ({
+                    id: e.id,
+                    timestamp: e.createdAt,
+                    service: e.service,
+                    endpoint: e.endpoint,
+                    errorMessage: e.errorMessage,
+                    requestPayload: e.requestPayload,
+                    responseTimeMs: e.responseTimeMs,
+                    tokensUsed: e.tokensUsed,
+                    user: e.user,
+                })),
+                systemErrors: inMemoryErrors.slice(0, 20),
+            },
+            stats: {
+                ...this.errorTrackingService.getStats(),
+                dbErrorsByService: serviceErrorMap,
+                totalDbErrors: dbErrors.length,
+            },
+        };
+    }
+
+    // =====================
+    // Integrations Status
+    // =====================
+
+    async getIntegrationStatus(deepCheck: boolean = false) {
+        const health = await this.healthService.getSystemHealth(deepCheck ? 'deep' : 'shallow');
+
+        // Add email/resend status
+        const resendKey = process.env.RESEND_API_KEY;
+        const firebaseConfigured = !!process.env.FIREBASE_PROJECT_ID || !!process.env.GOOGLE_APPLICATION_CREDENTIALS;
+
+        return {
+            overall: health.status,
+            timestamp: health.timestamp,
+            version: health.version,
+            environment: health.environment,
+            services: {
+                gemini: {
+                    ...health.services.gemini,
+                    apiKey: process.env.GEMINI_API_KEY ? '***' + process.env.GEMINI_API_KEY.slice(-4) : 'NOT SET',
+                },
+                serpApi: {
+                    ...health.services.serpApi,
+                    provider: process.env.SEARCH_PROVIDER || 'serpapi',
+                    apiKey: process.env.SERP_API_KEY ? '***' + process.env.SERP_API_KEY.slice(-4) : 'NOT SET',
+                },
+                database: health.services.database,
+                email: {
+                    status: resendKey ? 'healthy' : 'degraded',
+                    lastCheck: new Date(),
+                    message: resendKey ? 'Resend API configured' : 'Email not configured (RESEND_API_KEY missing)',
+                    apiKey: resendKey ? '***' + resendKey.slice(-4) : 'NOT SET',
+                },
+                firebase: {
+                    status: firebaseConfigured ? 'healthy' : 'degraded',
+                    lastCheck: new Date(),
+                    message: firebaseConfigured ? 'Firebase configured' : 'Firebase not configured',
+                },
+            },
+            recentErrors: health.recentErrors,
+        };
+    }
+
+    // =====================
+    // Cost Tracking
+    // =====================
+
+    async getCostSummary(startDate?: Date, endDate?: Date) {
+        const stats = await this.apiUsageService.getUsageStats({
+            startDate: startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+            endDate,
+        });
+
+        // Get per-user cost breakdown
+        const usersWithCosts = await this.prisma.apiUsageLog.groupBy({
+            by: ['userId'],
+            _sum: { estimatedCost: true },
+            _count: { id: true },
+            where: {
+                createdAt: {
+                    gte: startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+                    ...(endDate ? { lte: endDate } : {}),
+                },
+            },
+            orderBy: { _sum: { estimatedCost: 'desc' } },
+            take: 20,
+        });
+
+        // Enrich with user details
+        const userIds = usersWithCosts.map(u => u.userId).filter(Boolean) as string[];
+        const users = await this.prisma.user.findMany({
+            where: { id: { in: userIds } },
+            select: { id: true, email: true, name: true },
+        });
+
+        const userMap = new Map(users.map(u => [u.id, u]));
+
+        const perUserCosts = usersWithCosts.map(entry => ({
+            userId: entry.userId,
+            email: entry.userId ? userMap.get(entry.userId)?.email : 'system',
+            name: entry.userId ? userMap.get(entry.userId)?.name : 'System',
+            totalCost: entry._sum.estimatedCost || 0,
+            totalCalls: entry._count.id,
+        }));
+
+        return {
+            ...stats,
+            perUserCosts,
+        };
+    }
+
+    async getSourcingCostPerRequest() {
+        // Get all sourcing-related API calls (gemini + serpapi combined)
+        const last30Days = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+        const sourcingCalls = await this.prisma.apiUsageLog.findMany({
+            where: {
+                service: { in: ['gemini', 'serpapi', 'serper'] },
+                status: 'success',
+                createdAt: { gte: last30Days },
+            },
+            select: {
+                service: true,
+                estimatedCost: true,
+                tokensUsed: true,
+                responseTimeMs: true,
+            },
+        });
+
+        const totalCost = sourcingCalls.reduce((sum, c) => sum + (c.estimatedCost || 0), 0);
+        const totalCalls = sourcingCalls.length;
+        const avgCostPerCall = totalCalls > 0 ? totalCost / totalCalls : 0;
+
+        // Break down by service
+        const byService: Record<string, { calls: number; cost: number; avgCost: number }> = {};
+        for (const call of sourcingCalls) {
+            if (!byService[call.service]) {
+                byService[call.service] = { calls: 0, cost: 0, avgCost: 0 };
+            }
+            byService[call.service].calls++;
+            byService[call.service].cost += call.estimatedCost || 0;
+        }
+        for (const svc of Object.values(byService)) {
+            svc.avgCost = svc.calls > 0 ? svc.cost / svc.calls : 0;
+        }
+
+        // Estimate sourcing pipeline cost (typically: multiple SerpAPI + multiple Gemini per pipeline)
+        // A single sourcing request roughly uses: 5-15 search queries + 10-20 Gemini calls
+        const avgSerpCost = byService['serpapi']?.avgCost || byService['serper']?.avgCost || 0;
+        const avgGeminiCost = byService['gemini']?.avgCost || 0;
+        const estimatedPipelineCost = (avgSerpCost * 10) + (avgGeminiCost * 15);
+
+        return {
+            period: 'last_30_days',
+            totalCost,
+            totalCalls,
+            avgCostPerApiCall: avgCostPerCall,
+            estimatedCostPerSourcingRequest: estimatedPipelineCost,
+            byService,
         };
     }
 

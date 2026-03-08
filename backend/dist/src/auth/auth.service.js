@@ -358,6 +358,30 @@ let AuthService = class AuthService {
             return `${name}***@${domain}`;
         return `${name.slice(0, 2)}***${name.slice(-1)}@${domain}`;
     }
+    async updateProfile(userId, data) {
+        if (data.phone) {
+            const existingUser = await this.prisma.user.findFirst({
+                where: {
+                    phone: data.phone,
+                    NOT: { id: userId },
+                },
+            });
+            if (existingUser) {
+                throw new common_1.ConflictException('Phone number already in use');
+            }
+        }
+        return this.prisma.user.update({
+            where: { id: userId },
+            data: {
+                ...data
+            },
+            include: {
+                organization: {
+                    include: { locations: true }
+                }
+            }
+        });
+    }
     async deleteAllUsers() {
         try {
             console.log('[Auth] Deleting all users...');

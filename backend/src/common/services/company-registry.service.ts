@@ -111,6 +111,18 @@ export class CompanyRegistryService {
     }
 
     /**
+     * Check if a domain is blacklisted (dedicated check, separate from cache lookup).
+     */
+    async isBlacklisted(domain: string): Promise<boolean> {
+        const normalizedDomain = domain.replace(/^www\./, '').toLowerCase();
+        const record = await this.prisma.companyRegistry.findUnique({
+            where: { domain: normalizedDomain },
+            select: { isBlacklisted: true },
+        });
+        return record?.isBlacklisted === true;
+    }
+
+    /**
      * Get a company from the registry by URL (extracts domain first).
      */
     async getByUrl(url: string): Promise<CompanyRecord | null> {

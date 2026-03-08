@@ -62,4 +62,12 @@ export class SourcingGateway
     emitSupplierUpdate(campaignId: string, update: any) {
         this.server.to(campaignId).emit('campaign.supplier_update', update);
     }
+
+    emitCompleted(campaignId: string) {
+        this.server.to(campaignId).emit('campaign.completed', { campaignId });
+    }
+
+    emitError(campaignId: string, error: string) {
+        this.server.to(campaignId).emit('campaign.error', { message: error });
+    }
 }

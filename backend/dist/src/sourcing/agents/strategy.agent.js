@@ -87,7 +87,7 @@ let StrategyAgentService = StrategyAgentService_1 = class StrategyAgentService {
         this.geminiService = geminiService;
     }
     async execute(params) {
-        this.logger.log(`Executing Strategy Agent with region: ${params.region}`);
+        this.logger.log(`Executing Strategy Agent for "${params.productName}" in region: ${params.region}`);
         const regionConfig = REGION_LANGUAGE_CONFIG[params.region]
             || REGION_LANGUAGE_CONFIG.EU;
         const languageInstructions = regionConfig.languages
@@ -95,16 +95,27 @@ let StrategyAgentService = StrategyAgentService_1 = class StrategyAgentService {
             .join('\n');
         const targetCountries = regionConfig.countries.join(', ');
         const negativeKeywords = regionConfig.negatives.join(' ');
+        const keywordsStr = params.keywords.length > 0 ? params.keywords.join(', ') : 'brak';
+        const categoryStr = params.category || 'nie podano';
+        const materialStr = params.material || 'nie podano';
         const systemPrompt = `
 Jesteś Ekspertem Strategii Sourcingu Przemysłowego (Industrial Sourcing Strategist).
-Twoim celem jest znalezienie JAK NAJWIĘKSZEJ LICZBY REALNYCH PRODUCENTÓW dla podanych części.
+Twoim celem jest znalezienie JAK NAJWIĘKSZEJ LICZBY REALNYCH PRODUCENTÓW dla podanego produktu/surowca.
 CHCEMY ZNALEŹĆ 100-250+ PRODUCENTÓW na całym świecie.
 
-PARAMETRY WEJŚCIOWE:
-1. Kategoria: "${params.category}"
-2. Materiał: "${params.material}"
-3. Region: "${params.region}"
-4. Skala (EAU): ${params.eau}
+=== PRODUKT / SUROWIEC DO ZNALEZIENIA ===
+**NAZWA:** "${params.productName}"
+**OPIS:** "${params.description}"
+**SŁOWA KLUCZOWE:** ${keywordsStr}
+**KATEGORIA:** ${categoryStr}
+**MATERIAŁ:** ${materialStr}
+**SKALA (EAU):** ${params.eau} szt./rok
+**REGION:** ${params.region}
+
+WAŻNE: Zapytania wyszukiwania MUSZĄ być bezpośrednio związane z produktem "${params.productName}".
+Nie zgaduj ani nie interpretuj — szukaj DOKŁADNIE tego, co użytkownik opisał powyżej.
+Jeśli produkt to surowiec (np. "aluminium ekstrudowane"), szukaj PRODUCENTÓW/DOSTAWCÓW tego surowca,
+a NIE producentów gotowych wyrobów z tego materiału.
 
 === OGRANICZENIE REGIONALNE ===
 Twoje zapytania MUSZĄ być ograniczone do następujących krajów:
@@ -114,41 +125,24 @@ Używaj następujących JĘZYKÓW w zapytaniach:
 ${languageInstructions}
 
 === KRYTYCZNE WYMAGANIA ===
-1. Generuj MINIMUM 8-10 różnych zapytań PER JĘZYK/KRAJ
-2. Używaj RÓŻNYCH strategii wyszukiwania:
-   - Strategia TECHNOLOGICZNA: szukaj procesu produkcyjnego (np. "SMT assembly manufacturer")
-   - Strategia PRODUKTOWA: szukaj typu produktu (np. "IoT controller manufacturer")
-   - Strategia OEM/EMS: szukaj firm typu contract manufacturing
-   - Strategia KATALOGOWA: szukaj list producentów (np. "list of PCB manufacturers")
-   - Strategia CERTYFIKACYJNA: szukaj po certyfikatach (np. "ISO 13485 electronics manufacturer")
-   - Strategia GEOGRAFICZNA: szukaj regionalne (np. "Shenzhen PCB factory")
-3. Dla każdego kraju generuj zapytania w LOKALNYM JĘZYKU
-4. NIE POWTARZAJ dokładnie tych samych queries między krajami
-
-KROK 1: ANALIZA
-- Jakie są kluczowe procesy produkcyjne?
-- Jakie synonimy/warianty nazw produktu istnieją?
-- Jakie certyfikaty są typowe dla tej branży?
-- Jakie regiony/miasta są hubami produkcyjnymi?
-
-KROK 2: GENERUJ DUŻO QUERIES (8-10 per kraj)
-Przykłady typów queries:
-- "IoT controller manufacturer OEM"
-- "embedded systems contract manufacturing"
-- "list of industrial electronics manufacturers Europe"
-- "PCB assembly factory Shenzhen"
-- "EMS electronics manufacturing services company"
-- "ISO 9001 electronics producer"
+1. Generuj DOKŁADNIE 3-4 zapytania PER JĘZYK/KRAJ (nie więcej - mamy ograniczony budżet API!)
+2. Każde zapytanie MUSI być bezpośrednio związane z "${params.productName}" — NIE zgaduj pokrewnych kategorii!
+3. Używaj RÓŻNYCH strategii:
+   - TECHNOLOGICZNA: proces produkcyjny / technologia + "${params.productName}"
+   - PRODUKTOWA: "${params.productName}" + "manufacturer/producent/Hersteller"
+   - KATALOGOWA: "lista producentów" / "list of manufacturers" + "${params.productName}"
+4. Dla każdego kraju generuj zapytania w LOKALNYM JĘZYKU (tłumacz nazwę produktu!)
+5. LIMIT: max 3 kraje/języki (wybierz najważniejsze dla regionu)
 
 KRYTYCZNE ZASADY:
-1. Każde zapytanie MUSI zawierać słowo "producent/manufacturer/Hersteller/fabricant/工厂" w lokalnym języku
-2. NIGDY nie szukaj samych nazw produktów bez kontekstu "producent"
+1. Każde zapytanie MUSI zawierać przetłumaczoną nazwę produktu + słowo "producent/manufacturer/Hersteller/fabricant"
+2. NIGDY nie wymyślaj nowych kategorii produktów — trzymaj się DOKŁADNIE tego co podał użytkownik
 3. Dodaj negatywne słowa kluczowe: ${negativeKeywords}
-4. Generuj DUŻO queries - chcemy znaleźć WSZYSTKICH producentów
+4. MAX 3-4 queries per kraj - każde musi być unikalne i precyzyjne
 
 Output Format (JSON Only):
 {
-  "rationale": "Krótkie uzasadnienie strategii",
+  "rationale": "Krótkie uzasadnienie strategii, nawiązanie do konkretnego produktu",
   "region_selected": "${params.region}",
   "languages_used": ["pl", "de", "en", ...],
   "strategies": [
@@ -156,14 +150,9 @@ Output Format (JSON Only):
       "country": "Poland",
       "language": "pl",
       "queries": [
-        "producent kontrolerów IoT Polska",
-        "fabryka elektroniki przemysłowej",
-        "producent płyt PCB OEM",
-        "produkcja kontraktowa elektroniki EMS",
-        "lista producentów elektroniki Polska",
-        "zakład montażu SMT ISO 9001",
-        "producent systemów embedded",
-        "firma elektroniczna certyfikat IATF"
+        "producent ${params.productName} Polska",
+        "dostawca ${params.productName} hurtownia",
+        "fabryka ${params.productName} Europa"
       ],
       "negatives": ["-allegro", "-olx", "-sklep", "-hurtownia"]
     }

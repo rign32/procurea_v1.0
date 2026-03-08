@@ -1,11 +1,18 @@
-import { Controller, Get, Post, Req, Res } from '@nestjs/common';
+import { Controller, Get, Post, Req, Res, ForbiddenException } from '@nestjs/common';
 import type { Request, Response } from 'express';
 
 @Controller('auth/diagnostics')
 export class AuthDiagnosticsController {
 
+    private ensureDevMode() {
+        if (process.env.NODE_ENV !== 'development') {
+            throw new ForbiddenException('Diagnostics only available in development mode');
+        }
+    }
+
     @Get('cookies')
     getCookieDiagnostics(@Req() req: Request) {
+        this.ensureDevMode();
         return {
             timestamp: new Date().toISOString(),
             requestInfo: {
@@ -33,6 +40,7 @@ export class AuthDiagnosticsController {
 
     @Post('test-cookie')
     async testCookieSetting(@Res({ passthrough: true }) res: Response, @Req() req: Request) {
+        this.ensureDevMode();
         const testValue = `test_${Date.now()}`;
 
         // Test 1: Simple cookie (no domain)
@@ -67,6 +75,7 @@ export class AuthDiagnosticsController {
 
     @Get('session-flow')
     getSessionFlowDiagnostics(@Req() req: Request) {
+        this.ensureDevMode();
         const hasCookies = req.cookies && Object.keys(req.cookies).length > 0;
         const hasAuthCookies = req.cookies?.procurea_token || req.cookies?.procurea_refresh;
 

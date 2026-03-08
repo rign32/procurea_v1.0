@@ -30,10 +30,7 @@ let OrganizationService = class OrganizationService {
     async updateOrganization(id, data) {
         return this.prisma.organization.update({
             where: { id },
-            data: {
-                name: data.name,
-                footerText: data.footerText
-            },
+            data,
         });
     }
     async addLocation(organizationId, data) {

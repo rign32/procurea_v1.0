@@ -1,152 +1,159 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationService } from '../common/services/notification.service';
+import { EmailService } from '../email/email.service';
 export declare class RequestsService {
     private readonly prisma;
     private readonly notifications;
-    constructor(prisma: PrismaService, notifications: NotificationService);
-    findAll(): Promise<({
-        campaign: ({
-            suppliers: {
+    private readonly emailService;
+    private readonly logger;
+    constructor(prisma: PrismaService, notifications: NotificationService, emailService: EmailService);
+    findAll(): Promise<{
+        rfqs: ({
+            campaign: ({
+                suppliers: {
+                    id: string;
+                    name: string | null;
+                    country: string | null;
+                    city: string | null;
+                    specialization: string | null;
+                    certificates: string | null;
+                    employeeCount: string | null;
+                    contactEmails: string | null;
+                    explorerResult: string | null;
+                    analystResult: string | null;
+                    enrichmentResult: string | null;
+                    auditorResult: string | null;
+                    deletedAt: Date | null;
+                    campaignId: string;
+                    url: string;
+                    website: string | null;
+                    analysisScore: number | null;
+                    analysisReason: string | null;
+                    metadata: string | null;
+                    originLanguage: string | null;
+                    originCountry: string | null;
+                    sourceAgent: string | null;
+                    registryId: string | null;
+                }[];
+            } & {
                 id: string;
-                name: string | null;
-                country: string | null;
-                city: string | null;
-                specialization: string | null;
-                certificates: string | null;
-                employeeCount: string | null;
-                contactEmails: string | null;
-                explorerResult: string | null;
-                analystResult: string | null;
-                enrichmentResult: string | null;
-                auditorResult: string | null;
+                name: string;
+                createdAt: Date;
+                updatedAt: Date;
+                status: string;
+                stage: string;
                 deletedAt: Date | null;
-                campaignId: string;
-                url: string;
-                website: string | null;
-                analysisScore: number | null;
-                analysisReason: string | null;
-                metadata: string | null;
-                originLanguage: string | null;
-                originCountry: string | null;
-                sourceAgent: string | null;
-                registryId: string | null;
-            }[];
+                sequenceTemplateId: string | null;
+            }) | null;
+            offers: ({
+                supplier: {
+                    id: string;
+                    name: string | null;
+                    country: string | null;
+                    city: string | null;
+                    specialization: string | null;
+                    certificates: string | null;
+                    employeeCount: string | null;
+                    contactEmails: string | null;
+                    explorerResult: string | null;
+                    analystResult: string | null;
+                    enrichmentResult: string | null;
+                    auditorResult: string | null;
+                    deletedAt: Date | null;
+                    campaignId: string;
+                    url: string;
+                    website: string | null;
+                    analysisScore: number | null;
+                    analysisReason: string | null;
+                    metadata: string | null;
+                    originLanguage: string | null;
+                    originCountry: string | null;
+                    sourceAgent: string | null;
+                    registryId: string | null;
+                };
+            } & {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                status: string;
+                supplierId: string;
+                currency: string | null;
+                price: number | null;
+                moq: number | null;
+                leadTime: number | null;
+                validityDate: Date | null;
+                incotermsConfirmed: boolean;
+                specsConfirmed: boolean;
+                comments: string | null;
+                rfqRequestId: string;
+                accessToken: string;
+                tokenExpiresAt: Date | null;
+                viewedAt: Date | null;
+                submittedAt: Date | null;
+            })[];
+            deliveryLocation: {
+                id: string;
+                name: string;
+                organizationId: string;
+                createdAt: Date;
+                updatedAt: Date;
+                address: string;
+                isDefault: boolean;
+            } | null;
+            owner: {
+                id: string;
+                email: string;
+                passwordHash: string | null;
+                name: string | null;
+                phone: string | null;
+                role: string;
+                ssoProvider: string | null;
+                ssoId: string | null;
+                pendingPhone: string | null;
+                isEmailVerified: boolean;
+                isPhoneVerified: boolean;
+                phoneVerifiedAt: Date | null;
+                twoFactorEnabled: boolean;
+                onboardingCompleted: boolean;
+                companyName: string | null;
+                jobTitle: string | null;
+                language: string;
+                notificationPreferences: string | null;
+                organizationId: string | null;
+                createdAt: Date;
+                updatedAt: Date;
+                lastLoginAt: Date | null;
+                isBlocked: boolean;
+                blockedAt: Date | null;
+                blockedReason: string | null;
+            } | null;
         } & {
             id: string;
-            name: string;
             createdAt: Date;
             updatedAt: Date;
             status: string;
-            stage: string;
             deletedAt: Date | null;
-        }) | null;
-        offers: ({
-            supplier: {
-                id: string;
-                name: string | null;
-                country: string | null;
-                city: string | null;
-                specialization: string | null;
-                certificates: string | null;
-                employeeCount: string | null;
-                contactEmails: string | null;
-                explorerResult: string | null;
-                analystResult: string | null;
-                enrichmentResult: string | null;
-                auditorResult: string | null;
-                deletedAt: Date | null;
-                campaignId: string;
-                url: string;
-                website: string | null;
-                analysisScore: number | null;
-                analysisReason: string | null;
-                metadata: string | null;
-                originLanguage: string | null;
-                originCountry: string | null;
-                sourceAgent: string | null;
-                registryId: string | null;
-            };
-        } & {
-            id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            status: string;
-            supplierId: string;
-            currency: string | null;
-            price: number | null;
-            moq: number | null;
-            leadTime: number | null;
-            validityDate: Date | null;
-            incotermsConfirmed: boolean;
-            specsConfirmed: boolean;
-            comments: string | null;
-            rfqRequestId: string;
-            accessToken: string;
-            viewedAt: Date | null;
-            submittedAt: Date | null;
-            tokenExpiresAt: Date | null;
+            campaignId: string | null;
+            publicId: string | null;
+            productName: string;
+            partNumber: string | null;
+            category: string | null;
+            material: string | null;
+            description: string | null;
+            targetPrice: number | null;
+            currency: string;
+            quantity: number;
+            eau: number | null;
+            unit: string;
+            incoterms: string | null;
+            deliveryAddress: string | null;
+            deliveryLocationId: string | null;
+            desiredDeliveryDate: Date | null;
+            attachments: string | null;
+            ownerId: string | null;
         })[];
-        deliveryLocation: {
-            id: string;
-            name: string;
-            organizationId: string;
-            createdAt: Date;
-            updatedAt: Date;
-            address: string;
-            isDefault: boolean;
-        } | null;
-        owner: {
-            id: string;
-            email: string;
-            passwordHash: string | null;
-            name: string | null;
-            phone: string | null;
-            role: string;
-            ssoProvider: string | null;
-            ssoId: string | null;
-            pendingPhone: string | null;
-            isEmailVerified: boolean;
-            isPhoneVerified: boolean;
-            phoneVerifiedAt: Date | null;
-            twoFactorEnabled: boolean;
-            onboardingCompleted: boolean;
-            companyName: string | null;
-            jobTitle: string | null;
-            language: string;
-            notificationPreferences: string | null;
-            organizationId: string | null;
-            createdAt: Date;
-            updatedAt: Date;
-            lastLoginAt: Date | null;
-            isBlocked: boolean;
-            blockedAt: Date | null;
-            blockedReason: string | null;
-        } | null;
-    } & {
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
-        status: string;
-        deletedAt: Date | null;
-        campaignId: string | null;
-        publicId: string | null;
-        productName: string;
-        partNumber: string | null;
-        category: string | null;
-        material: string | null;
-        description: string | null;
-        targetPrice: number | null;
-        currency: string;
-        quantity: number;
-        eau: number | null;
-        unit: string;
-        incoterms: string | null;
-        deliveryAddress: string | null;
-        deliveryLocationId: string | null;
-        desiredDeliveryDate: Date | null;
-        attachments: string | null;
-        ownerId: string | null;
-    })[]>;
+        total: number;
+    }>;
     findOne(id: string): Promise<({
         offers: {
             id: string;
@@ -164,9 +171,9 @@ export declare class RequestsService {
             comments: string | null;
             rfqRequestId: string;
             accessToken: string;
+            tokenExpiresAt: Date | null;
             viewedAt: Date | null;
             submittedAt: Date | null;
-            tokenExpiresAt: Date | null;
         }[];
         deliveryLocation: {
             id: string;
@@ -268,9 +275,9 @@ export declare class RequestsService {
         comments: string | null;
         rfqRequestId: string;
         accessToken: string;
+        tokenExpiresAt: Date | null;
         viewedAt: Date | null;
         submittedAt: Date | null;
-        tokenExpiresAt: Date | null;
     }, import(".prisma/client").Prisma.BatchPayload, {
         id: string;
         createdAt: Date;
@@ -296,6 +303,192 @@ export declare class RequestsService {
         attachments: string | null;
         ownerId: string | null;
     }]>;
+    sendRfqToCampaign(rfqId: string, campaignId: string): Promise<{
+        sent: number;
+        failed: number;
+    }>;
+    sendRfqToSuppliers(rfqId: string, supplierIds: string[]): Promise<{
+        sent: number;
+        failed: number;
+    }>;
+    private getSupplierEmails;
+    private buildRfqEmailHtml;
+    getOffersByRfq(rfqId: string): Promise<({
+        supplier: {
+            id: string;
+            name: string | null;
+            country: string | null;
+            city: string | null;
+            contactEmails: string | null;
+            website: string | null;
+            contacts: {
+                id: string;
+                email: string | null;
+                name: string | null;
+                phone: string | null;
+                role: string | null;
+                createdAt: Date;
+                updatedAt: Date;
+                supplierId: string;
+                isDecisionMaker: boolean;
+            }[];
+        };
+    } & {
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        status: string;
+        supplierId: string;
+        currency: string | null;
+        price: number | null;
+        moq: number | null;
+        leadTime: number | null;
+        validityDate: Date | null;
+        incotermsConfirmed: boolean;
+        specsConfirmed: boolean;
+        comments: string | null;
+        rfqRequestId: string;
+        accessToken: string;
+        tokenExpiresAt: Date | null;
+        viewedAt: Date | null;
+        submittedAt: Date | null;
+    })[]>;
+    rejectOffer(offerId: string, reason?: string): Promise<{
+        supplier: {
+            id: string;
+            name: string | null;
+            country: string | null;
+            city: string | null;
+            specialization: string | null;
+            certificates: string | null;
+            employeeCount: string | null;
+            contactEmails: string | null;
+            explorerResult: string | null;
+            analystResult: string | null;
+            enrichmentResult: string | null;
+            auditorResult: string | null;
+            deletedAt: Date | null;
+            campaignId: string;
+            url: string;
+            website: string | null;
+            analysisScore: number | null;
+            analysisReason: string | null;
+            metadata: string | null;
+            originLanguage: string | null;
+            originCountry: string | null;
+            sourceAgent: string | null;
+            registryId: string | null;
+        };
+    } & {
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        status: string;
+        supplierId: string;
+        currency: string | null;
+        price: number | null;
+        moq: number | null;
+        leadTime: number | null;
+        validityDate: Date | null;
+        incotermsConfirmed: boolean;
+        specsConfirmed: boolean;
+        comments: string | null;
+        rfqRequestId: string;
+        accessToken: string;
+        tokenExpiresAt: Date | null;
+        viewedAt: Date | null;
+        submittedAt: Date | null;
+    }>;
+    shortlistOffer(offerId: string): Promise<{
+        supplier: {
+            id: string;
+            name: string | null;
+            country: string | null;
+            city: string | null;
+            specialization: string | null;
+            certificates: string | null;
+            employeeCount: string | null;
+            contactEmails: string | null;
+            explorerResult: string | null;
+            analystResult: string | null;
+            enrichmentResult: string | null;
+            auditorResult: string | null;
+            deletedAt: Date | null;
+            campaignId: string;
+            url: string;
+            website: string | null;
+            analysisScore: number | null;
+            analysisReason: string | null;
+            metadata: string | null;
+            originLanguage: string | null;
+            originCountry: string | null;
+            sourceAgent: string | null;
+            registryId: string | null;
+        };
+    } & {
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        status: string;
+        supplierId: string;
+        currency: string | null;
+        price: number | null;
+        moq: number | null;
+        leadTime: number | null;
+        validityDate: Date | null;
+        incotermsConfirmed: boolean;
+        specsConfirmed: boolean;
+        comments: string | null;
+        rfqRequestId: string;
+        accessToken: string;
+        tokenExpiresAt: Date | null;
+        viewedAt: Date | null;
+        submittedAt: Date | null;
+    }>;
+    compareOffers(offerIds: string[]): Promise<{
+        offers: ({
+            supplier: {
+                id: string;
+                name: string | null;
+                country: string | null;
+                city: string | null;
+                website: string | null;
+            };
+        } & {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            status: string;
+            supplierId: string;
+            currency: string | null;
+            price: number | null;
+            moq: number | null;
+            leadTime: number | null;
+            validityDate: Date | null;
+            incotermsConfirmed: boolean;
+            specsConfirmed: boolean;
+            comments: string | null;
+            rfqRequestId: string;
+            accessToken: string;
+            tokenExpiresAt: Date | null;
+            viewedAt: Date | null;
+            submittedAt: Date | null;
+        })[];
+        comparison: {
+            lowestPrice: {
+                offerId: string;
+                supplierId: string;
+            } | null;
+            fastestDelivery: {
+                offerId: string;
+                supplierId: string;
+            } | null;
+            bestValue: {
+                offerId: string;
+                supplierId: string;
+            } | null;
+        };
+    }>;
     createOffer(data: any): Promise<{
         supplier: {
             id: string;
@@ -338,8 +531,8 @@ export declare class RequestsService {
         comments: string | null;
         rfqRequestId: string;
         accessToken: string;
+        tokenExpiresAt: Date | null;
         viewedAt: Date | null;
         submittedAt: Date | null;
-        tokenExpiresAt: Date | null;
     }>;
 }

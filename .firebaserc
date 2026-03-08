@@ -1,0 +1,27 @@
+{
+  "projects": {
+    "default": "project-c64b9be9-1d92-4bc6-be7"
+  },
+  "targets": {
+    "project-c64b9be9-1d92-4bc6-be7": {
+      "hosting": {
+        "landing": [
+          "procurea-landing"
+        ],
+        "app": [
+          "procurea-app"
+        ],
+        "portal": [
+          "procurea-vendor"
+        ],
+        "admin": [
+          "procurea-admin-panel"
+        ],
+        "app-staging": [
+          "procurea-app-staging"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

@@ -49,31 +49,50 @@ const axios_1 = __importDefault(require("axios"));
 const cheerio = __importStar(require("cheerio"));
 let ScrapingService = ScrapingService_1 = class ScrapingService {
     logger = new common_1.Logger(ScrapingService_1.name);
+    cache = new Map();
+    CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+    MAX_RETRIES = 3;
+    CONTENT_LIMIT = 8000;
     async fetchContent(url) {
+        const cached = this.cache.get(url);
+        if (cached && Date.now() - cached.timestamp < this.CACHE_TTL_MS) {
+            this.logger.log(`[CACHE HIT] ${url}`);
+            return cached.content;
+        }
         this.logger.log(`Fetching content from: ${url}`);
-        try {
-            const { data } = await axios_1.default.get(url, {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (compatible; ProcureaBot/1.0)',
-                },
-                timeout: 10000,
-                maxContentLength: 5 * 1024 * 1024,
-                maxBodyLength: 5 * 1024 * 1024
-            });
-            const $ = cheerio.load(data);
-            $('script').remove();
-            $('style').remove();
-            $('nav').remove();
-            $('footer').remove();
-            $('header').remove();
-            $('iframe').remove();
-            const text = $('body').text().replace(/\s+/g, ' ').trim();
-            return text.substring(0, 5000);
+        for (let attempt = 1; attempt <= this.MAX_RETRIES; attempt++) {
+            try {
+                const { data } = await axios_1.default.get(url, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (compatible; ProcureaBot/1.0)',
+                        'Accept': 'text/html,application/xhtml+xml',
+                        'Accept-Language': 'en-US,en;q=0.9,pl;q=0.8,de;q=0.7',
+                    },
+                    timeout: 15000,
+                    maxContentLength: 5 * 1024 * 1024,
+                    maxBodyLength: 5 * 1024 * 1024,
+                    maxRedirects: 3,
+                });
+                const $ = cheerio.load(data);
+                $('script, style, nav, footer, header, iframe, noscript, svg').remove();
+                $('[role="navigation"], [role="banner"], [aria-hidden="true"]').remove();
+                const text = $('body').text().replace(/\s+/g, ' ').trim();
+                const content = text.substring(0, this.CONTENT_LIMIT);
+                this.cache.set(url, { content, timestamp: Date.now() });
+                return content;
+            }
+            catch (error) {
+                const isLastAttempt = attempt === this.MAX_RETRIES;
+                const delay = Math.pow(2, attempt) * 1000;
+                if (isLastAttempt) {
+                    this.logger.error(`Failed to fetch ${url} after ${this.MAX_RETRIES} attempts: ${error.message}`);
+                    return `Error fetching content: ${error.message}`;
+                }
+                this.logger.warn(`Attempt ${attempt}/${this.MAX_RETRIES} failed for ${url}: ${error.message}. Retrying in ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
         }
-        catch (error) {
-            this.logger.error(`Failed to fetch ${url}: ${error.message}`);
-            return `Error fetching content: ${error.message}`;
-        }
+        return 'Error: Unexpected retry loop exit';
     }
 };
 exports.ScrapingService = ScrapingService;

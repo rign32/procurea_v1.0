@@ -128,9 +128,15 @@ let RedisService = RedisService_1 = class RedisService {
     isAvailable() {
         return this.isEnabled && this.client !== null;
     }
+    magicCodes = new Map();
     async setMagicCode(email, code, userId, ttlSeconds = 600) {
         if (!this.isEnabled || !this.client) {
-            this.logger.warn('Redis not available, magic code not persisted');
+            this.logger.warn('Redis not available, using in-memory fallback for magic code');
+            this.magicCodes.set(email.toLowerCase(), {
+                code,
+                userId,
+                expiresAt: Date.now() + ttlSeconds * 1000
+            });
             return;
         }
         const key = `auth:magic:${email.toLowerCase()}`;
@@ -140,8 +146,24 @@ let RedisService = RedisService_1 = class RedisService {
     }
     async verifyAndDeleteMagicCode(email, code) {
         if (!this.isEnabled || !this.client) {
-            this.logger.warn('Redis not available, cannot verify magic code');
-            return null;
+            this.logger.warn('Redis not available, checking in-memory magic code');
+            const entry = this.magicCodes.get(email.toLowerCase());
+            if (!entry) {
+                this.logger.debug(`Magic code not found (in-memory) for ${email}`);
+                return null;
+            }
+            if (Date.now() > entry.expiresAt) {
+                this.logger.debug(`Magic code expired (in-memory) for ${email}`);
+                this.magicCodes.delete(email.toLowerCase());
+                return null;
+            }
+            if (entry.code !== code) {
+                this.logger.debug(`Magic code mismatch (in-memory) for ${email}`);
+                return null;
+            }
+            this.magicCodes.delete(email.toLowerCase());
+            this.logger.debug(`Magic code verified and deleted (in-memory) for ${email}`);
+            return entry.userId;
         }
         const key = `auth:magic:${email.toLowerCase()}`;
         const data = await this.client.get(key);

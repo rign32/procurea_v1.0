@@ -10,15 +10,17 @@ exports.SequencesModule = void 0;
 const common_1 = require("@nestjs/common");
 const sequences_service_1 = require("./sequences.service");
 const sequences_controller_1 = require("./sequences.controller");
+const sequence_scheduler_service_1 = require("./sequence-scheduler.service");
 const prisma_module_1 = require("../prisma/prisma.module");
+const email_module_1 = require("../email/email.module");
 let SequencesModule = class SequencesModule {
 };
 exports.SequencesModule = SequencesModule;
 exports.SequencesModule = SequencesModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule],
+        imports: [prisma_module_1.PrismaModule, email_module_1.EmailModule],
         controllers: [sequences_controller_1.SequencesController],
-        providers: [sequences_service_1.SequencesService],
+        providers: [sequences_service_1.SequencesService, sequence_scheduler_service_1.SequenceSchedulerService],
         exports: [sequences_service_1.SequencesService],
     })
 ], SequencesModule);

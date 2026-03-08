@@ -12,7 +12,7 @@ export class FirebaseStrategy extends PassportStrategy(Strategy, 'firebase') {
     // Initialize Firebase Admin if not already initialized
     if (!admin.apps.length) {
       // Check if running in Cloud Functions (FIREBASE_CONFIG is auto-set)
-      if (process.env.FIREBASE_CONFIG || process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT) {
+      if (process.env.FIREBASE_CONFIG || process.env.GCP_PROJECT_ID || process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT) {
         // Running in Cloud Functions or GCP - use default credentials
         admin.initializeApp();
         console.log('Firebase Admin initialized with default credentials (Cloud Functions)');

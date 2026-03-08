@@ -195,6 +195,6 @@ export class TokensService {
      * Get access token expiry in seconds (for cookie maxAge)
      */
     getAccessTokenExpirySeconds(): number {
-        return 15 * 60; // 15 minutes
+        return 8 * 60 * 60; // 8 hours - matches ACCESS_TOKEN_EXPIRY
     }
 }

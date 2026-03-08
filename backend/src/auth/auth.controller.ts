@@ -1,5 +1,6 @@
-import { Controller, Post, Body, BadRequestException, ConflictException, Get, Req, Res, UseGuards, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Body, BadRequestException, ConflictException, ForbiddenException, Get, Req, Res, UseGuards, UnauthorizedException, Patch } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { Throttle } from '@nestjs/throttler';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { MicrosoftAuthGuard } from './guards/microsoft-auth.guard';
 import { AuthService } from './auth.service';
@@ -335,6 +336,7 @@ export class AuthController {
                 organizationId: user.organizationId,
                 onboardingCompleted: user.onboardingCompleted,
                 isPhoneVerified: user.isPhoneVerified,
+                plan: user.plan,
             }
         };
     }
@@ -525,7 +527,8 @@ export class AuthController {
                 isPhoneVerified: user.isPhoneVerified,
                 phone: user.phone,
                 onboardingCompleted: user.onboardingCompleted,
-                organizationId: user.organizationId
+                organizationId: user.organizationId,
+                plan: user.plan,
             };
         } catch (error) {
             await this.authLogsService.logAuthEvent({
@@ -537,6 +540,54 @@ export class AuthController {
                     stack: error.stack,
                     hasCookie: !!cookies.procurea_token
                 }
+            });
+            throw error;
+        }
+    }
+
+    @Patch('me/profile')
+    @UseGuards(AuthGuard('jwt'))
+    async updateProfile(@Req() req, @Body() body: { name?: string; phone?: string; jobTitle?: string; companyName?: string }) {
+        const requestId = (req as any).requestId || 'unknown';
+        const userId = req.user.userId || req.user.sub;
+
+        await this.authLogsService.logAuthEvent({
+            requestId,
+            action: 'update_profile_request',
+            userId,
+            success: true,
+            metadata: { fields: Object.keys(body) }
+        });
+
+        try {
+            const updatedUser = await this.authService.updateProfile(userId, body);
+
+            await this.authLogsService.logAuthEvent({
+                requestId,
+                action: 'update_profile_success',
+                userId,
+                success: true
+            });
+
+            return {
+                id: updatedUser.id,
+                email: updatedUser.email,
+                name: updatedUser.name,
+                role: updatedUser.role,
+                companyName: updatedUser.companyName,
+                jobTitle: updatedUser.jobTitle,
+                isPhoneVerified: updatedUser.isPhoneVerified,
+                phone: updatedUser.phone,
+                onboardingCompleted: updatedUser.onboardingCompleted,
+                organizationId: updatedUser.organizationId
+            };
+        } catch (error) {
+            await this.authLogsService.logAuthEvent({
+                requestId,
+                action: 'update_profile_error',
+                userId,
+                success: false,
+                errorMessage: error.message
             });
             throw error;
         }
@@ -726,12 +777,14 @@ export class AuthController {
     }
 
     @Post('email/login')
+    @Throttle({ default: { ttl: 60000, limit: 5 } }) // 5 per minute
     async emailLogin(@Body() body: { email: string }) {
         if (!body.email) throw new BadRequestException('Missing email');
         return this.authService.startEmailLogin(body.email);
     }
 
     @Post('email/verify')
+    @Throttle({ default: { ttl: 600000, limit: 10 } }) // 10 per 10 minutes
     async emailVerify(
         @Body() body: { email: string; code: string },
         @Res({ passthrough: true }) res: Response
@@ -785,9 +838,11 @@ export class AuthController {
                 organizationId: user.organizationId,
                 onboardingCompleted: user.onboardingCompleted,
                 isPhoneVerified: user.isPhoneVerified,
+                plan: user.plan,
             }
         };
     }
+
 
     @Post('firebase-login')
     @UseGuards(AuthGuard('firebase'))
@@ -814,6 +869,7 @@ export class AuthController {
     }
 
     @Post('phone/send')
+    @Throttle({ default: { ttl: 60000, limit: 3 } }) // 3 per minute (SMS costs money)
     async sendPhoneOtp(@Body() body: { userId: string; phone: string }) {
         if (!body.userId || !body.phone) throw new BadRequestException('Missing userId or phone');
 
@@ -830,6 +886,7 @@ export class AuthController {
 
 
     @Post('phone/verify')
+    @Throttle({ default: { ttl: 600000, limit: 10 } }) // 10 per 10 minutes
     async verifyPhoneOtp(@Body() body: { userId: string; phone: string; code: string }, @Res({ passthrough: true }) res: Response) {
         if (!body.userId || !body.phone || !body.code) throw new BadRequestException('Missing fields');
         const user = await this.authService.verifyPhone(body.userId, body.phone, body.code);
@@ -847,8 +904,8 @@ export class AuthController {
     }
 
     @Post('onboarding/complete')
-    async completeOnboarding(@Body() body: {
-        userId: string;
+    async completeOnboarding(@Req() req, @Body() body: {
+        userId?: string;
         firstName?: string;
         lastName?: string;
         companyName: string;
@@ -857,9 +914,25 @@ export class AuthController {
         locations?: { name: string; address: string }[];
         invites?: { email: string }[];
     }, @Res({ passthrough: true }) res: Response) {
-        if (!body.userId) throw new BadRequestException('Missing userId');
+        // Try JWT first, fallback to body.userId
+        let userId: string | undefined;
 
-        const user = await this.authService.completeOnboarding(body.userId, body);
+        // Extract from JWT cookie if present
+        try {
+            const token = req.cookies?.procurea_token;
+            if (token) {
+                const decoded = this.jwtService.verify(token);
+                userId = decoded.sub;
+            }
+        } catch {
+            // JWT invalid/expired - fall through to body.userId
+        }
+
+        // Fallback to body.userId
+        if (!userId) userId = body.userId;
+        if (!userId) throw new BadRequestException('Missing userId');
+
+        const user = await this.authService.completeOnboarding(userId, body);
 
         // After completion, return fresh token with potentially updated roles/claims
         const payload = { sub: user.id, email: user.email, role: user.role };
@@ -887,11 +960,59 @@ export class AuthController {
     }
 
     @Post('admin/delete-all-users')
-    async deleteAllUsers(@Body() body: { confirm: string }) {
-        // Safety check - require confirmation
+    @UseGuards(AuthGuard('jwt'))
+    async deleteAllUsers(@Req() req, @Body() body: { confirm: string }) {
+        if (req.user?.role !== 'ADMIN') {
+            throw new ForbiddenException('Admin access required');
+        }
+        if (process.env.NODE_ENV !== 'development') {
+            throw new ForbiddenException('Only available in development mode');
+        }
         if (body.confirm !== 'DELETE_ALL_USERS') {
             throw new BadRequestException('Confirmation required: send { "confirm": "DELETE_ALL_USERS" }');
         }
         return this.authService.deleteAllUsers();
+    }
+
+    // ========== STAGING AUTO-LOGIN ==========
+    @Post('staging/auto-login')
+    @Throttle({ default: { ttl: 60000, limit: 10 } })
+    async stagingAutoLogin(@Req() req, @Res({ passthrough: true }) res: Response) {
+        const stagingSecret = process.env.STAGING_SECRET;
+        if (!stagingSecret) {
+            throw new ForbiddenException('Staging login not configured');
+        }
+
+        const providedSecret = req.headers['x-staging-secret'] || req.body?.secret;
+        if (providedSecret !== stagingSecret) {
+            throw new ForbiddenException('Invalid staging secret');
+        }
+
+        const user = await this.authService.autoLoginStaging();
+
+        const accessToken = this.tokensService.generateAccessToken(user.id, user.email, user.role);
+        const refreshToken = await this.tokensService.generateRefreshToken(user.id);
+
+        console.log(`[STAGING] Auto-login successful for ${user.email}`);
+
+        return {
+            success: true,
+            accessToken,
+            refreshToken,
+            user: {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                role: user.role,
+                companyName: user.companyName,
+                jobTitle: user.jobTitle,
+                phone: user.phone,
+                organizationId: user.organizationId,
+                onboardingCompleted: user.onboardingCompleted,
+                isPhoneVerified: user.isPhoneVerified,
+                plan: user.plan,
+                organization: user.organization,
+            }
+        };
     }
 }

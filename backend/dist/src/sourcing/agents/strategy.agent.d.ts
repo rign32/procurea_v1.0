@@ -4,6 +4,9 @@ export declare class StrategyAgentService {
     private readonly logger;
     constructor(geminiService: GeminiService);
     execute(params: {
+        productName: string;
+        description: string;
+        keywords: string[];
         category: string;
         material: string;
         region: string;

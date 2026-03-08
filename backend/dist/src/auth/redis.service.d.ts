@@ -15,6 +15,7 @@ export declare class RedisService implements OnModuleDestroy {
     blacklistAccessToken(token: string, ttlSeconds: number): Promise<void>;
     isTokenBlacklisted(token: string): Promise<boolean>;
     isAvailable(): boolean;
+    private magicCodes;
     setMagicCode(email: string, code: string, userId: string, ttlSeconds?: number): Promise<void>;
     verifyAndDeleteMagicCode(email: string, code: string): Promise<string | null>;
 }

@@ -127,7 +127,7 @@ export class AuthService {
                     name: name || email.split('@')[0],
                     ssoProvider: provider,
                     ssoId: ssoId,
-                    role: 'USER',
+                    role: 'ADMIN', // First user (self-registered) is always admin; invited users get role from invite
                     onboardingCompleted: false, // Explicitly false for new users
                 },
             });
@@ -146,7 +146,7 @@ export class AuthService {
 
     async startEmailLogin(email: string) {
         const { user } = await this.validateUserByProvider(email, 'email');
-        const magicCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const magicCode = crypto.randomInt(100000, 999999).toString();
 
         // Store magic code in Redis (10 minute TTL)
         await this.redisService.setMagicCode(email, magicCode, user.id, 600);
@@ -293,13 +293,17 @@ export class AuthService {
         if (!user) throw new BadRequestException('User not found');
         if (!user.isPhoneVerified) throw new BadRequestException('Phone not verified');
 
-        // Create Organization
+        // Create Organization — first location is always default (HQ)
+        const locationsToCreate = (data.locations || []).map((loc, i) => ({
+            ...loc,
+            isDefault: i === 0,
+        }));
         const org = await this.prisma.organization.create({
             data: {
                 name: data.companyName,
                 users: { connect: { id: userId } },
                 locations: {
-                    create: data.locations || []
+                    create: locationsToCreate
                 }
             }
         });
@@ -424,6 +428,125 @@ export class AuthService {
         const [name, domain] = email.split('@');
         if (name.length <= 2) return `${name}***@${domain}`;
         return `${name.slice(0, 2)}***${name.slice(-1)}@${domain}`;
+    }
+
+    // --- USER PROFILE UPDATE ---
+    async updateProfile(userId: string, data: { name?: string; phone?: string; jobTitle?: string; companyName?: string }) {
+        // Strip phone from update if user's phone is already verified
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (user?.isPhoneVerified && data.phone) {
+            delete data.phone;
+        }
+
+        // Check phone uniqueness if changing
+        if (data.phone) {
+            const existingUser = await this.prisma.user.findFirst({
+                where: {
+                    phone: data.phone,
+                    NOT: { id: userId },
+                },
+            });
+
+            if (existingUser) {
+                throw new ConflictException('Phone number already in use');
+            }
+        }
+
+        return this.prisma.user.update({
+            where: { id: userId },
+            data: {
+                ...data
+            },
+            include: {
+                organization: {
+                    include: { locations: true }
+                }
+            }
+        });
+    }
+
+    // --- STAGING AUTO-LOGIN ---
+    async autoLoginStaging(): Promise<any> {
+        const stagingEmail = 'staging@procurea.dev';
+
+        const existing = await this.prisma.user.findUnique({
+            where: { email: stagingEmail },
+            include: {
+                organization: {
+                    include: { locations: true }
+                }
+            }
+        });
+
+        if (existing) {
+            // Ensure staging user has an organization
+            if (!existing.organizationId) {
+                console.log('[STAGING] Staging user missing org, creating...');
+                const org = await this.prisma.organization.create({
+                    data: {
+                        name: 'Procurea Staging',
+                        locations: {
+                            create: [{
+                                name: 'HQ',
+                                address: 'ul. Testowa 1, 00-001 Warszawa',
+                                isDefault: true,
+                            }]
+                        }
+                    }
+                });
+                await this.prisma.user.update({
+                    where: { id: existing.id },
+                    data: { organizationId: org.id },
+                });
+                console.log(`[STAGING] Linked org ${org.id} to staging user`);
+                return this.prisma.user.findUnique({
+                    where: { id: existing.id },
+                    include: { organization: { include: { locations: true } } }
+                });
+            }
+            return existing;
+        }
+
+        // Create staging user with completed onboarding
+        const created = await this.prisma.user.create({
+            data: {
+                email: stagingEmail,
+                name: 'Staging Tester',
+                role: 'ADMIN',
+                ssoProvider: 'staging',
+                isPhoneVerified: true,
+                phoneVerifiedAt: new Date(),
+                onboardingCompleted: true,
+                companyName: 'Procurea Staging',
+                jobTitle: 'QA Tester',
+                language: 'pl',
+            },
+        });
+
+        await this.prisma.organization.create({
+            data: {
+                name: 'Procurea Staging',
+                users: { connect: { id: created.id } },
+                locations: {
+                    create: [{
+                        name: 'HQ',
+                        address: 'ul. Testowa 1, 00-001 Warszawa',
+                        isDefault: true,
+                    }]
+                }
+            }
+        });
+
+        console.log(`[STAGING] Created staging user: ${stagingEmail}`);
+
+        return this.prisma.user.findUnique({
+            where: { id: created.id },
+            include: {
+                organization: {
+                    include: { locations: true }
+                }
+            }
+        });
     }
 
     // --- ADMIN: DELETE ALL USERS ---

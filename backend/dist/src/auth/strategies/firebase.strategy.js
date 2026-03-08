@@ -51,7 +51,7 @@ let FirebaseStrategy = class FirebaseStrategy extends (0, passport_1.PassportStr
     constructor() {
         super();
         if (!admin.apps.length) {
-            if (process.env.FIREBASE_CONFIG || process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT) {
+            if (process.env.FIREBASE_CONFIG || process.env.GCP_PROJECT_ID || process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT) {
                 admin.initializeApp();
                 console.log('Firebase Admin initialized with default credentials (Cloud Functions)');
             }

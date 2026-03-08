@@ -15,7 +15,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthDiagnosticsController = void 0;
 const common_1 = require("@nestjs/common");
 let AuthDiagnosticsController = class AuthDiagnosticsController {
+    ensureDevMode() {
+        if (process.env.NODE_ENV !== 'development') {
+            throw new common_1.ForbiddenException('Diagnostics only available in development mode');
+        }
+    }
     getCookieDiagnostics(req) {
+        this.ensureDevMode();
         return {
             timestamp: new Date().toISOString(),
             requestInfo: {
@@ -41,6 +47,7 @@ let AuthDiagnosticsController = class AuthDiagnosticsController {
         };
     }
     async testCookieSetting(res, req) {
+        this.ensureDevMode();
         const testValue = `test_${Date.now()}`;
         res.cookie('test_simple', testValue, {
             httpOnly: true,
@@ -67,6 +74,7 @@ let AuthDiagnosticsController = class AuthDiagnosticsController {
         };
     }
     getSessionFlowDiagnostics(req) {
+        this.ensureDevMode();
         const hasCookies = req.cookies && Object.keys(req.cookies).length > 0;
         const hasAuthCookies = req.cookies?.procurea_token || req.cookies?.procurea_refresh;
         return {

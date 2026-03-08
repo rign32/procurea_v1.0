@@ -22,7 +22,8 @@ let SetupController = class SetupController {
         this.adminService = adminService;
     }
     async setupAdmin(key, req) {
-        if (key !== 'procurea-secure-setup-2026') {
+        const setupKey = process.env.ADMIN_SETUP_KEY;
+        if (!setupKey || key !== setupKey) {
             throw new common_1.ForbiddenException('Invalid setup key');
         }
         const ip = req.ip || req.connection.remoteAddress;

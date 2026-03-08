@@ -64,7 +64,7 @@ let GeminiService = GeminiService_1 = class GeminiService {
     logger = new common_1.Logger(GeminiService_1.name);
     aiStudioClient = null;
     vertexClient = null;
-    projectId = process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT || 'project-c64b9be9-1d92-4bc6-be7';
+    projectId = process.env.GCP_PROJECT_ID || process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT || 'project-c64b9be9-1d92-4bc6-be7';
     location = process.env.GOOGLE_CLOUD_LOCATION || 'us-central1';
     apiKey = process.env.GEMINI_API_KEY;
     modelName = 'gemini-2.0-flash';
@@ -280,22 +280,42 @@ let GeminiService = GeminiService_1 = class GeminiService {
     }
     getMockResponse(prompt) {
         this.mockRequestCounter++;
-        if (prompt.includes('Jesteś Strategiem Sourcingu Przemysłowego') || prompt.includes('Industrial Sourcing Strategist')) {
+        if (prompt.includes('Ekspert') && prompt.includes('Sourcingu') || prompt.includes('Industrial Sourcing Strategist')) {
             return (0, mock_data_1.getMockStrategy)(prompt);
         }
-        if (prompt.includes('Jesteś Autonomicznym Skautem Przemysłowym') || prompt.includes('Oceń czy strona należy do producenta')) {
-            return (0, mock_data_1.getMockExplorerRelevant)("http://simulated-url.com", prompt);
-        }
-        if (prompt.includes('Jesteś Starszym Audytorem ds. Zakupów Technicznych') || prompt.includes('Dokonaj wnikliwej analizy dostawcy')) {
+        if (prompt.includes('Analitykiem Skautingu') || prompt.includes('Procurement Analyst') || prompt.includes('capability_match_score')) {
             return (0, mock_data_1.getMockAnalyst)(this.mockRequestCounter, prompt);
         }
-        if (prompt.includes('Jesteś Specjalistą ds. Compliance') || prompt.includes('Porównaj dane dostawcy')) {
+        if (prompt.includes('Skautem Przemysłowym') || prompt.includes('Oceń czy strona')) {
+            return (0, mock_data_1.getMockExplorerRelevant)("http://simulated-url.com", prompt);
+        }
+        if (prompt.includes('Inżynier') || prompt.includes('Data Enrichment') || prompt.includes('enriched_data')) {
+            const emailMatch = prompt.match(/ZNALEZIONE EMAILE:\s*(.+)/);
+            const emails = emailMatch?.[1]?.split(',').map(e => e.trim()).filter(Boolean) || ['info@example.com'];
+            const nameMatch = prompt.match(/"company_name":\s*"([^"]+)"/);
+            const companyName = nameMatch?.[1] || 'Unknown Company';
+            return JSON.stringify({
+                enriched_data: {
+                    company_name: companyName,
+                    contact_emails: emails,
+                    country: 'Poland',
+                    specialization: 'Manufacturing',
+                },
+                verification: {
+                    is_verified_manufacturer: true,
+                    has_contact_email: emails.length > 0,
+                    confidence_score: 70,
+                    verification_notes: 'Mock enrichment - real AI needed for full verification',
+                }
+            });
+        }
+        if (prompt.includes('Compliance') || prompt.includes('Porównaj dane') || prompt.includes('golden_record')) {
             const match = prompt.match(/"company_name":\s*"([^"]+)"/);
             const extractedData = match ? { extracted_data: { company_name: match[1] } } : { extracted_data: { company_name: "Mock Company " + this.mockRequestCounter } };
             return (0, mock_data_1.getMockAuditor)(extractedData);
         }
-        this.logger.warn(`No mock found for prompt: ${prompt.substring(0, 50)}...`);
-        return JSON.stringify({ error: "No matching mock found for prompt" });
+        this.logger.warn(`[MOCK] No mock pattern matched for prompt: ${prompt.substring(0, 80)}...`);
+        return JSON.stringify({ capability_match_score: 60, extracted_data: { company_name: "Unmatched Mock " + this.mockRequestCounter } });
     }
 };
 exports.GeminiService = GeminiService;

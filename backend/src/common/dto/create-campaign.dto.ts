@@ -1,0 +1,84 @@
+import { IsString, IsOptional, IsNumber, IsArray, ValidateNested, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+
+class SearchCriteriaDto {
+    @IsString()
+    region: string;
+
+    @IsOptional()
+    @IsString()
+    industry?: string;
+
+    @IsOptional()
+    @IsString()
+    category?: string;
+
+    @IsOptional()
+    @IsString()
+    material?: string;
+
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    eau?: number;
+
+    @IsOptional()
+    @IsNumber()
+    @Min(1)
+    quantity?: number;
+
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    keywords?: string[];
+
+    @IsOptional()
+    @IsString()
+    description?: string;
+
+    @IsOptional()
+    @IsString()
+    deliveryLocationId?: string;
+
+    @IsOptional()
+    @IsNumber()
+    targetPrice?: number;
+
+    @IsOptional()
+    @IsString()
+    currency?: string;
+
+    @IsOptional()
+    @IsString()
+    incoterms?: string;
+
+    @IsOptional()
+    @IsString()
+    paymentTerms?: string;
+
+    @IsOptional()
+    @IsString()
+    desiredDeliveryDate?: string;
+
+    @IsOptional()
+    @IsString()
+    offerDeadline?: string;
+
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    supplierTypes?: string[];
+}
+
+export class CreateCampaignDto {
+    @IsString()
+    name: string;
+
+    @IsOptional()
+    @IsString()
+    sequenceTemplateId?: string;
+
+    @ValidateNested()
+    @Type(() => SearchCriteriaDto)
+    searchCriteria: SearchCriteriaDto;
+}

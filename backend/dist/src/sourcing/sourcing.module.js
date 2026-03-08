@@ -19,11 +19,13 @@ const analyst_agent_1 = require("./agents/analyst.agent");
 const enrichment_agent_1 = require("./agents/enrichment.agent");
 const auditor_agent_1 = require("./agents/auditor.agent");
 const sourcing_gateway_1 = require("./sourcing.gateway");
+const email_module_1 = require("../email/email.module");
 let SourcingModule = class SourcingModule {
 };
 exports.SourcingModule = SourcingModule;
 exports.SourcingModule = SourcingModule = __decorate([
     (0, common_1.Module)({
+        imports: [email_module_1.EmailModule],
         controllers: [sourcing_controller_1.SourcingController],
         providers: [
             sourcing_service_1.SourcingService,

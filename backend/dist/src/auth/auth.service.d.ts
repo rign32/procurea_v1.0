@@ -33,6 +33,13 @@ export declare class AuthService {
             updatedAt: Date;
             domain: string | null;
             footerText: string | null;
+            footerEnabled: boolean;
+            footerFirstName: string | null;
+            footerLastName: string | null;
+            footerCompany: string | null;
+            footerPosition: string | null;
+            footerEmail: string | null;
+            footerPhone: string | null;
         }) | null;
     } & {
         id: string;
@@ -175,6 +182,64 @@ export declare class AuthService {
         message: string;
     }>;
     private maskEmail;
+    updateProfile(userId: string, data: {
+        name?: string;
+        phone?: string;
+        jobTitle?: string;
+        companyName?: string;
+    }): Promise<{
+        organization: ({
+            locations: {
+                id: string;
+                name: string;
+                organizationId: string;
+                createdAt: Date;
+                updatedAt: Date;
+                address: string;
+                isDefault: boolean;
+            }[];
+        } & {
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            domain: string | null;
+            footerText: string | null;
+            footerEnabled: boolean;
+            footerFirstName: string | null;
+            footerLastName: string | null;
+            footerCompany: string | null;
+            footerPosition: string | null;
+            footerEmail: string | null;
+            footerPhone: string | null;
+        }) | null;
+    } & {
+        id: string;
+        email: string;
+        passwordHash: string | null;
+        name: string | null;
+        phone: string | null;
+        role: string;
+        ssoProvider: string | null;
+        ssoId: string | null;
+        pendingPhone: string | null;
+        isEmailVerified: boolean;
+        isPhoneVerified: boolean;
+        phoneVerifiedAt: Date | null;
+        twoFactorEnabled: boolean;
+        onboardingCompleted: boolean;
+        companyName: string | null;
+        jobTitle: string | null;
+        language: string;
+        notificationPreferences: string | null;
+        organizationId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        lastLoginAt: Date | null;
+        isBlocked: boolean;
+        blockedAt: Date | null;
+        blockedReason: string | null;
+    }>;
     deleteAllUsers(): Promise<{
         success: boolean;
         count: number;

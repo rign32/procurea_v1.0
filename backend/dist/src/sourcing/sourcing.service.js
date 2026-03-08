@@ -12,6 +12,7 @@ var SourcingService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SourcingService = void 0;
 const common_1 = require("@nestjs/common");
+const normalize_country_1 = require("../common/normalize-country");
 const prisma_service_1 = require("../prisma/prisma.service");
 const strategy_agent_1 = require("./agents/strategy.agent");
 const explorer_agent_1 = require("./agents/explorer.agent");
@@ -23,6 +24,7 @@ const scraping_service_1 = require("../common/services/scraping.service");
 const query_cache_service_1 = require("../common/services/query-cache.service");
 const company_registry_service_1 = require("../common/services/company-registry.service");
 const sourcing_gateway_1 = require("./sourcing.gateway");
+const email_service_1 = require("../email/email.service");
 let SourcingService = SourcingService_1 = class SourcingService {
     prisma;
     strategyAgent;
@@ -35,8 +37,9 @@ let SourcingService = SourcingService_1 = class SourcingService {
     sourcingGateway;
     queryCache;
     companyRegistry;
+    emailService;
     logger = new common_1.Logger(SourcingService_1.name);
-    constructor(prisma, strategyAgent, explorerAgent, analystAgent, enrichmentAgent, auditorAgent, searchService, scrapingService, sourcingGateway, queryCache, companyRegistry) {
+    constructor(prisma, strategyAgent, explorerAgent, analystAgent, enrichmentAgent, auditorAgent, searchService, scrapingService, sourcingGateway, queryCache, companyRegistry, emailService) {
         this.prisma = prisma;
         this.strategyAgent = strategyAgent;
         this.explorerAgent = explorerAgent;
@@ -48,6 +51,7 @@ let SourcingService = SourcingService_1 = class SourcingService {
         this.sourcingGateway = sourcingGateway;
         this.queryCache = queryCache;
         this.companyRegistry = companyRegistry;
+        this.emailService = emailService;
     }
     normalizeToRootDomain(url) {
         try {
@@ -84,7 +88,8 @@ let SourcingService = SourcingService_1 = class SourcingService {
             data: {
                 name: dto.name || 'New Campaign',
                 status: 'RUNNING',
-                stage: 'STRATEGY'
+                stage: 'STRATEGY',
+                sequenceTemplateId: dto.sequenceTemplateId || null,
             }
         });
         await this.prisma.rfqRequest.create({
@@ -108,8 +113,16 @@ let SourcingService = SourcingService_1 = class SourcingService {
         });
         return { id: campaign.id, status: 'STARTED' };
     }
-    async findAll() {
+    async findAll(filters) {
+        const where = { deletedAt: null };
+        if (filters?.status) {
+            where.status = filters.status;
+        }
+        if (filters?.search) {
+            where.name = { contains: filters.search, mode: 'insensitive' };
+        }
         const campaigns = await this.prisma.campaign.findMany({
+            where,
             include: {
                 _count: {
                     select: { suppliers: true }
@@ -138,7 +151,12 @@ let SourcingService = SourcingService_1 = class SourcingService {
                         id: true,
                         publicId: true,
                         productName: true,
-                        status: true
+                        status: true,
+                        _count: { select: { offers: true } },
+                        offers: {
+                            where: { status: { in: ['PENDING', 'SUBMITTED', 'VIEWED'] } },
+                            select: { id: true }
+                        }
                     }
                 }
             },
@@ -155,7 +173,8 @@ let SourcingService = SourcingService_1 = class SourcingService {
             stats: {
                 suppliersFound: c._count.suppliers,
                 suppliersContacted: c.suppliers.filter(s => s.contactEmails && s.contactEmails.length > 5).length,
-                offersReceived: Math.floor(c._count.suppliers * 0.1)
+                offersReceived: c.rfqRequest?._count?.offers || 0,
+                pendingOffers: c.rfqRequest?.offers?.length || 0,
             },
             tags: [...new Set(c.suppliers.map(s => s.originCountry).filter(Boolean))]
         }));
@@ -185,6 +204,44 @@ let SourcingService = SourcingService_1 = class SourcingService {
                 }
             }))
         };
+    }
+    async updateCampaign(id, data) {
+        return this.prisma.campaign.update({
+            where: { id },
+            data,
+        });
+    }
+    async softDelete(id) {
+        const campaign = await this.prisma.campaign.findUnique({ where: { id } });
+        if (!campaign)
+            throw new common_1.NotFoundException('Campaign not found');
+        await this.prisma.campaign.update({
+            where: { id },
+            data: { deletedAt: new Date(), status: 'ARCHIVED' },
+        });
+        return { success: true };
+    }
+    async exportCSV(id) {
+        const campaign = await this.prisma.campaign.findUnique({
+            where: { id },
+            include: {
+                suppliers: {
+                    where: { deletedAt: null },
+                    include: { contacts: true },
+                },
+            },
+        });
+        if (!campaign)
+            throw new common_1.NotFoundException('Campaign not found');
+        const header = 'Name,Country,City,Website,ContactEmails,Score,Specialization,Certificates';
+        const rows = campaign.suppliers.map(s => {
+            const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+            return [
+                esc(s.name), esc(s.country), esc(s.city), esc(s.website),
+                esc(s.contactEmails), esc(s.analysisScore), esc(s.specialization), esc(s.certificates),
+            ].join(',');
+        });
+        return [header, ...rows].join('\n');
     }
     async updateStatus(id, status) {
         return this.prisma.campaign.update({
@@ -236,28 +293,63 @@ let SourcingService = SourcingService_1 = class SourcingService {
         const MAX_PER_LANGUAGE = 5;
         try {
             const strategyParams = {
-                category: dto.searchCriteria.industry || 'General',
-                material: dto.searchCriteria.material || 'Metal',
+                productName: dto.name || '',
+                description: dto.searchCriteria.description || dto.name || '',
+                keywords: dto.searchCriteria.keywords || [],
+                category: dto.searchCriteria.industry || dto.searchCriteria.category || '',
+                material: dto.searchCriteria.material || '',
                 region: dto.searchCriteria.region || 'EU',
                 eau: dto.searchCriteria.eau || 1000
             };
             await this.log(id, `🎯 [STRATEGY] Generating multimodal search strategy for region: ${strategyParams.region}`);
-            await this.log(id, `📊 [STRATEGY] Parameters: Category=${strategyParams.category}, Material=${strategyParams.material}, EAU=${strategyParams.eau}`);
+            await this.log(id, `📊 [STRATEGY] Product: "${strategyParams.productName}", Material: ${strategyParams.material || 'N/A'}, Category: ${strategyParams.category || 'N/A'}, Keywords: [${strategyParams.keywords.join(', ')}]`);
             const strategyResult = await this.strategyAgent.execute(strategyParams);
             await this.log(id, `✅ [STRATEGY] Generated ${strategyResult.strategies?.length || 0} language-specific strategies`);
             this.sourcingGateway.emitProgress(id, 'STRATEGY', 100);
             const languageStrategies = strategyResult.strategies || [];
             if (languageStrategies.length === 0) {
                 await this.log(id, `[ERROR] No language strategies generated. Using fallback.`);
+                const keywords = dto.searchCriteria.keywords?.filter(Boolean) || [];
+                const material = dto.searchCriteria.material;
+                const category = dto.searchCriteria.category || dto.searchCriteria.industry;
+                const description = dto.searchCriteria.description;
+                const region = dto.searchCriteria.region || 'EU';
+                const fallbackQueries = [];
+                const negatives = ['-amazon', '-ebay', '-aliexpress', '-alibaba', '-allegro'];
+                if (keywords.length > 0) {
+                    fallbackQueries.push(`${keywords.join(' ')} manufacturer producer`);
+                }
+                if (material && description) {
+                    fallbackQueries.push(`"${material}" "${description}" manufacturer`);
+                }
+                if (category) {
+                    fallbackQueries.push(`${category} ${material || ''} manufacturer supplier`.trim());
+                }
+                if (description) {
+                    fallbackQueries.push(`${description} producer manufacturer`);
+                }
+                if (fallbackQueries.length === 0) {
+                    fallbackQueries.push('manufacturer producer supplier');
+                }
+                if (region === 'PL' || region === 'EU') {
+                    const plQueries = fallbackQueries.map(q => q.replace(/manufacturer/g, 'producent').replace(/producer/g, 'producent'));
+                    languageStrategies.push({
+                        country: 'Polska',
+                        language: 'pl',
+                        queries: plQueries,
+                        negatives: [...negatives, '-olx', '-ceneo'],
+                    });
+                }
                 languageStrategies.push({
                     country: 'Global',
                     language: 'en',
-                    queries: dto.searchCriteria.keywords || ['manufacturer'],
-                    negatives: ['-amazon', '-ebay']
+                    queries: fallbackQueries,
+                    negatives,
                 });
+                await this.log(id, `[FALLBACK] Generated ${languageStrategies.length} fallback strategies with ${fallbackQueries.length} queries each`);
             }
             await this.log(id, `🔍 [SCANNING] Spawning ${languageStrategies.length} parallel language workers...`);
-            const optimizedStrategies = languageStrategies.slice(0, 5);
+            const optimizedStrategies = languageStrategies.slice(0, 3);
             await this.log(id, `⚡ [SCANNING] Optimized: Starting ${optimizedStrategies.length} language workers (limited from ${languageStrategies.length} for efficiency)...`);
             const workerResults = [];
             for (const langStrategy of optimizedStrategies) {
@@ -327,8 +419,13 @@ let SourcingService = SourcingService_1 = class SourcingService {
                     await this.log(campaignId, `${workerTag} [CACHE] "${query.substring(0, 25)}..." (${urls.length} URLs)`);
                 }
                 else {
-                    await this.log(campaignId, `${workerTag} [SEARCH] "${query.substring(0, 25)}..."`);
-                    const rawResults = await this.searchService.searchExtended(fullQuery);
+                    const remaining = this.searchService.getRemainingBudget(campaignId);
+                    if (remaining <= 0) {
+                        await this.log(campaignId, `${workerTag} [BUDGET] Search budget exhausted. Stopping.`);
+                        break;
+                    }
+                    await this.log(campaignId, `${workerTag} [SEARCH] "${query.substring(0, 25)}..." (budget: ${remaining})`);
+                    const rawResults = await this.searchService.searchExtended(fullQuery, undefined, undefined, campaignId);
                     urls = rawResults.map(r => r.link);
                     if (rawResults.length > 0) {
                         await this.queryCache.cacheResults(query, rawResults);
@@ -381,7 +478,7 @@ let SourcingService = SourcingService_1 = class SourcingService {
                     const enrichedData = {
                         company_name: cachedSupplier.name,
                         website: `https://${cachedSupplier.domain}`,
-                        country: cachedSupplier.country,
+                        country: (0, normalize_country_1.normalizeCountry)(cachedSupplier.country),
                         city: cachedSupplier.city,
                         specialization: cachedSupplier.specialization,
                         certificates: cachedSupplier.certificates,
@@ -409,7 +506,7 @@ let SourcingService = SourcingService_1 = class SourcingService {
                 return false;
             }
             this.sourcingGateway.emitSupplierUpdate(campaignId, { url, status: 'ENRICHING' });
-            const enrichmentResult = await this.enrichmentAgent.execute(analystResult.extracted_data || {}, url);
+            const enrichmentResult = await this.enrichmentAgent.execute(analystResult.extracted_data || {}, url, campaignId);
             this.sourcingGateway.emitSupplierUpdate(campaignId, { url, status: 'VERIFYING' });
             const enrichedData = enrichmentResult.enriched_data || analystResult.extracted_data;
             const registryData = {
@@ -444,7 +541,7 @@ let SourcingService = SourcingService_1 = class SourcingService {
             const supplierDomain = this.extractDomain(finalWebsite);
             const registryEntry = await this.companyRegistry.upsert(supplierDomain, {
                 name: enrichedData.company_name || analystResult?.extracted_data?.company_name || 'Unknown',
-                country: enrichmentResult?.enriched_data?.country || analystResult?.extracted_data?.country || 'Europe',
+                country: (0, normalize_country_1.normalizeCountry)(enrichmentResult?.enriched_data?.country || analystResult?.extracted_data?.country || 'Europe'),
                 city: enrichmentResult?.enriched_data?.city || analystResult?.extracted_data?.city || null,
                 specialization: enrichmentResult?.enriched_data?.specialization || analystResult?.extracted_data?.specialization || 'General',
                 certificates: Array.isArray(enrichedData.certificates) ? enrichedData.certificates.join(', ') : (enrichedData.certificates || ''),
@@ -461,7 +558,7 @@ let SourcingService = SourcingService_1 = class SourcingService {
                     campaignId: campaignId,
                     url: finalWebsite,
                     name: enrichedData.company_name || analystResult.extracted_data?.company_name || 'Unknown Company',
-                    country: enrichmentResult?.enriched_data?.country || analystResult?.extracted_data?.country || 'Europe',
+                    country: (0, normalize_country_1.normalizeCountry)(enrichmentResult?.enriched_data?.country || analystResult?.extracted_data?.country || 'Europe'),
                     city: enrichmentResult?.enriched_data?.city || analystResult?.extracted_data?.city || null,
                     website: finalWebsite,
                     specialization: enrichmentResult?.enriched_data?.specialization || analystResult?.extracted_data?.specialization || 'General',
@@ -516,7 +613,7 @@ let SourcingService = SourcingService_1 = class SourcingService {
                     campaignId: campaignId,
                     url: enrichedData.website,
                     name: enrichedData.company_name || 'Unknown Company',
-                    country: enrichedData.country || 'Unknown',
+                    country: (0, normalize_country_1.normalizeCountry)(enrichedData.country || 'Unknown'),
                     city: enrichedData.city || null,
                     website: enrichedData.website,
                     specialization: enrichedData.specialization || 'General',
@@ -549,6 +646,156 @@ let SourcingService = SourcingService_1 = class SourcingService {
             return false;
         }
     }
+    async acceptCampaign(campaignId, excludedSupplierIds) {
+        const campaign = await this.prisma.campaign.findUnique({
+            where: { id: campaignId },
+            include: {
+                suppliers: { include: { contacts: true } },
+                sequenceTemplate: {
+                    include: { steps: { orderBy: { dayOffset: 'asc' } } },
+                },
+                rfqRequest: {
+                    include: {
+                        owner: { include: { organization: true } },
+                    },
+                },
+            },
+        });
+        if (!campaign)
+            throw new common_1.NotFoundException('Campaign not found');
+        if (campaign.status !== 'COMPLETED') {
+            throw new Error(`Campaign status must be COMPLETED, got: ${campaign.status}`);
+        }
+        if (excludedSupplierIds.length > 0) {
+            await this.prisma.supplier.updateMany({
+                where: { id: { in: excludedSupplierIds }, campaignId },
+                data: { deletedAt: new Date() },
+            });
+        }
+        const qualifiedSuppliers = campaign.suppliers.filter(s => !excludedSupplierIds.includes(s.id) && !s.deletedAt);
+        this.logger.log(`[ACCEPT] Campaign ${campaignId}: ${qualifiedSuppliers.length} qualified, ${excludedSupplierIds.length} excluded`);
+        await this.prisma.campaign.update({
+            where: { id: campaignId },
+            data: { status: 'ACCEPTED' },
+        });
+        const rfqRequestId = campaign.rfqRequest?.id;
+        if (!rfqRequestId) {
+            this.logger.warn(`[ACCEPT] Campaign ${campaignId} has no rfqRequest — skipping offer creation`);
+            return { qualified: qualifiedSuppliers.length, excluded: excludedSupplierIds.length, offersSent: 0 };
+        }
+        let emailsSent = 0;
+        const initialStep = campaign.sequenceTemplate?.steps?.[0];
+        for (const supplier of qualifiedSuppliers) {
+            const offer = await this.prisma.offer.create({
+                data: {
+                    rfqRequestId,
+                    supplierId: supplier.id,
+                    status: 'PENDING',
+                },
+            });
+            if (initialStep && campaign.sequenceTemplate) {
+                const emails = this.getSupplierEmails(supplier);
+                if (emails.length > 0) {
+                    try {
+                        const subject = this.resolveTemplateVars(initialStep.subject, campaign.rfqRequest, supplier);
+                        const body = this.resolveTemplateVars(initialStep.bodySnippet, campaign.rfqRequest, supplier);
+                        const org = campaign.rfqRequest?.owner?.organization;
+                        const footerHtml = org ? this.buildAcceptFooterHtml(org) : '';
+                        const portalUrl = `${process.env.FRONTEND_URL || 'https://app.procurea.pl'}/offers/${offer.accessToken}`;
+                        const html = `
+                            <div style="font-family: 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+                                <div style="text-align: center; margin-bottom: 30px;">
+                                    <h1 style="color: #4F46E5; margin: 0; font-size: 28px;">Procurea</h1>
+                                </div>
+                                <div style="background: white; border-radius: 12px; padding: 40px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+                                    <p style="color: #475569; line-height: 1.6; white-space: pre-line;">${body}</p>
+                                    <div style="text-align: center; margin: 24px 0;">
+                                        <a href="${portalUrl}" style="display: inline-block; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                                            Złóż ofertę
+                                        </a>
+                                    </div>
+                                </div>
+                                ${footerHtml}
+                            </div>
+                        `;
+                        const sent = await this.emailService.sendEmail({
+                            to: emails[0],
+                            subject,
+                            html,
+                        });
+                        if (sent) {
+                            await this.prisma.sequenceExecution.create({
+                                data: { offerId: offer.id, stepId: initialStep.id, status: 'SENT' },
+                            });
+                            emailsSent++;
+                        }
+                        else {
+                            await this.prisma.sequenceExecution.create({
+                                data: { offerId: offer.id, stepId: initialStep.id, status: 'FAILED' },
+                            });
+                        }
+                    }
+                    catch (err) {
+                        this.logger.error(`[ACCEPT] Failed to send INITIAL to ${supplier.name}: ${err.message}`);
+                        await this.prisma.sequenceExecution.create({
+                            data: { offerId: offer.id, stepId: initialStep.id, status: 'FAILED' },
+                        });
+                    }
+                }
+            }
+        }
+        await this.prisma.campaign.update({
+            where: { id: campaignId },
+            data: { status: 'SENDING' },
+        });
+        this.logger.log(`[ACCEPT] Campaign ${campaignId}: ${emailsSent} initial emails sent`);
+        return {
+            qualified: qualifiedSuppliers.length,
+            excluded: excludedSupplierIds.length,
+            offersSent: emailsSent,
+        };
+    }
+    getSupplierEmails(supplier) {
+        const contactEmails = supplier.contacts
+            ?.map((c) => c.email)
+            .filter(Boolean) || [];
+        if (contactEmails.length > 0)
+            return contactEmails;
+        if (supplier.contactEmails) {
+            return supplier.contactEmails.split(',').map((e) => e.trim()).filter(Boolean);
+        }
+        return [];
+    }
+    resolveTemplateVars(template, rfq, supplier) {
+        const owner = rfq.owner;
+        const org = owner?.organization;
+        return template
+            .replace(/\{\{Product_Name\}\}/g, rfq.productName || '')
+            .replace(/\{\{Supplier_Name\}\}/g, supplier.name || '')
+            .replace(/\{\{Sender_Name\}\}/g, owner?.name || '')
+            .replace(/\{\{Sender_Company\}\}/g, org?.name || '')
+            .replace(/\{\{Quantity\}\}/g, String(rfq.quantity || ''))
+            .replace(/\{\{Currency\}\}/g, rfq.currency || 'EUR');
+    }
+    buildAcceptFooterHtml(org) {
+        if (!org.footerEnabled)
+            return '';
+        const lines = [];
+        if (org.footerFirstName || org.footerLastName) {
+            lines.push(`${org.footerFirstName || ''} ${org.footerLastName || ''}`.trim());
+        }
+        if (org.footerPosition)
+            lines.push(org.footerPosition);
+        if (org.footerCompany)
+            lines.push(org.footerCompany);
+        if (org.footerEmail)
+            lines.push(org.footerEmail);
+        if (org.footerPhone)
+            lines.push(org.footerPhone);
+        if (lines.length === 0)
+            return '';
+        return `<div style="border-top: 1px solid #E2E8F0; margin-top: 24px; padding-top: 16px;"><p style="color: #64748B; font-size: 13px; line-height: 1.6; margin: 0;">${lines.join('<br/>')}</p></div>`;
+    }
 };
 exports.SourcingService = SourcingService;
 exports.SourcingService = SourcingService = SourcingService_1 = __decorate([
@@ -563,6 +810,7 @@ exports.SourcingService = SourcingService = SourcingService_1 = __decorate([
         scraping_service_1.ScrapingService,
         sourcing_gateway_1.SourcingGateway,
         query_cache_service_1.QueryCacheService,
-        company_registry_service_1.CompanyRegistryService])
+        company_registry_service_1.CompanyRegistryService,
+        email_service_1.EmailService])
 ], SourcingService);
 //# sourceMappingURL=sourcing.service.js.map

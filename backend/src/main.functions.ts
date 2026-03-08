@@ -1,4 +1,6 @@
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { Express5Adapter } from './express5.adapter';
 import { AppModule } from './app.module';
@@ -8,6 +10,19 @@ import express from 'express';
 
 const expressApp = express();
 let app: NestExpressApplication;
+
+// Strip /api prefix from incoming requests
+// Firebase Hosting rewrites /api/** → Cloud Function with full path
+// NestJS controllers are defined without /api prefix (e.g., @Controller('auth'))
+// This mirrors what Vite proxy does in development
+expressApp.use((req, _res, next) => {
+    if (req.url.startsWith('/api/')) {
+        req.url = req.url.replace(/^\/api/, '');
+    } else if (req.url === '/api') {
+        req.url = '/';
+    }
+    next();
+});
 
 const createNestServer = async () => {
     if (!app) {
@@ -20,7 +35,18 @@ const createNestServer = async () => {
 
         app.use(cookieParser());
 
+        // Global exception filter: sanitize errors, catch Prisma exceptions
+        app.useGlobalFilters(new AllExceptionsFilter());
+
+        // Input validation: strip unknown properties, transform types
+        app.useGlobalPipes(new ValidationPipe({
+            whitelist: true,
+            transform: true,
+            forbidNonWhitelisted: false,
+        }));
+
         // CORS configuration
+        // Production-only CORS — Cloud Functions never serve localhost
         app.enableCors({
             origin: [
                 'https://procurea.pl',
@@ -28,16 +54,9 @@ const createNestServer = async () => {
                 'https://app.procurea.pl',
                 'https://admin.procurea.pl',
                 'https://vendor.procurea.pl',
-                'https://blog.procurea.pl',
-                'https://api.procurea.pl',
-                'https://procurea-app.web.app',
-                'https://procurea-admin-panel.web.app',
-                'https://procurea-vendor.web.app',
-                'https://procurea-landing.web.app',
-                'https://procurea-blog-portal.web.app',
-                'http://localhost:3015',
-                'http://localhost:3016',
-                'http://localhost:3017'
+                'https://staging.procurea.pl',
+                'https://procurea-app-staging.web.app',
+                'https://project-c64b9be9-1d92-4bc6-be7.web.app',
             ],
             methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
             credentials: true,
@@ -55,12 +74,12 @@ export const api = onRequest(
     {
         region: 'europe-west1',
 
-        // Memory: 512MB recommended for NestJS (default 256MB is often too low)
-        // Higher memory = faster CPU, better cold start times
-        memory: '512MiB',
+        // Memory: 1GiB for NestJS + sourcing pipeline (AI calls, concurrent scraping)
+        memory: '1GiB',
 
-        // Timeout: 60s is usually enough, can reduce to 30s if all endpoints are fast
-        timeoutSeconds: 60,
+        // Timeout: 540s (max for 2nd Gen) — sourcing pipeline can run 3-15 min
+        // Regular API endpoints return fast; sourcing runs in background within the same request lifecycle
+        timeoutSeconds: 540,
 
         // Concurrency: Handle multiple requests per instance (HUGE cost savings!)
         // Default is 1, meaning 1 request = 1 instance
@@ -79,15 +98,21 @@ export const api = onRequest(
         // Only needed if you have CPU-intensive operations
         // cpu: 1,
 
-        // Secrets: Access to secure environment variables
+        // Secrets from GCP Secret Manager — automatically injected as env vars
         secrets: [
+            'DATABASE_URL',
+            'JWT_SECRET',
+            'GEMINI_API_KEY',
+            'SERP_API_KEY',
+            'RESEND_API_KEY',
+            'CRON_SECRET',
+            'GOOGLE_CLIENT_SECRET',
             'TWILIO_ACCOUNT_SID',
             'TWILIO_AUTH_TOKEN',
             'TWILIO_VERIFY_SERVICE_SID',
-            'TWILIO_PHONE_NUMBER',
-            'GEMINI_API_KEY',
-            'SERP_API_KEY'
-        ]
+            'FIREBASE_STORAGE_BUCKET',
+            'STAGING_SECRET',
+        ],
     },
     expressApp
 );

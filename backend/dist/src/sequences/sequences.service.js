@@ -71,6 +71,76 @@ let SequencesService = class SequencesService {
             },
         });
     }
+    async deleteTemplate(id) {
+        const template = await this.prisma.sequenceTemplate.findUnique({ where: { id } });
+        if (!template)
+            throw new common_1.NotFoundException('Template not found');
+        if (template.isSystem)
+            throw new common_1.BadRequestException('Cannot delete system templates');
+        const campaignCount = await this.prisma.campaign.count({
+            where: { sequenceTemplateId: id },
+        });
+        if (campaignCount > 0) {
+            throw new common_1.BadRequestException(`Template is used by ${campaignCount} campaign(s). Unlink them first.`);
+        }
+        return this.prisma.sequenceTemplate.delete({ where: { id } });
+    }
+    async addStep(templateId, data) {
+        const template = await this.prisma.sequenceTemplate.findUnique({ where: { id: templateId } });
+        if (!template)
+            throw new common_1.NotFoundException('Template not found');
+        if (template.isSystem)
+            throw new common_1.BadRequestException('Cannot modify system templates. Clone it first.');
+        return this.prisma.sequenceStep.create({
+            data: {
+                templateId,
+                dayOffset: data.dayOffset,
+                type: data.type,
+                subject: data.subject,
+                bodySnippet: data.bodySnippet,
+            },
+        });
+    }
+    async deleteStep(stepId) {
+        const step = await this.prisma.sequenceStep.findUnique({
+            where: { id: stepId },
+            include: { template: true },
+        });
+        if (!step)
+            throw new common_1.NotFoundException('Step not found');
+        if (step.template.isSystem)
+            throw new common_1.BadRequestException('Cannot modify system templates');
+        const stepCount = await this.prisma.sequenceStep.count({
+            where: { templateId: step.templateId },
+        });
+        if (stepCount <= 1) {
+            throw new common_1.BadRequestException('Cannot delete the last step. Delete the template instead.');
+        }
+        return this.prisma.sequenceStep.delete({ where: { id: stepId } });
+    }
+    async cloneTemplate(id, newName) {
+        const template = await this.prisma.sequenceTemplate.findUnique({
+            where: { id },
+            include: { steps: { orderBy: { dayOffset: 'asc' } } },
+        });
+        if (!template)
+            throw new common_1.NotFoundException('Template not found');
+        return this.prisma.sequenceTemplate.create({
+            data: {
+                name: newName,
+                isSystem: false,
+                steps: {
+                    create: template.steps.map(s => ({
+                        dayOffset: s.dayOffset,
+                        type: s.type,
+                        subject: s.subject,
+                        bodySnippet: s.bodySnippet,
+                    })),
+                },
+            },
+            include: { steps: true },
+        });
+    }
     async ensureDefaultSequenceExists() {
         const existing = await this.prisma.sequenceTemplate.findFirst({
             where: { isSystem: true },

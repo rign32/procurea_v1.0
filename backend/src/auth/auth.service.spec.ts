@@ -48,8 +48,9 @@ describe('AuthService', () => {
                 {
                     provide: SmsService,
                     useValue: {
-                        sendOtp: jest.fn(),
-                        verifyOtp: jest.fn(),
+                        sendOtpCode: jest.fn().mockResolvedValue(null),
+                        verifyOtpCode: jest.fn().mockResolvedValue(true),
+                        sendCustomSms: jest.fn().mockResolvedValue(true),
                     },
                 },
                 {
@@ -166,24 +167,6 @@ describe('AuthService', () => {
             expect(typeof token).toBe('string');
             expect(token.length).toBeGreaterThan(20);
             expect(redisService.setExchangeToken).toHaveBeenCalled();
-        });
-    });
-
-    describe('validateExchangeToken', () => {
-        it('should return userId for valid token', async () => {
-            redisService.getAndDeleteExchangeToken = jest.fn().mockResolvedValue('user-123');
-
-            const result = await service.validateExchangeToken('valid-token');
-
-            expect(result).toBe('user-123');
-        });
-
-        it('should return null for invalid token', async () => {
-            redisService.getAndDeleteExchangeToken = jest.fn().mockResolvedValue(null);
-
-            const result = await service.validateExchangeToken('invalid-token');
-
-            expect(result).toBeNull();
         });
     });
 });

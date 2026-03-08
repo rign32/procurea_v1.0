@@ -3,6 +3,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { VertexAI } from '@google-cloud/vertexai';
 import axios from 'axios';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import {
@@ -12,22 +13,29 @@ import {
     getMockAuditor
 } from '../mock-data';
 import { ApiUsageService } from './api-usage.service';
+import { ErrorTrackingService } from './error-tracking.service';
 
 @Injectable()
 export class GeminiService {
     private readonly logger = new Logger(GeminiService.name);
     private aiStudioClient: GoogleGenerativeAI | null = null;
     private vertexClient: VertexAI | null = null;
-    private projectId = process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT || 'project-c64b9be9-1d92-4bc6-be7';
-    private location = process.env.GOOGLE_CLOUD_LOCATION || 'us-central1';
+    private projectId = process.env.GCP_PROJECT_ID || process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT || 'project-c64b9be9-1d92-4bc6-be7';
+    private location = process.env.GOOGLE_CLOUD_LOCATION || 'europe-west1';
     private apiKey = process.env.GEMINI_API_KEY;
     private readonly modelName = 'gemini-2.0-flash'; // Confirmed available via API Key listing
     private mockRequestCounter = 0;
-    private readonly cacheDir = path.join(process.cwd(), '.cache', 'gemini');
+    // Cloud Functions have read-only filesystem except /tmp
+    private readonly cacheDir = path.join(
+        process.env.K_SERVICE ? os.tmpdir() : process.cwd(),
+        '.cache', 'gemini'
+    );
 
     constructor(
         @Inject(forwardRef(() => ApiUsageService))
         private readonly apiUsageService?: ApiUsageService,
+        @Inject(forwardRef(() => ErrorTrackingService))
+        private readonly errorTrackingService?: ErrorTrackingService,
     ) {
         this.initializeClients();
         this.initializeCache();
@@ -136,6 +144,14 @@ export class GeminiService {
         } catch (e) {
             status = 'error';
             errorMessage = e.message;
+            // Record error for admin error tracking
+            if (this.errorTrackingService) {
+                this.errorTrackingService.recordError(e, {
+                    type: 'API_ERROR',
+                    service: 'gemini',
+                    context: { prompt: prompt.substring(0, 200), userId, context },
+                });
+            }
             throw e;
         } finally {
             // Log API usage (skip for mock responses)
@@ -237,7 +253,8 @@ export class GeminiService {
                 }
             } catch (e) {
                 this.logger.error(`[GEMINI] Vertex REST FAILED: ${e.message}`);
-                this.logger.error(`[GEMINI] Vertex REST error response: ${JSON.stringify(e.response?.data, null, 2).substring(0, 500)}`);
+                const responseData = e.response?.data;
+                this.logger.error(`[GEMINI] Vertex REST error response: ${responseData ? JSON.stringify(responseData, null, 2).substring(0, 500) : 'no response data'}`);
             }
         } else {
             this.logger.warn('[GEMINI] No API Key - skipping Vertex REST');
@@ -272,29 +289,51 @@ export class GeminiService {
         this.mockRequestCounter++;
 
         // Strategy Agent
-        if (prompt.includes('Jesteś Strategiem Sourcingu Przemysłowego') || prompt.includes('Industrial Sourcing Strategist')) {
+        if (prompt.includes('Ekspert') && prompt.includes('Sourcingu') || prompt.includes('Industrial Sourcing Strategist')) {
             return getMockStrategy(prompt);
         }
-        // Explorer Agent
-        if (prompt.includes('Jesteś Autonomicznym Skautem Przemysłowym') || prompt.includes('Oceń czy strona należy do producenta')) {
-            // Extract URL if possible, otherwise generic
-            return getMockExplorerRelevant("http://simulated-url.com", prompt);
-        }
-        // Analyst Agent
-        if (prompt.includes('Jesteś Starszym Audytorem ds. Zakupów Technicznych') || prompt.includes('Dokonaj wnikliwej analizy dostawcy')) {
+        // Screener Agent (merged Explorer + Analyst)
+        if (prompt.includes('Skautem i Analitykiem Przemysłowym') || prompt.includes('Industrial Screener')) {
             return getMockAnalyst(this.mockRequestCounter, prompt);
         }
+        // Legacy Analyst Agent
+        if (prompt.includes('Analitykiem Skautingu') || prompt.includes('Procurement Analyst') || prompt.includes('capability_match_score')) {
+            return getMockAnalyst(this.mockRequestCounter, prompt);
+        }
+        // Legacy Explorer Agent
+        if (prompt.includes('Skautem Przemysłowym') || prompt.includes('Oceń czy strona')) {
+            return getMockExplorerRelevant("http://simulated-url.com", prompt);
+        }
+        // Enrichment Agent (Data Enrichment Specialist / Inżynier Danych)
+        if (prompt.includes('Inżynier') || prompt.includes('Data Enrichment') || prompt.includes('enriched_data')) {
+            // Return a passthrough that preserves the emails from the prompt
+            const emailMatch = prompt.match(/ZNALEZIONE EMAILE:\s*(.+)/);
+            const emails = emailMatch?.[1]?.split(',').map(e => e.trim()).filter(Boolean) || ['info@example.com'];
+            const nameMatch = prompt.match(/"company_name":\s*"([^"]+)"/);
+            const companyName = nameMatch?.[1] || 'Unknown Company';
+            return JSON.stringify({
+                enriched_data: {
+                    company_name: companyName,
+                    contact_emails: emails,
+                    country: 'Poland',
+                    specialization: 'Manufacturing',
+                },
+                verification: {
+                    is_verified_manufacturer: true,
+                    has_contact_email: emails.length > 0,
+                    confidence_score: 70,
+                    verification_notes: 'Mock enrichment - real AI needed for full verification',
+                }
+            });
+        }
         // Auditor Agent
-        if (prompt.includes('Jesteś Specjalistą ds. Compliance') || prompt.includes('Porównaj dane dostawcy')) {
-            // Needed to look consistent with the previous analyst step, but for simplicity we rely on the counter or passed data
-            // In a real mock we might parse the prompt input to match the company name
-            // Extract the company name from the prompt if possible
+        if (prompt.includes('Compliance') || prompt.includes('Porównaj dane') || prompt.includes('golden_record')) {
             const match = prompt.match(/"company_name":\s*"([^"]+)"/);
             const extractedData = match ? { extracted_data: { company_name: match[1] } } : { extracted_data: { company_name: "Mock Company " + this.mockRequestCounter } };
             return getMockAuditor(extractedData);
         }
-        this.logger.warn(`No mock found for prompt: ${prompt.substring(0, 50)}...`);
-        return JSON.stringify({ error: "No matching mock found for prompt" });
+        this.logger.warn(`[MOCK] No mock pattern matched for prompt: ${prompt.substring(0, 80)}...`);
+        return JSON.stringify({ capability_match_score: 60, extracted_data: { company_name: "Unmatched Mock " + this.mockRequestCounter } });
     }
 }
 

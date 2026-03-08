@@ -20,8 +20,25 @@ let SuppliersController = class SuppliersController {
     constructor(suppliersService) {
         this.suppliersService = suppliersService;
     }
-    findAll() {
-        return this.suppliersService.findAll();
+    findAll(country, minScore, hasEmail, search, campaignId) {
+        return this.suppliersService.findAll({
+            country,
+            minScore: minScore ? parseFloat(minScore) : undefined,
+            hasEmail: hasEmail === 'true',
+            search,
+            campaignId,
+        });
+    }
+    async exportCSV(country, minScore, hasEmail, search, res) {
+        const csv = await this.suppliersService.exportCSV({
+            country,
+            minScore: minScore ? parseFloat(minScore) : undefined,
+            hasEmail: hasEmail === 'true',
+            search,
+        });
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', 'attachment; filename="suppliers.csv"');
+        res.send(csv);
     }
     findOne(id) {
         return this.suppliersService.findOne(id);
@@ -29,14 +46,39 @@ let SuppliersController = class SuppliersController {
     update(id, data) {
         return this.suppliersService.update(id, data);
     }
+    exclude(id, body) {
+        return this.suppliersService.exclude(id, body.reason);
+    }
+    verify(id) {
+        return this.suppliersService.verify(id);
+    }
+    blacklist(id, body) {
+        return this.suppliersService.blacklist(id, body.reason);
+    }
 };
 exports.SuppliersController = SuppliersController;
 __decorate([
     (0, common_1.Get)(),
+    __param(0, (0, common_1.Query)('country')),
+    __param(1, (0, common_1.Query)('minScore')),
+    __param(2, (0, common_1.Query)('hasEmail')),
+    __param(3, (0, common_1.Query)('search')),
+    __param(4, (0, common_1.Query)('campaignId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String, String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], SuppliersController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('export'),
+    __param(0, (0, common_1.Query)('country')),
+    __param(1, (0, common_1.Query)('minScore')),
+    __param(2, (0, common_1.Query)('hasEmail')),
+    __param(3, (0, common_1.Query)('search')),
+    __param(4, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String, String, Object]),
+    __metadata("design:returntype", Promise)
+], SuppliersController.prototype, "exportCSV", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
@@ -52,6 +94,29 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], SuppliersController.prototype, "update", null);
+__decorate([
+    (0, common_1.Post)(':id/exclude'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], SuppliersController.prototype, "exclude", null);
+__decorate([
+    (0, common_1.Post)(':id/verify'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], SuppliersController.prototype, "verify", null);
+__decorate([
+    (0, common_1.Post)(':id/blacklist'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], SuppliersController.prototype, "blacklist", null);
 exports.SuppliersController = SuppliersController = __decorate([
     (0, common_1.Controller)('suppliers'),
     __metadata("design:paramtypes", [suppliers_service_1.SuppliersService])

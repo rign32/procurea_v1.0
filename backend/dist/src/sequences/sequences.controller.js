@@ -29,8 +29,20 @@ let SequencesController = class SequencesController {
     create(name) {
         return this.sequencesService.create(name);
     }
+    deleteTemplate(id) {
+        return this.sequencesService.deleteTemplate(id);
+    }
+    cloneTemplate(id, name) {
+        return this.sequencesService.cloneTemplate(id, name);
+    }
+    addStep(templateId, body) {
+        return this.sequencesService.addStep(templateId, body);
+    }
     updateStep(id, body) {
         return this.sequencesService.updateStep(id, body);
+    }
+    deleteStep(id) {
+        return this.sequencesService.deleteStep(id);
     }
 };
 exports.SequencesController = SequencesController;
@@ -55,6 +67,29 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], SequencesController.prototype, "create", null);
 __decorate([
+    (0, common_1.Delete)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], SequencesController.prototype, "deleteTemplate", null);
+__decorate([
+    (0, common_1.Post)(':id/clone'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)('name')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], SequencesController.prototype, "cloneTemplate", null);
+__decorate([
+    (0, common_1.Post)(':id/steps'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], SequencesController.prototype, "addStep", null);
+__decorate([
     (0, common_1.Patch)('steps/:id'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
@@ -62,6 +97,13 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], SequencesController.prototype, "updateStep", null);
+__decorate([
+    (0, common_1.Delete)('steps/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], SequencesController.prototype, "deleteStep", null);
 exports.SequencesController = SequencesController = __decorate([
     (0, common_1.Controller)('sequences'),
     __metadata("design:paramtypes", [sequences_service_1.SequencesService])

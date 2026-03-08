@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 export declare class AuthDiagnosticsController {
+    private ensureDevMode;
     getCookieDiagnostics(req: Request): {
         timestamp: string;
         requestInfo: {
@@ -11,7 +12,7 @@ export declare class AuthDiagnosticsController {
         };
         cookies: {
             raw: string;
-            parsed: any;
+            parsed: Record<string, any>;
             allCookieNames: string[];
             hasProcureaToken: boolean;
             hasProcureaRefresh: boolean;
@@ -27,14 +28,14 @@ export declare class AuthDiagnosticsController {
             attributes: string;
         }[];
         instructions: string;
-        currentRequestCookies: any;
+        currentRequestCookies: Record<string, any>;
     }>;
     getSessionFlowDiagnostics(req: Request): {
         status: string;
         details: {
-            cookiesPresent: any;
+            cookiesPresent: boolean;
             authCookiesPresent: any;
-            allCookies: any;
+            allCookies: Record<string, any>;
             cookieHeader: string | null;
         };
         flowSteps: {

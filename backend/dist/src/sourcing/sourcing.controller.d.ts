@@ -1,6 +1,7 @@
 import { SourcingService } from './sourcing.service';
 export interface CreateCampaignDto {
     name: string;
+    sequenceTemplateId?: string;
     searchCriteria: {
         region: string;
         industry?: string;
@@ -20,7 +21,7 @@ export declare class SourcingController {
         id: string;
         status: string;
     }>;
-    findAll(): Promise<{
+    findAll(status?: string, search?: string): Promise<{
         id: string;
         name: string;
         status: string;
@@ -30,13 +31,20 @@ export declare class SourcingController {
         rfqRequest: {
             id: string;
             status: string;
+            _count: {
+                offers: number;
+            };
+            offers: {
+                id: string;
+            }[];
             publicId: string | null;
             productName: string;
         } | null;
         stats: {
             suppliersFound: number;
             suppliersContacted: number;
-            offersReceived: number;
+            offersReceived: any;
+            pendingOffers: any;
         };
         tags: (string | null)[];
     }[]>;
@@ -51,33 +59,33 @@ export declare class SourcingController {
             };
             contacts: {
                 id: string;
-                email: string | null;
                 name: string | null;
-                phone: string | null;
-                role: string | null;
                 createdAt: Date;
                 updatedAt: Date;
                 supplierId: string;
+                role: string | null;
+                email: string | null;
+                phone: string | null;
                 isDecisionMaker: boolean;
             }[];
             id: string;
             name: string | null;
+            deletedAt: Date | null;
+            campaignId: string;
+            url: string;
             country: string | null;
             city: string | null;
-            specialization: string | null;
-            certificates: string | null;
-            employeeCount: string | null;
-            contactEmails: string | null;
+            website: string | null;
             explorerResult: string | null;
             analystResult: string | null;
             enrichmentResult: string | null;
             auditorResult: string | null;
-            deletedAt: Date | null;
-            campaignId: string;
-            url: string;
-            website: string | null;
             analysisScore: number | null;
             analysisReason: string | null;
+            specialization: string | null;
+            certificates: string | null;
+            employeeCount: string | null;
+            contactEmails: string | null;
             metadata: string | null;
             originLanguage: string | null;
             originCountry: string | null;
@@ -87,34 +95,34 @@ export declare class SourcingController {
         suppliers: ({
             contacts: {
                 id: string;
-                email: string | null;
                 name: string | null;
-                phone: string | null;
-                role: string | null;
                 createdAt: Date;
                 updatedAt: Date;
                 supplierId: string;
+                role: string | null;
+                email: string | null;
+                phone: string | null;
                 isDecisionMaker: boolean;
             }[];
         } & {
             id: string;
             name: string | null;
+            deletedAt: Date | null;
+            campaignId: string;
+            url: string;
             country: string | null;
             city: string | null;
-            specialization: string | null;
-            certificates: string | null;
-            employeeCount: string | null;
-            contactEmails: string | null;
+            website: string | null;
             explorerResult: string | null;
             analystResult: string | null;
             enrichmentResult: string | null;
             auditorResult: string | null;
-            deletedAt: Date | null;
-            campaignId: string;
-            url: string;
-            website: string | null;
             analysisScore: number | null;
             analysisReason: string | null;
+            specialization: string | null;
+            certificates: string | null;
+            employeeCount: string | null;
+            contactEmails: string | null;
             metadata: string | null;
             originLanguage: string | null;
             originCountry: string | null;
@@ -123,11 +131,12 @@ export declare class SourcingController {
         })[];
         id: string;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
         status: string;
         stage: string;
+        createdAt: Date;
+        updatedAt: Date;
         deletedAt: Date | null;
+        sequenceTemplateId: string | null;
     }>;
     getLogs(id: string, since?: string): Promise<{
         logs: {
@@ -138,13 +147,37 @@ export declare class SourcingController {
         stage: string;
         suppliersFound: number;
     }>;
+    exportCSV(id: string, res: any): Promise<void>;
+    updateCampaign(id: string, body: {
+        name?: string;
+    }): Promise<{
+        id: string;
+        name: string;
+        status: string;
+        stage: string;
+        createdAt: Date;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        sequenceTemplateId: string | null;
+    }>;
     updateStatus(id: string, status: string): Promise<{
         id: string;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
         status: string;
         stage: string;
+        createdAt: Date;
+        updatedAt: Date;
         deletedAt: Date | null;
+        sequenceTemplateId: string | null;
+    }>;
+    acceptCampaign(id: string, body: {
+        excludedSupplierIds?: string[];
+    }): Promise<{
+        qualified: number;
+        excluded: number;
+        offersSent: number;
+    }>;
+    deleteCampaign(id: string): Promise<{
+        success: boolean;
     }>;
 }

@@ -177,7 +177,12 @@ export class RedisService implements OnModuleDestroy {
         return this.isEnabled && this.client !== null;
     }
 
-    // ========== EMAIL MAGIC CODE ==========
+    // In-memory fallback for magic codes and attempt counters
+    private magicCodes = new Map<string, { code: string; userId: string; expiresAt: number }>();
+    private verifyAttempts = new Map<string, { count: number; blockedUntil: number }>();
+
+    private readonly MAX_VERIFY_ATTEMPTS = 5;
+    private readonly BLOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
     /**
      * Store email magic code for verification
@@ -188,7 +193,12 @@ export class RedisService implements OnModuleDestroy {
      */
     async setMagicCode(email: string, code: string, userId: string, ttlSeconds: number = 600): Promise<void> {
         if (!this.isEnabled || !this.client) {
-            this.logger.warn('Redis not available, magic code not persisted');
+            this.logger.warn('Redis not available, using in-memory fallback for magic code');
+            this.magicCodes.set(email.toLowerCase(), {
+                code,
+                userId,
+                expiresAt: Date.now() + ttlSeconds * 1000
+            });
             return;
         }
 
@@ -204,10 +214,72 @@ export class RedisService implements OnModuleDestroy {
      * @param code - Code to verify
      * @returns User ID if valid, null otherwise
      */
+    /**
+     * Check if verification attempts are blocked for this email
+     */
+    private isBlocked(email: string): boolean {
+        const attemptKey = email.toLowerCase();
+
+        if (this.verifyAttempts.has(attemptKey)) {
+            const entry = this.verifyAttempts.get(attemptKey)!;
+            if (entry.blockedUntil > Date.now()) {
+                return true;
+            }
+            if (entry.blockedUntil > 0 && Date.now() > entry.blockedUntil) {
+                this.verifyAttempts.delete(attemptKey);
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Record a failed verification attempt
+     */
+    private recordFailedAttempt(email: string): void {
+        const attemptKey = email.toLowerCase();
+        const entry = this.verifyAttempts.get(attemptKey) || { count: 0, blockedUntil: 0 };
+        entry.count++;
+
+        if (entry.count >= this.MAX_VERIFY_ATTEMPTS) {
+            entry.blockedUntil = Date.now() + this.BLOCK_DURATION_MS;
+            this.logger.warn(`Verification blocked for ${email} after ${entry.count} failed attempts`);
+        }
+
+        this.verifyAttempts.set(attemptKey, entry);
+    }
+
     async verifyAndDeleteMagicCode(email: string, code: string): Promise<string | null> {
-        if (!this.isEnabled || !this.client) {
-            this.logger.warn('Redis not available, cannot verify magic code');
+        // Brute-force protection: block after MAX_VERIFY_ATTEMPTS
+        if (this.isBlocked(email)) {
+            this.logger.warn(`Verification attempt blocked for ${email} (too many failed attempts)`);
             return null;
+        }
+
+        if (!this.isEnabled || !this.client) {
+            this.logger.warn('Redis not available, checking in-memory magic code');
+            const entry = this.magicCodes.get(email.toLowerCase());
+
+            if (!entry) {
+                this.logger.debug(`Magic code not found (in-memory) for ${email}`);
+                return null;
+            }
+
+            if (Date.now() > entry.expiresAt) {
+                this.logger.debug(`Magic code expired (in-memory) for ${email}`);
+                this.magicCodes.delete(email.toLowerCase());
+                return null;
+            }
+
+            if (entry.code !== code) {
+                this.recordFailedAttempt(email);
+                this.logger.debug(`Magic code mismatch (in-memory) for ${email}`);
+                return null;
+            }
+
+            this.magicCodes.delete(email.toLowerCase());
+            this.verifyAttempts.delete(email.toLowerCase());
+            this.logger.debug(`Magic code verified and deleted (in-memory) for ${email}`);
+            return entry.userId;
         }
 
         const key = `auth:magic:${email.toLowerCase()}`;
@@ -221,12 +293,14 @@ export class RedisService implements OnModuleDestroy {
         const parsed = JSON.parse(data);
 
         if (parsed.code !== code) {
+            this.recordFailedAttempt(email);
             this.logger.debug(`Magic code mismatch for ${email}`);
             return null;
         }
 
         // Delete after successful verification (one-time use)
         await this.client.del(key);
+        this.verifyAttempts.delete(email.toLowerCase());
         this.logger.debug(`Magic code verified and deleted for ${email}`);
 
         return parsed.userId;

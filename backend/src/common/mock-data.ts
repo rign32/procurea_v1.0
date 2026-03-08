@@ -36,19 +36,59 @@ export const getMockStrategy = (promptContext: string = '') => {
     const type = getDataset(promptContext);
     const data = DATASETS[type];
 
+    // Extract actual parameters from the prompt context
+    const categoryMatch = promptContext.match(/Kategoria:\s*"([^"]+)"/);
+    const materialMatch = promptContext.match(/Materiał:\s*"([^"]+)"/);
+    const regionMatch = promptContext.match(/Region:\s*"([^"]+)"/);
+
+    const category = categoryMatch?.[1] || 'General';
+    const material = materialMatch?.[1] || '';
+    const region = regionMatch?.[1] || 'EU';
+
+    // Build context-aware queries from actual campaign data
+    const baseTerms = [material, category].filter(Boolean).join(' ');
+
+    const plQueries = [
+        `${baseTerms} producent polska`.trim(),
+        `${material || category} producent fabryka`.trim(),
+        `${baseTerms} zakład produkcyjny`.trim(),
+    ].filter(q => q.length > 10);
+
+    const enQueries = [
+        `${baseTerms} manufacturer europe`.trim(),
+        `${material || category} manufacturer supplier OEM`.trim(),
+        `${baseTerms} factory producer`.trim(),
+    ].filter(q => q.length > 10);
+
+    // Fall back to dataset queries if no useful context
+    const finalPlQueries = plQueries.length >= 2 ? plQueries : data.queries.slice(0, 3);
+    const finalEnQueries = enQueries.length >= 2 ? enQueries : data.queries.slice(0, 3);
+
+    const strategies: any[] = [];
+
+    if (region === 'PL' || region === 'EU') {
+        strategies.push({
+            country: "Poland",
+            language: "pl",
+            queries: finalPlQueries,
+            negatives: ["-allegro", "-olx", "-sklep", "-ceneo"]
+        });
+    }
+
+    if (region === 'EU' || region === 'GLOBAL' || region === 'GLOBAL_NO_CN') {
+        strategies.push({
+            country: "Global",
+            language: "en",
+            queries: finalEnQueries,
+            negatives: ["-amazon", "-ebay", "-alibaba"]
+        });
+    }
+
     return JSON.stringify({
-        strategies: [
-            {
-                name: "Direct Manufacturer Sourcing",
-                description: `Targeting specialized ${type.toLowerCase()} manufacturers in Poland & Germany`,
-                queries: data.queries
-            },
-            {
-                name: "Distributor/Specialist Check",
-                description: "Checking local specialists for quick turnaround",
-                queries: [data.queries[0] + " distributor", data.queries[1] + " magazyn"]
-            }
-        ]
+        rationale: `Mock strategy for ${baseTerms || type} in region ${region}`,
+        region_selected: region,
+        languages_used: strategies.map(s => s.language),
+        strategies,
     });
 };
 
@@ -74,28 +114,54 @@ export const MOCK_EXPLORER_RESPONSE_IRRELEVANT = JSON.stringify({
 export const getMockAnalyst = (seed: number = 0, promptContext: string = '') => {
     const type = getDataset(promptContext);
     const data = DATASETS[type];
-    const companyBase = data.companies[seed % data.companies.length];
 
-    // Variate name slightly to avoid pure dupes if called many times
-    const suffix = ["Sp. z o.o.", "GmbH", "S.A.", "Ltd."][seed % 4];
-    const companyName = `${companyBase} ${suffix}`;
+    // Try to extract real company info from the page content in the prompt
+    let companyName = '';
+    let country = 'Poland';
+    let city = '';
+    let domain = '';
 
-    const CITIES = ["Berlin", "Kraków", "Warszawa", "Monachium", "Katowice", "Wrocław", "Praga", "Brno", "Poznań", "Hamburg"];
-    const city = CITIES[seed % CITIES.length];
-    const country = ["GmbH", "Berlin", "Monachium", "Hamburg", "Nord"].some(x => companyName.includes(x) || city === x) ? "Germany" :
-        companyName.includes("s.r.o.") || city === "Praga" || city === "Brno" ? "Czech Republic" : "Poland";
+    // Try to find domain/URL in prompt context
+    const urlMatch = promptContext.match(/https?:\/\/(?:www\.)?([a-zA-Z0-9.-]+)/);
+    if (urlMatch) {
+        domain = urlMatch[1];
+        // Use domain as company name base (e.g., "alupol.pl" -> "Alupol")
+        const domainBase = domain.split('.')[0];
+        companyName = domainBase.charAt(0).toUpperCase() + domainBase.slice(1);
+
+        // Infer country from TLD
+        if (domain.endsWith('.pl')) country = 'Poland';
+        else if (domain.endsWith('.de')) country = 'Germany';
+        else if (domain.endsWith('.cz')) country = 'Czech Republic';
+        else if (domain.endsWith('.fr')) country = 'France';
+        else if (domain.endsWith('.it')) country = 'Italy';
+        else if (domain.endsWith('.com') || domain.endsWith('.eu')) country = 'Europe';
+    }
+
+    // Fallback to dataset company names if no URL found
+    if (!companyName) {
+        const companyBase = data.companies[seed % data.companies.length];
+        companyName = companyBase;
+    }
+
+    const CITIES = ["Kraków", "Warszawa", "Katowice", "Wrocław", "Poznań", "Berlin", "Monachium", "Praga"];
+    if (!city) city = CITIES[seed % CITIES.length];
 
     return JSON.stringify({
-        capability_match_score: 70 + Math.floor(Math.random() * 29),
-        risks: Math.random() > 0.8 ? ["Lead times vary"] : ["Standard commercial terms"],
+        capability_match_score: 60 + Math.floor(Math.random() * 35),
+        match_reason: `Mock analysis: ${companyName} appears to be a relevant manufacturer`,
+        risks: ["Mock mode - real AI analysis required for accurate assessment"],
         extracted_data: {
             company_name: companyName,
-            location: `${city}, ${country}`,
-            certifications: ["ISO 9001:2015", type === 'ELECTRONICS' ? "IPC-A-610" : "ISO 14001"],
-            capabilities: data.capabilities,
-            materials: data.materials,
-            contact_email: `sales@${companyBase.toLowerCase().replace(/[^a-z]/g, '')}.com`,
-            phone: `+48 ${10 + seed} 345 67 ${89 - seed}`
+            country: country,
+            city: city,
+            website: domain ? `https://${domain}` : undefined,
+            certifications: ["ISO 9001:2015"],
+            capabilities: data.capabilities.slice(0, 2),
+            materials: data.materials.slice(0, 2),
+            specialization: `${type.charAt(0) + type.slice(1).toLowerCase()} manufacturing`,
+            contact_email: domain ? `info@${domain}` : `info@example.com`,
+            employee_count: "50-200"
         }
     });
 };
@@ -105,14 +171,31 @@ export const getMockAuditor = (analystData: any) => {
     const info = data?.extracted_data || {};
 
     return JSON.stringify({
+        is_valid: true,
+        is_match: true,
+        validation_result: "APPROVED",
+        confidence_score: 0.8,
+        rejection_reason: null,
+        warnings: ["Mock mode - real AI validation needed"],
+        checks_performed: {
+            domain_company_match: true,
+            is_blog_or_article: false,
+            is_distributor: false,
+            location_domain_consistent: true
+        },
         golden_record: {
             company_name: info.company_name || "Unknown Mfg",
+            website: info.website || "",
+            country: info.country || "Poland",
+            city: info.city || null,
+            specialization: info.specialization || "Manufacturing",
+            employee_count: info.employee_count || null,
+            certificates: info.certificates || ["ISO 9001"],
+            contact_emails: info.contact_emails || [],
+            is_verified_manufacturer: true,
             registration_number: "REG-" + Math.floor(Math.random() * 100000),
-            vat_id: (info.location?.includes("Germany") ? "DE" : "PL") + Math.floor(Math.random() * 9999999999),
-            address: `Industrial Zone ${Math.floor(Math.random() * 10)}, ${info.location || "Europe"}`,
             status: "Active",
-            verification_source: "Official Registry API",
-            confidence_level: "High",
+            verification_source: "Mock Registry",
             last_verified: new Date().toISOString().split('T')[0]
         }
     });

@@ -443,6 +443,48 @@ let AuthController = class AuthController {
             throw error;
         }
     }
+    async updateProfile(req, body) {
+        const requestId = req.requestId || 'unknown';
+        const userId = req.user.userId || req.user.sub;
+        await this.authLogsService.logAuthEvent({
+            requestId,
+            action: 'update_profile_request',
+            userId,
+            success: true,
+            metadata: { fields: Object.keys(body) }
+        });
+        try {
+            const updatedUser = await this.authService.updateProfile(userId, body);
+            await this.authLogsService.logAuthEvent({
+                requestId,
+                action: 'update_profile_success',
+                userId,
+                success: true
+            });
+            return {
+                id: updatedUser.id,
+                email: updatedUser.email,
+                name: updatedUser.name,
+                role: updatedUser.role,
+                companyName: updatedUser.companyName,
+                jobTitle: updatedUser.jobTitle,
+                isPhoneVerified: updatedUser.isPhoneVerified,
+                phone: updatedUser.phone,
+                onboardingCompleted: updatedUser.onboardingCompleted,
+                organizationId: updatedUser.organizationId
+            };
+        }
+        catch (error) {
+            await this.authLogsService.logAuthEvent({
+                requestId,
+                action: 'update_profile_error',
+                userId,
+                success: false,
+                errorMessage: error.message
+            });
+            throw error;
+        }
+    }
     async microsoftAuth() {
     }
     async microsoftAuthCallback(req, res) {
@@ -624,6 +666,46 @@ let AuthController = class AuthController {
             }
         };
     }
+    async devLogin(body, res, req) {
+        const isDev = process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_LOGIN === 'true';
+        if (!isDev) {
+            throw new common_1.UnauthorizedException('Dev login disabled');
+        }
+        const email = body.email || 'test@procurea.pl';
+        const { user } = await this.authService.validateUserByProvider(email, 'email');
+        const accessToken = this.tokensService.generateAccessToken(user.id, user.email, user.role);
+        const refreshToken = await this.tokensService.generateRefreshToken(user.id);
+        res.cookie('procurea_token', accessToken, {
+            httpOnly: true,
+            secure: false,
+            path: '/',
+            maxAge: this.tokensService.getAccessTokenExpirySeconds() * 1000,
+            sameSite: 'lax',
+        });
+        res.cookie('procurea_refresh', refreshToken, {
+            httpOnly: true,
+            secure: false,
+            path: '/',
+            maxAge: this.tokensService.getRefreshTokenExpirySeconds() * 1000,
+            sameSite: 'lax',
+        });
+        console.log(`[AUTH] Dev login successful for ${email}`);
+        return {
+            success: true,
+            user: {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                role: user.role,
+                companyName: user.companyName,
+                jobTitle: user.jobTitle,
+                phone: user.phone,
+                organizationId: user.organizationId,
+                onboardingCompleted: user.onboardingCompleted,
+                isPhoneVerified: user.isPhoneVerified,
+            }
+        };
+    }
     async firebaseLogin(req, res) {
         const decodedToken = req.user;
         const email = decodedToken.email;
@@ -680,7 +762,13 @@ let AuthController = class AuthController {
         const userId = req.user.userId || req.user.sub;
         return this.authService.updatePreferences(userId, body.preferences);
     }
-    async deleteAllUsers(body) {
+    async deleteAllUsers(req, body) {
+        if (req.user?.role !== 'ADMIN') {
+            throw new common_1.ForbiddenException('Admin access required');
+        }
+        if (process.env.NODE_ENV !== 'development') {
+            throw new common_1.ForbiddenException('Only available in development mode');
+        }
         if (body.confirm !== 'DELETE_ALL_USERS') {
             throw new common_1.BadRequestException('Confirmation required: send { "confirm": "DELETE_ALL_USERS" }');
         }
@@ -728,6 +816,15 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "getProfile", null);
+__decorate([
+    (0, common_1.Patch)('me/profile'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "updateProfile", null);
 __decorate([
     (0, common_1.Get)('microsoft'),
     (0, common_1.UseGuards)(microsoft_auth_guard_1.MicrosoftAuthGuard),
@@ -784,6 +881,15 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "emailVerify", null);
 __decorate([
+    (0, common_1.Post)('dev/login'),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Res)({ passthrough: true })),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "devLogin", null);
+__decorate([
     (0, common_1.Post)('firebase-login'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('firebase')),
     __param(0, (0, common_1.Req)()),
@@ -833,9 +939,11 @@ __decorate([
 ], AuthController.prototype, "updatePreferences", null);
 __decorate([
     (0, common_1.Post)('admin/delete-all-users'),
-    __param(0, (0, common_1.Body)()),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "deleteAllUsers", null);
 exports.AuthController = AuthController = __decorate([

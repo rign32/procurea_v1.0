@@ -47,6 +47,23 @@ export declare class AuthController {
         onboardingCompleted: boolean;
         organizationId: string | null;
     }>;
+    updateProfile(req: any, body: {
+        name?: string;
+        phone?: string;
+        jobTitle?: string;
+        companyName?: string;
+    }): Promise<{
+        id: string;
+        email: string;
+        name: string | null;
+        role: string;
+        companyName: string | null;
+        jobTitle: string | null;
+        isPhoneVerified: boolean;
+        phone: string | null;
+        onboardingCompleted: boolean;
+        organizationId: string | null;
+    }>;
     microsoftAuth(): Promise<void>;
     microsoftAuthCallback(req: any, res: Response): Promise<void>;
     logout(req: any, res: Response): Promise<Response<any, Record<string, any>>>;
@@ -72,6 +89,23 @@ export declare class AuthController {
         success: boolean;
         accessToken: string;
         refreshToken: string;
+        user: {
+            id: any;
+            email: any;
+            name: any;
+            role: any;
+            companyName: any;
+            jobTitle: any;
+            phone: any;
+            organizationId: any;
+            onboardingCompleted: any;
+            isPhoneVerified: any;
+        };
+    }>;
+    devLogin(body: {
+        email: string;
+    }, res: Response, req: any): Promise<{
+        success: boolean;
         user: {
             id: any;
             email: any;
@@ -199,7 +233,7 @@ export declare class AuthController {
         blockedAt: Date | null;
         blockedReason: string | null;
     }>;
-    deleteAllUsers(body: {
+    deleteAllUsers(req: any, body: {
         confirm: string;
     }): Promise<{
         success: boolean;

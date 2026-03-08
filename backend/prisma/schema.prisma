@@ -58,6 +58,10 @@ model User {
   aiInteractions AiInteraction[]
   apiUsageLogs  ApiUsageLog[]
   
+  // Permissions
+  campaignAccess String  @default("own") // "all" | "own" | "readonly"
+  plan          String  @default("research") // "research" | "full"
+
   // Admin Controls
   isBlocked     Boolean   @default(false)
   blockedAt     DateTime?
@@ -88,13 +92,25 @@ model Organization {
   id          String   @id @default(uuid())
   name        String
   domain      String?  // Auto-join users with this email domain
-  
-  // Customization
+
+  // Customization (legacy)
   footerText  String?
-  
+
+  // Email Footer / Signature
+  footerEnabled    Boolean  @default(false)
+  footerFirstName  String?
+  footerLastName   String?
+  footerCompany    String?
+  footerPosition   String?
+  footerEmail      String?
+  footerPhone      String?
+
+  // Currency Settings
+  baseCurrency String @default("PLN") // ISO 4217 currency code
+
   users       User[]
   locations   OrganizationLocation[]
-  
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -135,10 +151,14 @@ model Campaign {
   stage     String   @default("STRATEGY")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // Soft Delete
-  deletedAt DateTime? 
-  
+  deletedAt DateTime?
+
+  // Email Sequence
+  sequenceTemplateId String?
+  sequenceTemplate   SequenceTemplate? @relation(fields: [sequenceTemplateId], references: [id])
+
   logs      Log[]
   suppliers Supplier[]
   rfqRequest RfqRequest?
@@ -190,6 +210,12 @@ model Supplier {
   // Structured Contacts
   contacts       Contact[]
 
+  // Company Classification
+  companyType               String?   @default("NIEJASNY")  // PRODUCENT, HANDLOWIEC, NIEJASNY
+  companyTypeConfidence      Int?      @default(0)
+  needsManualClassification  Boolean   @default(false)
+  sourceType                String?   @default("SEARCH")    // SEARCH, PORTAL_MINE, LEADER_DIRECT, LEADER_SEARCH, EXPANSION
+
   // Soft Delete
   deletedAt DateTime?
 }
@@ -227,8 +253,7 @@ model DocumentChunk {
   id          String   @id @default(uuid())
   content     String   // The actual text chunk
   
-  // Vector embedding (1536 dimensions for OpenAI Ada-002 compatibility)
-  // sqlite doesn't support vector type natively
+  // Vector embedding (stored as JSON array, can use pgvector extension later)
   vector      String?
   
   sourceUrl   String?
@@ -396,12 +421,14 @@ model RfqRequest {
   
   // Logistics
   incoterms       String?
+  paymentTerms    String?
   deliveryAddress String? // Legacy/Manual address override
   
   deliveryLocationId String?
   deliveryLocation   OrganizationLocation? @relation(fields: [deliveryLocationId], references: [id])
 
   desiredDeliveryDate DateTime?    // Target Delivery Date
+  offerDeadline       DateTime?    // Deadline for submitting offers
   
   // Attachments (S3/Local paths)
   attachments     String? // JSON array
@@ -433,24 +460,55 @@ model Offer {
   specsConfirmed     Boolean @default(false)
   
   comments    String?
-  
+
   // Relations
   rfqRequest   RfqRequest @relation(fields: [rfqRequestId], references: [id])
   rfqRequestId String
-  
+
   supplier     Supplier   @relation(fields: [supplierId], references: [id])
   supplierId   String
-  
+
   // SUPPLIER PORTAL ACCESS
   // This token allows the supplier to access the specific offer page without login
-  accessToken  String     @unique @default(uuid()) 
+  accessToken  String     @unique @default(uuid())
   tokenExpiresAt DateTime?
-  
+
   // Audit
   viewedAt     DateTime?
   submittedAt  DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  // Sequence Executions
+  sequenceExecutions SequenceExecution[]
+
+  // Price Tiers (quantity-based pricing)
+  priceTiers    OfferPriceTier[]
+
+  // Alternative Offer (self-reference)
+  parentOfferId String?
+  parentOffer   Offer?  @relation("OfferAlternatives", fields: [parentOfferId], references: [id])
+  alternatives  Offer[] @relation("OfferAlternatives")
+
+  // Alternative offer description
+  altDescription String?
+  altMaterial    String?
+
+  // Language used by supplier in portal
+  submissionLanguage String?
+}
+
+// Price tier for quantity-based pricing
+model OfferPriceTier {
+  id        String   @id @default(uuid())
+  offerId   String
+  offer     Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  minQty    Int
+  maxQty    Int?     // null = last tier ("and above")
+  unitPrice Float
+  createdAt DateTime @default(now())
+
+  @@index([offerId])
 }
 
 // --- SYSTEM HEALTH & AUDIT ---
@@ -479,18 +537,64 @@ model SequenceTemplate {
   name      String
   isSystem  Boolean  @default(false)
   steps     SequenceStep[]
-  
+  campaigns Campaign[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model SequenceStep {
-  id          String   @id @default(uuid()) // Changed to uuid for consistency
+  id          String   @id @default(uuid())
   dayOffset   Int
-  type        String   // INITIAL, REMINDER
+  type        String   // INITIAL, REMINDER, FINAL
   subject     String
   bodySnippet String
-  
+
   template    SequenceTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
   templateId  String
+
+  executions  SequenceExecution[]
+}
+
+model SequenceExecution {
+  id             String   @id @default(uuid())
+  offerId        String
+  stepId         String
+  recipientEmail String?  // Track which contact received this email
+  sentAt         DateTime? // Nullable, as we create PENDING records first
+  status         String   @default("SENT") // PENDING, SENT, FAILED, SKIPPED
+  createdAt      DateTime @default(now())
+
+  offer    Offer        @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  step     SequenceStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@unique([offerId, stepId, recipientEmail])
+  @@index([offerId])
+}
+
+// --- CURRENCY EXCHANGE RATES ---
+
+model CurrencyExchangeRate {
+  id            String   @id @default(uuid())
+
+  // Currency code (ISO 4217)
+  currencyCode  String   // e.g., "USD", "EUR", "GBP"
+  currencyName  String   // e.g., "dolar amerykański"
+
+  // Exchange rate to PLN (NBP provides rates vs PLN)
+  rateToPln     Float    // e.g., 4.0234 (1 USD = 4.0234 PLN)
+
+  // Date this rate is valid for
+  effectiveDate DateTime
+
+  // NBP table metadata
+  tableNumber   String?  // e.g., "045/A/NBP/2026"
+
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([currencyCode, effectiveDate])
+  @@index([effectiveDate])
+  @@index([currencyCode])
 }

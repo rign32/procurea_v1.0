@@ -19,10 +19,24 @@ export declare class OrganizationController {
         updatedAt: Date;
         domain: string | null;
         footerText: string | null;
+        footerEnabled: boolean;
+        footerFirstName: string | null;
+        footerLastName: string | null;
+        footerCompany: string | null;
+        footerPosition: string | null;
+        footerEmail: string | null;
+        footerPhone: string | null;
     }>;
     updateOrganization(id: string, body: {
         name?: string;
         footerText?: string;
+        footerEnabled?: boolean;
+        footerFirstName?: string;
+        footerLastName?: string;
+        footerCompany?: string;
+        footerPosition?: string;
+        footerEmail?: string;
+        footerPhone?: string;
     }): Promise<{
         id: string;
         name: string;
@@ -30,6 +44,13 @@ export declare class OrganizationController {
         updatedAt: Date;
         domain: string | null;
         footerText: string | null;
+        footerEnabled: boolean;
+        footerFirstName: string | null;
+        footerLastName: string | null;
+        footerCompany: string | null;
+        footerPosition: string | null;
+        footerEmail: string | null;
+        footerPhone: string | null;
     }>;
     getOrganizationUsers(id: string): Promise<{
         id: string;

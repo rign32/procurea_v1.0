@@ -20,7 +20,7 @@ export interface ApiUsageStats {
 }
 
 export interface LogApiCallParams {
-    service: 'gemini' | 'serpapi';
+    service: 'gemini' | 'serpapi' | 'serper';
     endpoint?: string;
     userId?: string;
     requestPayload?: string;
@@ -33,7 +33,8 @@ export interface LogApiCallParams {
 // Cost constants (USD)
 const GEMINI_INPUT_COST_PER_1K = 0.00025;  // gemini-2.0-flash
 const GEMINI_OUTPUT_COST_PER_1K = 0.0005;
-const SERPAPI_COST_PER_CALL = 0.005;  // Approximate based on plan
+const SERPAPI_COST_PER_CALL = 0.01;   // $50/5k queries
+const SERPER_COST_PER_CALL = 0.001;   // $50/50k queries (10x cheaper)
 
 @Injectable()
 export class ApiUsageService {
@@ -61,6 +62,21 @@ export class ApiUsageService {
                     responseTimeMs: params.responseTimeMs,
                 },
             });
+
+            // Trigger Sentry alert if a single call is unusually expensive (e.g., > $1.00)
+            if (estimatedCost && estimatedCost > 1.0) {
+                const Sentry = await import('@sentry/nestjs');
+                Sentry.captureMessage(`High API Cost Alert: ${params.service}`, {
+                    level: 'warning',
+                    extra: {
+                        cost: estimatedCost,
+                        service: params.service,
+                        tokens: params.tokensUsed,
+                        endpoint: params.endpoint,
+                        user: params.userId,
+                    }
+                });
+            }
 
             this.logger.debug(
                 `[API USAGE] ${params.service} ${params.status} - ${params.responseTimeMs}ms - $${estimatedCost?.toFixed(6) ?? 'N/A'}`
@@ -93,6 +109,8 @@ export class ApiUsageService {
                 return null;
             case 'serpapi':
                 return SERPAPI_COST_PER_CALL;
+            case 'serper':
+                return SERPER_COST_PER_CALL;
             default:
                 return null;
         }

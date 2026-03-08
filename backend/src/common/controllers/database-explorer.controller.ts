@@ -1,7 +1,10 @@
-import { Controller, Get, Post, Param, Query, Body, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Param, Query, Body, BadRequestException, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { AdminGuard } from '../../admin/admin.guard';
 import { DatabaseExplorerService } from '../services/database-explorer.service';
 
-@Controller('api/db')
+@Controller('db')
+@UseGuards(AuthGuard('jwt'), AdminGuard)
 export class DatabaseExplorerController {
     constructor(private readonly dbExplorer: DatabaseExplorerService) { }
 

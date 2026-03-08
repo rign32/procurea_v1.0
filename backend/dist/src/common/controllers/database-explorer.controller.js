@@ -14,6 +14,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DatabaseExplorerController = void 0;
 const common_1 = require("@nestjs/common");
+const passport_1 = require("@nestjs/passport");
+const admin_guard_1 = require("../../admin/admin.guard");
 const database_explorer_service_1 = require("../services/database-explorer.service");
 let DatabaseExplorerController = class DatabaseExplorerController {
     dbExplorer;
@@ -91,6 +93,7 @@ __decorate([
 ], DatabaseExplorerController.prototype, "askQuestion", null);
 exports.DatabaseExplorerController = DatabaseExplorerController = __decorate([
     (0, common_1.Controller)('api/db'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), admin_guard_1.AdminGuard),
     __metadata("design:paramtypes", [database_explorer_service_1.DatabaseExplorerService])
 ], DatabaseExplorerController);
 //# sourceMappingURL=database-explorer.controller.js.map

@@ -15,7 +15,8 @@ const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../prisma/prisma.service");
 const GEMINI_INPUT_COST_PER_1K = 0.00025;
 const GEMINI_OUTPUT_COST_PER_1K = 0.0005;
-const SERPAPI_COST_PER_CALL = 0.005;
+const SERPAPI_COST_PER_CALL = 0.01;
+const SERPER_COST_PER_CALL = 0.001;
 let ApiUsageService = ApiUsageService_1 = class ApiUsageService {
     prisma;
     logger = new common_1.Logger(ApiUsageService_1.name);
@@ -59,6 +60,8 @@ let ApiUsageService = ApiUsageService_1 = class ApiUsageService {
                 return null;
             case 'serpapi':
                 return SERPAPI_COST_PER_CALL;
+            case 'serper':
+                return SERPER_COST_PER_CALL;
             default:
                 return null;
         }

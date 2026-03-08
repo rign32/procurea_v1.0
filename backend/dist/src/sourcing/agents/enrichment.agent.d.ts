@@ -11,5 +11,5 @@ export declare class EnrichmentAgentService {
     private findRealCompanyDomain;
     private aggressiveEmailDiscovery;
     private isValidBusinessEmail;
-    execute(analystData: any, originalUrl: string): Promise<any>;
+    execute(analystData: any, originalUrl: string, campaignId?: string): Promise<any>;
 }

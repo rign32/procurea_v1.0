@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 
 export interface ErrorRecord {
@@ -22,7 +23,11 @@ export class ErrorTrackingService {
     private readonly logger = new Logger(ErrorTrackingService.name);
     private errors: ErrorRecord[] = [];
     private readonly maxErrors = 100; // Keep last 100 errors in memory
-    private readonly logFilePath = path.join(process.cwd(), 'error-logs.json');
+    // Cloud Functions have read-only filesystem except /tmp
+    private readonly logFilePath = path.join(
+        process.env.K_SERVICE ? os.tmpdir() : process.cwd(),
+        'error-logs.json'
+    );
 
     constructor() {
         this.loadErrors();

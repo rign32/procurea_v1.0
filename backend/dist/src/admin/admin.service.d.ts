@@ -66,6 +66,13 @@ export declare class AdminService {
             updatedAt: Date;
             domain: string | null;
             footerText: string | null;
+            footerEnabled: boolean;
+            footerFirstName: string | null;
+            footerLastName: string | null;
+            footerCompany: string | null;
+            footerPosition: string | null;
+            footerEmail: string | null;
+            footerPhone: string | null;
         }) | null;
         _count: {
             ownedRfqs: number;
@@ -207,6 +214,13 @@ export declare class AdminService {
             updatedAt: Date;
             domain: string | null;
             footerText: string | null;
+            footerEnabled: boolean;
+            footerFirstName: string | null;
+            footerLastName: string | null;
+            footerCompany: string | null;
+            footerPosition: string | null;
+            footerEmail: string | null;
+            footerPhone: string | null;
         })[];
         total: number;
     }>;
@@ -239,6 +253,13 @@ export declare class AdminService {
         updatedAt: Date;
         domain: string | null;
         footerText: string | null;
+        footerEnabled: boolean;
+        footerFirstName: string | null;
+        footerLastName: string | null;
+        footerCompany: string | null;
+        footerPosition: string | null;
+        footerEmail: string | null;
+        footerPhone: string | null;
     }>;
     getApiUsageStats(filters?: {
         startDate?: Date;

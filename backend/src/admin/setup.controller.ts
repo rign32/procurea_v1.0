@@ -12,7 +12,8 @@ export class SetupController {
         @Query('key') key: string,
         @Request() req,
     ) {
-        if (key !== 'procurea-secure-setup-2026') {
+        const setupKey = process.env.ADMIN_SETUP_KEY;
+        if (!setupKey || key !== setupKey) {
             throw new ForbiddenException('Invalid setup key');
         }
 

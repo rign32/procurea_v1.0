@@ -13,7 +13,17 @@ export class OrganizationController {
     }
 
     @Patch(':id')
-    async updateOrganization(@Param('id') id: string, @Body() body: { name?: string; footerText?: string }) {
+    async updateOrganization(@Param('id') id: string, @Body() body: {
+        name?: string;
+        footerText?: string;
+        footerEnabled?: boolean;
+        footerFirstName?: string;
+        footerLastName?: string;
+        footerCompany?: string;
+        footerPosition?: string;
+        footerEmail?: string;
+        footerPhone?: string;
+    }) {
         return this.organizationService.updateOrganization(id, body);
     }
 
@@ -25,9 +35,32 @@ export class OrganizationController {
     @Post(':id/users')
     async addUserToOrganization(
         @Param('id') id: string,
-        @Body() body: { email: string; name?: string; role?: string }
+        @Body() body: { email: string; name?: string; role?: string; campaignAccess?: string },
+        @Req() req: any,
     ) {
-        return this.organizationService.addUserToOrganization(id, body);
+        const requestingUserId = req.user?.userId || req.user?.sub;
+        return this.organizationService.addUserToOrganization(id, body, requestingUserId);
+    }
+
+    @Patch(':id/users/:userId')
+    async updateUserAccess(
+        @Param('id') orgId: string,
+        @Param('userId') userId: string,
+        @Body() body: { role?: string; campaignAccess?: string },
+        @Req() req: any,
+    ) {
+        const requestingUserId = req.user?.userId || req.user?.sub;
+        return this.organizationService.updateUserAccess(orgId, userId, body, requestingUserId);
+    }
+
+    @Delete(':id/users/:userId')
+    async removeUserFromOrganization(
+        @Param('id') id: string,
+        @Param('userId') userId: string,
+        @Req() req: any,
+    ) {
+        const requestingUserId = req.user?.userId || req.user?.sub;
+        return this.organizationService.removeUserFromOrganization(id, userId, requestingUserId);
     }
 
     @Post(':id/locations')

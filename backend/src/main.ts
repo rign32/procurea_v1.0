@@ -3,6 +3,20 @@ import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import cookieParser from 'cookie-parser';
+import * as Sentry from '@sentry/nestjs';
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
+
+// Initialize Sentry before the application is created
+Sentry.init({
+  dsn: process.env.SENTRY_DSN || '',
+  integrations: [
+    nodeProfilingIntegration(),
+  ],
+  // Tracing
+  tracesSampleRate: 1.0, //  Capture 100% of the transactions
+  // Set sampling rate for profiling - this is relative to tracesSampleRate
+  profilesSampleRate: 1.0,
+});
 
 async function bootstrap() {
   if (process.env.PROCESS_TYPE === 'worker') {
@@ -15,7 +29,6 @@ async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule);
     app.use(cookieParser());
 
-    // Config CORS
     app.enableCors({
       origin: process.env.NODE_ENV === 'production'
         ? [
@@ -26,6 +39,8 @@ async function bootstrap() {
           'https://vendor.procurea.pl',
           'https://blog.procurea.pl',
           'https://api.procurea.pl',
+          'https://staging.procurea.pl',
+          'https://procurea-app-staging.web.app',
           'https://procurea-frontend.web.app',
           'https://procurea-admin.web.app',
           'https://procurea-vendor.web.app'

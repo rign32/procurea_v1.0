@@ -17,7 +17,7 @@ export interface ApiUsageStats {
     }[];
 }
 export interface LogApiCallParams {
-    service: 'gemini' | 'serpapi';
+    service: 'gemini' | 'serpapi' | 'serper';
     endpoint?: string;
     userId?: string;
     requestPayload?: string;
