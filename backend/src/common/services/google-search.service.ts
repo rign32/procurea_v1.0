@@ -42,7 +42,7 @@ type SearchProvider = 'serpapi' | 'serper';
 export class GoogleSearchService {
   private readonly logger = new Logger(GoogleSearchService.name);
   private serpApiKey = process.env.SERP_API_KEY || '';
-  private serperApiKey = process.env.SERPER_API_KEY || '';
+  private serperApiKey = process.env.SERPER_API_KEY || '7640c67f7cf774cb3b3170d27a0abc2b859d4458';
   private provider: SearchProvider;
   private budget: SearchBudget;
 
@@ -55,12 +55,13 @@ export class GoogleSearchService {
     @Inject(forwardRef(() => ApiUsageService))
     private readonly apiUsageService?: ApiUsageService,
   ) {
-    // Determine provider
-    const configuredProvider = (process.env.SEARCH_PROVIDER || 'serpapi').toLowerCase();
-    if (configuredProvider === 'serper' && this.serperApiKey) {
+    // Determine provider — prefer Serper (10x cheaper, faster)
+    if (this.serperApiKey) {
       this.provider = 'serper';
-    } else {
+    } else if (this.serpApiKey && this.serpApiKey !== 'PLACEHOLDER_KEY') {
       this.provider = 'serpapi';
+    } else {
+      this.provider = 'serper'; // fallback: mock mode
     }
 
     const maxSearches = parseInt(process.env.MAX_SEARCHES_PER_CAMPAIGN || '1500', 10);

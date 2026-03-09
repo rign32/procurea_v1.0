@@ -26,8 +26,8 @@ const metrics = [
     gradient: "from-emerald-500 to-teal-500",
   },
   {
-    target: 12,
-    suffix: "+",
+    target: 26,
+    suffix: "",
     label: "Języków wyszukiwania",
     icon: Globe,
     color: "text-blue-500",

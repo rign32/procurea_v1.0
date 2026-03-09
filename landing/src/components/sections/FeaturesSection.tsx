@@ -7,7 +7,7 @@ const features = [
     icon: Sparkles,
     title: "Wyszukiwanie AI",
     description:
-      "Wieloetapowy agent AI przeszukuje internet w 12+ językach, identyfikuje producentów i weryfikuje ich możliwości produkcyjne.",
+      "Wieloetapowy agent AI przeszukuje internet w 26 językach, identyfikuje producentów i weryfikuje ich możliwości produkcyjne.",
     highlight: "5 agentów AI pracujących równolegle",
     iconBg: "bg-gradient-to-br from-indigo-500 to-violet-500",
     iconColor: "text-white",

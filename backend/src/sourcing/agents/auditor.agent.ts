@@ -31,7 +31,7 @@ export class AuditorAgentService {
         pt: 'português', fi: 'suomi', ja: '日本語', ko: '한국어', zh: '中文',
     };
 
-    async execute(websiteData: any, registryData: any, userLanguage: string = 'pl'): Promise<any> {
+    async execute(websiteData: any, registryData: any, userLanguage: string = 'pl', productContext?: { coreProduct: string; positiveSignals: string[]; negativeSignals: string[] }): Promise<any> {
         this.logger.log('Executing Auditor Agent - STRICT VALIDATION MODE...');
 
         // Pre-validation checks
@@ -98,11 +98,20 @@ Odrzuć (REJECTED) TYLKO gdy:
 validation_result: "APPROVED" powinno być DOMYŚLNE, chyba że są KONKRETNE DOWODY na falsyfikat.
 Przy wątpliwościach używaj "NEEDS_REVIEW" zamiast "REJECTED".
 
+=== KONTEKST PRODUKTU ===
+PRODUKT DOCELOWY: ${productContext?.coreProduct || 'N/A'}
+
+KRYTYCZNA WALIDACJA: Jeśli firma jest PRODUCENTEM ale INNEGO produktu niż docelowy,
+ODRZUĆ ją. Przykład: szukamy "olej hydrauliczny" → firma produkuje "systemy hydrauliczne"
+(pompy, zawory, siłowniki) ale NIE produkuje oleju → REJECTED.
+Firma musi WYTWARZAĆ lub SPRZEDAWAĆ szukany produkt, nie tylko działać w powiązanej branży.
+
 === ZADANIE ===
 1. Oceń czy dane są SPÓJNE i WIARYGODNE.
 2. Wykryj wszelkie oznaki fałszywych danych.
-3. Zwróć "Golden Record" TYLKO jeśli dane przejdą walidację.
-4. Jeśli dane są PODEJRZANE lub NIESPÓJNE → ustaw is_valid: false i wyjaśnij dlaczego.
+3. Sprawdź czy firma RZECZYWIŚCIE produkuje/sprzedaje PRODUKT DOCELOWY (nie tylko powiązany).
+4. Zwróć "Golden Record" TYLKO jeśli dane przejdą walidację.
+5. Jeśli dane są PODEJRZANE lub NIESPÓJNE → ustaw is_valid: false i wyjaśnij dlaczego.
 
 JĘZYK WYJŚCIA: Wszystkie pola tekstowe (rejection_reason, warnings, specialization, country, city) MUSZĄ być w języku ${AuditorAgentService.LANGUAGE_NAMES[userLanguage] || userLanguage}.
 Nazwy firm pozostaw oryginalne — NIE tłumacz nazw własnych.

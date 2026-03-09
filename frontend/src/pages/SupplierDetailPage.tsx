@@ -14,9 +14,6 @@ import {
   ExternalLink,
   Loader2,
   ShieldAlert,
-  Factory,
-  Store,
-  HelpCircle,
 } from 'lucide-react';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { apiClient } from '@/services/api.client';
@@ -26,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BlacklistDialog } from '@/components/suppliers/BlacklistDialog';
 import { useSupplier } from '@/hooks/useSuppliers';
+import { useAuthStore } from '@/stores/auth.store';
 import { PL } from '@/i18n/pl';
 import { motion } from 'framer-motion';
 
@@ -46,6 +44,8 @@ export function SupplierDetailPage() {
   const queryClient = useQueryClient();
   const [isBlacklistDialogOpen, setIsBlacklistDialogOpen] = useState(false);
   const { data: supplier, isLoading, error } = useSupplier(id || '');
+  const { user } = useAuthStore();
+  const isFullPlan = user?.plan === 'full';
 
   const blacklistMutation = useMutation({
     mutationFn: async (reason: string) => {
@@ -163,21 +163,6 @@ export function SupplierDetailPage() {
             </div>
           </div>
           <div className="flex gap-2 items-center">
-            {supplier.companyType === 'PRODUCENT' && (
-              <Badge className="text-sm px-3 py-1 bg-emerald-100 text-emerald-700 border-emerald-200">
-                <Factory className="mr-1.5 h-4 w-4" />Producent
-              </Badge>
-            )}
-            {supplier.companyType === 'HANDLOWIEC' && (
-              <Badge variant="secondary" className="text-sm px-3 py-1 bg-amber-100 text-amber-700 border-amber-200">
-                <Store className="mr-1.5 h-4 w-4" />Handlowiec
-              </Badge>
-            )}
-            {supplier.needsManualClassification && (
-              <Badge variant="secondary" className="text-sm px-3 py-1 bg-orange-100 text-orange-700 border-orange-200">
-                <HelpCircle className="mr-1.5 h-4 w-4" />Do weryfikacji
-              </Badge>
-            )}
             <Button
               variant="destructive"
               className="px-3"
@@ -265,15 +250,6 @@ export function SupplierDetailPage() {
                       </dd>
                     </div>
                   )}
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">
-                      Typ firmy
-                    </dt>
-                    <dd className="text-sm mt-1">
-                      {supplier.companyType === 'PRODUCENT' ? 'Producent' : supplier.companyType === 'HANDLOWIEC' ? 'Handlowiec / Dystrybutor' : 'Nieustalony'}
-                      {supplier.companyTypeConfidence ? ` (${supplier.companyTypeConfidence}% pewności)` : ''}
-                    </dd>
-                  </div>
                 </dl>
               </CardContent>
             </Card>
@@ -324,7 +300,8 @@ export function SupplierDetailPage() {
             </Card>
           </motion.div>
 
-          {/* Contacts Card */}
+          {/* Contacts Card — only visible for full plan */}
+          {isFullPlan && (
           <motion.div variants={itemVariants}>
             <Card>
               <CardHeader>
@@ -407,6 +384,7 @@ export function SupplierDetailPage() {
               </CardContent>
             </Card>
           </motion.div>
+          )}
         </div>
 
         {/* Right Column - Sidebar */}
@@ -463,18 +441,20 @@ export function SupplierDetailPage() {
                   </span>
                 </div>
               )}
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">
-                  {PL.suppliers.detail.contacts}
-                </span>
-                <span>
-                  {supplier.contacts?.length ||
-                    (supplier.contactEmails
-                      ? supplier.contactEmails.split(',').filter((e) => e.trim())
-                        .length
-                      : 0)}
-                </span>
-              </div>
+              {isFullPlan && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    {PL.suppliers.detail.contacts}
+                  </span>
+                  <span>
+                    {supplier.contacts?.length ||
+                      (supplier.contactEmails
+                        ? supplier.contactEmails.split(',').filter((e) => e.trim())
+                          .length
+                        : 0)}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">
                   {PL.suppliers.detail.certificates}
@@ -484,23 +464,6 @@ export function SupplierDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Metadata Card */}
-          <Card>
-            <CardContent className="pt-6 space-y-2 text-xs text-muted-foreground">
-              <p>
-                Utworzono:{' '}
-                {new Date(supplier.createdAt).toLocaleDateString('pl-PL')}
-              </p>
-              {supplier.updatedAt !== supplier.createdAt && (
-                <p>
-                  Aktualizowano:{' '}
-                  {new Date(supplier.updatedAt).toLocaleDateString('pl-PL')}
-                </p>
-              )}
-              {supplier.sourceAgent && <p>Agent: {supplier.sourceAgent}</p>}
-              {supplier.sourceType && <p>Źródło: {supplier.sourceType}</p>}
-            </CardContent>
-          </Card>
         </motion.div>
       </div>
 

@@ -11,12 +11,12 @@ const faqs = [
   {
     question: "Jakie regiony są obsługiwane?",
     answer:
-      "Możesz wyszukiwać dostawców w Polsce, całej Unii Europejskiej lub globalnie. System generuje zapytania w ponad 12 językach, w tym niemieckim, francuskim, włoskim, hiszpańskim, czeskim i wielu innych, dzięki czemu dociera do dostawców, których nie znajdziesz standardowym wyszukiwaniem.",
+      "Możesz wyszukiwać dostawców w Polsce, całej Unii Europejskiej lub globalnie. System generuje zapytania w 26 językach, w tym niemieckim, czeskim, włoskim, ale też japońskim, koreańskim, chińskim, tureckim czy hindi — dzięki czemu dociera do dostawców, których nie znajdziesz standardowym wyszukiwaniem.",
   },
   {
     question: "Co dokładnie jest dostępne w beta testach?",
     answer:
-      "W ramach beta testów masz pełny dostęp do wyszukiwarki AI dostawców, włącznie z wieloetapowym wyszukiwaniem w 12+ językach, automatycznym wzbogacaniem danych kontaktowych, bazą dostawców i monitoringiem na żywo. Funkcje takie jak zapytania ofertowe i sekwencje email są w fazie rozwoju i pojawią się w pełnej wersji produktu.",
+      "W ramach beta testów masz pełny dostęp do wyszukiwarki AI dostawców, włącznie z wieloetapowym wyszukiwaniem w 26 językach, automatycznym wzbogacaniem danych kontaktowych, bazą dostawców i monitoringiem na żywo. Funkcje takie jak zapytania ofertowe i sekwencje email są w fazie rozwoju i pojawią się w pełnej wersji produktu.",
   },
   {
     question: "Jak długo trwają beta testy?",

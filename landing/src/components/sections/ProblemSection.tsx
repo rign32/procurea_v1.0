@@ -32,7 +32,7 @@ const painPoints = [
     title: "Bariera językowa",
     description:
       "Wyszukiwanie dostawców na rynkach zagranicznych wymaga języków lokalnych. Bez tego omijasz najlepszych producentów z Europy i świata.",
-    stat: "12+",
+    stat: "26",
     statLabel: "języków rynków dostawców",
     gradient: "from-amber-500 to-yellow-500",
     bgGlow: "bg-amber-500/5",

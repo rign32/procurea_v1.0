@@ -119,6 +119,7 @@ export const campaignsService = {
       sequenceTemplateId: dto.sequenceTemplateId,
       searchCriteria: {
         region: dto.targetRegion || 'EU',
+        targetCountries: dto.targetCountries,
         material: dto.material,
         eau: dto.eau,
         quantity: dto.quantity,
@@ -128,6 +129,7 @@ export const campaignsService = {
         incoterms: dto.incoterms,
         desiredDeliveryDate: dto.desiredDeliveryDate,
         supplierTypes: dto.supplierTypes || ['PRODUCENT'],
+        requiredCertificates: dto.requiredCertificates || [],
       },
     };
     const { data } = await apiClient.post<any>('/campaigns', backendDto);

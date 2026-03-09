@@ -11,7 +11,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
         super({
             datasources: {
                 db: {
-                    url: url ? `${url}${url.includes('?') ? '&' : '?'}connection_limit=10&pool_timeout=20` : undefined,
+                    url: url ? `${url}${url.includes('?') ? '&' : '?'}connection_limit=25&pool_timeout=20` : undefined,
                 },
             },
         });

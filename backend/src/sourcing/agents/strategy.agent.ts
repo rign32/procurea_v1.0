@@ -131,6 +131,84 @@ export const REGION_LANGUAGE_CONFIG: Record<string, {
 export class StrategyAgentService {
   private readonly logger = new Logger(StrategyAgentService.name);
 
+  // Country code → language mappings for CUSTOM region
+  private static readonly COUNTRY_LANGUAGES: Record<string, { languages: string[]; countryName: string; countryNamePL: string }> = {
+    'PL': { languages: ['pl'], countryName: 'Poland', countryNamePL: 'Polska' },
+    'DE': { languages: ['de'], countryName: 'Germany', countryNamePL: 'Niemcy' },
+    'CZ': { languages: ['cs'], countryName: 'Czech Republic', countryNamePL: 'Czechy' },
+    'SK': { languages: ['sk', 'cs'], countryName: 'Slovakia', countryNamePL: 'Słowacja' },
+    'AT': { languages: ['de'], countryName: 'Austria', countryNamePL: 'Austria' },
+    'FR': { languages: ['fr'], countryName: 'France', countryNamePL: 'Francja' },
+    'IT': { languages: ['it'], countryName: 'Italy', countryNamePL: 'Włochy' },
+    'ES': { languages: ['es'], countryName: 'Spain', countryNamePL: 'Hiszpania' },
+    'PT': { languages: ['pt'], countryName: 'Portugal', countryNamePL: 'Portugalia' },
+    'NL': { languages: ['nl'], countryName: 'Netherlands', countryNamePL: 'Holandia' },
+    'BE': { languages: ['nl', 'fr'], countryName: 'Belgium', countryNamePL: 'Belgia' },
+    'CH': { languages: ['de', 'fr'], countryName: 'Switzerland', countryNamePL: 'Szwajcaria' },
+    'SE': { languages: ['sv'], countryName: 'Sweden', countryNamePL: 'Szwecja' },
+    'DK': { languages: ['da'], countryName: 'Denmark', countryNamePL: 'Dania' },
+    'NO': { languages: ['no'], countryName: 'Norway', countryNamePL: 'Norwegia' },
+    'FI': { languages: ['fi'], countryName: 'Finland', countryNamePL: 'Finlandia' },
+    'HU': { languages: ['hu'], countryName: 'Hungary', countryNamePL: 'Węgry' },
+    'RO': { languages: ['ro'], countryName: 'Romania', countryNamePL: 'Rumunia' },
+    'BG': { languages: ['bg'], countryName: 'Bulgaria', countryNamePL: 'Bułgaria' },
+    'HR': { languages: ['hr'], countryName: 'Croatia', countryNamePL: 'Chorwacja' },
+    'SI': { languages: ['sl'], countryName: 'Slovenia', countryNamePL: 'Słowenia' },
+    'LT': { languages: ['lt'], countryName: 'Lithuania', countryNamePL: 'Litwa' },
+    'LV': { languages: ['lv'], countryName: 'Latvia', countryNamePL: 'Łotwa' },
+    'EE': { languages: ['et'], countryName: 'Estonia', countryNamePL: 'Estonia' },
+    'IE': { languages: ['en'], countryName: 'Ireland', countryNamePL: 'Irlandia' },
+    'GB': { languages: ['en'], countryName: 'United Kingdom', countryNamePL: 'Wielka Brytania' },
+    'GR': { languages: ['el'], countryName: 'Greece', countryNamePL: 'Grecja' },
+    'CN': { languages: ['zh'], countryName: 'China', countryNamePL: 'Chiny' },
+    'JP': { languages: ['ja'], countryName: 'Japan', countryNamePL: 'Japonia' },
+    'KR': { languages: ['ko'], countryName: 'South Korea', countryNamePL: 'Korea Południowa' },
+    'IN': { languages: ['hi', 'en'], countryName: 'India', countryNamePL: 'Indie' },
+    'TW': { languages: ['zh'], countryName: 'Taiwan', countryNamePL: 'Tajwan' },
+    'VN': { languages: ['vi'], countryName: 'Vietnam', countryNamePL: 'Wietnam' },
+    'TH': { languages: ['th'], countryName: 'Thailand', countryNamePL: 'Tajlandia' },
+    'MY': { languages: ['ms'], countryName: 'Malaysia', countryNamePL: 'Malezja' },
+    'ID': { languages: ['id'], countryName: 'Indonesia', countryNamePL: 'Indonezja' },
+    'TR': { languages: ['tr'], countryName: 'Turkey', countryNamePL: 'Turcja' },
+    'US': { languages: ['en'], countryName: 'USA', countryNamePL: 'USA' },
+    'CA': { languages: ['en', 'fr'], countryName: 'Canada', countryNamePL: 'Kanada' },
+    'MX': { languages: ['es'], countryName: 'Mexico', countryNamePL: 'Meksyk' },
+    'BR': { languages: ['pt'], countryName: 'Brazil', countryNamePL: 'Brazylia' },
+    'AU': { languages: ['en'], countryName: 'Australia', countryNamePL: 'Australia' },
+  };
+
+  private buildCustomRegionConfig(countryCodes: string[]) {
+    const countries: string[] = [];
+    const allowedCountries: string[] = [];
+    const langSet = new Set<string>();
+
+    for (const code of countryCodes) {
+      const info = StrategyAgentService.COUNTRY_LANGUAGES[code];
+      if (info) {
+        countries.push(info.countryName);
+        allowedCountries.push(info.countryNamePL);
+        info.languages.forEach(l => langSet.add(l));
+      }
+    }
+
+    // Always add English for international coverage
+    langSet.add('en');
+
+    const languages = Array.from(langSet).map(code => ({
+      code,
+      name: code,
+      queryPrefix: '',
+    }));
+
+    return {
+      countries,
+      allowedCountries,
+      languages,
+      searchSuffix: ['manufacturer', 'producer', 'factory', 'supplier'],
+      negatives: ['-amazon', '-ebay', '-alibaba', '-shop', '-store'],
+    };
+  }
+
   constructor(private readonly geminiService: GeminiService) { }
 
   async execute(params: {
@@ -142,12 +220,19 @@ export class StrategyAgentService {
     region: string;
     eau: number;
     productContext?: ProductContext;
+    targetCountries?: string[];
+    requiredCertificates?: string[];
   }): Promise<any> {
     this.logger.log(`Executing Strategy Agent for "${params.productName}" in region: ${params.region}`);
 
-    // Get region configuration or default to EU
-    const regionConfig = REGION_LANGUAGE_CONFIG[params.region as keyof typeof REGION_LANGUAGE_CONFIG]
-      || REGION_LANGUAGE_CONFIG.EU;
+    // Get region configuration — CUSTOM builds dynamic config from selected countries
+    let regionConfig;
+    if (params.region === 'CUSTOM' && params.targetCountries?.length) {
+      regionConfig = this.buildCustomRegionConfig(params.targetCountries);
+    } else {
+      regionConfig = REGION_LANGUAGE_CONFIG[params.region as keyof typeof REGION_LANGUAGE_CONFIG]
+        || REGION_LANGUAGE_CONFIG.EU;
+    }
 
     const languageInstructions = regionConfig.languages
       .map(l => `- ${l.name} (${l.code})`)
@@ -193,6 +278,12 @@ ${translationsBlock || '  (brak — przetłumacz samodzielnie)'}
     // Use clean product name from context when available (avoids "Kampania:" prefix leaking)
     const effectiveProductName = pc ? pc.coreProduct : params.productName;
 
+    // Build certificates block
+    const requiredCerts = params.requiredCertificates || [];
+    const certificatesBlock = requiredCerts.length > 0
+      ? `\n=== WYMAGANE CERTYFIKATY ===\nUżytkownik wymaga: ${requiredCerts.join(', ')}\nGeneruj DODATKOWE zapytania z certyfikatami, np.:\n"${requiredCerts[0]} ${effectiveProductName} manufacturer"\n"${effectiveProductName} supplier certified ${requiredCerts.join(' ')}"`
+      : '';
+
     const systemPrompt = `
 Jesteś Ekspertem Strategii Sourcingu Przemysłowego (Industrial Sourcing Strategist).
 Twoim celem jest znalezienie JAK NAJWIĘKSZEJ LICZBY REALNYCH PRODUCENTÓW dla podanego produktu/surowca.
@@ -206,10 +297,18 @@ ${productContextBlock}
 **MATERIAŁ:** ${materialStr}
 **SKALA (EAU):** ${params.eau} szt./rok
 **REGION:** ${params.region}
+${certificatesBlock}
 
-WAŻNE: Zapytania wyszukiwania MUSZĄ być bezpośrednio związane z produktem "${effectiveProductName}".
-Nie zgaduj ani nie interpretuj — szukaj DOKŁADNIE tego, co użytkownik opisał powyżej.
-Jeśli produkt to surowiec (np. "aluminium ekstrudowane"), szukaj PRODUCENTÓW/DOSTAWCÓW tego surowca,
+WAŻNE — ZROZUM INTENCJĘ UŻYTKOWNIKA:
+Użytkownik szuka PRODUCENTÓW/DOSTAWCÓW produktu "${effectiveProductName}".
+NIE szukaj dosłownie pełnej nazwy w cudzysłowach — to zbyt wąskie i znajdziesz głównie artykuły.
+ZAMIAST TEGO generuj zapytania na RÓŻNYCH POZIOMACH SZCZEGÓŁOWOŚCI:
+- DOKŁADNE: pełna nazwa produktu (np. "granulat HDPE virgin producent")
+- OGÓLNE: szersza kategoria (np. "HDPE producent", "granulat tworzywowy dostawca")
+- SYNONIMOWE: inne nazwy tego samego (np. "HDPE pellets manufacturer", "HDPE resin supplier")
+- MATERIAŁOWE: sam materiał + typ dostawcy (np. "HDPE manufacturer Europe")
+
+Jeśli produkt to surowiec (np. "aluminium ekstrudowane", "granulat HDPE"), szukaj PRODUCENTÓW/DOSTAWCÓW tego surowca,
 a NIE producentów gotowych wyrobów z tego materiału.
 
 === OGRANICZENIE REGIONALNE ===
@@ -221,29 +320,30 @@ ${languageInstructions}
 
 === KRYTYCZNE WYMAGANIA ===
 1. Generuj 20-30 zapytań PER JĘZYK/KRAJ — potrzebujemy MAKSYMALNEJ RÓŻNORODNOŚCI i pokrycia!
-2. Każde zapytanie MUSI być bezpośrednio związane z "${effectiveProductName}" — NIE zgaduj pokrewnych kategorii!
+2. Zapytania muszą być powiązane z "${effectiveProductName}" — ale na RÓŻNYCH poziomach szczegółowości!
 3. Używaj RÓŻNYCH strategii (WSZYSTKIE poniższe typy dla każdego języka):
-   - TECHNOLOGICZNA: proces produkcyjny / technologia + "${effectiveProductName}"
-   - PRODUKTOWA: "${effectiveProductName}" + "manufacturer/producent/Hersteller"
-   - KATALOGOWA: "lista producentów" / "list of manufacturers" + "${effectiveProductName}"
-   - CERTYFIKACYJNA: "ISO 9001" OR "ISO 14001" + "${effectiveProductName}" + "producent/manufacturer"
-   - BRANŻOWA: targi branżowe / industrial fair + "${effectiveProductName}" + exhibitor list
-   - KATALOG B2B: europages / kompass / thomasnet / wlw.de + "${effectiveProductName}"
-   - SUROWCOWA: dostawca surowca / raw material supplier + "${effectiveProductName}"
-   - NISZOWA: specjalistyczne portale branżowe + "${effectiveProductName}"
-   - STOWARZYSZENIOWA: lista członków stowarzyszenia branżowego + "${effectiveProductName}"
-   - TARGOWA: "lista wystawców" / "exhibitor list" + targi branżowe + "${effectiveProductName}" + 2024 OR 2025 OR 2026
-   - EKSPORTOWA: "baza eksporterów" / "export directory" + "${effectiveProductName}" + kraj
-   - ŁAŃCUCH DOSTAW: "nasi dostawcy" / "our suppliers" / "approved vendors" + "${effectiveProductName}"
-   - REJESTROWA: rejestr firm (KRS / Handelsregister / Companies House) + "producent" + "${effectiveProductName}"
+   - DOKŁADNA: pełna nazwa produktu + producent/manufacturer
+   - OGÓLNA: szersza kategoria produktu + producent (np. samo "HDPE" zamiast "HDPE virgin granulat")
+   - SYNONIMOWA: synonimy i warianty nazwy (pellets, granules, resin, compound)
+   - TECHNOLOGICZNA: proces produkcyjny / technologia
+   - KATALOGOWA: "lista producentów" / "list of manufacturers"
+   - CERTYFIKACYJNA: certyfikaty + produkt + producent
+   - BRANŻOWA: targi branżowe / industrial fair + exhibitor list
+   - KATALOG B2B: europages / kompass / thomasnet / wlw.de
+   - SUROWCOWA: dostawca surowca / raw material supplier
+   - STOWARZYSZENIOWA: lista członków stowarzyszenia branżowego
+   - TARGOWA: "lista wystawców" / "exhibitor list" + targi branżowe + 2024 OR 2025 OR 2026
+   - EKSPORTOWA: "baza eksporterów" / "export directory" + kraj
+   - ŁAŃCUCH DOSTAW: "nasi dostawcy" / "our suppliers" / "approved vendors"
 4. Dla każdego kraju generuj zapytania w LOKALNYM JĘZYKU (tłumacz nazwę produktu!)
 5. LIMIT: max 12 krajów/języków dla EU, max 25 dla GLOBAL (wybierz najważniejsze gospodarczo)
+6. NIE opakowuj nazwy produktu w cudzysłowy ("") w zapytaniach — to zbyt restrykcyjne!
 
 KRYTYCZNE ZASADY:
-1. Każde zapytanie MUSI zawierać przetłumaczoną nazwę produktu + słowo "producent/manufacturer/Hersteller/fabricant"
-2. NIGDY nie wymyślaj nowych kategorii produktów — trzymaj się DOKŁADNIE tego co podał użytkownik
+1. Zapytania powinny zawierać nazwę produktu (lub synonim/ogólniejszy termin) + słowo producent/manufacturer/Hersteller
+2. Generuj zapytania na RÓŻNYCH poziomach szczegółowości — od dokładnych po ogólne
 3. Dodaj negatywne słowa kluczowe: ${negativeKeywords}
-4. 20-30 queries per kraj — każde musi być unikalne, precyzyjne i pokrywać INNY typ strategii
+4. 20-30 queries per kraj — każde unikalne, pokrywające INNY typ strategii
 5. WYKLUCZ kraje objęte sankcjami: Rosja, Iran, Korea Północna, Syria, Afganistan, Kuba, Wenezuela, Myanmar, Białoruś
 6. Dla KAŻDEGO kraju musisz mieć przynajmniej po 1 zapytaniu z typów: TARGOWA, STOWARZYSZENIOWA, KATALOG B2B, ŁAŃCUCH DOSTAW
 
@@ -258,7 +358,7 @@ Output Format (JSON Only):
       "language": "pl",
       "queries": [
         "producent ${effectiveProductName} Polska",
-        "dostawca ${effectiveProductName} hurtownia",
+        "dostawca ${effectiveProductName}",
         "fabryka ${effectiveProductName} Europa"
       ],
       "negatives": ["-allegro", "-olx", "-sklep", "-hurtownia"]
@@ -294,25 +394,34 @@ Output Format (JSON Only):
           const countryName = strategy.country || '';
 
           const specializedQueries = [
-            // Trade show exhibitor lists
-            `"${localProduct}" exhibitor list ${countryName}`,
+            // Trade show exhibitor lists (no exact match quotes on product name)
+            `${localProduct} exhibitor list ${countryName}`,
             // Industry association member lists
-            `"${localProduct}" association members ${countryName}`,
+            `${localProduct} association members ${countryName}`,
             // "Our suppliers" / supply chain pages
-            `"${localProduct}" "our suppliers" OR "approved vendors"`,
+            `${localProduct} "our suppliers" OR "approved vendors"`,
             // B2B directory targeted searches
-            `site:europages.com "${localProduct}" ${countryName}`,
-            `site:kompass.com "${localProduct}" ${countryName}`,
+            `site:europages.com ${localProduct} ${countryName}`,
+            `site:kompass.com ${localProduct} ${countryName}`,
             // Certification registries
-            `"${localProduct}" "ISO 9001" certificate holder ${countryName}`,
+            `${localProduct} "ISO 9001" certificate holder ${countryName}`,
             // OEM manufacturer search
-            `"${localProduct}" OEM manufacturer ${countryName}`,
+            `${localProduct} OEM manufacturer ${countryName}`,
           ];
 
-          // Add alternative product names from context
+          // Add certificate-based queries if user specified required certs
+          if (requiredCerts.length > 0) {
+            for (const cert of requiredCerts.slice(0, 3)) {
+              specializedQueries.push(`${cert} ${localProduct} manufacturer ${countryName}`);
+              specializedQueries.push(`${localProduct} supplier certified ${cert} ${countryName}`);
+            }
+          }
+
+          // Add alternative product names from context (without exact-match quotes)
           if (pc?.alternativeNames) {
-            for (const altName of pc.alternativeNames.slice(0, 3)) {
-              specializedQueries.push(`"${altName}" manufacturer ${countryName}`);
+            for (const altName of pc.alternativeNames.slice(0, 5)) {
+              specializedQueries.push(`${altName} manufacturer ${countryName}`);
+              specializedQueries.push(`${altName} supplier producer ${countryName}`);
             }
           }
 

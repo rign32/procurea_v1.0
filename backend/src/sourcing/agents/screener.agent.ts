@@ -42,7 +42,7 @@ export class ScreenerAgentService {
         pt: 'português', fi: 'suomi', ja: '日本語', ko: '한국어', zh: '中文',
     };
 
-    async execute(url: string, content: string, rfqData: any, productContext?: ProductContext, userLanguage: string = 'pl'): Promise<{
+    async execute(url: string, content: string, rfqData: any, productContext?: ProductContext, userLanguage: string = 'pl', requiredCertificates?: string[]): Promise<{
         company_type: 'PRODUCENT' | 'HANDLOWIEC' | 'NIEJASNY';
         company_type_confidence: number;
         company_type_evidence: string;
@@ -167,6 +167,11 @@ URL: ${url}
 
 TREŚĆ STRONY:
 ${content.substring(0, 25000)}
+
+=== WYMAGANE CERTYFIKATY ===
+${requiredCertificates?.length ? `Klient wymaga: ${requiredCertificates.join(', ')}
+Jeśli firma posiada wymagane certyfikaty → BONUS +5-10 do capability_match_score.
+Nie KARZ za brak certyfikatów na stronie (firma może je mieć ale nie wymieniać).` : 'Brak wymaganych certyfikatów.'}
 
 === SKALA OCENY capability_match_score (TYLKO DOPASOWANIE PRODUKTOWE) ===
 80-100: Firma ma ten dokładny produkt w ofercie (dowody na stronie)

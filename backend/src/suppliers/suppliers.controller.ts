@@ -15,6 +15,7 @@ export class SuppliersController {
         @Query('hasEmail') hasEmail?: string,
         @Query('search') search?: string,
         @Query('campaignId') campaignId?: string,
+        @Query('campaignIds') campaignIds?: string,
         @Query('companyType') companyType?: string,
         @Query('page') page?: string,
         @Query('pageSize') pageSize?: string,
@@ -27,6 +28,7 @@ export class SuppliersController {
             hasEmail: hasEmail === 'true',
             search,
             campaignId,
+            campaignIds,
             companyType,
         }, userId, {
             page: page ? parseInt(page, 10) : 1,

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ArrowLeft, ArrowRight, Loader2, Mail, Save, HelpCircle, Globe2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Loader2, Mail, HelpCircle, Globe2, X, Search, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -41,7 +41,7 @@ const step1Schema = z.object({
 });
 
 const step2Schema = z.object({
-  targetRegion: z.enum(['PL', 'EU', 'GLOBAL', 'GLOBAL_NO_CN']).optional(),
+  targetRegion: z.enum(['PL', 'EU', 'GLOBAL', 'GLOBAL_NO_CN', 'CUSTOM']).optional(),
   incoterms: z.string().optional(),
   desiredDeliveryDate: z.string().optional(),
   deliveryLocationId: z.string().optional(),
@@ -52,7 +52,54 @@ const step3Schema = z.object({
   sequenceTemplateId: z.string().optional(),
 });
 
-const DRAFT_KEY = 'procurea_rfq_draft';
+const AVAILABLE_COUNTRIES: { code: string; name: string; flag: string; group: string }[] = [
+  // Europa
+  { code: 'PL', name: 'Polska', flag: '\u{1F1F5}\u{1F1F1}', group: 'Europa' },
+  { code: 'DE', name: 'Niemcy', flag: '\u{1F1E9}\u{1F1EA}', group: 'Europa' },
+  { code: 'CZ', name: 'Czechy', flag: '\u{1F1E8}\u{1F1FF}', group: 'Europa' },
+  { code: 'SK', name: 'S\u0142owacja', flag: '\u{1F1F8}\u{1F1F0}', group: 'Europa' },
+  { code: 'AT', name: 'Austria', flag: '\u{1F1E6}\u{1F1F9}', group: 'Europa' },
+  { code: 'FR', name: 'Francja', flag: '\u{1F1EB}\u{1F1F7}', group: 'Europa' },
+  { code: 'IT', name: 'W\u0142ochy', flag: '\u{1F1EE}\u{1F1F9}', group: 'Europa' },
+  { code: 'ES', name: 'Hiszpania', flag: '\u{1F1EA}\u{1F1F8}', group: 'Europa' },
+  { code: 'PT', name: 'Portugalia', flag: '\u{1F1F5}\u{1F1F9}', group: 'Europa' },
+  { code: 'NL', name: 'Holandia', flag: '\u{1F1F3}\u{1F1F1}', group: 'Europa' },
+  { code: 'BE', name: 'Belgia', flag: '\u{1F1E7}\u{1F1EA}', group: 'Europa' },
+  { code: 'CH', name: 'Szwajcaria', flag: '\u{1F1E8}\u{1F1ED}', group: 'Europa' },
+  { code: 'SE', name: 'Szwecja', flag: '\u{1F1F8}\u{1F1EA}', group: 'Europa' },
+  { code: 'DK', name: 'Dania', flag: '\u{1F1E9}\u{1F1F0}', group: 'Europa' },
+  { code: 'NO', name: 'Norwegia', flag: '\u{1F1F3}\u{1F1F4}', group: 'Europa' },
+  { code: 'FI', name: 'Finlandia', flag: '\u{1F1EB}\u{1F1EE}', group: 'Europa' },
+  { code: 'HU', name: 'W\u0119gry', flag: '\u{1F1ED}\u{1F1FA}', group: 'Europa' },
+  { code: 'RO', name: 'Rumunia', flag: '\u{1F1F7}\u{1F1F4}', group: 'Europa' },
+  { code: 'BG', name: 'Bu\u0142garia', flag: '\u{1F1E7}\u{1F1EC}', group: 'Europa' },
+  { code: 'HR', name: 'Chorwacja', flag: '\u{1F1ED}\u{1F1F7}', group: 'Europa' },
+  { code: 'SI', name: 'S\u0142owenia', flag: '\u{1F1F8}\u{1F1EE}', group: 'Europa' },
+  { code: 'LT', name: 'Litwa', flag: '\u{1F1F1}\u{1F1F9}', group: 'Europa' },
+  { code: 'LV', name: '\u0141otwa', flag: '\u{1F1F1}\u{1F1FB}', group: 'Europa' },
+  { code: 'EE', name: 'Estonia', flag: '\u{1F1EA}\u{1F1EA}', group: 'Europa' },
+  { code: 'IE', name: 'Irlandia', flag: '\u{1F1EE}\u{1F1EA}', group: 'Europa' },
+  { code: 'GB', name: 'Wielka Brytania', flag: '\u{1F1EC}\u{1F1E7}', group: 'Europa' },
+  { code: 'GR', name: 'Grecja', flag: '\u{1F1EC}\u{1F1F7}', group: 'Europa' },
+  // Azja
+  { code: 'CN', name: 'Chiny', flag: '\u{1F1E8}\u{1F1F3}', group: 'Azja' },
+  { code: 'JP', name: 'Japonia', flag: '\u{1F1EF}\u{1F1F5}', group: 'Azja' },
+  { code: 'KR', name: 'Korea Po\u0142udniowa', flag: '\u{1F1F0}\u{1F1F7}', group: 'Azja' },
+  { code: 'IN', name: 'Indie', flag: '\u{1F1EE}\u{1F1F3}', group: 'Azja' },
+  { code: 'TW', name: 'Tajwan', flag: '\u{1F1F9}\u{1F1FC}', group: 'Azja' },
+  { code: 'VN', name: 'Wietnam', flag: '\u{1F1FB}\u{1F1F3}', group: 'Azja' },
+  { code: 'TH', name: 'Tajlandia', flag: '\u{1F1F9}\u{1F1ED}', group: 'Azja' },
+  { code: 'MY', name: 'Malezja', flag: '\u{1F1F2}\u{1F1FE}', group: 'Azja' },
+  { code: 'ID', name: 'Indonezja', flag: '\u{1F1EE}\u{1F1E9}', group: 'Azja' },
+  { code: 'TR', name: 'Turcja', flag: '\u{1F1F9}\u{1F1F7}', group: 'Azja' },
+  // Ameryki
+  { code: 'US', name: 'USA', flag: '\u{1F1FA}\u{1F1F8}', group: 'Ameryki' },
+  { code: 'CA', name: 'Kanada', flag: '\u{1F1E8}\u{1F1E6}', group: 'Ameryki' },
+  { code: 'MX', name: 'Meksyk', flag: '\u{1F1F2}\u{1F1FD}', group: 'Ameryki' },
+  { code: 'BR', name: 'Brazylia', flag: '\u{1F1E7}\u{1F1F7}', group: 'Ameryki' },
+  // Oceania
+  { code: 'AU', name: 'Australia', flag: '\u{1F1E6}\u{1F1FA}', group: 'Oceania' },
+];
 
 const INCOTERMS_OPTIONS: { value: string; label: string; desc: string }[] = [
   { value: 'EXW', label: 'EXW', desc: 'Ex Works — Ty odbierasz towar z zakładu sprzedawcy' },
@@ -68,6 +115,7 @@ const REGION_OPTIONS: { value: Region; label: string; icon: string; desc: string
   { value: 'EU', label: 'Unia Europejska', icon: '\u{1F1EA}\u{1F1FA}', desc: 'Dostawcy z krajów UE' },
   { value: 'GLOBAL', label: 'Globalnie', icon: '\u{1F30D}', desc: 'Dostawcy z całego świata' },
   { value: 'GLOBAL_NO_CN', label: 'Bez Chin', icon: '\u{1F30E}', desc: 'Globalnie z wyłączeniem Chin' },
+  { value: 'CUSTOM', label: 'Wybrane kraje', icon: '\u{1F4CD}', desc: 'Wybierz konkretne kraje' },
 ];
 
 interface RfqWizardProps {
@@ -83,27 +131,12 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
   const [certificates, setCertificates] = useState<string[]>([]);
   const [selectedIncoterms, setSelectedIncoterms] = useState<string[]>([]);
   const [attachments, setAttachments] = useState<any[]>([]);
-  const [draftSaved, setDraftSaved] = useState(false);
+  const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
+  const [countrySearch, setCountrySearch] = useState('');
   const { user } = useAuthStore();
   const isFullPlan = user?.plan === 'full';
 
   const createMutation = useCreateCampaign();
-
-  // Load draft from localStorage
-  useEffect(() => {
-    try {
-      const draft = localStorage.getItem(DRAFT_KEY);
-      if (draft) {
-        const parsed = JSON.parse(draft);
-        setFormData(parsed.formData || {});
-        setCertificates(parsed.certificates || []);
-        setSelectedIncoterms(parsed.selectedIncoterms || []);
-        setAttachments(parsed.attachments || []);
-        // Clamp step to valid range (handles old 6-step drafts)
-        if (parsed.step != null) setCurrentStep(Math.min(parsed.step, isFullPlan ? 3 : 2));
-      }
-    } catch { /* ignore */ }
-  }, []);
 
   // Load sequences and locations
   useEffect(() => {
@@ -121,19 +154,6 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
       }).catch(() => { });
     }
   }, [user?.organizationId]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Save to localStorage on step change
-  useEffect(() => {
-    const currentValues = form.getValues();
-    const merged = { ...formData, ...currentValues };
-    localStorage.setItem(DRAFT_KEY, JSON.stringify({
-      formData: merged,
-      certificates,
-      selectedIncoterms,
-      attachments,
-      step: currentStep,
-    }));
-  }, [currentStep]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const steps = [
     { id: 'product', label: 'Produkt i specyfikacja', schema: step1Schema },
@@ -169,6 +189,9 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
     if (steps[currentStep]?.id === 'search-logistics') {
       parsed.requiredCertificates = certificates;
       parsed.incoterms = selectedIncoterms.join(',');
+      if (parsed.targetRegion === 'CUSTOM') {
+        parsed.targetCountries = selectedCountries;
+      }
     }
 
     const newFormData = { ...formData, ...parsed };
@@ -181,6 +204,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
         name: `Kampania: ${newFormData.productName}`,
         requiredCertificates: certificates,
         incoterms: selectedIncoterms.join(','),
+        targetCountries: newFormData.targetRegion === 'CUSTOM' ? selectedCountries : undefined,
       };
       if (attachments.length > 0) {
         finalData.attachments = JSON.stringify(attachments);
@@ -188,7 +212,6 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
 
       try {
         const result = await createMutation.mutateAsync(finalData as CreateCampaignDto);
-        localStorage.removeItem(DRAFT_KEY);
         if (onComplete) {
           onComplete(result.id);
         } else {
@@ -214,19 +237,9 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
     }
   };
 
-  const handleSaveDraft = () => {
-    const currentValues = form.getValues();
-    const merged = { ...formData, ...currentValues };
-    localStorage.setItem(DRAFT_KEY, JSON.stringify({
-      formData: merged,
-      certificates,
-      selectedIncoterms,
-      attachments,
-      step: currentStep,
-    }));
-    setDraftSaved(true);
-    setTimeout(() => setDraftSaved(false), 2000);
-  };
+  const filteredCountries = countrySearch
+    ? AVAILABLE_COUNTRIES.filter(c => c.name.toLowerCase().includes(countrySearch.toLowerCase()))
+    : AVAILABLE_COUNTRIES;
 
   const progressPercentage = ((currentStep + 1) / steps.length) * 100;
   const displayCertificates = certificates.join(', ');
@@ -247,13 +260,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
       {/* Form */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>{steps[currentStep].label}</CardTitle>
-            <Button type="button" variant="ghost" size="sm" onClick={handleSaveDraft}>
-              <Save className="mr-2 h-4 w-4" />
-              {draftSaved ? PL.campaigns.wizard.draft.saved : PL.campaigns.wizard.draft.save}
-            </Button>
-          </div>
+          <CardTitle>{steps[currentStep].label}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={form.handleSubmit(handleNext)} className="space-y-6">
@@ -331,6 +338,71 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                     })}
                   </div>
                 </div>
+
+                {/* Country picker — shown when CUSTOM selected */}
+                {form.watch('targetRegion') === 'CUSTOM' && (
+                  <div className="border rounded-lg p-4 space-y-3">
+                    {/* Selected countries as badges */}
+                    {selectedCountries.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {selectedCountries.map(code => {
+                          const c = AVAILABLE_COUNTRIES.find(ac => ac.code === code);
+                          return c ? (
+                            <Badge key={code} variant="secondary" className="flex items-center gap-1 pr-1">
+                              {c.flag} {c.name}
+                              <button
+                                type="button"
+                                onClick={() => setSelectedCountries(prev => prev.filter(p => p !== code))}
+                                className="ml-1 rounded-full hover:bg-muted p-0.5"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </Badge>
+                          ) : null;
+                        })}
+                      </div>
+                    )}
+                    {/* Search input */}
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <input
+                        type="text"
+                        value={countrySearch}
+                        onChange={(e) => setCountrySearch(e.target.value)}
+                        placeholder="Szukaj kraju..."
+                        className="w-full pl-9 pr-3 py-2 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                    </div>
+                    {/* Country list */}
+                    <div className="max-h-48 overflow-y-auto space-y-1">
+                      {filteredCountries.map(c => {
+                        const isChecked = selectedCountries.includes(c.code);
+                        return (
+                          <label
+                            key={c.code}
+                            className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 cursor-pointer text-sm"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => {
+                                setSelectedCountries(prev =>
+                                  isChecked ? prev.filter(p => p !== c.code) : [...prev, c.code]
+                                );
+                              }}
+                              className="h-3.5 w-3.5 rounded border-input"
+                            />
+                            <span>{c.flag}</span>
+                            <span>{c.name}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    {selectedCountries.length === 0 && (
+                      <p className="text-xs text-destructive">Wybierz co najmniej 1 kraj</p>
+                    )}
+                  </div>
+                )}
 
                 {/* Supplier Types — checkboxes */}
                 <div>
@@ -547,8 +619,10 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Region:</span>
                         <span className="font-medium">
-                          {REGION_OPTIONS.find(r => r.value === formData.targetRegion)?.icon}{' '}
-                          {REGION_OPTIONS.find(r => r.value === formData.targetRegion)?.label}
+                          {formData.targetRegion === 'CUSTOM'
+                            ? `\u{1F4CD} ${selectedCountries.map(c => AVAILABLE_COUNTRIES.find(ac => ac.code === c)?.name).filter(Boolean).join(', ')}`
+                            : `${REGION_OPTIONS.find(r => r.value === formData.targetRegion)?.icon} ${REGION_OPTIONS.find(r => r.value === formData.targetRegion)?.label}`
+                          }
                         </span>
                       </div>
                     )}

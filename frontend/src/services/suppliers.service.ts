@@ -20,8 +20,13 @@ export const suppliersService = {
    * Pobierz wszystkich dostawców (z filtrami)
    */
   getAll: async (filters?: SupplierFilters): Promise<{ suppliers: Supplier[]; total: number }> => {
+    const { campaignIds, ...rest } = filters || {};
+    const params: any = { ...rest };
+    if (campaignIds && campaignIds.length > 0) {
+      params.campaignIds = campaignIds.join(',');
+    }
     const { data } = await apiClient.get<GetSuppliersResponse>('/suppliers', {
-      params: filters,
+      params,
     });
     return {
       suppliers: data.suppliers as Supplier[],

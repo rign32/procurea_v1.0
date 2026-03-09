@@ -199,7 +199,7 @@ export class SourcingService {
     private readonly logger = new Logger(SourcingService.name);
 
     // Concurrency limit for parallel URL processing within each worker
-    private readonly urlLimit = pLimit(parseInt(process.env.URL_LIMIT || '20', 10));
+    private readonly urlLimit = pLimit(parseInt(process.env.URL_LIMIT || '60', 10));
 
     // Deep Research counter per campaign (cap expensive subpage scraping)
     private readonly deepResearchCounts = new Map<string, number>();
@@ -687,31 +687,25 @@ OUTPUT FORMAT (JSON only):
             const rawProductName = dto.searchCriteria?.keywords?.[0] || dto.name || '';
             const cleanProductName = rawProductName.replace(/^Kampania:\s*/i, '').trim() || rawProductName;
 
-            // --- PHASE 0: PRODUCT CONTEXT ANALYSIS (NEW) ---
-            await this.log(id, `🔬 [CONTEXT] Analyzing product semantics for: "${cleanProductName}"`);
-            const productContext = await this.analyzeProductContext(dto, cleanProductName);
-            if (productContext) {
-                await this.log(id, `🔬 [CONTEXT] Core product: "${productContext.coreProduct}"`);
-                await this.log(id, `🔬 [CONTEXT] Category: ${productContext.productCategory}`);
-                await this.log(id, `🔬 [CONTEXT] Disambiguation: ${productContext.disambiguationNote}`);
-                await this.log(id, `🔬 [CONTEXT] Positive signals: [${productContext.positiveSignals.join(', ')}]`);
-                await this.log(id, `🔬 [CONTEXT] Negative signals: [${productContext.negativeSignals.join(', ')}]`);
-            } else {
-                await this.log(id, `⚠️ [CONTEXT] Product context analysis unavailable — pipeline proceeds without disambiguation`);
-            }
+            // --- PHASE 0 + 0.5: PRODUCT CONTEXT + MARKET INTELLIGENCE (parallel) ---
+            await this.log(id, `🔬 [CONTEXT] Analyzing product semantics + market intelligence in parallel for: "${cleanProductName}"`);
+            const rawCategory = dto.searchCriteria?.category || dto.searchCriteria?.industry || '';
+            const rawRegion = searchCriteria.region || 'EU';
 
-            // --- PHASE 0.5: MARKET INTELLIGENCE ---
-            let knownManufacturers: { name: string; country?: string; website?: string; size?: string }[] = [];
-            try {
-                await this.log(id, `[INTELLIGENCE] Identifying known manufacturers for: "${cleanProductName}"`);
-                const intelligencePrompt = `
+            const [productContext, knownManufacturersResult] = await Promise.all([
+                // Phase 0: Product Context
+                this.analyzeProductContext(dto, cleanProductName),
+                // Phase 0.5: Market Intelligence (doesn't require productContext)
+                (async () => {
+                    try {
+                        const intelligencePrompt = `
 You are a Market Intelligence Analyst specializing in industrial supply chains.
 
 TASK: Identify the TOP known manufacturers/producers of this product in the given region.
 
 PRODUCT: ${cleanProductName}
-CATEGORY: ${productContext?.productCategory || 'N/A'}
-REGION: ${searchCriteria.region || 'EU'}
+CATEGORY: ${rawCategory || 'N/A'}
+REGION: ${rawRegion}
 
 Return a JSON array of known manufacturers. Include:
 - Global leaders that operate in this region
@@ -729,15 +723,30 @@ Return JSON:
 
 LIMIT: 10-20 most important manufacturers. Quality over quantity.
 `;
-                const intelligenceResponse = await this.geminiService.generateContent(intelligencePrompt);
-                const intelligenceJson = JSON.parse(
-                    intelligenceResponse.replace(/```json/g, '').replace(/```/g, '').trim()
-                );
-                knownManufacturers = intelligenceJson.known_manufacturers || [];
-                await this.log(id, `[INTELLIGENCE] Identified ${knownManufacturers.length} known manufacturers: ${knownManufacturers.map(m => m.name).join(', ')}`);
-            } catch (intelligenceErr: any) {
-                await this.log(id, `[INTELLIGENCE] Market intelligence failed (non-fatal): ${intelligenceErr.message}`);
+                        const intelligenceResponse = await this.geminiService.generateContent(intelligencePrompt);
+                        const intelligenceJson = JSON.parse(
+                            intelligenceResponse.replace(/```json/g, '').replace(/```/g, '').trim()
+                        );
+                        return intelligenceJson.known_manufacturers || [];
+                    } catch (intelligenceErr: any) {
+                        await this.log(id, `[INTELLIGENCE] Market intelligence failed (non-fatal): ${intelligenceErr.message}`);
+                        return [];
+                    }
+                })(),
+            ]);
+
+            let knownManufacturers: { name: string; country?: string; website?: string; size?: string }[] = knownManufacturersResult;
+
+            if (productContext) {
+                await this.log(id, `🔬 [CONTEXT] Core product: "${productContext.coreProduct}"`);
+                await this.log(id, `🔬 [CONTEXT] Category: ${productContext.productCategory}`);
+                await this.log(id, `🔬 [CONTEXT] Disambiguation: ${productContext.disambiguationNote}`);
+                await this.log(id, `🔬 [CONTEXT] Positive signals: [${productContext.positiveSignals.join(', ')}]`);
+                await this.log(id, `🔬 [CONTEXT] Negative signals: [${productContext.negativeSignals.join(', ')}]`);
+            } else {
+                await this.log(id, `⚠️ [CONTEXT] Product context analysis unavailable — pipeline proceeds without disambiguation`);
             }
+            await this.log(id, `[INTELLIGENCE] Identified ${knownManufacturers.length} known manufacturers: ${knownManufacturers.map(m => m.name).join(', ')}`);
 
             // --- PHASE 1: STRATEGY GENERATION ---
             const strategyParams = {
@@ -748,7 +757,9 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 material: dto.searchCriteria.material || '',
                 region: dto.searchCriteria.region || 'EU',
                 eau: dto.searchCriteria.eau || 1000,
-                productContext: productContext || undefined
+                productContext: productContext || undefined,
+                targetCountries: dto.searchCriteria.targetCountries,
+                requiredCertificates: dto.searchCriteria.requiredCertificates,
             };
 
             await this.log(id, `🎯 [STRATEGY] Generating multimodal search strategy for region: ${strategyParams.region}`);
@@ -813,7 +824,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 await this.log(id, `[FALLBACK] Generated ${languageStrategies.length} fallback strategies with ${fallbackQueries.length} queries each`);
             }
 
-            // --- PHASE 2: TWO-PHASE ARCHITECTURE (Search-First, Process-Second) ---
+            // --- PHASE 2: STREAMING ARCHITECTURE (Search + Process simultaneously) ---
             const optimizedStrategies = languageStrategies;
 
             // Adaptive parallelism for search phase
@@ -824,59 +835,25 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             // Per-worker budget reservation
             const totalBudget = this.searchService.getRemainingBudget(id, 'main');
             const budgetPerWorker = Math.max(3, Math.floor(totalBudget / optimizedStrategies.length));
-            await this.log(id, `🔍 [PHASE 2A] Starting URL collection: ${optimizedStrategies.length} strategies (${effectiveWorkers} parallel), budget: ${totalBudget} total, ${budgetPerWorker} per worker`);
+            await this.log(id, `🔍 [PHASE 2] Starting streaming pipeline: ${optimizedStrategies.length} strategies (${effectiveWorkers} parallel), budget: ${totalBudget} total, ${budgetPerWorker} per worker`);
 
-            // --- PHASE 2A: SEARCH COLLECTION (search only, no processing) ---
-            const allCollectedUrls: CollectedUrl[] = [];
-
-            const searchPromises = optimizedStrategies.map(langStrategy =>
-                searchWorkerLimit(() =>
-                    this.collectUrlsForStrategy(
-                        id,
-                        langStrategy,
-                        budgetPerWorker,
-                    )
-                )
-            );
-
-            const searchResults = await Promise.allSettled(searchPromises);
+            // Streaming: process URLs as they arrive from search workers
+            const globalSeenDomains = new Set<string>();
+            const processingPromises: Promise<number>[] = [];
+            let processedCount = 0;
+            let totalCollected = 0;
             const perCountryCollected = new Map<string, number>();
 
-            for (const result of searchResults) {
-                if (result.status === 'fulfilled') {
-                    allCollectedUrls.push(...result.value);
-                    // Track per-country stats for expansion
-                    for (const item of result.value) {
-                        const key = item.workerTag;
-                        perCountryCollected.set(key, (perCountryCollected.get(key) || 0) + 1);
-                    }
-                }
-            }
-
-            // Global deduplication after all workers finish (prevents race condition where
-            // fast workers claim .com domains before slower workers can collect them)
-            const deduplicatedUrls: CollectedUrl[] = [];
-            const globalSeenDomains = new Set<string>();
-            for (const item of allCollectedUrls) {
+            const processUrlImmediately = (item: CollectedUrl) => {
                 const domain = this.extractDomain(item.url);
-                if (globalSeenDomains.has(domain)) continue;
+                if (globalSeenDomains.has(domain)) return;
                 globalSeenDomains.add(domain);
-                deduplicatedUrls.push(item);
-            }
-            // Merge into processedDomains for Phase 2B (prevents re-processing cached suppliers)
-            for (const d of globalSeenDomains) processedDomains.add(d);
+                processedDomains.add(domain);
 
-            await this.log(id, `✅ [PHASE 2A] Collected ${allCollectedUrls.length} total URLs → ${deduplicatedUrls.length} unique after global dedup`);
-            this.sourcingGateway?.emitProgress(id, 'SEARCH', 100);
+                // Track per-country stats for expansion
+                perCountryCollected.set(item.workerTag, (perCountryCollected.get(item.workerTag) || 0) + 1);
 
-            // --- PHASE 2B: BATCH PROCESSING (all URLs in parallel) ---
-            await this.log(id, `⚡ [PHASE 2B] Processing ${deduplicatedUrls.length} URLs (pLimit ${parseInt(process.env.URL_LIMIT || '20', 10)} parallel)...`);
-
-            let processedCount = 0;
-            const totalToProcess = deduplicatedUrls.length;
-
-            const urlProcessPromises = deduplicatedUrls.map(item =>
-                this.urlLimit(async () => {
+                const p = this.urlLimit(async () => {
                     const stopReason = this.shouldStop(id, globalQualifiedCount);
                     if (stopReason || globalQualifiedCount >= MAX_TOTAL_QUALIFIED) return 0;
                     const result = await this.processSupplierUrl(
@@ -885,30 +862,50 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                         productContext || undefined, processedDomains, 0,
                         userLanguage, knownManufacturers
                     );
-                    // Increment counter in real-time (safe in single-threaded JS)
                     if (result > 0) {
                         globalQualifiedCount += result;
                     }
                     processedCount++;
-                    // Emit progress every 50 URLs
                     if (processedCount % 50 === 0) {
-                        const pct = Math.round((processedCount / totalToProcess) * 100);
-                        await this.log(id, `[PHASE 2B] Progress: ${processedCount}/${totalToProcess} (${pct}%) — qualified: ${globalQualifiedCount}`);
-                        this.sourcingGateway?.emitProgress(id, 'PROCESSING', pct);
+                        await this.log(id, `[PHASE 2] Progress: ${processedCount} processed — qualified: ${globalQualifiedCount}`);
+                        this.sourcingGateway?.emitProgress(id, 'PROCESSING', Math.min(90, Math.round((processedCount / Math.max(totalCollected, 1)) * 100)));
                     }
                     return result;
+                });
+                processingPromises.push(p);
+            };
+
+            // Search workers collect URLs and immediately feed them to processing
+            const searchPromises = optimizedStrategies.map(langStrategy =>
+                searchWorkerLimit(async () => {
+                    const urls = await this.collectUrlsForStrategy(
+                        id,
+                        langStrategy,
+                        budgetPerWorker,
+                    );
+                    totalCollected += urls.length;
+                    for (const item of urls) {
+                        processUrlImmediately(item);
+                    }
+                    return urls;
                 })
             );
 
-            await Promise.allSettled(urlProcessPromises);
+            // Wait for all search workers to finish collecting
+            await Promise.allSettled(searchPromises);
+            this.sourcingGateway?.emitProgress(id, 'SEARCH', 100);
+            await this.log(id, `✅ [PHASE 2] Search complete: ${totalCollected} URLs collected, ${globalSeenDomains.size} unique. Waiting for processing to finish...`);
 
-            await this.log(id, `✅ [PHASE 2B] Batch processing complete. Qualified: ${globalQualifiedCount}/${MAX_TOTAL_QUALIFIED}`);
+            // Wait for all URL processing to complete
+            await Promise.allSettled(processingPromises);
 
-            // Check stop conditions after Phase 2B
+            await this.log(id, `✅ [PHASE 2] Streaming pipeline complete. Processed: ${processedCount}, Qualified: ${globalQualifiedCount}/${MAX_TOTAL_QUALIFIED}`);
+
+            // Check stop conditions after Phase 2
             const stopAfter2B = this.shouldStop(id, globalQualifiedCount);
             if (stopAfter2B) {
                 const elapsed = Math.round((Date.now() - (this.campaignStartTimes.get(id) || Date.now())) / 1000);
-                await this.log(id, `[STOP] Pipeline stopped after Phase 2B: ${stopAfter2B} (${elapsed}s elapsed, ${globalQualifiedCount} suppliers)`);
+                await this.log(id, `[STOP] Pipeline stopped after Phase 2: ${stopAfter2B} (${elapsed}s elapsed, ${globalQualifiedCount} suppliers)`);
             }
 
             // --- PHASE 2.5: EXPANSION PASS (second sweep for missed suppliers) ---
@@ -1143,7 +1140,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             const finalStopReason = this.shouldStop(id, globalQualifiedCount);
 
             await this.log(id, `[RESULTS] Per-country: ${languageStats.join(' | ')}`);
-            await this.log(id, `[ANALYSIS] Total suppliers found: ${finalSupplierCount} | URLs processed: ${processedCount}/${totalToProcess} | Time: ${elapsed}s`);
+            await this.log(id, `[ANALYSIS] Total suppliers found: ${finalSupplierCount} | URLs processed: ${processedCount}/${globalSeenDomains.size} | Time: ${elapsed}s`);
 
             if (finalStopReason) {
                 await this.log(id, `[STOPPED] Pipeline stopped: ${finalStopReason} (${elapsed}s, ${finalSupplierCount} suppliers)`);
@@ -1159,6 +1156,13 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             });
             this.sourcingGateway?.emitProgress(id, 'COMPLETED', 100);
             this.sourcingGateway?.emitCompleted(id);
+
+            // Send feedback email immediately after completion
+            if (finalStatus === 'COMPLETED') {
+                this.sendFeedbackEmail(id).catch(err =>
+                    this.logger.error(`Feedback email error for campaign ${id}:`, err)
+                );
+            }
 
             // Cleanup
             this.cancelledCampaigns.delete(id);
@@ -1177,6 +1181,45 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             this.cancelledCampaigns.delete(id);
             this.campaignStartTimes.delete(id);
             this.deepResearchCounts.delete(id);
+        }
+    }
+
+    /**
+     * Send feedback request email after campaign completion.
+     * Checks feedbackEmailSentAt to prevent duplicates.
+     */
+    private async sendFeedbackEmail(campaignId: string): Promise<void> {
+        const campaign = await this.prisma.campaign.findUnique({
+            where: { id: campaignId },
+            include: {
+                rfqRequest: {
+                    include: {
+                        owner: { select: { email: true, name: true } },
+                    },
+                },
+            },
+        });
+
+        if (!campaign || campaign.feedbackEmailSentAt) return;
+
+        const ownerEmail = campaign.rfqRequest?.owner?.email;
+        if (!ownerEmail) {
+            this.logger.warn(`Campaign ${campaignId} has no owner email, skipping feedback`);
+            return;
+        }
+
+        const sent = await this.emailService.sendFeedbackRequestEmail(
+            ownerEmail,
+            campaign.name,
+            campaign.id,
+        );
+
+        if (sent) {
+            await this.prisma.campaign.update({
+                where: { id: campaignId },
+                data: { feedbackEmailSentAt: new Date() },
+            });
+            this.logger.log(`Feedback email sent for campaign "${campaign.name}" to ${ownerEmail}`);
         }
     }
 
@@ -1457,11 +1500,24 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 return 0;
             }
 
+            // SHOP PATTERN CHECK — detect shop/sklep/store in domain name
+            const shopPatterns = ['shop', 'sklep', 'store', 'boutique', 'market'];
+            const domainBase = cleanDomain.split('.')[0];
+            const isShopDomain = shopPatterns.some(p =>
+                domainBase.includes(`-${p}`) || domainBase.includes(`${p}-`) ||
+                domainBase.includes(`_${p}`) || domainBase.includes(`${p}_`) ||
+                domainBase === p
+            );
+            if (isShopDomain) {
+                await this.log(campaignId, `${workerTag} SHOP PATTERN REJECTED: ${domain}`);
+                return 0;
+            }
+
             // PORTAL CHECK — portals are not suppliers, force directory mining
             if (isPortalDomain(domain)) {
                 await this.log(campaignId, `${workerTag} [PORTAL] ${domain} — forcing directory mining`);
                 const content = await this.scrapingService.fetchContent(url);
-                const screenerResult = await this.screenerAgent.execute(url, content, dto, productContext, userLanguage);
+                const screenerResult = await this.screenerAgent.execute(url, content, dto, productContext, userLanguage, dto.searchCriteria?.requiredCertificates);
                 const mentionedCompanies = screenerResult.mentioned_companies || [];
                 if (depth === 0 && mentionedCompanies.length > 0) {
                     await this.log(campaignId, `${workerTag} [PORTAL] ${domain} → ${mentionedCompanies.length} companies to mine`);
@@ -1525,7 +1581,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             this.sourcingGateway?.emitSupplierUpdate(campaignId, { url, status: 'SCREENING' });
 
             const content = await this.scrapingService.fetchContent(url);
-            const screenerResult = await this.screenerAgent.execute(url, content, dto, productContext, userLanguage);
+            const screenerResult = await this.screenerAgent.execute(url, content, dto, productContext, userLanguage, dto.searchCriteria?.requiredCertificates);
 
             if (!screenerResult.is_relevant) {
                 // DIRECTORY MINING: extract leads from industry portals
@@ -1668,7 +1724,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 }
 
                 if (pagesChecked > 0) {
-                    const deepResult = await this.screenerAgent.execute(url, combinedContent, dto, productContext, userLanguage);
+                    const deepResult = await this.screenerAgent.execute(url, combinedContent, dto, productContext, userLanguage, dto.searchCriteria?.requiredCertificates);
                     if (deepResult.company_type !== 'NIEJASNY' ||
                         (deepResult.company_type_confidence || 0) > (screenerResult.company_type_confidence || 0)) {
                         Object.assign(screenerResult, deepResult);
@@ -1701,13 +1757,13 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 }
             }
 
-            // 1.8. NIEJASNY GATE — never show unclassified companies to users
+            // 1.8. NIEJASNY GATE — require minimum confidence for unclassified companies
             const finalCompanyType = screenerResult.company_type || 'NIEJASNY';
             const finalConfidence = screenerResult.company_type_confidence || 0;
             if (finalCompanyType === 'NIEJASNY') {
-                if (finalConfidence >= 30) {
-                    screenerResult.company_type = 'PRODUCENT';
-                    await this.log(campaignId, `${workerTag} NIEJASNY->PRODUCENT: ${domain} (conf=${finalConfidence})`);
+                if (finalConfidence >= 50) {
+                    // Leave as NIEJASNY — auditor will verify and reclassify
+                    await this.log(campaignId, `${workerTag} NIEJASNY PRZEPUSZCZONY: ${domain} (conf=${finalConfidence})`);
                 } else {
                     await this.log(campaignId, `${workerTag} NIEJASNY ODRZUCONY: ${domain} (conf=${finalConfidence})`);
                     return 0;
@@ -1736,7 +1792,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 await this.log(campaignId, `${workerTag} FAST TRACK (${capScore}%): ${domain} [${currentCompanyType}] — skipping enrichment`);
             } else {
                 this.sourcingGateway?.emitSupplierUpdate(campaignId, { url, status: 'ENRICHING' });
-                enrichmentResult = await this.enrichmentAgent.execute(screenerResult.extracted_data || {}, url, userLanguage);
+                enrichmentResult = await this.enrichmentAgent.execute(screenerResult.extracted_data || {}, url, userLanguage, productContext || undefined);
             }
 
             // 2.5. LOCAL SUBSIDIARY DETECTION — if supplier is from another country, search for local entity
@@ -1777,7 +1833,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 status: 'Active',
                 company_type: screenerResult.company_type || 'NIEJASNY',
             };
-            const auditorResult = await this.auditorAgent.execute(enrichedData, registryData, userLanguage);
+            const auditorResult = await this.auditorAgent.execute(enrichedData, registryData, userLanguage, productContext || undefined);
 
             // CRITICAL: Filter out rejected records
             if (auditorResult.validation_result === 'REJECTED' || auditorResult.is_valid === false) {
@@ -1953,14 +2009,6 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                     // Link to Global Registry
                     registryId: registryEntry.id,
 
-                    // CREATE STRUCTURED CONTACTS
-                    contacts: {
-                        create: emailArray.map((email: string) => ({
-                            email: email,
-                            role: 'Discovered Contact',
-                            isDecisionMaker: false
-                        }))
-                    }
                 }
             });
 

@@ -8,6 +8,7 @@ interface SupplierFilters {
     hasEmail?: boolean;
     search?: string;
     campaignId?: string;
+    campaignIds?: string;
     companyType?: string;
 }
 
@@ -35,7 +36,9 @@ export class SuppliersService {
                 { city: { contains: filters.search, mode: 'insensitive' } },
             ];
         }
-        if (filters?.campaignId) {
+        if (filters?.campaignIds) {
+            where.campaignId = { in: filters.campaignIds.split(',').filter(Boolean) };
+        } else if (filters?.campaignId) {
             where.campaignId = filters.campaignId;
         }
         if (filters?.companyType) {

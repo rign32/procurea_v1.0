@@ -33,6 +33,16 @@ class SearchCriteriaDto {
     keywords?: string[];
 
     @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    targetCountries?: string[];
+
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    requiredCertificates?: string[];
+
+    @IsOptional()
     @IsString()
     description?: string;
 

@@ -1,19 +1,18 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Globe, Loader2, Users, Download, Search, Check, X, Factory, Store } from 'lucide-react';
+import { Globe, Loader2, Users, Download, Search, Check, X, FolderKanban } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { SearchInput } from '@/components/ui/search-input';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
-import { usePagination } from '@/hooks/usePagination';
 import { SupplierCard } from '@/components/suppliers/SupplierCard';
 import { BlacklistDialog } from '@/components/suppliers/BlacklistDialog';
-import { useSuppliers } from '@/hooks/useSuppliers';
+import { useCampaigns } from '@/hooks/useCampaigns';
 import { suppliersService } from '@/services/suppliers.service';
 import { apiClient } from '@/services/api.client';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { PL } from '@/i18n/pl';
 import { getCountryFlag } from '@/utils/normalize-country';
@@ -37,27 +36,50 @@ export function SuppliersPage() {
   const [countrySearch, setCountrySearch] = useState('');
   const [countryFilterOpen, setCountryFilterOpen] = useState(false);
   const [supplierToBlacklist, setSupplierToBlacklist] = useState<Supplier | null>(null);
-  const [companyTypeFilter, setCompanyTypeFilter] = useState<string>('');
-  const [serverPage, setServerPage] = useState(1);
+
+  const [selectedCampaigns, setSelectedCampaigns] = useState<string[]>([]);
+  const [campaignFilterOpen, setCampaignFilterOpen] = useState(false);
 
   // Debounce search query (300ms) to avoid excessive API calls
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery);
-      setServerPage(1); // Reset to page 1 on new search
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Server-side search + pagination
-  const { data, isLoading, error } = useSuppliers({
-    search: debouncedSearch || undefined,
-    companyType: companyTypeFilter || undefined,
-    page: serverPage,
-    pageSize: 100,
+  // Fetch campaigns for filter
+  const { data: campaignsData } = useCampaigns();
+  const campaigns = campaignsData ?? [];
+
+  // Server-side search + infinite scroll load-more
+  const {
+    data,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['suppliers', {
+      search: debouncedSearch || undefined,
+      campaignIds: selectedCampaigns.length > 0 ? selectedCampaigns : undefined,
+    }],
+    queryFn: ({ pageParam = 1 }) => suppliersService.getAll({
+      search: debouncedSearch || undefined,
+      campaignIds: selectedCampaigns.length > 0 ? selectedCampaigns : undefined,
+      page: pageParam,
+      pageSize: 100,
+    }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      const loaded = allPages.reduce((sum, p) => sum + p.suppliers.length, 0);
+      return loaded < lastPage.total ? allPages.length + 1 : undefined;
+    },
   });
-  const suppliers = data?.suppliers;
-  const serverTotal = data?.total || 0;
+
+  const suppliers = data?.pages.flatMap(p => p.suppliers) ?? [];
+  const serverTotal = data?.pages[0]?.total ?? 0;
 
   const blacklistMutation = useMutation({
     mutationFn: async ({ id, reason }: { id: string; reason: string }) => {
@@ -75,7 +97,7 @@ export function SuppliersPage() {
   });
 
   const countries = useMemo(() => {
-    if (!suppliers) return [];
+    if (!suppliers.length) return [];
     const unique = new Set(
       suppliers.map((s: Supplier) => s.country).filter((c): c is string => !!c)
     );
@@ -90,20 +112,26 @@ export function SuppliersPage() {
 
   // Client-side country filter only (search is now server-side)
   const filteredSuppliers = useMemo(() => {
-    if (!suppliers) return [];
+    if (!suppliers.length) return [];
     if (selectedCountries.length === 0) return suppliers;
     return suppliers.filter((supplier: Supplier) =>
       selectedCountries.includes(supplier.country || '')
     );
   }, [suppliers, selectedCountries]);
 
-  const { paginatedItems, currentPage, totalPages, total, nextPage, prevPage } = usePagination(filteredSuppliers, 12);
-
   const toggleCountry = (country: string) => {
     setSelectedCountries(prev =>
       prev.includes(country)
         ? prev.filter(c => c !== country)
         : [...prev, country]
+    );
+  };
+
+  const toggleCampaign = (campaignId: string) => {
+    setSelectedCampaigns(prev =>
+      prev.includes(campaignId)
+        ? prev.filter(c => c !== campaignId)
+        : [...prev, campaignId]
     );
   };
 
@@ -134,6 +162,12 @@ export function SuppliersPage() {
     : selectedCountries.length === 1
       ? `${getCountryFlag(selectedCountries[0])} ${selectedCountries[0]}`
       : `${selectedCountries.length} ${selectedCountries.length < 5 ? 'kraje' : 'krajów'}`;
+
+  const campaignLabel = selectedCampaigns.length === 0
+    ? 'Wszystkie kampanie'
+    : selectedCampaigns.length === 1
+      ? (campaigns.find(c => c.id === selectedCampaigns[0])?.name?.replace(/^Kampania:\s*/i, '') || 'Kampania')
+      : `${selectedCampaigns.length} kampani${selectedCampaigns.length < 5 ? 'e' : 'i'}`;
 
   if (isLoading) {
     return (
@@ -181,6 +215,90 @@ export function SuppliersPage() {
           />
         </div>
 
+        {/* Campaign Filter */}
+        <Popover open={campaignFilterOpen} onOpenChange={setCampaignFilterOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-full sm:w-[260px] justify-between font-normal"
+            >
+              <span className="flex items-center gap-2 truncate">
+                <FolderKanban className="h-4 w-4 shrink-0 text-muted-foreground" />
+                {campaignLabel}
+              </span>
+              {selectedCampaigns.length > 0 ? (
+                <X
+                  className="h-4 w-4 shrink-0 text-muted-foreground hover:text-foreground"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedCampaigns([]);
+                  }}
+                />
+              ) : (
+                <svg className="h-4 w-4 shrink-0 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[320px] p-0" align="end">
+            {/* Preset buttons */}
+            <div className="flex gap-1.5 p-2 border-b">
+              <Button
+                variant={selectedCampaigns.length === 0 ? 'default' : 'outline'}
+                size="sm"
+                className="h-7 text-xs flex-1"
+                onClick={() => setSelectedCampaigns([])}
+              >
+                Wszystkie
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs flex-1"
+                onClick={() => setSelectedCampaigns([])}
+              >
+                Wyczyść
+              </Button>
+            </div>
+
+            {/* Campaign list */}
+            <div className="max-h-[240px] overflow-y-auto p-1">
+              {campaigns.length === 0 ? (
+                <div className="py-4 text-center text-sm text-muted-foreground">
+                  Brak kampanii
+                </div>
+              ) : (
+                campaigns.map((campaign) => {
+                  const isSelected = selectedCampaigns.includes(campaign.id);
+                  return (
+                    <button
+                      key={campaign.id}
+                      onClick={() => toggleCampaign(campaign.id)}
+                      className="flex w-full items-center gap-2.5 rounded-sm px-2.5 py-1.5 text-sm hover:bg-accent transition-colors"
+                    >
+                      <Checkbox
+                        checked={isSelected}
+                        className="pointer-events-none"
+                      />
+                      <span className="flex-1 text-left truncate">{campaign.name?.replace(/^Kampania:\s*/i, '')}</span>
+                      {isSelected && (
+                        <Check className="h-3.5 w-3.5 text-primary shrink-0" />
+                      )}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Footer with count */}
+            {selectedCampaigns.length > 0 && (
+              <div className="border-t px-3 py-2 text-xs text-muted-foreground">
+                Wybrano: {selectedCampaigns.length} z {campaigns.length}
+              </div>
+            )}
+          </PopoverContent>
+        </Popover>
+
+        {/* Country Filter */}
         <Popover open={countryFilterOpen} onOpenChange={setCountryFilterOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -286,26 +404,6 @@ export function SuppliersPage() {
         </Popover>
       </div>
 
-      {/* Company Type Filter */}
-      <div className="flex gap-2">
-        {[
-          { value: '', label: 'Wszystkie', icon: null },
-          { value: 'PRODUCENT', label: 'Producenci', icon: Factory },
-          { value: 'HANDLOWIEC', label: 'Handlowcy', icon: Store },
-        ].map(({ value, label, icon: Icon }) => (
-          <Button
-            key={value}
-            variant={companyTypeFilter === value ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => { setCompanyTypeFilter(value); setServerPage(1); }}
-            className="text-xs"
-          >
-            {Icon && <Icon className="mr-1.5 h-3.5 w-3.5" />}
-            {label}
-          </Button>
-        ))}
-      </div>
-
       {/* Suppliers Grid */}
       {filteredSuppliers.length === 0 ? (
         <Card className="border-dashed">
@@ -314,7 +412,7 @@ export function SuppliersPage() {
               <Users className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">{PL.common.noData}</h3>
               <p className="text-muted-foreground">
-                {searchQuery || selectedCountries.length > 0
+                {searchQuery || selectedCountries.length > 0 || selectedCampaigns.length > 0
                   ? 'Brak dostawców spełniających kryteria wyszukiwania'
                   : 'Nie znaleziono żadnych dostawców'}
               </p>
@@ -323,6 +421,10 @@ export function SuppliersPage() {
         </Card>
       ) : (
         <>
+          <p className="text-sm text-muted-foreground">
+            {filteredSuppliers.length} z {serverTotal} dostawców
+          </p>
+
           <motion.div
             variants={{
               hidden: { opacity: 0 },
@@ -335,7 +437,7 @@ export function SuppliersPage() {
             animate="show"
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
-            {paginatedItems.map((supplier: Supplier) => (
+            {filteredSuppliers.map((supplier: Supplier) => (
               <motion.div
                 key={supplier.id}
                 variants={{
@@ -352,36 +454,19 @@ export function SuppliersPage() {
             ))}
           </motion.div>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between pt-4">
-              <p className="text-sm text-muted-foreground">
-                {total} z {serverTotal} dostawców, strona {currentPage} z {totalPages}
-              </p>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={prevPage} disabled={currentPage === 1}>
-                  {PL.common.previous}
-                </Button>
-                <Button variant="outline" size="sm" onClick={nextPage} disabled={currentPage === totalPages}>
-                  {PL.common.nextPage}
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Load more from server if there are additional pages */}
-          {serverTotal > (suppliers?.length || 0) && (
-            <div className="flex justify-center pt-2">
+          {/* Load more */}
+          {hasNextPage && (
+            <div className="flex justify-center pt-4">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setServerPage(prev => prev + 1)}
-                disabled={isLoading}
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
               >
-                {isLoading ? (
+                {isFetchingNextPage && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : null}
-                Załaduj więcej ({suppliers?.length || 0} z {serverTotal})
+                )}
+                Załaduj więcej ({suppliers.length} z {serverTotal})
               </Button>
             </div>
           )}

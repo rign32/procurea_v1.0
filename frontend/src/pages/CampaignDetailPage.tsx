@@ -742,6 +742,7 @@ export function CampaignDetailPage() {
           campaignId={id}
           rfqRequestId={isFullPlan ? campaign?.rfqRequest?.id : undefined}
           isAccepted={isFullPlan ? isAccepted : false}
+          isRunning={isRunning}
           excludedIds={isFullPlan ? excludedIds : []}
           onExclude={isFullPlan ? handleExclude : undefined}
         />

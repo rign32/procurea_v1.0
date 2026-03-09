@@ -60,7 +60,7 @@ const plans = [
 
 const creditIncludes = [
   "Wieloetapowe wyszukiwanie AI (5 agentów)",
-  "Wyszukiwanie w 12+ językach",
+  "Wyszukiwanie w 26 językach",
   "Automatyczne dane kontaktowe",
   "Portal ofertowy dla dostawców",
   "Sekwencje email i follow-upy",

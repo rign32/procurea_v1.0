@@ -1,4 +1,4 @@
-import { Mail, Award, MapPin, ExternalLink, XCircle, Globe, ChevronRight, ShieldAlert, Factory, Store, Users } from 'lucide-react';
+import { Mail, Award, MapPin, ExternalLink, XCircle, Globe, ChevronRight, ShieldAlert, Users } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -47,16 +47,6 @@ export function SupplierCard({
               <CardTitle className="text-lg font-bold leading-tight truncate group-hover:text-primary transition-colors" title={supplier.name}>
                 {supplier.name || 'Nieznany dostawca'}
               </CardTitle>
-              {supplier.companyType === 'PRODUCENT' && (
-                <Badge variant="default" className="text-[10px] px-1.5 py-0 h-5 bg-emerald-100 text-emerald-700 border-emerald-200 shrink-0">
-                  <Factory className="mr-0.5 h-3 w-3" />Producent
-                </Badge>
-              )}
-              {supplier.companyType === 'HANDLOWIEC' && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 bg-amber-100 text-amber-700 border-amber-200 shrink-0">
-                  <Store className="mr-0.5 h-3 w-3" />Handlowiec
-                </Badge>
-              )}
             </div>
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
               <MapPin className="h-3.5 w-3.5 text-primary/70" />

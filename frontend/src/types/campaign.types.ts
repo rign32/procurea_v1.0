@@ -15,7 +15,7 @@ export type CampaignStage =
   | 'AUDIT'
   | 'COMPLETED';
 
-export type Region = 'PL' | 'EU' | 'GLOBAL' | 'GLOBAL_NO_CN';
+export type Region = 'PL' | 'EU' | 'GLOBAL' | 'GLOBAL_NO_CN' | 'CUSTOM';
 
 export interface Campaign {
   id: string;
@@ -202,6 +202,7 @@ export interface CreateCampaignDto {
 
   // Search Parameters
   targetRegion?: Region;
+  targetCountries?: string[];
   requiredCertificates?: string[];
   additionalKeywords?: string[];
   supplierTypes?: string[];

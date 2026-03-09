@@ -169,6 +169,7 @@ export interface SupplierFilters {
   certificates?: string[];
   search?: string;
   campaignId?: string;
+  campaignIds?: string[];
   companyType?: string;
   page?: number;
   pageSize?: number;

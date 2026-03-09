@@ -23,7 +23,7 @@ const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 
 const heroStats = [
   { value: "5", label: "agentów AI", icon: Users, color: "text-indigo-500" },
-  { value: "12+", label: "języków", icon: Zap, color: "text-amber-500" },
+  { value: "26", label: "języków", icon: Zap, color: "text-amber-500" },
   { value: "5-10", label: "min na sourcing", icon: TrendingDown, color: "text-emerald-500" },
 ]
 

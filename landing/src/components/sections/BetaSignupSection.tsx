@@ -9,7 +9,7 @@ const benefits = [
     icon: Sparkles,
     title: "Pełny dostęp do AI sourcingu",
     description:
-      "Bez limitów na liczbę procesów w czasie trwania beta testów. Wyszukiwanie w 12+ językach, dane kontaktowe, oceny AI.",
+      "Bez limitów na liczbę procesów w czasie trwania beta testów. Wyszukiwanie w 26 językach, dane kontaktowe, oceny AI.",
     gradient: "from-indigo-500 to-violet-500",
     iconBg: "bg-indigo-500/10",
     iconColor: "text-indigo-400",
