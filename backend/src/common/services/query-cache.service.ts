@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { PrismaService } from '../../prisma/prisma.service';
 import * as crypto from 'crypto';
 
 const CACHE_TTL_DAYS = 30;
@@ -13,7 +13,8 @@ export interface CachedSearchResult {
 @Injectable()
 export class QueryCacheService {
     private readonly logger = new Logger(QueryCacheService.name);
-    private readonly prisma = new PrismaClient();
+
+    constructor(private readonly prisma: PrismaService) {}
 
     /**
      * Normalize query and generate a consistent hash.
