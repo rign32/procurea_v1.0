@@ -199,7 +199,7 @@ export class SourcingService {
     private readonly logger = new Logger(SourcingService.name);
 
     // Concurrency limit for parallel URL processing within each worker
-    private readonly urlLimit = pLimit(parseInt(process.env.URL_LIMIT || '60', 10));
+    private readonly urlLimit = pLimit(parseInt(process.env.URL_LIMIT || '30', 10));
 
     // Deep Research counter per campaign (cap expensive subpage scraping)
     private readonly deepResearchCounts = new Map<string, number>();

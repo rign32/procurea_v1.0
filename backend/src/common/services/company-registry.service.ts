@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { PrismaService } from '../../prisma/prisma.service';
 
 const STALE_THRESHOLD_DAYS = 30;
 
@@ -35,7 +35,8 @@ export interface CompanyRecord {
 @Injectable()
 export class CompanyRegistryService {
     private readonly logger = new Logger(CompanyRegistryService.name);
-    private readonly prisma = new PrismaClient();
+
+    constructor(private readonly prisma: PrismaService) {}
 
     /**
      * Extract root domain from a URL.

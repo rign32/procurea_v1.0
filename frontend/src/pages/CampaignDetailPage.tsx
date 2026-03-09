@@ -680,8 +680,8 @@ export function CampaignDetailPage() {
         )
       }
 
-      {/* RUNNING: Agent Animation + Stats sidebar */}
-      {isRunning && !isError && (
+      {/* RUNNING: Agent Animation + Stats sidebar — show only after first supplier appears */}
+      {isRunning && !isError && suppliers.length > 0 && (
         <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <AgentAnimation currentStage={campaign.stage || 'STRATEGY'} progress={progress} suppliersFound={suppliers.length} />
@@ -728,15 +728,17 @@ export function CampaignDetailPage() {
 
       {/* Suppliers Feed */}
       <motion.div variants={itemVariants}>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold">Lista dostawców ({suppliers.length})</h2>
-          {(isCompleted || isAccepted) && (
-            <Button variant="outline" size="sm" onClick={handleExport} disabled={exportMutation.isPending}>
-              <Download className="mr-2 h-4 w-4" />
-              {PL.campaigns.detail.exportCSV}
-            </Button>
-          )}
-        </div>
+        {(!isRunning || suppliers.length > 0) && (
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold">Lista dostawców ({suppliers.length})</h2>
+            {(isCompleted || isAccepted) && (
+              <Button variant="outline" size="sm" onClick={handleExport} disabled={exportMutation.isPending}>
+                <Download className="mr-2 h-4 w-4" />
+                {PL.campaigns.detail.exportCSV}
+              </Button>
+            )}
+          </div>
+        )}
         <LiveSupplierFeed
           suppliers={suppliers}
           campaignId={id}
