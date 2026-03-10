@@ -63,25 +63,30 @@ jobs:
         working-directory: frontend
         run: npm run build:en
 
-      - name: Install landing dependencies
-        working-directory: landing
-        run: npm ci
-
-      - name: Build landing PL
-        working-directory: landing
-        run: npm run build
-
-      - name: Build landing EN
-        working-directory: landing
-        run: npm run build:en
-
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      - name: Deploy all hosting targets and Cloud Functions
+      - name: Deploy app and Cloud Functions
         run: |
           firebase deploy \
-            --only hosting:app,hosting:app-en,hosting:landing,hosting:landing-en,functions:api \
+            --only hosting:app,hosting:app-en,functions:api \
+            --token "$FIREBASE_TOKEN" \
+            --project project-c64b9be9-1d92-4bc6-be7 \
+            --non-interactive
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: Install landing dependencies
+        working-directory: landing
+        run: npm ci
+        continue-on-error: true
+
+      - name: Build and deploy landing
+        continue-on-error: true
+        run: |
+          cd landing && npm run build && npm run build:en && cd ..
+          firebase deploy \
+            --only hosting:landing,hosting:landing-en \
             --token "$FIREBASE_TOKEN" \
             --project project-c64b9be9-1d92-4bc6-be7 \
             --non-interactive
