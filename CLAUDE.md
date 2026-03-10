@@ -107,37 +107,44 @@ Baza danych to PostgreSQL (via Docker). Stary opis o SQLite jest nieaktualny.
 
 ## Deployment Workflow (OBOWIĄZKOWY)
 
-### Środowiska
-- **Staging**: `staging.procurea.pl` (Firebase Hosting target: `app-staging`)
-- **Produkcja**: `app.procurea.pl` (Firebase Hosting target: `app`)
-- Oba środowiska dzielą ten sam backend (Cloud Function) i bazę danych
+### Środowiska (IZOLOWANE)
+- **Staging**: `staging.procurea.pl` — Cloud Function `apiStaging`, baza `procurea_staging`
+- **Produkcja**: `app.procurea.pl` — Cloud Function `api`, baza `procurea`
+- Środowiska są **w pełni oddzielone** — osobny backend, osobna baza danych
+
+### CI/CD (automatyczny)
+- Push na **`staging`** branch → GitHub Actions deployuje `hosting:app-staging` + `functions:apiStaging`
+- Push na **`main`** branch → GitHub Actions deployuje `hosting:app` + `functions:api`
+- Deploy backendu na staging **NIE** wpływa na produkcję (i odwrotnie)
 
 ### Flow pracy
-1. Zrób zmiany w kodzie
-2. Zbuduj i wdróż na **staging**:
-   ```bash
-   cd frontend && VITE_STAGING_SECRET=1njZmT8LwpDXmpYAqy+ktHfkvKx8dk21TeEycsIPGFc= npm run build:staging
-   npx firebase deploy --only hosting:app-staging
-   ```
-3. Jeśli backend się zmienił:
-   ```bash
-   cd backend && npm run build
-   npx firebase deploy --only functions
-   ```
-4. Poczekaj na akceptację użytkownika (staging = auto-login na konto testowe)
-5. Po akceptacji: **commit + push na GitHub** (branch `main`)
-6. GitHub Actions automatycznie wdroży na produkcję
+1. Zrób zmiany w kodzie na feature branchu
+2. Merge do **`staging`** → automatyczny deploy na staging
+3. Przetestuj na staging (auto-login na konto testowe)
+4. Po akceptacji: merge do **`main`** → automatyczny deploy na produkcję
+
+### Deploy manualny (staging)
+Jeśli potrzebny szybki deploy bez CI:
+```bash
+cd frontend && VITE_STAGING_SECRET=$VITE_STAGING_SECRET npm run build:staging
+npx firebase deploy --only hosting:app-staging
+```
+Jeśli backend się zmienił:
+```bash
+cd backend && npm run build
+npx firebase deploy --only functions:apiStaging
+```
 
 ### Zasady
 - **NIGDY** nie deployuj bezpośrednio na produkcję (`--only hosting:app`)
 - **ZAWSZE** najpierw staging
-- Backend (Cloud Function) jest wspólny — deploy `functions` wpływa na OBA środowiska
-- Baza danych jest wspólna między staging i produkcją
+- Deploy `functions:api` = tylko produkcja, deploy `functions:apiStaging` = tylko staging
+- Bazy danych są oddzielne — dane staging nie wpływają na produkcję
 
 ### Deploy awaryjny (produkcja, bez GitHub)
 Tylko w sytuacjach awaryjnych, po potwierdzeniu przez użytkownika:
 ```bash
-cd frontend && npm run build && npx firebase deploy --only hosting:app
+cd frontend && npm run build && npx firebase deploy --only hosting:app,functions:api
 ```
 
 ---

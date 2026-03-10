@@ -8,6 +8,13 @@ import { onRequest } from 'firebase-functions/v2/https';
 import cookieParser from 'cookie-parser';
 import express from 'express';
 
+// Staging env remapping: Cloud Run injects DATABASE_URL_STAGING for apiStaging service.
+// PrismaService reads DATABASE_URL, so remap before NestJS initializes.
+// Safe: each exported function = separate Cloud Run service, no cross-contamination.
+if (process.env.DATABASE_URL_STAGING && !process.env.DATABASE_URL) {
+    process.env.DATABASE_URL = process.env.DATABASE_URL_STAGING;
+}
+
 const expressApp = express();
 let app: NestExpressApplication;
 
@@ -30,7 +37,7 @@ const createNestServer = async () => {
         app = await NestFactory.create<NestExpressApplication>(
             AppModule,
             new Express5Adapter(expressApp),
-            { logger: ['error', 'warn', 'log'] }
+            { logger: ['error', 'warn', 'log'], rawBody: true }
         );
 
         app.use(cookieParser());
@@ -112,6 +119,38 @@ export const api = onRequest(
             'FIREBASE_STORAGE_BUCKET',
             'STAGING_SECRET',
             'SCRAPING_API_KEY',
+            'STRIPE_SECRET_KEY',
+            'STRIPE_WEBHOOK_SECRET',
+        ],
+    },
+    expressApp
+);
+
+// Staging Cloud Function — separate Cloud Run service with its own database
+export const apiStaging = onRequest(
+    {
+        region: 'europe-west1',
+        memory: '4GiB',
+        timeoutSeconds: 1800,
+        concurrency: 80,
+        minInstances: 0,
+        maxInstances: 3,
+        secrets: [
+            'DATABASE_URL_STAGING',
+            'JWT_SECRET',
+            'GEMINI_API_KEY',
+            'SERP_API_KEY',
+            'RESEND_API_KEY',
+            'CRON_SECRET',
+            'GOOGLE_CLIENT_SECRET',
+            'TWILIO_ACCOUNT_SID',
+            'TWILIO_AUTH_TOKEN',
+            'TWILIO_VERIFY_SERVICE_SID',
+            'FIREBASE_STORAGE_BUCKET',
+            'STAGING_SECRET',
+            'SCRAPING_API_KEY',
+            'STRIPE_SECRET_KEY',
+            'STRIPE_WEBHOOK_SECRET',
         ],
     },
     expressApp
