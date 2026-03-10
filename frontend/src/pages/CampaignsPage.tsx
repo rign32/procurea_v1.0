@@ -154,12 +154,6 @@ export function CampaignsPage() {
             <div className="text-center">
               <h3 className="text-lg font-semibold mb-2">{t.campaigns.noCampaigns}</h3>
               <p className="text-muted-foreground mb-6">{t.campaigns.createFirst}</p>
-              {canCreate && (
-                <Button onClick={handleCreateCampaign}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  {t.campaigns.createNew}
-                </Button>
-              )}
             </div>
           </CardContent>
         </Card>

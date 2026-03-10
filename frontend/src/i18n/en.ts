@@ -166,7 +166,7 @@ export const EN: Translations = {
     noCampaigns: 'No campaigns',
     createFirst: 'Create your first sourcing campaign',
     subtitle: 'Manage AI sourcing campaigns',
-    searchesCount: 'searches',
+    searchesCount: 'search credits',
 
     status: {
       running: 'In progress',

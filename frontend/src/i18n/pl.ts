@@ -164,7 +164,7 @@ export const PL = {
     noCampaigns: 'Brak kampanii',
     createFirst: 'Utwórz swoją pierwszą kampanię sourcingową',
     subtitle: 'Zarządzaj kampaniami sourcingowymi AI',
-    searchesCount: 'wyszukiwań',
+    searchesCount: 'kredytów',
 
     status: {
       running: 'W toku',
