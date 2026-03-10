@@ -307,9 +307,13 @@ export class SourcingService {
                     throw new BadRequestException('Brak kredytów wyszukiwania. Kup pakiet w ustawieniach.');
                 }
                 // Atomically deduct 1 credit
+                let trialJustEnded = false;
                 await this.prisma.$transaction(async (tx) => {
                     await tx.user.update({ where: { id: userId }, data: { searchCredits: { decrement: 1 } } });
-                    const updated = await tx.user.findUnique({ where: { id: userId }, select: { searchCredits: true } });
+                    const updated = await tx.user.findUnique({
+                        where: { id: userId },
+                        select: { searchCredits: true, trialCreditsUsed: true },
+                    });
                     await tx.creditTransaction.create({
                         data: {
                             userId,
@@ -320,7 +324,29 @@ export class SourcingService {
                             balanceAfter: updated?.searchCredits ?? 0,
                         },
                     });
+
+                    // Check if trial just ended (last free credit consumed)
+                    if ((updated?.searchCredits ?? 0) <= 0 && !updated?.trialCreditsUsed) {
+                        await tx.user.update({
+                            where: { id: userId },
+                            data: { trialCreditsUsed: true },
+                        });
+                        trialJustEnded = true;
+                    }
                 });
+
+                // Send trial ended email (outside transaction, non-blocking)
+                if (trialJustEnded) {
+                    const freshUser = await this.prisma.user.findUnique({
+                        where: { id: userId },
+                        select: { email: true, name: true, language: true },
+                    });
+                    if (freshUser) {
+                        this.emailService.sendTrialEndedEmail(
+                            freshUser.email, freshUser.name, freshUser.language,
+                        ).catch(e => this.logger.error('Trial ended email failed', e));
+                    }
+                }
             }
         }
 
@@ -1210,6 +1236,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
 
     /**
      * Send feedback request email after campaign completion.
+     * Only sent during trial period (trialCreditsUsed === false).
      * Checks feedbackEmailSentAt to prevent duplicates.
      */
     private async sendFeedbackEmail(campaignId: string): Promise<void> {
@@ -1218,13 +1245,19 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             include: {
                 rfqRequest: {
                     include: {
-                        owner: { select: { email: true, name: true, language: true } },
+                        owner: { select: { email: true, name: true, language: true, trialCreditsUsed: true } },
                     },
                 },
             },
         });
 
         if (!campaign || campaign.feedbackEmailSentAt) return;
+
+        // Only send feedback survey during trial period
+        if (campaign.rfqRequest?.owner?.trialCreditsUsed === true) {
+            this.logger.log(`Skipping feedback email for campaign "${campaign.name}" — user is post-trial (paid)`);
+            return;
+        }
 
         const ownerEmail = campaign.rfqRequest?.owner?.email;
         if (!ownerEmail) {

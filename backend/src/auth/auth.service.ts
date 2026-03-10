@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { SmsService } from './sms.service';
 import { EmailService } from '../email/email.service';
 import { RedisService } from './redis.service';
+import { isBlockedEmailDomain } from './email-domain-blocklist';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -119,8 +120,15 @@ export class AuthService {
 
         let isNewUser = false;
         if (!user) {
+            // Block registration from generic email domains
+            if (isBlockedEmailDomain(email)) {
+                throw new BadRequestException(
+                    'Registration requires a professional email address. Please use your corporate email.'
+                );
+            }
+
             isNewUser = true;
-            // Create new user
+            // Create new user (searchCredits: 10 via schema default)
             user = await this.prisma.user.create({
                 data: {
                     email,
@@ -129,6 +137,17 @@ export class AuthService {
                     ssoId: ssoId,
                     role: 'ADMIN', // First user (self-registered) is always admin; invited users get role from invite
                     onboardingCompleted: false, // Explicitly false for new users
+                },
+            });
+
+            // Audit trail for trial credit grant
+            await this.prisma.creditTransaction.create({
+                data: {
+                    userId: user.id,
+                    amount: 10,
+                    type: 'TRIAL_GRANT',
+                    description: 'Trial — 10 free searches',
+                    balanceAfter: 10,
                 },
             });
         } else {
@@ -526,6 +545,8 @@ export class AuthService {
                 companyName: orgName,
                 jobTitle: 'QA Tester',
                 language,
+                searchCredits: 50,
+                trialCreditsUsed: true, // Staging user sees billing
             },
         });
 

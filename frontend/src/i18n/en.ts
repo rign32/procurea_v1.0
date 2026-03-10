@@ -835,6 +835,14 @@ export const EN: Translations = {
         description: 'To create a new campaign, you need at least 1 search. Top up your account in the Plan tab.',
         action: 'Top up searches',
       },
+      trial: {
+        ended: {
+          title: 'Free trial ended',
+          description: 'You have used all 10 free trial searches. Thank you for beta testing! To continue finding suppliers, upgrade your plan.',
+          action: 'View plans',
+          dismiss: 'Later',
+        },
+      },
     },
   },
 

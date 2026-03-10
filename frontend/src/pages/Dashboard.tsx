@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Target, FileText, Users, Sparkles, ArrowRight, Plus, Search } from 'lucide-react';
+import { Target, FileText, Users, Sparkles, ArrowRight, Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useCampaigns } from '@/hooks/useCampaigns';
 import { useAuthStore } from '@/stores/auth.store';
@@ -23,7 +23,16 @@ export default function Dashboard() {
   const pendingOffers = campaigns?.reduce((sum, c) => sum + (c.pendingOffers || 0), 0) || 0;
   const isFullPlan = user?.plan === 'full';
   const [showTopUpDialog, setShowTopUpDialog] = useState(false);
+  const [trialPopupDismissed, setTrialPopupDismissed] = useState(() =>
+    !!localStorage.getItem(`procurea_trial_dismissed_${user?.id}`)
+  );
   const hasCredits = user?.plan === 'unlimited' || (user?.searchCredits ?? 0) > 0;
+
+  const showTrialEndedPopup =
+    user?.trialCreditsUsed === true &&
+    (user?.searchCredits ?? 0) <= 0 &&
+    user?.plan === 'research' &&
+    !trialPopupDismissed;
 
   const handleCreateCampaign = () => {
     if (!hasCredits) { setShowTopUpDialog(true); return; }
@@ -207,6 +216,34 @@ export default function Dashboard() {
       </Card>
 
       {/* Top-up Dialog */}
+      {/* Trial Ended Popup */}
+      <Dialog open={showTrialEndedPopup} onOpenChange={() => {
+        localStorage.setItem(`procurea_trial_dismissed_${user?.id}`, 'true');
+        setTrialPopupDismissed(true);
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t.settings.billing.trial.ended.title}</DialogTitle>
+            <DialogDescription>{t.settings.billing.trial.ended.description}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              localStorage.setItem(`procurea_trial_dismissed_${user?.id}`, 'true');
+              setTrialPopupDismissed(true);
+            }}>
+              {t.settings.billing.trial.ended.dismiss}
+            </Button>
+            <Button onClick={() => {
+              localStorage.setItem(`procurea_trial_dismissed_${user?.id}`, 'true');
+              setTrialPopupDismissed(true);
+              navigate('/settings?tab=billing');
+            }}>
+              {t.settings.billing.trial.ended.action}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={showTopUpDialog} onOpenChange={setShowTopUpDialog}>
         <DialogContent>
           <DialogHeader>

@@ -63,9 +63,12 @@ model User {
   plan          String  @default("research") // "research" | "pay_as_you_go" | "unlimited"
 
   // Billing & Credits
-  searchCredits     Int     @default(0)
+  searchCredits     Int     @default(10)
   stripeCustomerId  String? @unique
   creditTransactions CreditTransaction[]
+
+  // Trial
+  trialCreditsUsed  Boolean @default(false)
 
   // Admin Controls
   isBlocked     Boolean   @default(false)

@@ -385,7 +385,7 @@ export class BillingService {
     async getUserBillingInfo(userId: string) {
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
-            select: { searchCredits: true, plan: true, stripeCustomerId: true },
+            select: { searchCredits: true, plan: true, stripeCustomerId: true, trialCreditsUsed: true },
         });
 
         if (!user) throw new BadRequestException('Użytkownik nie znaleziony');
@@ -408,6 +408,7 @@ export class BillingService {
             searchCredits: user.searchCredits,
             plan: user.plan,
             hasStripeCustomer: !!user.stripeCustomerId,
+            trialCreditsUsed: user.trialCreditsUsed,
             recentTransactions,
         };
     }

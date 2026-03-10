@@ -33,6 +33,7 @@ export function SettingsPage() {
   const { user, isLoading } = useAuthStore();
 
   const isFullPlan = user?.plan === 'full';
+  const isTrialActive = user?.trialCreditsUsed === false;
 
   const tabs: { key: TabKey; label: string; icon: React.ReactNode }[] = [
     { key: 'profile', label: t.settings.tabs.profile, icon: <UserIcon className="h-4 w-4" /> },
@@ -42,7 +43,7 @@ export function SettingsPage() {
     ...(isFullPlan ? [{ key: 'locations' as TabKey, label: t.settings.tabs.locations, icon: <MapPin className="h-4 w-4" /> }] : []),
     { key: 'team', label: t.settings.tabs.team, icon: <Users className="h-4 w-4" /> },
     { key: 'notifications', label: t.settings.tabs.notifications, icon: <Bell className="h-4 w-4" /> },
-    { key: 'billing' as TabKey, label: t.settings.tabs.billing, icon: <CreditCard className="h-4 w-4" /> },
+    ...(!isTrialActive ? [{ key: 'billing' as TabKey, label: t.settings.tabs.billing, icon: <CreditCard className="h-4 w-4" /> }] : []),
   ];
 
   if (isLoading) {

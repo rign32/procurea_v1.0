@@ -87,7 +87,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
   const [locations, setLocations] = useState<OrganizationLocation[]>([]);
   const [certificates, setCertificates] = useState<string[]>([]);
   const [selectedIncoterms, setSelectedIncoterms] = useState<string[]>([]);
-  const [attachments, setAttachments] = useState<File[]>([]);
+  const [attachments, setAttachments] = useState<{ id: string; filename: string; url: string; size: number }[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [countrySearch, setCountrySearch] = useState('');
   const { user } = useAuthStore();

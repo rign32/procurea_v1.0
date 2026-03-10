@@ -833,6 +833,14 @@ export const PL = {
         description: 'Aby utworzyć nową kampanię, musisz mieć co najmniej 1 wyszukiwanie. Doładuj konto w zakładce Plan.',
         action: 'Doładuj wyszukiwania',
       },
+      trial: {
+        ended: {
+          title: 'Okres próbny zakończony',
+          description: 'Wykorzystałeś 10 darmowych wyszukiwań. Dziękujemy za udział w beta testach! Aby kontynuować wyszukiwanie dostawców, wykup plan.',
+          action: 'Zobacz plany',
+          dismiss: 'Później',
+        },
+      },
     },
   },
 

@@ -48,7 +48,7 @@ export interface CampaignLog {
   message: string;
   level: 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR';
   timestamp: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface RfqRequest {
@@ -170,6 +170,7 @@ export interface User {
   isPhoneVerified?: boolean;
   plan?: 'research' | 'full' | 'pay_as_you_go' | 'unlimited';
   searchCredits?: number;
+  trialCreditsUsed?: boolean;
 }
 
 // DTOs for API calls

@@ -142,6 +142,54 @@ export class EmailService {
     }
 
 
+    async sendTrialEndedEmail(email: string, name: string | null, locale?: string): Promise<boolean> {
+        if (!this.resend) return false;
+
+        const isEn = locale === 'en';
+        const displayName = name || email.split('@')[0];
+        const billingUrl = `${this.getAppUrl(locale)}/settings?tab=billing`;
+        try {
+            const { to, subject } = this.getDebugRouting(
+                email,
+                isEn ? 'Your free trial has ended — upgrade to continue' : 'Okres próbny zakończony — wykup plan, aby kontynuować',
+            );
+            const f = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+            await this.resend.emails.send({
+                from: this.getFromEmailForLocale(locale),
+                to: to,
+                subject: subject,
+                html: `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#FFFFFF;-webkit-font-smoothing:antialiased;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;">
+<tr><td align="center" style="padding:40px 20px;">
+<table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
+  <tr><td style="height:3px;background:#4F46E5;"></td></tr>
+  <tr><td style="padding:28px 0 20px 0;font-family:${f};font-size:18px;font-weight:700;color:#4F46E5;">Procurea</td></tr>
+  <tr><td style="height:1px;background:#F1F5F9;"></td></tr>
+  <tr><td style="padding:28px 0 8px 0;font-family:${f};color:#374151;font-size:15px;line-height:1.75;">
+    <p style="margin:0 0 6px 0;font-weight:600;color:#111827;font-size:17px;">${isEn ? `Hi ${displayName},` : `Cześć ${displayName},`}</p>
+    <p style="margin:0 0 12px 0;">${isEn
+        ? "You've used all 10 free trial searches. Thank you for being part of our beta!"
+        : 'Wykorzystałeś wszystkie 10 darmowych wyszukiwań. Dziękujemy za udział w beta testach!'}</p>
+    <p style="margin:0 0 0 0;">${isEn
+        ? 'To continue finding suppliers, upgrade your plan. Choose a pay-per-search pack or go unlimited.'
+        : 'Aby kontynuować wyszukiwanie dostawców, wykup plan. Wybierz pakiet wyszukiwań lub plan bez limitu.'}</p>
+  </td></tr>
+  <tr><td align="center" style="padding:24px 0 28px 0;">
+    <a href="${billingUrl}" style="display:inline-block;background:#4F46E5;color:#FFFFFF;padding:12px 36px;text-decoration:none;border-radius:6px;font-family:${f};font-weight:600;font-size:14px;">${isEn ? 'View Plans' : 'Zobacz plany'}</a>
+  </td></tr>
+  <tr><td style="height:1px;background:#F1F5F9;"></td></tr>
+  <tr><td style="padding:16px 0 0 0;font-family:${f};font-size:11px;color:#D1D5DB;">&copy; ${new Date().getFullYear()} Procurea</td></tr>
+</table></td></tr></table></body></html>`
+            });
+            this.logger.log(`Trial ended email sent to ${email}`);
+            return true;
+        } catch (error) {
+            this.logger.error(`Failed to send trial ended email to ${email}`, error);
+            return false;
+        }
+    }
+
     async sendTeamInvite(email: string, inviterName: string, organizationName: string, locale?: string): Promise<boolean> {
         const loginUrl = `${this.getAppUrl(locale)}/login`;
         const isEn = locale === 'en';
@@ -286,9 +334,11 @@ export class EmailService {
         campaignId: string,
         locale?: string,
     ): Promise<boolean> {
-        const tallyBaseUrl = process.env.TALLY_FEEDBACK_URL || 'https://tally.so/r/Ek117r';
-        const surveyUrl = `${tallyBaseUrl}?campaignName=${encodeURIComponent(campaignName)}&campaignId=${campaignId}`;
         const isEn = locale === 'en';
+        const tallyBaseUrl = isEn
+            ? (process.env.TALLY_FEEDBACK_URL_EN || 'https://tally.so/r/3EDkBp')
+            : (process.env.TALLY_FEEDBACK_URL || 'https://tally.so/r/Ek117r');
+        const surveyUrl = `${tallyBaseUrl}?campaignName=${encodeURIComponent(campaignName)}&campaignId=${campaignId}`;
 
         if (!this.resend) {
             this.logger.log(`[MOCK EMAIL] Feedback request to: ${email} | Campaign: ${campaignName} | URL: ${surveyUrl}`);
