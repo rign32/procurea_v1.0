@@ -59,7 +59,7 @@ export function SettingsPage() {
       <div>
         <h1 className="text-3xl font-bold">{t.settings.title}</h1>
         <p className="text-muted-foreground mt-1">
-          Zarządzaj swoim profilem i organizacją
+          {t.settings.subtitle}
         </p>
       </div>
 

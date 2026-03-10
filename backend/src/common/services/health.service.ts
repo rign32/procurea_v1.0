@@ -18,7 +18,7 @@ export interface SystemHealth {
     environment: string;
     services: {
         gemini: ServiceHealth;
-        serpApi: ServiceHealth;
+        serper: ServiceHealth;
         database: ServiceHealth;
     };
     recentErrors: number;
@@ -109,46 +109,32 @@ export class HealthService {
     }
 
     /**
-     * Check SERP API health
+     * Check Serper.dev API health
      */
-    async checkSerpApiHealth(checkConnectivity: boolean = false): Promise<ServiceHealth> {
+    async checkSerperHealth(checkConnectivity: boolean = false): Promise<ServiceHealth> {
         const startTime = Date.now();
 
         try {
             if (!checkConnectivity) {
-                // Shallow check - verify API key
-                const apiKey = process.env.SERP_API_KEY;
+                const apiKey = process.env.SERPER_API_KEY;
                 if (apiKey) {
                     return {
                         status: 'healthy',
                         lastCheck: new Date(),
-                        message: 'SERP API configured (shallow check)',
+                        message: 'Serper API configured (shallow check)',
                         details: { mode: 'shallow' }
                     };
                 }
-                else {
-                    return {
-                        status: 'degraded',
-                        lastCheck: new Date(),
-                        message: 'SERP API not configured (missing key)',
-                        details: { mode: 'shallow' }
-                    };
-                }
-            }
-
-            // Critical Change: ONLY execute deep check if explicitly requested.
-            if (!checkConnectivity) {
                 return {
-                    status: 'healthy',
+                    status: 'degraded',
                     lastCheck: new Date(),
-                    message: 'SERP API configured (shallow check only)',
-                    details: { mode: 'shallow', note: 'Deep check skipped to save costs' }
+                    message: 'Serper API not configured (missing SERPER_API_KEY)',
+                    details: { mode: 'shallow' }
                 };
             }
 
-            this.logger.warn(`[COST ALERT] Executing PAID SERP API Health Check.`);
+            this.logger.warn(`[COST ALERT] Executing PAID Serper API Health Check.`);
 
-            // Minimal query to test connectivity
             const results = await Promise.race([
                 this.googleSearchService.searchExtended('test', { num: 1 }),
                 new Promise<never>((_, reject) =>
@@ -158,27 +144,13 @@ export class HealthService {
 
             const responseTime = Date.now() - startTime;
 
-            // Check if we got mock data (API key missing)
-            if (
-                results.length > 0 &&
-                results[0].link.includes('example.com')
-            ) {
+            if (results.length > 0 && results[0].link.includes('example.com')) {
                 return {
                     status: 'degraded',
                     responseTime,
                     lastCheck: new Date(),
-                    message: 'SERP API running in mock mode (API key not configured)',
+                    message: 'Serper API running in mock mode (API key not configured)',
                     details: { mockMode: true, mode: 'deep' },
-                };
-            }
-
-            if (results.length > 0) {
-                return {
-                    status: 'healthy',
-                    responseTime,
-                    lastCheck: new Date(),
-                    message: 'SERP API responding normally',
-                    details: { resultsReturned: results.length, mode: 'deep' },
                 };
             }
 
@@ -186,17 +158,16 @@ export class HealthService {
                 status: 'healthy',
                 responseTime,
                 lastCheck: new Date(),
-                message: 'SERP API responding (no results for test query)',
-                details: { mode: 'deep' }
+                message: 'Serper API responding normally',
+                details: { resultsReturned: results.length, mode: 'deep' },
             };
         } catch (error) {
             const responseTime = Date.now() - startTime;
 
-            // Check for rate limit
             if (error.message?.includes('429') || error.response?.status === 429) {
                 this.errorTrackingService.recordError(error, {
                     type: 'API_ERROR',
-                    service: 'serpApi',
+                    service: 'serper',
                     context: { operation: 'health_check', reason: 'rate_limit' },
                 });
 
@@ -204,14 +175,14 @@ export class HealthService {
                     status: 'degraded',
                     responseTime,
                     lastCheck: new Date(),
-                    message: 'SERP API rate limited (429)',
+                    message: 'Serper API rate limited (429)',
                     details: { rateLimited: true },
                 };
             }
 
             this.errorTrackingService.recordError(error, {
                 type: 'API_ERROR',
-                service: 'serpApi',
+                service: 'serper',
                 context: { operation: 'health_check' },
             });
 
@@ -219,7 +190,7 @@ export class HealthService {
                 status: 'unhealthy',
                 responseTime,
                 lastCheck: new Date(),
-                message: error.message || 'SERP API unreachable',
+                message: error.message || 'Serper API unreachable',
             };
         }
     }
@@ -252,16 +223,16 @@ export class HealthService {
 
         const checkConnectivity = type === 'deep';
 
-        const [geminiHealth, serpApiHealth, dbHealth] = await Promise.all([
+        const [geminiHealth, serperHealth, dbHealth] = await Promise.all([
             this.checkGeminiHealth(checkConnectivity),
-            this.checkSerpApiHealth(checkConnectivity),
+            this.checkSerperHealth(checkConnectivity),
             this.checkDatabaseHealth(),
         ]);
 
         const errorStats = this.errorTrackingService.getStats();
 
         // Determine overall status
-        const statuses = [geminiHealth.status, serpApiHealth.status, dbHealth.status];
+        const statuses = [geminiHealth.status, serperHealth.status, dbHealth.status];
         let overallStatus: SystemHealth['status'] = 'healthy';
 
         if (statuses.includes('unhealthy')) {
@@ -277,7 +248,7 @@ export class HealthService {
             environment: process.env.NODE_ENV || 'development',
             services: {
                 gemini: geminiHealth,
-                serpApi: serpApiHealth,
+                serper: serperHealth,
                 database: dbHealth,
             },
             recentErrors: errorStats.last24h,

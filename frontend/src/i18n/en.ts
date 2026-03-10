@@ -27,6 +27,13 @@ export const EN: Translations = {
     previous: 'Previous',
     nextPage: 'Next',
     all: 'All',
+    close: 'Close',
+    confirm: 'Confirm',
+    optional: 'optional',
+    create: 'Create',
+    unknown: 'Unknown',
+    saving: 'Saving...',
+    creating: 'Creating...',
   },
 
   nav: {
@@ -37,6 +44,9 @@ export const EN: Translations = {
     registry: 'Company Registry',
     settings: 'Settings',
     logout: 'Log out',
+    blacklist: 'Blacklist',
+    sequences: 'Sequences',
+    needHelp: 'Need help?',
   },
 
   auth: {
@@ -88,6 +98,19 @@ export const EN: Translations = {
       skipLocation: 'Skip (I\'ll add later)',
       complete: 'Get started',
       completing: 'Saving...',
+      nameRequired: 'First and last name are required',
+      nipLabel: 'Tax ID (Optional)',
+      nipPlaceholder: 'e.g. 1234567890',
+      streetLabel: 'Street / Address',
+      streetPlaceholder: 'e.g. 123 Main Street',
+      buildingNr: 'Building no.',
+      unitNr: 'Unit no.',
+      postalCode: 'Postal code',
+      cityLabel: 'City',
+      cityPlaceholder: 'New York',
+      postalCodePlaceholder: '10001',
+      defaultCountry: 'United States',
+      defaultLocationName: 'Headquarters',
     },
 
     // Phone verification
@@ -120,6 +143,21 @@ export const EN: Translations = {
     },
     recentActivity: 'Recent activity',
     systemHealth: 'System status',
+    subtitle: 'AI-Powered Sourcing — intelligent manufacturer discovery',
+    heroCta: 'Launch AI search',
+    heroDescription: 'Our multi-stage AI agent scans the web, finds manufacturers, evaluates their capabilities, and collects contact data. The entire process takes just a few minutes.',
+    badge1: '5-stage AI',
+    badge2: 'Manufacturers only',
+    badge3: 'Auto contacts',
+    startButton: 'Get started',
+    statsActive: 'active',
+    statsFoundInAll: 'found across all',
+    statsAwaiting: 'awaiting response',
+    recentCampaigns: 'Recent campaigns',
+    viewAll: 'View all',
+    noCampaignsText: 'No campaigns',
+    createFirstHint: 'Create your first campaign to start searching',
+    suppliersCount: 'suppliers',
   },
 
   campaigns: {
@@ -127,6 +165,8 @@ export const EN: Translations = {
     createNew: 'Create new campaign',
     noCampaigns: 'No campaigns',
     createFirst: 'Create your first sourcing campaign',
+    subtitle: 'Manage AI sourcing campaigns',
+    searchesCount: 'searches',
 
     status: {
       running: 'In progress',
@@ -134,6 +174,9 @@ export const EN: Translations = {
       stopped: 'Stopped',
       error: 'Error',
       paused: 'Paused',
+      sending: 'Sending sequence',
+      accepted: 'Accepted',
+      done: 'Done',
     },
 
     stage: {
@@ -145,6 +188,16 @@ export const EN: Translations = {
       completed: 'Completed',
     },
 
+    card: {
+      qualified: 'Qualified',
+      suppliersCount: 'Suppliers',
+      created: 'Created',
+    },
+
+    pagination: {
+      campaignsCount: 'campaigns, page {current} of {total}',
+    },
+
     wizard: {
       title: 'Campaign wizard',
       step1: 'Basic information',
@@ -152,6 +205,23 @@ export const EN: Translations = {
       step3: 'Search parameters',
       step4: 'Logistics',
       step5: 'Summary',
+      stepOf: 'Step {current} of {total}',
+      creating: 'Creating...',
+
+      steps: {
+        product: 'Product & specification',
+        searchLogistics: 'Search & logistics',
+      },
+
+      validation: {
+        min2Chars: 'Minimum 2 characters',
+        max200Chars: 'Maximum 200 characters',
+        min1: 'Minimum 1',
+        max1000Chars: 'Maximum 1000 characters',
+        selectRegion: 'Select a search region',
+        selectCountry: 'Select at least 1 country',
+        createError: 'Failed to create campaign',
+      },
 
       basicInfo: {
         title: 'Basic information',
@@ -177,6 +247,7 @@ export const EN: Translations = {
         eauPlaceholder: 'Estimated annual usage',
         partNumber: 'Part number',
         partNumberPlaceholder: 'optional',
+        unitDefault: 'pcs',
       },
 
       search: {
@@ -190,6 +261,14 @@ export const EN: Translations = {
         certificatesPlaceholder: 'ISO 9001, ISO 13485, IATF 16949...',
         keywords: 'Additional keywords',
         keywordsPlaceholder: 'e.g. "automotive", "medical grade"',
+        regionCustom: 'Selected countries',
+        searchCountry: 'Search country...',
+        regionDescPL: 'Suppliers from Poland',
+        regionDescEU: 'Suppliers from EU countries',
+        regionDescGLOBAL: 'Suppliers worldwide',
+        regionDescGLOBAL_NO_CN: 'Global excluding China',
+        regionDescCUSTOM: 'Choose specific countries',
+        multiSelect: 'multiple selection',
       },
 
       logistics: {
@@ -201,6 +280,26 @@ export const EN: Translations = {
         incotermsPlaceholder: 'EXW, FCA, DAP...',
         deliveryDate: 'Desired delivery date',
         deliveryLocation: 'Delivery location',
+        deliveryDateLabel: 'Desired delivery date / Lead time',
+        selectLocation: 'Select location',
+        noLocations: 'Add locations in Settings \u2192 Locations',
+      },
+
+      supplierTypes: {
+        title: 'Supplier types',
+        manufacturer: 'Manufacturers',
+        manufacturerDesc: 'Companies that produce goods themselves',
+        trader: 'Traders / Distributors',
+        traderDesc: 'Shops, wholesalers, intermediaries',
+      },
+
+      incotermsOptions: {
+        EXW: 'Ex Works \u2014 You pick up goods from the seller\'s facility',
+        FCA: 'Free Carrier \u2014 delivery to carrier',
+        DAP: 'Delivered at Place \u2014 seller delivers to designated location',
+        DDP: 'Delivered Duty Paid \u2014 delivery with duty paid',
+        FOB: 'Free on Board \u2014 loading onto ship at port',
+        CIF: 'Cost, Insurance, Freight \u2014 cost, insurance, and freight included',
       },
 
       summary: {
@@ -208,6 +307,23 @@ export const EN: Translations = {
         review: 'Review all data before launching',
         launch: 'Launch AI search',
         attachments: 'Attachments',
+        campaignSummary: 'Campaign summary',
+        product: 'Product',
+        material: 'Material',
+        quantity: 'Quantity',
+        region: 'Region',
+        certificates: 'Certificates',
+        deliveryDate: 'Delivery date',
+        description: 'Description',
+        launchDescription: 'Once launched, AI will begin searching for suppliers based on your parameters. The process may take a few minutes.',
+      },
+
+      email: {
+        translationNotice: 'The system will automatically translate this message into the supplier\'s preferred language before sending.',
+        recommended: 'Recommended',
+        templateDescription: 'The template defines the email sending schedule to suppliers (initial, reminders)',
+        sampleProduct: 'Sample product',
+        campaignPrefix: 'Campaign',
       },
 
       draft: {
@@ -219,7 +335,7 @@ export const EN: Translations = {
       upload: {
         title: 'Attachments (specs, drawings)',
         dropzone: 'Drag files or click to select',
-        formats: 'PDF, DXF, STEP, JPG, PNG — max 10MB',
+        formats: 'PDF, DXF, STEP, JPG, PNG \u2014 max 10MB',
       },
     },
 
@@ -239,6 +355,66 @@ export const EN: Translations = {
       sendRfqToAll: 'Send RFQ to all',
       acceptAllSuppliers: 'Accept all suppliers',
       exportCSV: 'Export to Excel',
+      stopButton: 'Stop',
+      stopConfirm: 'Stop search? Found results will be preserved.',
+      stoppedSuccess: 'Campaign stopped',
+      accepting: 'Accepting...',
+      created: 'Created',
+      errorTitle: 'An error occurred',
+      errorDescription: 'Campaign ended with an error. Check the browser console (F12) for details.',
+      backButton: 'Back to campaigns',
+      aiAnalysis: 'AI Analysis',
+      generatingAi: 'Generating AI analysis...',
+      aiUnavailable: 'AI analysis unavailable',
+      pptxError: 'PowerPoint generation error',
+      marketOverview: 'Market overview',
+      marketCoverage: 'Market coverage',
+      coverageHigh: 'High',
+      coverageMedium: 'Medium',
+      coverageLow: 'Low',
+      keyPlayers: 'Key players',
+      geographicAnalysis: 'Geographic analysis',
+      priceContext: 'Price context',
+      recommendations: 'Recommendations',
+      riskFactors: 'Risk factors',
+      campaignReport: 'Campaign report',
+      sequenceProgress: 'Sequence progress',
+      invitation: 'Invitation',
+      reminder: 'Reminder',
+      finalStep: 'Final',
+      dayLabel: 'Day',
+      errorsCount: 'errors',
+      acceptToStart: 'Accept suppliers to start the email sequence',
+      noSequenceAssigned: 'No email sequence assigned',
+      offersCreated: 'Offers created',
+      offersReceived: 'Responses received',
+      offersAccepted: 'Accepted',
+      countryBreakdown: 'Country breakdown',
+      sequenceDetails: 'Sending details',
+      lastSentLabel: 'Last sent',
+      waitingScheduler: 'Waiting for scheduler (checks every 5 min)',
+      tableSupplier: 'Supplier',
+      tableCountry: 'Country',
+      tableEmail: 'Email',
+      tableStep: 'Step',
+      tableStatus: 'Status',
+      tableDate: 'Date',
+      tableNextStep: 'Next step',
+      statusSent: 'Sent',
+      statusError: 'Error',
+      statusWaiting: 'Waiting',
+      statusCompleted: 'Completed',
+      searchInProgress: 'Search in progress...',
+      suppliersFoundLabel: 'Suppliers found',
+      backgroundNote: 'The program runs automatically in the background. You can close this page and return later by selecting "Campaigns" in the menu.',
+      maxTimeNote: 'Maximum search time is 20 minutes. After that, results will definitely be ready.',
+      afterCompletion: 'After completion:',
+      exportExcelDesc: 'Export to Excel \u2014 full supplier list with contact data',
+      aiReportDesc: 'AI Report (PowerPoint) \u2014 market summary, key players, recommendations \u2014 ready for internal communication',
+      suppliersList: 'Supplier list',
+      acceptConfirm: 'Accept {count} suppliers and start sending the email sequence?',
+      acceptedResult: 'Accepted {qualified} suppliers. Sent {sent} invitations.',
+      acceptError: 'Acceptance error',
     },
     deleteCampaign: 'Delete campaign',
     deleteConfirm: 'Are you sure you want to delete this campaign? This action is irreversible.',
@@ -329,6 +505,33 @@ export const EN: Translations = {
       contacts: 'contacts',
       score: 'Score',
       sendRFQ: 'Send RFQ',
+      match: 'Match',
+      manufacturer: 'Manufacturer',
+      trader: 'Trader',
+      unknownSupplier: 'Unknown supplier',
+      exclude: 'Exclude',
+      addToBlacklist: 'Add to Blacklist',
+    },
+
+    page: {
+      searchPlaceholder: 'Search by name, website, city, or specialization...',
+      allCountries: 'All countries',
+      countries: 'countries',
+      countriesMany: 'countries',
+      allCampaigns: 'All campaigns',
+      campaigns: 'campaigns',
+      campaignsMany: 'campaigns',
+      euOnly: 'EU',
+      clearFilters: 'Clear',
+      searchCountry: 'Search country...',
+      noCampaigns: 'No campaigns',
+      selectedOf: 'Selected: {selected} of {total}',
+      emptySearch: 'No suppliers match the search criteria',
+      emptyNoSuppliers: 'No suppliers found',
+      showingOf: '{shown} of {total} suppliers',
+      loadMore: 'Load more ({loaded} of {total})',
+      blacklistAdded: 'Supplier added to Blacklist',
+      blacklistFailed: 'Failed to add to Blacklist',
     },
 
     detail: {
@@ -360,6 +563,10 @@ export const EN: Translations = {
       sendRFQ: 'Send RFQ',
       markVerified: 'Mark as verified',
       blacklist: 'Add to blacklist',
+      reportSupplier: 'Report supplier',
+      noName: 'No name',
+      city: 'City',
+      website: 'Website',
       tabs: {
         activityHistory: 'Activity history',
         offers: 'Offers',
@@ -438,6 +645,7 @@ export const EN: Translations = {
 
   settings: {
     title: 'Settings',
+    subtitle: 'Manage your profile and organization',
     tabs: {
       profile: 'Profile',
       organization: 'Organization',
@@ -449,19 +657,49 @@ export const EN: Translations = {
 
     profile: {
       title: 'User profile',
+      subtitle: 'Manage your personal information',
       name: 'Full name',
       email: 'Email',
       phone: 'Phone',
       jobTitle: 'Job title',
       companyName: 'Company name',
+      nameRequired: 'Full name is required',
+      namePlaceholder: 'John Smith',
+      phoneLocked: 'Your phone number is your identifier and cannot be changed',
+      phoneVerified: 'Verified',
+      companyPlaceholder: 'Company Inc.',
+      companyRequired: 'Company name is required',
+      companyHint: 'This is the name displayed in your profile.',
     },
 
     organization: {
       title: 'Organization',
+      subtitle: 'Organization data configuration',
       name: 'Organization name',
       domain: 'Domain',
       locations: 'Delivery locations',
       addLocation: 'Add location',
+      baseCurrency: 'Base currency',
+      currencyHint: 'All offer prices will be converted to this currency for comparison',
+      currencies: {
+        PLN: 'PLN - Polish zloty',
+        EUR: 'EUR - Euro',
+        USD: 'USD - US Dollar',
+        GBP: 'GBP - British Pound',
+        CHF: 'CHF - Swiss Franc',
+        CNY: 'CNY - Chinese Yuan',
+      },
+      footerPreviewMessage: '[Email message content...]',
+      footerPreviewFirstName: 'First name',
+      footerPreviewLastName: 'Last name',
+      footerPreviewPosition: 'Position',
+      footerPreviewCompany: 'Company',
+      footerFirstNamePlaceholder: 'John',
+      footerLastNamePlaceholder: 'Smith',
+      footerCompanyPlaceholder: 'Company Inc.',
+      footerPositionPlaceholder: 'Procurement Director',
+      footerEmailPlaceholder: 'john@company.com',
+      footerPhonePlaceholder: '+1 234...',
     },
 
     location: {
@@ -471,6 +709,18 @@ export const EN: Translations = {
       country: 'Country',
       postalCode: 'Postal code',
       isDefault: 'Default location',
+      streetLabel: 'Address (Street and number)',
+      noLocations: 'No locations defined',
+      addFirst: 'Add your first location',
+      defaultLabel: 'Default',
+      manageDelivery: 'Manage delivery addresses',
+      dialogDescription: 'Enter delivery location details.',
+      namePlaceholder: 'e.g. Main Warehouse',
+      streetPlaceholder: 'e.g. 123 Main Street',
+      cityPlaceholder: 'e.g. New York',
+      postalCodePlaceholder: '10001',
+      countryPlaceholder: 'United States',
+      defaultCountry: 'United States',
     },
 
     team: {
@@ -489,6 +739,15 @@ export const EN: Translations = {
       roleAdminDesc: 'Full access and management',
       roleMemberDesc: 'Access without team management',
       you: 'You',
+      accessUpdated: 'Permissions updated',
+      invitePlaceholder: 'colleague@company.com',
+      campaignAccess: 'Campaign access',
+      accessFull: 'Full access',
+      accessFullDesc: 'View and create all campaigns',
+      accessOwn: 'Own campaigns',
+      accessOwnDesc: 'View and create only own campaigns',
+      accessReadonly: 'Read only',
+      accessReadonlyDesc: 'View campaigns, cannot create',
     },
 
     notifications: {
@@ -503,6 +762,13 @@ export const EN: Translations = {
       sms: 'SMS (Coming soon)',
       smsDesc: 'Phone notifications.',
       saved: 'Preferences saved',
+      newOffer: 'New offer from supplier',
+      newOfferDesc: 'Receive an email when a supplier submits a new offer or alternative.',
+      supplierMessage: 'Message from supplier',
+      supplierMessageDesc: 'Receive an email when a supplier sends you a message in the communication module.',
+      offerRoundEnd: 'Offer round ended',
+      sourcingCompleted: 'Campaign completed',
+      sourcingCompletedDesc: 'Receive an email when AI search completes and suppliers are found.',
     },
 
     billing: {
@@ -525,7 +791,7 @@ export const EN: Translations = {
         bestValue: 'Best value',
         buy: 'Buy',
         perSearch: '/ search',
-        noExpiry: 'Purchased searches never expire — use them anytime.',
+        noExpiry: 'Purchased searches never expire \u2014 use them anytime.',
       },
 
       payAsYouGo: {
@@ -561,6 +827,7 @@ export const EN: Translations = {
         redirecting: 'Redirecting to payment...',
         success: 'Payment successful! Searches have been added.',
         canceled: 'Payment canceled.',
+        paymentError: 'Payment creation error',
       },
 
       topUp: {
@@ -569,6 +836,25 @@ export const EN: Translations = {
         action: 'Top up searches',
       },
     },
+  },
+
+  feed: {
+    waitingForResults: 'Waiting for search results...',
+    suppliersAppearHere: 'Suppliers will appear here in real time',
+    searching: 'Searching for suppliers...',
+    firstResults: 'First results will appear within {time}',
+    waitAMoment: 'Just a moment...',
+    runsInBackground: 'The program runs automatically in the background \u2014 you can close this page',
+    supplier: 'supplier',
+    suppliers: 'suppliers',
+    noLinkedRfq: 'No linked RFQ for this campaign',
+    sendRfqConfirm: 'Send RFQ to this supplier?',
+    sentResult: 'Sent: {sent}, Errors: {failed}',
+  },
+
+  emailPreview: {
+    subject: 'Subject',
+    translationNotice: 'The system will automatically translate this message into the supplier\'s preferred language before sending.',
   },
 
   portal: {

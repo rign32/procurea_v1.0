@@ -54,12 +54,12 @@ export function SupplierDetailPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['supplier', id] });
-      toast.success('Dostawca dodany do Blacklisty');
+      toast.success(t.suppliers.page.blacklistAdded);
       setIsBlacklistDialogOpen(false);
       navigate('/suppliers');
     },
     onError: () => {
-      toast.error('Nie udało się dodać do Blacklisty');
+      toast.error(t.suppliers.page.blacklistFailed);
     }
   });
 
@@ -169,7 +169,7 @@ export function SupplierDetailPage() {
               onClick={() => setIsBlacklistDialogOpen(true)}
             >
               <ShieldAlert className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">Zgłoś dostawcę</span>
+              <span className="hidden md:inline">{t.suppliers.detail.reportSupplier}</span>
             </Button>
             <Badge
               variant={getScoreVariant(scorePercent)}
@@ -206,7 +206,7 @@ export function SupplierDetailPage() {
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-muted-foreground">
-                      Miasto
+                      {t.suppliers.detail.city}
                     </dt>
                     <dd className="text-sm mt-1">
                       {supplier.city || t.common.noData}
@@ -222,7 +222,7 @@ export function SupplierDetailPage() {
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-muted-foreground">
-                      Strona WWW
+                      {t.suppliers.detail.website}
                     </dt>
                     <dd className="text-sm mt-1">
                       {supplier.website ? (
@@ -322,7 +322,7 @@ export function SupplierDetailPage() {
                         <div className="flex-1 min-w-0 space-y-1">
                           <div className="flex items-center gap-2">
                             <span className="font-medium text-sm">
-                              {contact.name || 'Brak imienia'}
+                              {contact.name || t.suppliers.detail.noName}
                             </span>
                             {contact.isDecisionMaker && (
                               <Badge variant="default" className="text-xs">
@@ -471,7 +471,7 @@ export function SupplierDetailPage() {
         <BlacklistDialog
           isOpen={isBlacklistDialogOpen}
           onClose={() => setIsBlacklistDialogOpen(false)}
-          supplierName={supplier.name || 'Nieznany'}
+          supplierName={supplier.name || t.common.unknown}
           isSubmitting={blacklistMutation.isPending}
           onConfirm={(reason) => blacklistMutation.mutate(reason)}
         />

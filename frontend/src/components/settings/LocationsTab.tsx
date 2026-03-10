@@ -57,7 +57,7 @@ const parseAddress = (address: string) => {
         }
         return { street, postalCode: '', city: middle, country };
     }
-    return { street: address, postalCode: '', city: '', country: 'Polska' };
+    return { street: address, postalCode: '', city: '', country: t.settings.location.defaultCountry };
 };
 
 export function LocationsTab({ user }: LocationsTabProps) {
@@ -68,7 +68,7 @@ export function LocationsTab({ user }: LocationsTabProps) {
     const [isSaving, setIsSaving] = useState(false);
 
     const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<LocationFormData>({
-        defaultValues: { country: 'Polska' }
+        defaultValues: { country: t.settings.location.defaultCountry }
     });
 
     const loadLocations = async () => {
@@ -101,7 +101,7 @@ export function LocationsTab({ user }: LocationsTabProps) {
             setValue('isDefault', location.isDefault);
         } else {
             setEditingLocation(null);
-            reset({ name: '', street: '', city: '', postalCode: '', country: 'Polska', isDefault: false });
+            reset({ name: '', street: '', city: '', postalCode: '', country: t.settings.location.defaultCountry, isDefault: false });
         }
         setIsDialogOpen(true);
     };
@@ -164,7 +164,7 @@ export function LocationsTab({ user }: LocationsTabProps) {
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
                         <CardTitle>{t.settings.organization.locations}</CardTitle>
-                        <CardDescription>Zarządzaj adresami dostaw</CardDescription>
+                        <CardDescription>{t.settings.location.manageDelivery}</CardDescription>
                     </div>
                     <Button onClick={() => handleOpenDialog()} size="sm">
                         <Plus className="mr-2 h-4 w-4" />
@@ -179,9 +179,9 @@ export function LocationsTab({ user }: LocationsTabProps) {
                     ) : locations.length === 0 ? (
                         <div className="text-center py-12 border-dashed border-2 rounded-lg">
                             <MapPin className="mx-auto h-12 w-12 text-muted-foreground opacity-50 mb-4" />
-                            <p className="text-muted-foreground">Brak zdefiniowanych lokalizacji</p>
+                            <p className="text-muted-foreground">{t.settings.location.noLocations}</p>
                             <Button variant="link" onClick={() => handleOpenDialog()}>
-                                Dodaj pierwszą lokalizację
+                                {t.settings.location.addFirst}
                             </Button>
                         </div>
                     ) : (
@@ -200,7 +200,7 @@ export function LocationsTab({ user }: LocationsTabProps) {
                                                 <h4 className="font-semibold">{location.name}</h4>
                                                 {location.isDefault && (
                                                     <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
-                                                        Domyślna
+                                                        {t.settings.location.defaultLabel}
                                                     </span>
                                                 )}
                                             </div>
@@ -243,7 +243,7 @@ export function LocationsTab({ user }: LocationsTabProps) {
                                 {editingLocation ? t.common.edit : t.settings.organization.addLocation}
                             </DialogTitle>
                             <DialogDescription>
-                                Wprowadź dane lokalizacji dostawy.
+                                {t.settings.location.dialogDescription}
                             </DialogDescription>
                         </DialogHeader>
 
@@ -253,44 +253,44 @@ export function LocationsTab({ user }: LocationsTabProps) {
                                 <Input
                                     id="loc-name"
                                     {...register('name', { required: true })}
-                                    placeholder="np. Magazyn Główny"
+                                    placeholder={t.settings.location.namePlaceholder}
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="loc-street">Adres (Ulica i numer)</Label>
+                                <Label htmlFor="loc-street">{t.settings.location.streetLabel}</Label>
                                 <Input
                                     id="loc-street"
                                     {...register('street', { required: true })}
-                                    placeholder="np. ul. Złota 44"
+                                    placeholder={t.settings.location.streetPlaceholder}
                                 />
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="loc-city">Miasto</Label>
+                                    <Label htmlFor="loc-city">{t.settings.location.city}</Label>
                                     <Input
                                         id="loc-city"
                                         {...register('city', { required: true })}
-                                        placeholder="np. Warszawa"
+                                        placeholder={t.settings.location.cityPlaceholder}
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="loc-postalCode">Kod pocztowy</Label>
+                                    <Label htmlFor="loc-postalCode">{t.settings.location.postalCode}</Label>
                                     <Input
                                         id="loc-postalCode"
                                         {...register('postalCode', { required: true })}
-                                        placeholder="00-120"
+                                        placeholder={t.settings.location.postalCodePlaceholder}
                                     />
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="loc-country">Kraj</Label>
+                                <Label htmlFor="loc-country">{t.settings.location.country}</Label>
                                 <Input
                                     id="loc-country"
                                     {...register('country', { required: true })}
-                                    placeholder="Polska"
+                                    placeholder={t.settings.location.countryPlaceholder}
                                 />
                             </div>
 

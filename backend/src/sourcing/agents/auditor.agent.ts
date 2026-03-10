@@ -123,11 +123,15 @@ ${productContext?.negativeSignals?.map(s => `  ❌ ${s}`).join('\n') || 'brak'}
 KROK 1: Sprawdź czy specjalizacja firmy RZECZYWIŚCIE pokrywa się z produktem docelowym.
 KROK 2: Sprawdź czy firma SPRZEDAJE ten produkt, czy tylko go KUPUJE/UŻYWA.
 KROK 3: Sprawdź czy firma produkuje PRODUKT, czy MASZYNY do jego produkcji.
+KROK 4: Sprawdź czy firma produkuje BEZPOŚREDNIO szukany produkt, czy produkt KOMPLEMENTARNY/WSPIERAJĄCY.
+"Rozwiązania dla X", "komponenty do X", "oprogramowanie do X", "usługi dla X" → to NIE jest X.
+Firma musi WYTWARZAĆ lub SPRZEDAWAĆ dokładnie ten produkt, nie produkt powiązany.
 
 ODRZUĆ (REJECTED) gdy:
 - Firma produkuje INNY produkt niż docelowy (np. szukamy oleju → firma produkuje pompy)
 - Firma PRZETWARZA surowiec w gotowe wyroby (np. szukamy granulatu → firma produkuje rury Z granulatu)
 - Firma produkuje MASZYNY/URZĄDZENIA do obróbki tego produktu (np. szukamy granulatu → firma produkuje ekstruzery/granulatory)
+- Firma produkuje produkty KOMPLEMENTARNE/WSPIERAJĄCE (np. szukamy kontrolera IoT → firma produkuje "security solutions for IoT")
 - Firma jest z KOMPLETNIE INNEJ branży
 
 ${productContext?.supplyChainPosition === 'raw material' ? `

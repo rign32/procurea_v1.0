@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { t } from '@/i18n';
 
 interface SearchInputProps {
     value: string;
@@ -9,7 +10,7 @@ interface SearchInputProps {
     className?: string;
 }
 
-export function SearchInput({ value, onChange, placeholder = 'Szukaj...', className }: SearchInputProps) {
+export function SearchInput({ value, onChange, placeholder = t.common.search + '...', className }: SearchInputProps) {
     const [internal, setInternal] = useState(value);
     const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
 

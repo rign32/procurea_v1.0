@@ -121,6 +121,19 @@ Produkt NIE jest surowcem — stosuj standardowe reguły dopasowania.
 
 Jeśli firma to producent MASZYN lub WYROBÓW GOTOWYCH z tego materiału:
   is_relevant: false, page_type: "Wrong Product Manufacturer", capability_match_score: 0
+
+REGUŁA 4 — PRODUKUJE PRODUKT vs PRODUKUJE PRODUKT KOMPLEMENTARNY/WSPIERAJĄCY:
+Firma która produkuje produkty KOMPLEMENTARNE, WSPOMAGAJĄCE, lub POWIĄZANE z szukanym produktem,
+ale NIE sam produkt → is_relevant: false
+Przykłady:
+- Szukamy "kontroler IoT" → firma produkuje "szyfrowanie dla IoT" → is_relevant: false (komplementarny)
+- Szukamy "olej hydrauliczny" → firma produkuje "napędy hydrauliczne" → is_relevant: false (UŻYWA olej)
+- Szukamy "granulat tworzywowy" → firma produkuje "barwniki do tworzyw" → is_relevant: false (dodatek)
+- Szukamy "farba proszkowa" → firma produkuje "pistolety do malowania" → is_relevant: false (sprzęt)
+- Szukamy "klej przemysłowy" → firma produkuje "dozowniki kleju" → is_relevant: false (sprzęt)
+
+Kluczowa różnica: firma musi WYTWARZAĆ lub SPRZEDAWAĆ dokładnie TEN produkt.
+"Rozwiązania dla X", "komponenty do X", "oprogramowanie do X" → to NIE jest X.
 `;
         }
 

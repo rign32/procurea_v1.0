@@ -38,20 +38,20 @@ interface InviteFormData {
 const ACCESS_OPTIONS = [
     {
         value: 'all',
-        label: 'Pełny dostęp',
-        description: 'Widzi i tworzy wszystkie kampanie',
+        label: t.settings.team.accessFull,
+        description: t.settings.team.accessFullDesc,
         icon: Globe,
     },
     {
         value: 'own',
-        label: 'Własne kampanie',
-        description: 'Widzi i tworzy tylko swoje',
+        label: t.settings.team.accessOwn,
+        description: t.settings.team.accessOwnDesc,
         icon: FolderOpen,
     },
     {
         value: 'readonly',
-        label: 'Tylko odczyt',
-        description: 'Widzi kampanie, nie tworzy',
+        label: t.settings.team.accessReadonly,
+        description: t.settings.team.accessReadonlyDesc,
         icon: Eye,
     },
 ];
@@ -132,7 +132,7 @@ export function TeamTab({ user }: TeamTabProps) {
         if (!user?.organizationId) return;
         try {
             await organizationService.updateUserAccess(user.organizationId, memberId, { campaignAccess });
-            toast.success('Uprawnienia zaktualizowane');
+            toast.success(t.settings.team.accessUpdated);
             setEditingMemberId(null);
             loadMembers();
         } catch (error: any) {
@@ -275,7 +275,7 @@ export function TeamTab({ user }: TeamTabProps) {
                                         id="invite-email"
                                         type="email"
                                         {...register('email', { required: true })}
-                                        placeholder="kolega@firma.pl"
+                                        placeholder={t.settings.team.invitePlaceholder}
                                         className="pl-10"
                                     />
                                 </div>
@@ -317,7 +317,7 @@ export function TeamTab({ user }: TeamTabProps) {
 
                             {selectedRole !== 'ADMIN' && (
                                 <div className="space-y-2">
-                                    <Label>Dostęp do kampanii</Label>
+                                    <Label>{t.settings.team.campaignAccess}</Label>
                                     <div className="space-y-2">
                                         {ACCESS_OPTIONS.map((opt) => {
                                             const Icon = opt.icon;

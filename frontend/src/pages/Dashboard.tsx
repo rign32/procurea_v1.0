@@ -8,7 +8,7 @@ import { Target, FileText, Users, Sparkles, ArrowRight, Plus, Search } from 'luc
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useCampaigns } from '@/hooks/useCampaigns';
 import { useAuthStore } from '@/stores/auth.store';
-import { t } from '@/i18n';
+import { t, isEN } from '@/i18n';
 import { motion } from 'framer-motion';
 import { analytics, startHesitationTracker } from '@/lib/analytics';
 
@@ -44,7 +44,7 @@ export default function Dashboard() {
           {t.dashboard.welcome}, {user?.name || 'User'}!
         </h1>
         <p className="text-muted-foreground mt-1">
-          AI-Powered Sourcing - inteligentne wyszukiwanie producentów
+          {t.dashboard.subtitle}
         </p>
       </div>
 
@@ -59,20 +59,19 @@ export default function Dashboard() {
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-6 w-6 text-primary" />
-                <h2 className="text-2xl font-bold">Uruchom wyszukiwanie AI</h2>
+                <h2 className="text-2xl font-bold">{t.dashboard.heroCta}</h2>
               </div>
               <p className="text-muted-foreground max-w-lg">
-                Wieloetapowy agent AI przeszuka internet, znajdzie producentów,
-                oceni ich możliwości i zbierze dane kontaktowe. Cały proces trwa kilka minut.
+                {t.dashboard.heroDescription}
               </p>
               <div className="flex flex-wrap gap-2 pt-2">
-                <Badge variant="outline" className="bg-background/50">5 etapów AI</Badge>
-                <Badge variant="outline" className="bg-background/50">Tylko producenci</Badge>
-                <Badge variant="outline" className="bg-background/50">Automatyczne kontakty</Badge>
+                <Badge variant="outline" className="bg-background/50">{t.dashboard.badge1}</Badge>
+                <Badge variant="outline" className="bg-background/50">{t.dashboard.badge2}</Badge>
+                <Badge variant="outline" className="bg-background/50">{t.dashboard.badge3}</Badge>
               </div>
             </div>
             <Button size="lg" onClick={handleCreateCampaign} className="md:ml-4 shadow-soft-xl hover:shadow-glow-primary transition-shadow">
-              Rozpocznij
+              {t.dashboard.startButton}
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </CardContent>
@@ -108,9 +107,9 @@ export default function Dashboard() {
             className={`col-span-1 md:col-span-2 ${isFullPlan ? 'lg:col-span-3 grid gap-4 md:grid-cols-2 lg:grid-cols-3' : 'lg:col-span-2 grid gap-4 md:grid-cols-2'}`}
           >
             {[
-              { title: t.dashboard.metrics.activeCampaigns, icon: Target, val: totalCampaigns, desc: `${activeCampaigns} aktywnych`, link: '/campaigns' },
-              { title: t.dashboard.metrics.activeSuppliers, icon: Users, val: totalSuppliers, desc: 'znalezionych we wszystkich', link: '/suppliers' },
-              ...(isFullPlan ? [{ title: t.dashboard.metrics.pendingOffers, icon: FileText, val: pendingOffers, desc: 'oczekujących na odpowiedź', link: '/rfqs' }] : [])
+              { title: t.dashboard.metrics.activeCampaigns, icon: Target, val: totalCampaigns, desc: `${activeCampaigns} ${t.dashboard.statsActive}`, link: '/campaigns' },
+              { title: t.dashboard.metrics.activeSuppliers, icon: Users, val: totalSuppliers, desc: t.dashboard.statsFoundInAll, link: '/suppliers' },
+              ...(isFullPlan ? [{ title: t.dashboard.metrics.pendingOffers, icon: FileText, val: pendingOffers, desc: t.dashboard.statsAwaiting, link: '/rfqs' }] : [])
             ].map((stat, i) => (
               <motion.div
                 key={i}
@@ -141,9 +140,9 @@ export default function Dashboard() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Ostatnie kampanie</CardTitle>
+            <CardTitle>{t.dashboard.recentCampaigns}</CardTitle>
             <Button variant="ghost" size="sm" onClick={() => navigate('/campaigns')}>
-              Zobacz wszystkie
+              {t.dashboard.viewAll}
               <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
           </div>
@@ -163,9 +162,9 @@ export default function Dashboard() {
           ) : !campaigns || campaigns.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Target className="h-12 w-12 mx-auto mb-4 opacity-20" />
-              <p>Brak kampanii</p>
+              <p>{t.dashboard.noCampaignsText}</p>
               <p className="text-sm mt-1">
-                Utwórz pierwszą kampanię aby rozpocząć wyszukiwanie
+                {t.dashboard.createFirstHint}
               </p>
               <Button
                 variant="outline"
@@ -186,10 +185,10 @@ export default function Dashboard() {
                 >
                   <p className="text-sm font-medium flex-1 min-w-0 truncate">{campaign.name}</p>
                   <span className="text-xs text-muted-foreground shrink-0">
-                    {new Date(campaign.createdAt).toLocaleDateString('pl-PL')}
+                    {new Date(campaign.createdAt).toLocaleDateString(isEN ? 'en-US' : 'pl-PL')}
                   </span>
                   <span className="text-sm font-semibold shrink-0 w-28 text-right">
-                    {campaign.suppliersFound || 0} dostawców
+                    {campaign.suppliersFound || 0} {t.dashboard.suppliersCount}
                   </span>
                   <Badge
                     className="shrink-0 w-24 justify-center"

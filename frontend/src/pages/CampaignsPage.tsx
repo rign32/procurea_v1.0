@@ -11,7 +11,7 @@ import { StatusTabs } from '@/components/ui/status-tabs';
 import { usePagination } from '@/hooks/usePagination';
 import { useCampaigns } from '@/hooks/useCampaigns';
 import campaignsService from '@/services/campaigns.service';
-import { t } from '@/i18n';
+import { t, isEN } from '@/i18n';
 import { useAuthStore } from '@/stores/auth.store';
 import type { Campaign, CampaignStatus } from '@/types/campaign.types';
 import { motion } from 'framer-motion';
@@ -118,14 +118,14 @@ export function CampaignsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">{t.campaigns.title}</h1>
-          <p className="text-muted-foreground mt-1">Zarządzaj kampaniami sourcingowymi AI</p>
+          <p className="text-muted-foreground mt-1">{t.campaigns.subtitle}</p>
         </div>
         {canCreate && (
           <div className="flex items-center gap-3">
             {user?.plan !== 'unlimited' && (
               <Badge variant={credits > 0 ? 'secondary' : 'destructive'} className="flex items-center gap-1.5 px-3 py-1">
                 <Search className="h-3.5 w-3.5" />
-                {credits} wyszukiwań
+                {credits} {t.campaigns.searchesCount}
               </Badge>
             )}
             <Button onClick={handleCreateCampaign} size="lg">
@@ -212,20 +212,20 @@ export function CampaignsPage() {
                     <div className="flex items-center justify-between text-sm">
                       {isFullPlan && (
                         <div>
-                          <p className="text-muted-foreground">Zakwalifikowanych</p>
+                          <p className="text-muted-foreground">{t.campaigns.card.qualified}</p>
                           <p className="text-2xl font-bold text-green-600">
                             {campaign.suppliersQualified || 0}
                           </p>
                         </div>
                       )}
                       <div className="text-right ml-auto">
-                        <p className="text-muted-foreground">Dostawców</p>
+                        <p className="text-muted-foreground">{t.campaigns.card.suppliersCount}</p>
                         <p className="text-2xl font-bold">{campaign.suppliersFound || 0}</p>
                       </div>
                     </div>
 
                     <div className="text-xs text-muted-foreground border-t pt-4 mt-auto">
-                      <p>Utworzono: {new Date(campaign.createdAt).toLocaleDateString('pl-PL')}</p>
+                      <p>{t.campaigns.card.created}: {new Date(campaign.createdAt).toLocaleDateString(isEN ? 'en-US' : 'pl-PL')}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -237,7 +237,7 @@ export function CampaignsPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between pt-4">
               <p className="text-sm text-muted-foreground">
-                {total} kampanii, strona {currentPage} z {totalPages}
+                {total} {t.campaigns.pagination.campaignsCount.replace('{current}', String(currentPage)).replace('{total}', String(totalPages))}
               </p>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={prevPage} disabled={currentPage === 1}>

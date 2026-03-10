@@ -36,14 +36,11 @@ class SearchBudget {
 }
 
 export type SearchPurpose = 'main' | 'email';
-type SearchProvider = 'serpapi' | 'serper';
 
 @Injectable()
 export class GoogleSearchService {
   private readonly logger = new Logger(GoogleSearchService.name);
-  private serpApiKey = process.env.SERP_API_KEY || '';
   private serperApiKey = process.env.SERPER_API_KEY || '';
-  private provider: SearchProvider;
   private budget: SearchBudget;
 
   // Rate limiting
@@ -55,31 +52,18 @@ export class GoogleSearchService {
     @Inject(forwardRef(() => ApiUsageService))
     private readonly apiUsageService?: ApiUsageService,
   ) {
-    // Determine provider — prefer Serper (10x cheaper, faster)
-    if (this.serperApiKey) {
-      this.provider = 'serper';
-    } else if (this.serpApiKey && this.serpApiKey !== 'PLACEHOLDER_KEY') {
-      this.provider = 'serpapi';
-    } else {
-      this.provider = 'serper'; // fallback: mock mode
-    }
-
     const maxSearches = parseInt(process.env.MAX_SEARCHES_PER_CAMPAIGN || '1500', 10);
     this.budget = new SearchBudget(maxSearches);
 
-    const hasKey = this.provider === 'serper'
-      ? !!this.serperApiKey
-      : !!this.serpApiKey && this.serpApiKey !== 'PLACEHOLDER_KEY';
-
-    this.logger.log(`[SEARCH INIT] Provider: ${this.provider}, API Key present: ${hasKey}, Budget: ${maxSearches}/campaign`);
+    const hasKey = !!this.serperApiKey;
+    this.logger.log(`[SEARCH INIT] Provider: serper, API Key present: ${hasKey}, Budget: ${maxSearches}/campaign`);
     if (!hasKey) {
       this.logger.warn('[SEARCH INIT] Running in MOCK MODE - will return example.com results');
     }
   }
 
   private get hasValidKey(): boolean {
-    if (this.provider === 'serper') return !!this.serperApiKey;
-    return !!this.serpApiKey && this.serpApiKey !== 'PLACEHOLDER_KEY';
+    return !!this.serperApiKey;
   }
 
   async search(query: string, userId?: string, campaignId?: string): Promise<string[]> {
@@ -137,7 +121,7 @@ export class GoogleSearchService {
 
   /**
    * Extended search returning title, link, snippet
-   * Supports both SerpAPI and Serper.dev
+   * Uses Serper.dev ($0.001/query)
    */
   async searchExtended(
     query: string,
@@ -152,7 +136,7 @@ export class GoogleSearchService {
       return [];
     }
 
-    this.logger.log(`[SEARCH] ${this.provider}: "${query.substring(0, 50)}..." (budget: ${this.budget.remaining(campaignId)} left)`);
+    this.logger.log(`[SEARCH] serper: "${query.substring(0, 50)}..." (budget: ${this.budget.remaining(campaignId)} left)`);
 
     if (!this.hasValidKey) {
       return [
@@ -170,19 +154,15 @@ export class GoogleSearchService {
     let results: { title: string; link: string; snippet: string }[] = [];
 
     try {
-      if (this.provider === 'serper') {
-        results = await this.searchWithSerper(query, options);
-      } else {
-        results = await this.searchWithSerpApi(query, options);
-      }
+      results = await this.searchWithSerper(query, options);
     } catch (e: any) {
       status = 'error';
       errorMessage = e.message;
-      this.logger.error(`[SEARCH] ${this.provider} failed: ${e.message}`);
+      this.logger.error(`[SEARCH] serper failed: ${e.message}`);
     } finally {
       if (this.apiUsageService) {
         await this.apiUsageService.logCall({
-          service: this.provider,
+          service: 'serper',
           endpoint: 'searchExtended',
           userId,
           requestPayload: query.substring(0, 200),
@@ -197,40 +177,7 @@ export class GoogleSearchService {
   }
 
   /**
-   * SerpAPI implementation
-   */
-  private async searchWithSerpApi(
-    query: string,
-    options?: { gl?: string; hl?: string; num?: number }
-  ): Promise<{ title: string; link: string; snippet: string }[]> {
-    const response = await this.withRetry(async () => {
-      return axios.get('https://serpapi.com/search.json', {
-        params: {
-          engine: 'google',
-          q: query,
-          api_key: this.serpApiKey,
-          num: options?.num || 30,
-          gl: options?.gl || 'us',
-          hl: options?.hl || 'en'
-        },
-        timeout: 30000
-      });
-    });
-
-    if (response.data.organic_results) {
-      const results = response.data.organic_results.map((r: any) => ({
-        title: r.title || '',
-        link: r.link || '',
-        snippet: r.snippet || ''
-      }));
-      this.logger.log(`[SERPAPI] Found ${results.length} results`);
-      return results;
-    }
-    return [];
-  }
-
-  /**
-   * Serper.dev implementation (10x cheaper: $50/50k vs $50/5k)
+   * Serper.dev implementation ($0.001/query)
    * API docs: https://serper.dev/docs
    */
   private async searchWithSerper(

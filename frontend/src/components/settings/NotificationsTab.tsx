@@ -98,8 +98,8 @@ export function NotificationsTab({ user, isFullPlan = false }: NotificationsTabP
                         <>
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
-                                    <Label className="text-base">Nowa oferta od dostawcy</Label>
-                                    <p className="text-sm text-muted-foreground">Otrzymuj e-mail, gdy dostawca złoży nową ofertę lub alternatywę.</p>
+                                    <Label className="text-base">{nt.newOffer}</Label>
+                                    <p className="text-sm text-muted-foreground">{nt.newOfferDesc}</p>
                                 </div>
                                 <Switch
                                     checked={prefs.emailNotifications}
@@ -108,8 +108,8 @@ export function NotificationsTab({ user, isFullPlan = false }: NotificationsTabP
                             </div>
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
-                                    <Label className="text-base">Wiadomość od dostawcy</Label>
-                                    <p className="text-sm text-muted-foreground">Otrzymuj e-mail, gdy dostawca wyśle Ci wiadomość w module komunikacji.</p>
+                                    <Label className="text-base">{nt.supplierMessage}</Label>
+                                    <p className="text-sm text-muted-foreground">{nt.supplierMessageDesc}</p>
                                 </div>
                                 <Switch
                                     checked={prefs.weeklyReports}
@@ -118,7 +118,7 @@ export function NotificationsTab({ user, isFullPlan = false }: NotificationsTabP
                             </div>
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
-                                    <Label className="text-base">Koniec akcji ofertowej</Label>
+                                    <Label className="text-base">{nt.offerRoundEnd}</Label>
                                     <p className="text-sm text-muted-foreground">{nt.campaignCompletedDesc}</p>
                                 </div>
                                 <Switch
@@ -130,8 +130,8 @@ export function NotificationsTab({ user, isFullPlan = false }: NotificationsTabP
                     )}
                     <div className="flex items-center justify-between">
                         <div className="space-y-0.5">
-                            <Label className="text-base">Kampania zakończona</Label>
-                            <p className="text-sm text-muted-foreground">Otrzymuj e-mail, gdy wyszukiwanie AI zakończy się i dostawcy zostaną znalezieni.</p>
+                            <Label className="text-base">{nt.sourcingCompleted}</Label>
+                            <p className="text-sm text-muted-foreground">{nt.sourcingCompletedDesc}</p>
                         </div>
                         <Switch
                             checked={prefs.sourcingCompleted}
@@ -143,7 +143,7 @@ export function NotificationsTab({ user, isFullPlan = false }: NotificationsTabP
                         <div className="flex justify-end pt-2 border-t">
                             <Button onClick={handleSave} disabled={isSaving}>
                                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Zapisz
+                                {t.common.save}
                             </Button>
                         </div>
                     )}

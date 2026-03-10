@@ -28,7 +28,7 @@ const cardVariants = {
 
 export function BetaSignupSection() {
   return (
-    <section id="dolacz" className="py-24 lg:py-32 relative overflow-hidden">
+    <section id={t.sectionIds.betaSignup} className="py-24 lg:py-32 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-900 to-indigo-950" />
 
       <div className="absolute inset-0 pointer-events-none">

@@ -43,7 +43,7 @@ const cardVariants = {
 
 export function FeaturesSection() {
   return (
-    <section id="co-zyskujesz" className="py-24 lg:py-32 relative overflow-hidden">
+    <section id={t.sectionIds.features} className="py-24 lg:py-32 relative overflow-hidden">
       <div className="absolute top-40 left-0 w-[600px] h-[600px] rounded-full bg-indigo-500/[0.02] blur-[100px] pointer-events-none" />
       <div className="absolute bottom-20 right-0 w-[400px] h-[400px] rounded-full bg-violet-500/[0.03] blur-[80px] pointer-events-none" />
 

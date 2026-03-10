@@ -63,6 +63,10 @@ ${JSON.stringify(analystData, null, 2)}
 
 DOMENA FIRMY: ${targetDomain}
 
+UWAGA DOMENA: Jeśli domena źródłowa to portal/katalog firm (np. cybermadeinpoland.pl, plastech.pl, europages.com, kompass.com, dnb.com, industrystock.com),
+to NIE jest strona firmy. W polu "website" podaj PRAWDZIWY URL strony firmy
+(wydedukuj z nazwy firmy, danych kontaktowych, lub kontekstu). Jeśli nie da się ustalić, zostaw pole puste "".
+
 KONTEKST WYSZUKIWANIA:
 ${searchContext.substring(0, 3000)}
 
@@ -114,8 +118,17 @@ Zwróć JSON:
 
             // Ensure domain data is consistent
             if (result.enriched_data) {
-                result.enriched_data.website = targetDomain;
-                result.enriched_data.domain_display = targetDisplayDomain;
+                // Don't overwrite website with portal/catalog URL — keep AI-deduced URL if available
+                const isPortal = this.isPortalUrl(targetDomain);
+                if (!isPortal) {
+                    result.enriched_data.website = targetDomain;
+                } else if (!result.enriched_data.website || result.enriched_data.website === targetDomain) {
+                    // AI didn't find a real URL either — keep portal as fallback
+                    result.enriched_data.website = targetDomain;
+                }
+                result.enriched_data.domain_display = isPortal
+                    ? this.extractDomainForDisplay(result.enriched_data.website || targetDomain)
+                    : targetDisplayDomain;
                 // Always return empty emails — email generation is disabled
                 result.enriched_data.contact_emails = [];
             }
@@ -137,6 +150,26 @@ Zwróć JSON:
                     confidence_score: 50
                 }
             };
+        }
+    }
+
+    private isPortalUrl(url: string): boolean {
+        const PORTAL_DOMAINS = [
+            'europages.com', 'kompass.com', 'thomasnet.com', 'globalspec.com',
+            'wer-liefert-was.de', 'wlw.de', 'industrystock.com', 'exportpages.com',
+            'alibaba.com', 'made-in-china.com', 'indiamart.com', 'directindustry.com',
+            'panoramafirm.pl', 'pkt.pl', 'firmy.net', 'baza-firm.pl',
+            'plastech.pl', 'tworzywa.pl', 'tworzywa.org',
+            'cybermadeinpoland.pl', 'dnb.com', 'zoominfo.com', 'crunchbase.com',
+            'linkedin.com', 'facebook.com', 'wikipedia.org',
+            'plasteurope.com', 'plasticsnews.com', 'manufacturing.net',
+            'globalsources.com', 'tradekey.com', 'yellow-pages.com',
+        ];
+        try {
+            const hostname = new URL(url).hostname.replace(/^www\./, '').toLowerCase();
+            return PORTAL_DOMAINS.some(p => hostname === p || hostname.endsWith('.' + p));
+        } catch {
+            return false;
         }
     }
 }

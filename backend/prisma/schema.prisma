@@ -298,7 +298,7 @@ model ApiUsageLog {
   id             String   @id @default(uuid())
   
   // Tracking
-  service        String   // "gemini" | "serpapi"
+  service        String   // "gemini" | "serper"
   endpoint       String?  // Specific endpoint/model used
   
   userId         String?

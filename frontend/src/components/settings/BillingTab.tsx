@@ -100,7 +100,7 @@ export function BillingTab({ user }: BillingTabProps) {
             const { url } = await billingService.createCreditCheckout(packId);
             window.location.href = url;
         } catch (err: any) {
-            toast.error(err?.response?.data?.message || 'Błąd podczas tworzenia płatności');
+            toast.error(err?.response?.data?.message || bt.checkout.paymentError);
             setCheckoutLoading(null);
         }
     }
@@ -111,7 +111,7 @@ export function BillingTab({ user }: BillingTabProps) {
             const { url } = await billingService.createSubscriptionCheckout();
             window.location.href = url;
         } catch (err: any) {
-            toast.error(err?.response?.data?.message || 'Błąd podczas tworzenia płatności');
+            toast.error(err?.response?.data?.message || bt.checkout.paymentError);
             setCheckoutLoading(null);
         }
     }

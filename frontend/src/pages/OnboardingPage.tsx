@@ -38,7 +38,7 @@ export default function OnboardingPage() {
         locationUnitNr: '',
         locationCity: '',
         locationPostalCode: '',
-        locationCountry: 'Polska',
+        locationCountry: t.auth.onboarding.defaultCountry,
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,7 +48,7 @@ export default function OnboardingPage() {
     const handleNext = () => {
         if (step === 1) {
             if (!formData.firstName || !formData.lastName) {
-                setError('Imię i nazwisko są wymagane');
+                setError(t.auth.onboarding.nameRequired);
                 return;
             }
         }
@@ -86,7 +86,7 @@ export default function OnboardingPage() {
             if (formData.locationStreet) {
                 const streetLine = [formData.locationStreet, formData.locationBuildingNr, formData.locationUnitNr && `/${formData.locationUnitNr}`].filter(Boolean).join(' ');
                 locations.push({
-                    name: 'Główna siedziba',
+                    name: t.auth.onboarding.defaultLocationName,
                     address: `${streetLine}, ${formData.locationPostalCode} ${formData.locationCity}, ${formData.locationCountry}`,
                 });
             }
@@ -234,11 +234,11 @@ export default function OnboardingPage() {
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="nip">NIP (Opcjonalnie)</Label>
+                                        <Label htmlFor="nip">{t.auth.onboarding.nipLabel}</Label>
                                         <Input
                                             id="nip"
                                             name="nip"
-                                            placeholder="NP: 1234567890"
+                                            placeholder={t.auth.onboarding.nipPlaceholder}
                                             value={formData.nip}
                                             onChange={handleChange}
                                         />
@@ -250,14 +250,14 @@ export default function OnboardingPage() {
                             {step === 3 && (
                                 <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                                     <div className="space-y-2">
-                                        <Label htmlFor="locationStreet">Ulica / Miejscowość</Label>
+                                        <Label htmlFor="locationStreet">{t.auth.onboarding.streetLabel}</Label>
                                         <div className="relative">
                                             <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                             <Input
                                                 id="locationStreet"
                                                 name="locationStreet"
                                                 className="pl-9"
-                                                placeholder="ul. Przykładowa"
+                                                placeholder={t.auth.onboarding.streetPlaceholder}
                                                 value={formData.locationStreet}
                                                 onChange={handleChange}
                                             />
@@ -265,7 +265,7 @@ export default function OnboardingPage() {
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <Label htmlFor="locationBuildingNr">Nr budynku</Label>
+                                            <Label htmlFor="locationBuildingNr">{t.auth.onboarding.buildingNr}</Label>
                                             <Input
                                                 id="locationBuildingNr"
                                                 name="locationBuildingNr"
@@ -275,7 +275,7 @@ export default function OnboardingPage() {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="locationUnitNr">Nr lokalu</Label>
+                                            <Label htmlFor="locationUnitNr">{t.auth.onboarding.unitNr}</Label>
                                             <Input
                                                 id="locationUnitNr"
                                                 name="locationUnitNr"
@@ -287,21 +287,21 @@ export default function OnboardingPage() {
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <Label htmlFor="locationPostalCode">Kod pocztowy</Label>
+                                            <Label htmlFor="locationPostalCode">{t.auth.onboarding.postalCode}</Label>
                                             <Input
                                                 id="locationPostalCode"
                                                 name="locationPostalCode"
-                                                placeholder="00-001"
+                                                placeholder={t.auth.onboarding.postalCodePlaceholder}
                                                 value={formData.locationPostalCode}
                                                 onChange={handleChange}
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="locationCity">Miasto</Label>
+                                            <Label htmlFor="locationCity">{t.auth.onboarding.cityLabel}</Label>
                                             <Input
                                                 id="locationCity"
                                                 name="locationCity"
-                                                placeholder="Warszawa"
+                                                placeholder={t.auth.onboarding.cityPlaceholder}
                                                 value={formData.locationCity}
                                                 onChange={handleChange}
                                             />

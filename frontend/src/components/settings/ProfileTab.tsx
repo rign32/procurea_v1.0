@@ -61,7 +61,7 @@ export function ProfileTab({ user }: ProfileTabProps) {
             <Card>
                 <CardHeader>
                     <CardTitle>{t.settings.profile.title}</CardTitle>
-                    <CardDescription>Zarządzaj swoimi danymi osobowymi</CardDescription>
+                    <CardDescription>{t.settings.profile.subtitle}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -85,8 +85,8 @@ export function ProfileTab({ user }: ProfileTabProps) {
                                 <Label htmlFor="name">{t.settings.profile.name}</Label>
                                 <Input
                                     id="name"
-                                    {...register('name', { required: "Imię i nazwisko jest wymagane" })}
-                                    placeholder="Jan Kowalski"
+                                    {...register('name', { required: t.settings.profile.nameRequired })}
+                                    placeholder={t.settings.profile.namePlaceholder}
                                     className={errors.name ? "border-destructive focus-visible:ring-destructive" : ""}
                                 />
                                 {errors.name && <p className="text-xs text-destructive mt-1">{errors.name.message}</p>}
@@ -119,9 +119,9 @@ export function ProfileTab({ user }: ProfileTabProps) {
                                         />
                                         <span
                                             className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground"
-                                            title="Numer telefonu jest Twoim identyfikatorem i nie może być zmieniony"
+                                            title={t.settings.profile.phoneLocked}
                                         >
-                                            Zweryfikowany
+                                            {t.settings.profile.phoneVerified}
                                         </span>
                                     </div>
                                 ) : (
@@ -146,13 +146,13 @@ export function ProfileTab({ user }: ProfileTabProps) {
                                 <Label htmlFor="companyName">{t.settings.profile.companyName}</Label>
                                 <Input
                                     id="companyName"
-                                    {...register('companyName', { required: "Nazwa firmy jest wymagana" })}
-                                    placeholder="Firma Sp. z o.o."
+                                    {...register('companyName', { required: t.settings.profile.companyRequired })}
+                                    placeholder={t.settings.profile.companyPlaceholder}
                                     className={errors.companyName ? "border-destructive focus-visible:ring-destructive" : ""}
                                 />
                                 {errors.companyName && <p className="text-xs text-destructive mt-1">{errors.companyName.message}</p>}
                                 <p className="text-xs text-muted-foreground mt-1">
-                                    To jest nazwa wyświetlana w Twoim profilu.
+                                    {t.settings.profile.companyHint}
                                 </p>
                             </div>
                         </div>

@@ -232,7 +232,7 @@ export default function IntegrationsPage() {
                         <div className="bg-surface border border-accent/30 rounded-xl p-4 animate-pulse-glow">
                             <div className="text-xs text-accent uppercase tracking-wider font-medium">Est. / Sourcing Request</div>
                             <div className="text-2xl font-bold text-accent mt-1 font-mono">${perRequest.estimatedCostPerSourcingRequest.toFixed(4)}</div>
-                            <div className="text-[10px] text-text-muted mt-1">~10 SerpAPI + ~15 Gemini calls</div>
+                            <div className="text-[10px] text-text-muted mt-1">~10 Serper + ~15 Gemini calls</div>
                         </div>
                     </div>
 

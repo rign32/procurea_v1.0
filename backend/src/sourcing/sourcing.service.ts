@@ -1543,6 +1543,30 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 return 0;
             }
 
+            // 0. CHECK GLOBAL REGISTRY CACHE FIRST!
+            const cachedSupplier = await this.companyRegistry.getByDomain(domain);
+
+            if (cachedSupplier && !this.companyRegistry.isStale(cachedSupplier.lastProcessedAt)) {
+                await this.log(campaignId, `${workerTag} [CACHE HIT] ${cachedSupplier.name || domain} - reusing cached data`);
+
+                const cachedEnrichedData = {
+                    company_name: cachedSupplier.name,
+                    website: `https://${cachedSupplier.domain}`,
+                    country: normalizeCountry(cachedSupplier.country),
+                    city: cachedSupplier.city,
+                    specialization: cachedSupplier.specialization,
+                    certificates: cachedSupplier.certificates,
+                    employee_count: cachedSupplier.employeeCount,
+                    contact_emails: cachedSupplier.contactEmails?.split(',').map(e => e.trim()).filter(Boolean) || []
+                };
+
+                const cached = await this.saveSupplierFromCache(
+                    campaignId, workerTag, cachedSupplier, cachedEnrichedData,
+                    dto, processedCompanyNames, originLanguage, originCountry, userLanguage, productContext
+                );
+                return cached ? 1 : 0;
+            }
+
             // PORTAL CHECK — portals are not suppliers, force directory mining
             if (isPortalDomain(domain)) {
                 await this.log(campaignId, `${workerTag} [PORTAL] ${domain} — forcing directory mining`);
@@ -1647,7 +1671,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             const capScore = screenerResult.capability_match_score || 0;
             let isBorderline = false;
 
-            if (capScore < 40) {
+            if (capScore < 35) {
                 // HARD REJECT — clearly irrelevant, but still mine directory leads
                 const mentionedFromLowScore = screenerResult.mentioned_companies || [];
                 if (depth === 0 && mentionedFromLowScore.length > 0) {
@@ -1678,8 +1702,8 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 return 0;
             }
 
-            if (capScore < 65) {
-                // BORDERLINE (40-64) — proceed to enrichment, but apply stricter auditing
+            if (capScore < 60) {
+                // BORDERLINE (35-59) — proceed to enrichment, but apply stricter auditing
                 await this.log(campaignId, `${workerTag} BORDERLINE (${capScore}%) — running enrichment for verification: ${domain}`);
                 isBorderline = true;
 
@@ -2094,6 +2118,175 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             const translated = result.trim().replace(/^["']|["']$/g, '');
             return translated.length > 0 && translated.length < 100 ? translated : spec;
         } catch { return spec; }
+    }
+
+    /**
+     * Save supplier from CACHE (skip agents, use cached data)
+     */
+    private async saveSupplierFromCache(
+        campaignId: string,
+        workerTag: string,
+        cachedSupplier: any,
+        enrichedData: any,
+        dto: CreateCampaignDto,
+        processedCompanyNames: Set<string>,
+        originLanguage: string,
+        originCountry: string,
+        userLanguage: string = 'pl',
+        productContext?: ProductContext
+    ): Promise<boolean> {
+        try {
+            // Company name deduplication
+            const companyName = enrichedData.company_name || '';
+            const normalizedCompanyName = normalizeCompanyNameForDedup(companyName);
+
+            if (normalizedCompanyName && normalizedCompanyName.length > 2) {
+                if (processedCompanyNames.has(normalizedCompanyName)) {
+                    await this.log(campaignId, `${workerTag} CACHE DUPLICATE: Company "${companyName}" already processed`);
+                    return false;
+                }
+                processedCompanyNames.add(normalizedCompanyName);
+            }
+
+            // COUNTRY VALIDATION — same filter as fresh pipeline
+            let supplierCountry = normalizeCountry(enrichedData.country || '');
+            const regionKey = dto?.searchCriteria?.region;
+            const regionConfig = regionKey ? REGION_LANGUAGE_CONFIG[regionKey] : undefined;
+
+            // COUNTRY INFERENCE — when enrichment couldn't determine country, infer from context
+            if (supplierCountry === 'Nieznany') {
+                const cachedDomain = cachedSupplier.domain || '';
+                const tldCountry = inferCountryFromTLD(cachedDomain);
+                if (tldCountry) {
+                    supplierCountry = tldCountry;
+                    await this.log(campaignId, `${workerTag} CACHE COUNTRY INFERRED FROM TLD: ${cachedDomain} → ${tldCountry}`);
+                } else if (originCountry && originCountry !== 'Global') {
+                    supplierCountry = normalizeCountry(originCountry);
+                    await this.log(campaignId, `${workerTag} CACHE COUNTRY INFERRED FROM WORKER: ${cachedDomain} → ${normalizeCountry(originCountry)}`);
+                }
+            }
+
+            // SANCTIONS — universal hard filter
+            if (SANCTIONED_COUNTRIES.has(supplierCountry)) {
+                await this.log(campaignId, `${workerTag} CACHE SANCTIONED: "${companyName}" from ${supplierCountry}`);
+                return false;
+            }
+
+            if (regionConfig?.excludedCountries) {
+                const excluded = regionConfig.excludedCountries.some(
+                    (ex: string) => supplierCountry.toLowerCase().includes(ex.toLowerCase())
+                );
+                if (excluded) {
+                    await this.log(campaignId, `${workerTag} CACHE EXCLUDED COUNTRY: "${companyName}" from ${supplierCountry}`);
+                    return false;
+                }
+            }
+
+            // ALLOWED COUNTRIES — positive filter
+            if (regionConfig?.allowedCountries && regionConfig.allowedCountries.length > 0) {
+                if (!regionConfig.allowedCountries.includes(supplierCountry)) {
+                    await this.log(campaignId, `${workerTag} CACHE REGION MISMATCH: "${companyName}" from ${supplierCountry} — not in ${regionKey}`);
+                    return false;
+                }
+            }
+
+            // EMPLOYEE SIZE FILTER — same as fresh pipeline
+            const employeeCount = parseEmployeeCount(enrichedData.employee_count);
+            if (employeeCount !== null && employeeCount > MAX_EMPLOYEE_COUNT) {
+                await this.log(campaignId, `${workerTag} CACHE TOO LARGE: "${companyName}" (${enrichedData.employee_count})`);
+                return false;
+            }
+
+            // PORTAL URL GUARD — same as fresh pipeline
+            if (isPortalDomain(this.extractDomain(enrichedData.website || ''))) {
+                await this.log(campaignId, `${workerTag} CACHE PORTAL URL: "${companyName}" — skipping`);
+                return false;
+            }
+
+            // PRODUCT MATCH VALIDATION — run auditor to verify cached firm matches THIS campaign's product
+            if (productContext) {
+                const registryData = {
+                    company_name: enrichedData.company_name,
+                    specialization: enrichedData.specialization,
+                    country: enrichedData.country,
+                    status: 'Active',
+                    company_type: cachedSupplier.explorerResult?.company_type || 'NIEJASNY',
+                };
+                const auditorResult = await this.auditorAgent.execute(enrichedData, registryData, userLanguage, {
+                    coreProduct: productContext.coreProduct,
+                    positiveSignals: productContext.positiveSignals,
+                    negativeSignals: productContext.negativeSignals,
+                    supplyChainPosition: productContext.supplyChainPosition,
+                    disambiguationNote: productContext.disambiguationNote,
+                    productCategory: productContext.productCategory,
+                });
+                if (auditorResult.validation_result === 'REJECTED' || auditorResult.is_valid === false) {
+                    await this.log(campaignId, `${workerTag} CACHE PRODUCT MISMATCH: "${enrichedData.company_name}" (${enrichedData.specialization}) — ${auditorResult.rejection_reason || 'not matching product'}`);
+                    return false;
+                }
+            }
+
+            const contactEmails = enrichedData.contact_emails || [];
+            const contactEmailsString = Array.isArray(contactEmails) ? contactEmails.join(', ') : contactEmails;
+            const finalScore = (cachedSupplier.lastAnalysisScore || 5) * 10;
+
+            // Translate specialization if needed
+            const translatedSpecialization = await this.translateSpecialization(
+                enrichedData.specialization || 'General', userLanguage
+            );
+
+            // Increment usage in registry (and ensure it exists/get ID)
+            const registryEntry = await this.companyRegistry.upsert(cachedSupplier.domain, {}, campaignId);
+
+            // Save to campaign suppliers
+            const newSupplier = await this.prisma.supplier.create({
+                data: {
+                    campaignId: campaignId,
+                    url: enrichedData.website,
+                    name: enrichedData.company_name || 'Unknown Company',
+                    country: normalizeCountry(enrichedData.country || 'Unknown'),
+                    city: enrichedData.city || null,
+                    website: enrichedData.website,
+                    specialization: translatedSpecialization,
+                    certificates: enrichedData.certificates || '',
+                    employeeCount: enrichedData.employee_count || 'N/A',
+                    contactEmails: contactEmailsString,
+                    explorerResult: JSON.stringify(cachedSupplier.explorerResult || {}),
+                    analystResult: JSON.stringify(cachedSupplier.analystResult || {}),
+                    enrichmentResult: JSON.stringify(cachedSupplier.enrichmentResult || {}),
+                    auditorResult: JSON.stringify(cachedSupplier.auditorResult || {}),
+                    analysisScore: finalScore / 10,
+
+                    analysisReason: 'Data from Global Registry Cache',
+                    originLanguage: originLanguage,
+                    originCountry: originCountry,
+                    sourceAgent: 'Cache/MultimodalWorker',
+
+                    companyType: cachedSupplier.explorerResult?.company_type || 'NIEJASNY',
+                    companyTypeConfidence: cachedSupplier.explorerResult?.company_type_confidence || 0,
+                    needsManualClassification: false,
+                    sourceType: 'SEARCH',
+
+                    registryId: registryEntry.id,
+
+                    contacts: {
+                        create: Array.isArray(contactEmails) ? contactEmails.map((email: string) => ({
+                            email: email,
+                            role: 'Cached Contact',
+                            isDecisionMaker: false
+                        })) : []
+                    }
+                }
+            });
+
+            await this.log(campaignId, `${workerTag} CACHE QUALIFIED: ${newSupplier.name} (${finalScore}%)`);
+            this.sourcingGateway?.emitSupplierUpdate(campaignId, { url: enrichedData.website, status: 'QUALIFIED', data: newSupplier });
+
+            return true;
+        } catch (err: any) {
+            await this.log(campaignId, `${workerTag} Error saving cached supplier: ${err.message}`);
+            return false;
+        }
     }
 
     /**

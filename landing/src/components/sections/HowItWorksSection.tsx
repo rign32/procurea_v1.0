@@ -32,7 +32,7 @@ const cardVariants = {
 
 export function HowItWorksSection() {
   return (
-    <section id="jak-to-dziala" className="py-24 lg:py-32 bg-muted/30 relative overflow-hidden">
+    <section id={t.sectionIds.howItWorks} className="py-24 lg:py-32 bg-muted/30 relative overflow-hidden">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full bg-gradient-to-b from-indigo-500/[0.04] to-transparent blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full bg-gradient-to-b from-violet-500/[0.03] to-transparent blur-3xl pointer-events-none" />
 

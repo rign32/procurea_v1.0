@@ -24,6 +24,13 @@ export const PL = {
     openMenu: 'Otwórz menu',
     closeMenu: 'Zamknij menu',
   },
+  sectionIds: {
+    howItWorks: 'jak-to-dziala',
+    features: 'co-zyskujesz',
+    audience: 'dla-kogo',
+    betaSignup: 'dolacz',
+    faq: 'faq',
+  },
   hero: {
     badge: 'Polskie narzędzie AI · Darmowe beta testy',
     headlinePart1: 'AI przeszuka internet',

@@ -20,12 +20,21 @@ import type { Supplier } from '@/types/supplier.types';
 import { motion } from 'framer-motion';
 import { analytics } from '@/lib/analytics';
 
-const EU_COUNTRIES = new Set([
+// EU country names — must match backend data (which uses Polish names)
+// AND also match English names for EN builds
+const EU_COUNTRIES_PL = new Set([
   'Niemcy', 'Francja', 'Włochy', 'Hiszpania', 'Holandia', 'Belgia', 'Austria',
   'Polska', 'Czechy', 'Słowacja', 'Węgry', 'Rumunia', 'Bułgaria', 'Chorwacja',
   'Słowenia', 'Litwa', 'Łotwa', 'Estonia', 'Irlandia', 'Luksemburg',
   'Portugalia', 'Finlandia', 'Szwecja', 'Dania',
 ]);
+const EU_COUNTRIES_EN = new Set([
+  'Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Belgium', 'Austria',
+  'Poland', 'Czech Republic', 'Czechia', 'Slovakia', 'Hungary', 'Romania', 'Bulgaria', 'Croatia',
+  'Slovenia', 'Lithuania', 'Latvia', 'Estonia', 'Ireland', 'Luxembourg',
+  'Portugal', 'Finland', 'Sweden', 'Denmark',
+]);
+const EU_COUNTRIES = new Set([...EU_COUNTRIES_PL, ...EU_COUNTRIES_EN]);
 
 export function SuppliersPage() {
   const navigate = useNavigate();
@@ -91,11 +100,11 @@ export function SuppliersPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });
-      toast.success('Dostawca dodany do Blacklisty');
+      toast.success(t.suppliers.page.blacklistAdded);
       setSupplierToBlacklist(null);
     },
     onError: () => {
-      toast.error('Nie udało się dodać do Blacklisty');
+      toast.error(t.suppliers.page.blacklistFailed);
     }
   });
 
@@ -161,16 +170,16 @@ export function SuppliersPage() {
   };
 
   const countryLabel = selectedCountries.length === 0
-    ? 'Wszystkie kraje'
+    ? t.suppliers.page.allCountries
     : selectedCountries.length === 1
       ? `${getCountryFlag(selectedCountries[0])} ${selectedCountries[0]}`
-      : `${selectedCountries.length} ${selectedCountries.length < 5 ? 'kraje' : 'krajów'}`;
+      : `${selectedCountries.length} ${selectedCountries.length < 5 ? t.suppliers.page.countries : t.suppliers.page.countriesMany}`;
 
   const campaignLabel = selectedCampaigns.length === 0
-    ? 'Wszystkie kampanie'
+    ? t.suppliers.page.allCampaigns
     : selectedCampaigns.length === 1
-      ? (campaigns.find(c => c.id === selectedCampaigns[0])?.name?.replace(/^Kampania:\s*/i, '') || 'Kampania')
-      : `${selectedCampaigns.length} kampani${selectedCampaigns.length < 5 ? 'e' : 'i'}`;
+      ? (campaigns.find(c => c.id === selectedCampaigns[0])?.name?.replace(/^Kampania:\s*/i, '') || t.nav.campaigns)
+      : `${selectedCampaigns.length} ${selectedCampaigns.length < 5 ? t.suppliers.page.campaigns : t.suppliers.page.campaignsMany}`;
 
   if (isLoading) {
     return (
@@ -213,7 +222,7 @@ export function SuppliersPage() {
           <SearchInput
             value={searchQuery}
             onChange={setSearchQuery}
-            placeholder="Szukaj po nazwie, stronie www, mieście lub specjalizacji..."
+            placeholder={t.suppliers.page.searchPlaceholder}
             className="w-full"
           />
         </div>
@@ -251,7 +260,7 @@ export function SuppliersPage() {
                 className="h-7 text-xs flex-1"
                 onClick={() => setSelectedCampaigns([])}
               >
-                Wszystkie
+                {t.common.all}
               </Button>
               <Button
                 variant="outline"
@@ -259,7 +268,7 @@ export function SuppliersPage() {
                 className="h-7 text-xs flex-1"
                 onClick={() => setSelectedCampaigns([])}
               >
-                Wyczyść
+                {t.suppliers.page.clearFilters}
               </Button>
             </div>
 
@@ -267,7 +276,7 @@ export function SuppliersPage() {
             <div className="max-h-[240px] overflow-y-auto p-1">
               {campaigns.length === 0 ? (
                 <div className="py-4 text-center text-sm text-muted-foreground">
-                  Brak kampanii
+                  {t.suppliers.page.noCampaigns}
                 </div>
               ) : (
                 campaigns.map((campaign) => {
@@ -295,7 +304,7 @@ export function SuppliersPage() {
             {/* Footer with count */}
             {selectedCampaigns.length > 0 && (
               <div className="border-t px-3 py-2 text-xs text-muted-foreground">
-                Wybrano: {selectedCampaigns.length} z {campaigns.length}
+                {t.suppliers.page.selectedOf.replace('{selected}', String(selectedCampaigns.length)).replace('{total}', String(campaigns.length))}
               </div>
             )}
           </PopoverContent>
@@ -333,7 +342,7 @@ export function SuppliersPage() {
                 <Input
                   value={countrySearch}
                   onChange={(e) => setCountrySearch(e.target.value)}
-                  placeholder="Szukaj kraju..."
+                  placeholder={t.suppliers.page.searchCountry}
                   className="h-8 pl-8 text-sm"
                 />
               </div>
@@ -347,7 +356,7 @@ export function SuppliersPage() {
                 className="h-7 text-xs flex-1"
                 onClick={() => setSelectedCountries([])}
               >
-                Wszystkie
+                {t.common.all}
               </Button>
               <Button
                 variant="outline"
@@ -355,7 +364,7 @@ export function SuppliersPage() {
                 className="h-7 text-xs flex-1"
                 onClick={selectEU}
               >
-                UE
+                {t.suppliers.page.euOnly}
               </Button>
               <Button
                 variant="outline"
@@ -363,7 +372,7 @@ export function SuppliersPage() {
                 className="h-7 text-xs flex-1"
                 onClick={() => setSelectedCountries([])}
               >
-                Wyczyść
+                {t.suppliers.page.clearFilters}
               </Button>
             </div>
 
@@ -371,7 +380,7 @@ export function SuppliersPage() {
             <div className="max-h-[240px] overflow-y-auto p-1">
               {filteredCountryList.length === 0 ? (
                 <div className="py-4 text-center text-sm text-muted-foreground">
-                  Brak wyników
+                  {t.common.noData}
                 </div>
               ) : (
                 filteredCountryList.map((country) => {
@@ -400,7 +409,7 @@ export function SuppliersPage() {
             {/* Footer with count */}
             {selectedCountries.length > 0 && (
               <div className="border-t px-3 py-2 text-xs text-muted-foreground">
-                Wybrano: {selectedCountries.length} z {countries.length}
+                {t.suppliers.page.selectedOf.replace('{selected}', String(selectedCountries.length)).replace('{total}', String(countries.length))}
               </div>
             )}
           </PopoverContent>
@@ -416,8 +425,8 @@ export function SuppliersPage() {
               <h3 className="text-lg font-semibold mb-2">{t.common.noData}</h3>
               <p className="text-muted-foreground">
                 {searchQuery || selectedCountries.length > 0 || selectedCampaigns.length > 0
-                  ? 'Brak dostawców spełniających kryteria wyszukiwania'
-                  : 'Nie znaleziono żadnych dostawców'}
+                  ? t.suppliers.page.emptySearch
+                  : t.suppliers.page.emptyNoSuppliers}
               </p>
             </div>
           </CardContent>
@@ -425,7 +434,7 @@ export function SuppliersPage() {
       ) : (
         <>
           <p className="text-sm text-muted-foreground">
-            {filteredSuppliers.length} z {serverTotal} dostawców
+            {t.suppliers.page.showingOf.replace('{shown}', String(filteredSuppliers.length)).replace('{total}', String(serverTotal))}
           </p>
 
           <motion.div
@@ -469,7 +478,7 @@ export function SuppliersPage() {
                 {isFetchingNextPage && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Załaduj więcej ({suppliers.length} z {serverTotal})
+                {t.suppliers.page.loadMore.replace('{loaded}', String(suppliers.length)).replace('{total}', String(serverTotal))}
               </Button>
             </div>
           )}
@@ -480,7 +489,7 @@ export function SuppliersPage() {
         <BlacklistDialog
           isOpen={true}
           onClose={() => setSupplierToBlacklist(null)}
-          supplierName={supplierToBlacklist.name || 'Nieznany'}
+          supplierName={supplierToBlacklist.name || t.common.unknown}
           isSubmitting={blacklistMutation.isPending}
           onConfirm={(reason) => blacklistMutation.mutate({ id: supplierToBlacklist.id, reason })}
         />

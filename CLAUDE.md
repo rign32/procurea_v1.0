@@ -65,7 +65,7 @@ Po potwierdzeniu użytkownika:
 - **Backend**: NestJS + Prisma + PostgreSQL (Docker, port 5432)
 - **Frontend**: React 19 + Vite + Tailwind
 - **AI**: Google Gemini 2.0 Flash (via AI Studio API Key)
-- **Search**: SerpAPI lub Serper.dev
+- **Search**: Serper.dev
 - **Email**: Resend
 
 ## Sourcingowy Pipeline (po optymalizacji z 2026-02-19)

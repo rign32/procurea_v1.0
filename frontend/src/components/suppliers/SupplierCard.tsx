@@ -41,7 +41,7 @@ export function SupplierCard({
           <div className="space-y-1.5 min-w-0">
             <div className="flex items-center gap-2">
               <CardTitle className="text-lg font-bold leading-tight truncate group-hover:text-primary transition-colors" title={supplier.name}>
-                {supplier.name || 'Nieznany dostawca'}
+                {supplier.name || t.suppliers.card.unknownSupplier}
               </CardTitle>
             </div>
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
@@ -56,7 +56,7 @@ export function SupplierCard({
             <Badge variant={getScoreVariant(score)} className="font-bold text-sm px-2.5 py-0.5 shadow-sm">
               {score}%
             </Badge>
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Dopasowanie</span>
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{t.suppliers.card.match}</span>
           </div>
         </div>
       </CardHeader>
@@ -78,7 +78,7 @@ export function SupplierCard({
               ) : (
                 <Store className="mr-1.5 h-3 w-3" />
               )}
-              {supplier.companyType === 'PRODUCENT' ? 'Producent' : 'Handlowiec'}
+              {supplier.companyType === 'PRODUCENT' ? t.suppliers.card.manufacturer : t.suppliers.card.trader}
             </Badge>
           )}
           {supplier.certificates && (
@@ -155,7 +155,7 @@ export function SupplierCard({
                 e.stopPropagation();
                 onExclude();
               }}
-              title="Wyklucz"
+              title={t.suppliers.card.exclude}
             >
               <XCircle className="h-4 w-4" />
             </Button>
@@ -169,7 +169,7 @@ export function SupplierCard({
                 e.stopPropagation();
                 onBlacklist();
               }}
-              title="Dodaj do Blacklisty"
+              title={t.suppliers.card.addToBlacklist}
             >
               <ShieldAlert className="h-4 w-4" />
             </Button>

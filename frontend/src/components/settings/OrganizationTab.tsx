@@ -104,7 +104,7 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
             <Card>
                 <CardHeader>
                     <CardTitle>{t.settings.organization.title}</CardTitle>
-                    <CardDescription>Konfiguracja danych organizacji</CardDescription>
+                    <CardDescription>{t.settings.organization.subtitle}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -128,21 +128,21 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                             <div className="space-y-2">
-                                <Label htmlFor="baseCurrency">Waluta bazowa</Label>
+                                <Label htmlFor="baseCurrency">{t.settings.organization.baseCurrency}</Label>
                                 <select
                                     id="baseCurrency"
                                     {...register('baseCurrency')}
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                 >
-                                    <option value="PLN">PLN - Polski złoty</option>
-                                    <option value="EUR">EUR - Euro</option>
-                                    <option value="USD">USD - Dolar amerykański</option>
-                                    <option value="GBP">GBP - Funt brytyjski</option>
-                                    <option value="CHF">CHF - Frank szwajcarski</option>
-                                    <option value="CNY">CNY - Yuan chiński</option>
+                                    <option value="PLN">{t.settings.organization.currencies.PLN}</option>
+                                    <option value="EUR">{t.settings.organization.currencies.EUR}</option>
+                                    <option value="USD">{t.settings.organization.currencies.USD}</option>
+                                    <option value="GBP">{t.settings.organization.currencies.GBP}</option>
+                                    <option value="CHF">{t.settings.organization.currencies.CHF}</option>
+                                    <option value="CNY">{t.settings.organization.currencies.CNY}</option>
                                 </select>
                                 <p className="text-xs text-muted-foreground">
-                                    Wszystkie ceny w ofertach będą przeliczane na tę walutę dla porównania
+                                    {t.settings.organization.currencyHint}
                                 </p>
                             </div>
                         </div>
@@ -166,32 +166,32 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-2">
                                                 <Label>{t.footer.firstName}</Label>
-                                                <Input {...register('footerFirstName')} placeholder="Jan" />
+                                                <Input {...register('footerFirstName')} placeholder={t.settings.organization.footerFirstNamePlaceholder} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label>{t.footer.lastName}</Label>
-                                                <Input {...register('footerLastName')} placeholder="Kowalski" />
+                                                <Input {...register('footerLastName')} placeholder={t.settings.organization.footerLastNamePlaceholder} />
                                             </div>
                                         </div>
 
                                         <div className="space-y-2">
                                             <Label>{t.footer.company}</Label>
-                                            <Input {...register('footerCompany')} placeholder="Firma Sp. z o.o." />
+                                            <Input {...register('footerCompany')} placeholder={t.settings.organization.footerCompanyPlaceholder} />
                                         </div>
 
                                         <div className="space-y-2">
                                             <Label>{t.footer.position}</Label>
-                                            <Input {...register('footerPosition')} placeholder="Dyrektor Zakupów" />
+                                            <Input {...register('footerPosition')} placeholder={t.settings.organization.footerPositionPlaceholder} />
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-2">
                                                 <Label>{t.footer.email}</Label>
-                                                <Input {...register('footerEmail')} placeholder="jan@firma.pl" />
+                                                <Input {...register('footerEmail')} placeholder={t.settings.organization.footerEmailPlaceholder} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label>{t.footer.phone}</Label>
-                                                <Input {...register('footerPhone')} placeholder="+48 123..." />
+                                                <Input {...register('footerPhone')} placeholder={t.settings.organization.footerPhonePlaceholder} />
                                             </div>
                                         </div>
                                     </div>
@@ -201,13 +201,13 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
                                             <Eye className="h-4 w-4" /> {t.footer.preview}
                                         </Label>
                                         <div className="border rounded-md p-6 bg-white dark:bg-zinc-900 text-sm font-sans shadow-sm h-full flex flex-col justify-center">
-                                            <p className="text-muted-foreground mb-4 italic">[Treść wiadomości email...]</p>
+                                            <p className="text-muted-foreground mb-4 italic">{t.settings.organization.footerPreviewMessage}</p>
                                             <div className="mt-auto border-t pt-4">
                                                 <p className="font-bold text-base text-foreground">
-                                                    {watchedValues.footerFirstName || 'Imie'} {watchedValues.footerLastName || 'Nazwisko'}
+                                                    {watchedValues.footerFirstName || t.settings.organization.footerPreviewFirstName} {watchedValues.footerLastName || t.settings.organization.footerPreviewLastName}
                                                 </p>
-                                                <p className="text-foreground/80 font-medium">{watchedValues.footerPosition || 'Stanowisko'}</p>
-                                                <p className="font-semibold text-primary mt-1">{watchedValues.footerCompany || 'Firma'}</p>
+                                                <p className="text-foreground/80 font-medium">{watchedValues.footerPosition || t.settings.organization.footerPreviewPosition}</p>
+                                                <p className="font-semibold text-primary mt-1">{watchedValues.footerCompany || t.settings.organization.footerPreviewCompany}</p>
                                                 <div className="mt-2 text-xs text-muted-foreground space-y-0.5">
                                                     {(watchedValues.footerEmail) && <p>E: {watchedValues.footerEmail}</p>}
                                                     {(watchedValues.footerPhone) && <p>T: {watchedValues.footerPhone}</p>}

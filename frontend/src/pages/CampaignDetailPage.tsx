@@ -14,7 +14,7 @@ import useCampaignsStore from '@/stores/campaigns.store';
 import campaignsService from '@/services/campaigns.service';
 import apiClient from '@/services/api.client';
 import { useAuthStore } from '@/stores/auth.store';
-import { t } from '@/i18n';
+import { t, isEN } from '@/i18n';
 import { analytics } from '@/lib/analytics';
 import { motion } from 'framer-motion';
 
@@ -92,14 +92,14 @@ export function CampaignDetailPage() {
   };
 
   const handleStopCampaign = async () => {
-    if (!id || !window.confirm('Zatrzymać wyszukiwanie? Znalezione wyniki zostaną zachowane.')) return;
+    if (!id || !window.confirm(t.campaigns.detail.stopConfirm)) return;
     try {
       await apiClient.post(`/campaigns/${id}/stop`);
       analytics.campaignStopped();
-      toast.success('Kampania zatrzymana');
+      toast.success(t.campaigns.detail.stoppedSuccess);
       refetchCampaign();
     } catch (err: any) {
-      toast.error(`Błąd: ${err.response?.data?.message || err.message}`);
+      toast.error(`${t.campaigns.detail.errorTitle}: ${err.response?.data?.message || err.message}`);
     }
   };
 
@@ -133,7 +133,7 @@ export function CampaignDetailPage() {
       const { data } = await apiClient.get(`/reports/campaign/${id}/pptx`, { responseType: 'blob' });
       analytics.exportPowerpoint();
       downloadBlob(data, `procurea-raport-${campaign?.name || id}.pptx`);
-    } catch { toast.error('Błąd generowania PowerPoint'); }
+    } catch { toast.error(t.campaigns.detail.pptxError); }
     finally { setDownloadingPptx(false); }
   };
 
@@ -153,7 +153,7 @@ export function CampaignDetailPage() {
   const handleAcceptAll = async () => {
     if (!id) return;
     const activeCount = suppliers.filter(s => !excludedIds.includes(s.id)).length;
-    if (!window.confirm(`Zaakceptować ${activeCount} dostawców i rozpocząć wysyłkę sekwencji?`)) return;
+    if (!window.confirm(t.campaigns.detail.acceptConfirm.replace('{count}', String(activeCount)))) return;
 
     setAccepting(true);
     try {
@@ -161,12 +161,12 @@ export function CampaignDetailPage() {
         excludedSupplierIds: excludedIds,
       });
       analytics.suppliersAccepted();
-      toast.success(`Zaakceptowano ${result.data.qualified} dostawców. Wysłano ${result.data.offersSent} zaproszenia.`);
+      toast.success(t.campaigns.detail.acceptedResult.replace('{qualified}', String(result.data.qualified)).replace('{sent}', String(result.data.offersSent)));
       refetchCampaign();
       // Refresh report
       apiClient.get(`/reports/campaign/${id}`).then(({ data }) => setReport(data)).catch(() => { });
     } catch (err: any) {
-      toast.error(`Błąd akceptacji: ${err.response?.data?.message || err.message}`);
+      toast.error(`${t.campaigns.detail.acceptError}: ${err.response?.data?.message || err.message}`);
     } finally {
       setAccepting(false);
     }
@@ -205,9 +205,9 @@ export function CampaignDetailPage() {
 
   const getStatusBadge = () => {
     if (isError) return <Badge variant="destructive">{t.campaigns.status.error}</Badge>;
-    if (campaign.status === 'SENDING') return <Badge className="bg-blue-600">Wysyłanie sekwencji</Badge>;
-    if (campaign.status === 'ACCEPTED') return <Badge className="bg-green-600">Zaakceptowana</Badge>;
-    if (campaign.status === 'DONE') return <Badge className="bg-emerald-700">Zakończona</Badge>;
+    if (campaign.status === 'SENDING') return <Badge className="bg-blue-600">{t.campaigns.status.sending}</Badge>;
+    if (campaign.status === 'ACCEPTED') return <Badge className="bg-green-600">{t.campaigns.status.accepted}</Badge>;
+    if (campaign.status === 'DONE') return <Badge className="bg-emerald-700">{t.campaigns.status.done}</Badge>;
     if (isCompleted) return <Badge variant="default">{t.campaigns.status.completed}</Badge>;
     return (
       <Badge variant="secondary" className="animate-pulse bg-blue-100 text-blue-700 border-blue-200">
@@ -249,7 +249,7 @@ export function CampaignDetailPage() {
               <div className="flex items-center gap-2 mt-2">
                 {getStatusBadge()}
                 <span className="text-sm text-muted-foreground">
-                  Utworzono: {new Date(campaign.createdAt).toLocaleDateString('pl-PL')}
+                  {t.campaigns.detail.created + ':'} {new Date(campaign.createdAt).toLocaleDateString(isEN ? 'en-US' : 'pl-PL')}
                 </span>
               </div>
             </div>
@@ -259,7 +259,7 @@ export function CampaignDetailPage() {
             {isRunning && (
               <Button variant="outline" onClick={handleStopCampaign} className="text-amber-600 hover:bg-amber-50 border-amber-200">
                 <StopCircle className="mr-2 h-4 w-4" />
-                Zatrzymaj
+                {t.campaigns.detail.stopButton}
               </Button>
             )}
             {isFullPlan && isCompleted && !isAccepted && (
@@ -269,7 +269,7 @@ export function CampaignDetailPage() {
                 className="bg-green-600 hover:bg-green-700"
               >
                 {accepting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
-                {accepting ? 'Akceptowanie...' : t.campaigns.detail.acceptAllSuppliers}
+                {accepting ? t.campaigns.detail.accepting : t.campaigns.detail.acceptAllSuppliers}
               </Button>
             )}
             <Button variant="outline" onClick={() => setShowDelete(true)} className="text-destructive hover:bg-destructive/10">
@@ -288,13 +288,13 @@ export function CampaignDetailPage() {
               <CardContent className="flex items-center gap-4 py-6">
                 <AlertTriangle className="h-8 w-8 text-destructive shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-destructive">Wystąpił błąd</h3>
+                  <h3 className="font-semibold text-destructive">{t.campaigns.detail.errorTitle}</h3>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Kampania zakończyła się błędem. Sprawdź konsolę przeglądarki (F12) po szczegóły.
+                    {t.campaigns.detail.errorDescription}
                   </p>
                 </div>
                 <Button variant="outline" onClick={() => navigate('/campaigns')} className="ml-auto shrink-0">
-                  Wróć do kampanii
+                  {t.campaigns.detail.backButton}
                 </Button>
               </CardContent>
             </Card>
@@ -345,7 +345,7 @@ export function CampaignDetailPage() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
                     <BarChart3 className="h-5 w-5" />
-                    Analiza AI
+                    {t.campaigns.detail.aiAnalysis}
                   </CardTitle>
                   {aiSummary && (
                     <Button variant="outline" size="sm" onClick={handleDownloadPptx} disabled={downloadingPptx}>
@@ -359,26 +359,26 @@ export function CampaignDetailPage() {
                 {aiSummaryLoading ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mr-3" />
-                    <span className="text-muted-foreground">Generowanie analizy AI...</span>
+                    <span className="text-muted-foreground">{t.campaigns.detail.generatingAi}</span>
                   </div>
                 ) : aiSummary ? (
                   <div className="space-y-6">
                     {/* Market Overview */}
                     <div>
-                      <h4 className="text-sm font-semibold mb-2">Przegląd rynku</h4>
+                      <h4 className="text-sm font-semibold mb-2">{t.campaigns.detail.marketOverview}</h4>
                       <p className="text-sm text-muted-foreground leading-relaxed">{aiSummary.marketOverview}</p>
                     </div>
 
                     {/* Coverage */}
                     <div className="p-3 rounded-lg bg-muted/50">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium">Pokrycie rynku</span>
+                        <span className="text-sm font-medium">{t.campaigns.detail.marketCoverage}</span>
                         <Badge variant={
                           aiSummary.coverageAssessment === 'HIGH' ? 'default' :
                           aiSummary.coverageAssessment === 'MEDIUM' ? 'secondary' : 'destructive'
                         }>
-                          {aiSummary.coverageAssessment === 'HIGH' ? 'Wysokie' :
-                           aiSummary.coverageAssessment === 'MEDIUM' ? 'Średnie' : 'Niskie'}
+                          {aiSummary.coverageAssessment === 'HIGH' ? t.campaigns.detail.coverageHigh :
+                           aiSummary.coverageAssessment === 'MEDIUM' ? t.campaigns.detail.coverageMedium : t.campaigns.detail.coverageLow}
                         </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground">{aiSummary.coverageNote}</p>
@@ -387,7 +387,7 @@ export function CampaignDetailPage() {
                     {/* Key Players */}
                     {aiSummary.keyPlayers?.length > 0 && (
                       <div>
-                        <h4 className="text-sm font-semibold mb-2">Kluczowi gracze</h4>
+                        <h4 className="text-sm font-semibold mb-2">{t.campaigns.detail.keyPlayers}</h4>
                         <div className="space-y-2">
                           {aiSummary.keyPlayers.map((kp: any, i: number) => (
                             <div key={i} className="flex items-start gap-2 text-sm">
@@ -406,13 +406,13 @@ export function CampaignDetailPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {aiSummary.geographicAnalysis && (
                         <div>
-                          <h4 className="text-sm font-semibold mb-1">Analiza geograficzna</h4>
+                          <h4 className="text-sm font-semibold mb-1">{t.campaigns.detail.geographicAnalysis}</h4>
                           <p className="text-xs text-muted-foreground">{aiSummary.geographicAnalysis}</p>
                         </div>
                       )}
                       {aiSummary.priceInsight && (
                         <div>
-                          <h4 className="text-sm font-semibold mb-1">Kontekst cenowy</h4>
+                          <h4 className="text-sm font-semibold mb-1">{t.campaigns.detail.priceContext}</h4>
                           <p className="text-xs text-muted-foreground">{aiSummary.priceInsight}</p>
                         </div>
                       )}
@@ -422,7 +422,7 @@ export function CampaignDetailPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {aiSummary.recommendations?.length > 0 && (
                         <div>
-                          <h4 className="text-sm font-semibold mb-2">Rekomendacje</h4>
+                          <h4 className="text-sm font-semibold mb-2">{t.campaigns.detail.recommendations}</h4>
                           <ul className="space-y-1">
                             {aiSummary.recommendations.map((r: string, i: number) => (
                               <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
@@ -435,7 +435,7 @@ export function CampaignDetailPage() {
                       )}
                       {aiSummary.riskFactors?.length > 0 && (
                         <div>
-                          <h4 className="text-sm font-semibold mb-2">Czynniki ryzyka</h4>
+                          <h4 className="text-sm font-semibold mb-2">{t.campaigns.detail.riskFactors}</h4>
                           <ul className="space-y-1">
                             {aiSummary.riskFactors.map((r: string, i: number) => (
                               <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
@@ -450,7 +450,7 @@ export function CampaignDetailPage() {
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground py-4 text-center">
-                    Analiza AI niedostępna
+                    {t.campaigns.detail.aiUnavailable}
                   </p>
                 )}
               </CardContent>
@@ -468,7 +468,7 @@ export function CampaignDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="h-5 w-5" />
-                  Raport kampanii
+                  {t.campaigns.detail.campaignReport}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -477,7 +477,7 @@ export function CampaignDetailPage() {
                   {isFullPlan && <div className="space-y-4">
                     <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                       <Send className="h-4 w-4" />
-                      Postęp sekwencji
+                      {t.campaigns.detail.sequenceProgress}
                       {report.sequenceTemplateName && (
                         <span className="text-xs bg-muted px-2 py-0.5 rounded-full">{report.sequenceTemplateName}</span>
                       )}
@@ -487,7 +487,7 @@ export function CampaignDetailPage() {
                       <div className="space-y-3">
                         {report.sequenceProgress.map((step: any, idx: number) => {
                           const pct = step.total > 0 ? Math.round((step.sent / step.total) * 100) : 0;
-                          const stepLabel = step.type === 'INITIAL' ? 'Zaproszenie' : step.type === 'REMINDER' ? 'Przypomnienie' : step.type === 'FINAL' ? 'Ostateczne' : step.type;
+                          const stepLabel = step.type === 'INITIAL' ? t.campaigns.detail.invitation : step.type === 'REMINDER' ? t.campaigns.detail.reminder : step.type === 'FINAL' ? t.campaigns.detail.finalStep : step.type;
                           const isActive = step.sent > 0 && step.sent < step.total;
                           const isDone = step.total > 0 && step.sent === step.total;
 
@@ -500,7 +500,7 @@ export function CampaignDetailPage() {
                                   </span>
                                   <span className="font-medium">{stepLabel}</span>
                                   <span className="text-xs text-muted-foreground">
-                                    (Dzień {step.dayOffset})
+                                    ({t.campaigns.detail.dayLabel} {step.dayOffset})
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -509,7 +509,7 @@ export function CampaignDetailPage() {
                                   <span className="text-xs font-medium">
                                     {step.sent}/{step.total}
                                     {step.failed > 0 && (
-                                      <span className="text-red-500 ml-1">({step.failed} błędów)</span>
+                                      <span className="text-red-500 ml-1">({step.failed} {t.campaigns.detail.errorsCount})</span>
                                     )}
                                   </span>
                                 </div>
@@ -530,8 +530,8 @@ export function CampaignDetailPage() {
                         <Mail className="h-5 w-5" />
                         <div>
                           {isCompleted && !isAccepted
-                            ? 'Zaakceptuj dostawców, aby rozpocząć sekwencję mailową'
-                            : 'Brak przypisanej sekwencji mailowej'}
+                            ? t.campaigns.detail.acceptToStart
+                            : t.campaigns.detail.noSequenceAssigned}
                         </div>
                       </div>
                     )}
@@ -540,15 +540,15 @@ export function CampaignDetailPage() {
                     {isAccepted && (
                       <div className="border-t pt-3 space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Utworzone oferty:</span>
+                          <span className="text-muted-foreground">{t.campaigns.detail.offersCreated}:</span>
                           <span className="font-semibold">{report.offersCreated || 0}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Otrzymane odpowiedzi:</span>
+                          <span className="text-muted-foreground">{t.campaigns.detail.offersReceived}:</span>
                           <span className="font-semibold text-green-600">{report.offersReceived || 0}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Zaakceptowane:</span>
+                          <span className="text-muted-foreground">{t.campaigns.detail.offersAccepted}:</span>
                           <span className="font-semibold text-emerald-600">{report.accepted || 0}</span>
                         </div>
                       </div>
@@ -558,7 +558,7 @@ export function CampaignDetailPage() {
                   {/* Country Breakdown */}
                   {report.countries?.length > 0 && (
                     <div className="space-y-3">
-                      <h4 className="text-sm font-medium text-muted-foreground">Rozkład krajów</h4>
+                      <h4 className="text-sm font-medium text-muted-foreground">{t.campaigns.detail.countryBreakdown}</h4>
                       <div className="space-y-2">
                         {report.countries.slice(0, 10).map((c: any) => (
                           <div key={c.country} className="flex items-center justify-between text-sm">
@@ -592,7 +592,7 @@ export function CampaignDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Mail className="h-5 w-5" />
-                  Szczegóły wysyłki
+                  {t.campaigns.detail.sequenceDetails}
                 </CardTitle>
                 {(() => {
                   const allExecs = report.sequenceDetails.flatMap((d: any) => d.executions || []);
@@ -601,11 +601,11 @@ export function CampaignDetailPage() {
                     .sort((a: any, b: any) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime())[0];
                   return lastSent ? (
                     <p className="text-xs text-muted-foreground">
-                      Ostatnia wysyłka: {new Date(lastSent.sentAt).toLocaleString('pl-PL')}
+                      {t.campaigns.detail.lastSentLabel}: {new Date(lastSent.sentAt).toLocaleString(isEN ? 'en-US' : 'pl-PL')}
                     </p>
                   ) : (
                     <p className="text-xs text-muted-foreground">
-                      Oczekiwanie na scheduler (sprawdza co 5 min)
+                      {t.campaigns.detail.waitingScheduler}
                     </p>
                   );
                 })()}
@@ -615,13 +615,13 @@ export function CampaignDetailPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b text-left">
-                        <th className="py-2 pr-4 font-medium text-muted-foreground">Dostawca</th>
-                        <th className="py-2 pr-4 font-medium text-muted-foreground">Kraj</th>
-                        <th className="py-2 pr-4 font-medium text-muted-foreground">Email</th>
-                        <th className="py-2 pr-4 font-medium text-muted-foreground">Krok</th>
-                        <th className="py-2 pr-4 font-medium text-muted-foreground">Status</th>
-                        <th className="py-2 pr-4 font-medium text-muted-foreground">Data</th>
-                        <th className="py-2 font-medium text-muted-foreground">Następny krok</th>
+                        <th className="py-2 pr-4 font-medium text-muted-foreground">{t.campaigns.detail.tableSupplier}</th>
+                        <th className="py-2 pr-4 font-medium text-muted-foreground">{t.campaigns.detail.tableCountry}</th>
+                        <th className="py-2 pr-4 font-medium text-muted-foreground">{t.campaigns.detail.tableEmail}</th>
+                        <th className="py-2 pr-4 font-medium text-muted-foreground">{t.campaigns.detail.tableStep}</th>
+                        <th className="py-2 pr-4 font-medium text-muted-foreground">{t.campaigns.detail.tableStatus}</th>
+                        <th className="py-2 pr-4 font-medium text-muted-foreground">{t.campaigns.detail.tableDate}</th>
+                        <th className="py-2 font-medium text-muted-foreground">{t.campaigns.detail.tableNextStep}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -629,9 +629,9 @@ export function CampaignDetailPage() {
                         .sort((a: any, b: any) => (a.supplierName || '').localeCompare(b.supplierName || ''))
                         .map((detail: any) => {
                           const stepLabel = (type: string) =>
-                            type === 'INITIAL' ? 'Zaproszenie' :
-                              type === 'REMINDER' ? 'Przypomnienie' :
-                                type === 'FINAL' ? 'Ostateczne' : type;
+                            type === 'INITIAL' ? t.campaigns.detail.invitation :
+                              type === 'REMINDER' ? t.campaigns.detail.reminder :
+                                type === 'FINAL' ? t.campaigns.detail.finalStep : type;
 
                           const executions = detail.executions || [];
                           const hasExecs = executions.length > 0;
@@ -646,14 +646,14 @@ export function CampaignDetailPage() {
                                 <td className="py-2 pr-4">
                                   <span className="inline-flex items-center gap-1 text-amber-600">
                                     <Clock className="h-3.5 w-3.5" />
-                                    Oczekuje
+                                    {t.campaigns.detail.statusWaiting}
                                   </span>
                                 </td>
                                 <td className="py-2 pr-4 text-muted-foreground">—</td>
                                 <td className="py-2">
                                   {detail.nextScheduled ? (
                                     <span className="text-muted-foreground">
-                                      {stepLabel(detail.nextScheduled.stepType)} — {new Date(detail.nextScheduled.dueAt).toLocaleString('pl-PL')}
+                                      {stepLabel(detail.nextScheduled.stepType)} — {new Date(detail.nextScheduled.dueAt).toLocaleString(isEN ? 'en-US' : 'pl-PL')}
                                     </span>
                                   ) : '—'}
                                 </td>
@@ -675,31 +675,31 @@ export function CampaignDetailPage() {
                                 {exec.status === 'SENT' ? (
                                   <span className="inline-flex items-center gap-1 text-green-600">
                                     <CheckCircle2 className="h-3.5 w-3.5" />
-                                    Wysłano
+                                    {t.campaigns.detail.statusSent}
                                   </span>
                                 ) : exec.status === 'FAILED' ? (
                                   <span className="inline-flex items-center gap-1 text-red-600">
                                     <AlertTriangle className="h-3.5 w-3.5" />
-                                    Błąd
+                                    {t.campaigns.detail.statusError}
                                   </span>
                                 ) : (
                                   <span className="text-muted-foreground">{exec.status}</span>
                                 )}
                               </td>
                               <td className="py-2 pr-4">
-                                {exec.sentAt ? new Date(exec.sentAt).toLocaleString('pl-PL') : '—'}
+                                {exec.sentAt ? new Date(exec.sentAt).toLocaleString(isEN ? 'en-US' : 'pl-PL') : '—'}
                               </td>
                               {idx === 0 ? (
                                 <td className="py-2" rowSpan={executions.length}>
                                   {detail.nextScheduled ? (
                                     <span className="inline-flex items-center gap-1 text-blue-600">
                                       <Clock className="h-3.5 w-3.5" />
-                                      {stepLabel(detail.nextScheduled.stepType)} — {new Date(detail.nextScheduled.dueAt).toLocaleString('pl-PL')}
+                                      {stepLabel(detail.nextScheduled.stepType)} — {new Date(detail.nextScheduled.dueAt).toLocaleString(isEN ? 'en-US' : 'pl-PL')}
                                     </span>
                                   ) : (
                                     <span className="inline-flex items-center gap-1 text-green-600">
                                       <CheckCircle2 className="h-3.5 w-3.5" />
-                                      Ukończono
+                                      {t.campaigns.detail.statusCompleted}
                                     </span>
                                   )}
                                 </td>
@@ -727,30 +727,30 @@ export function CampaignDetailPage() {
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                  Wyszukiwanie trwa...
+                  {t.campaigns.detail.searchInProgress}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 text-sm">
                 <div className="flex justify-between items-center pb-3 border-b">
-                  <span className="text-muted-foreground">Znaleziono dostawców:</span>
+                  <span className="text-muted-foreground">{t.campaigns.detail.suppliersFoundLabel}:</span>
                   <span className="font-bold text-2xl text-primary">{suppliers.length}</span>
                 </div>
                 <div className="space-y-3 text-muted-foreground">
                   <div className="flex items-start gap-2">
                     <Monitor className="h-4 w-4 mt-0.5 shrink-0 text-primary/70" />
-                    <p>Program działa <strong className="text-foreground">automatycznie w tle</strong>. Możesz zamknąć tę stronę i wrócić później wybierając <strong className="text-foreground">"Kampanie"</strong> w menu.</p>
+                    <p>{t.campaigns.detail.backgroundNote}</p>
                   </div>
                   <div className="flex items-start gap-2">
                     <Clock className="h-4 w-4 mt-0.5 shrink-0 text-primary/70" />
-                    <p>Maksymalny czas wyszukiwania to <strong className="text-foreground">20 minut</strong>. Po tym czasie wyniki na pewno będą gotowe.</p>
+                    <p>{t.campaigns.detail.maxTimeNote}</p>
                   </div>
                   <div className="flex items-start gap-2">
                     <FileDown className="h-4 w-4 mt-0.5 shrink-0 text-primary/70" />
-                    <p>Po zakończeniu:</p>
+                    <p>{t.campaigns.detail.afterCompletion}</p>
                   </div>
                   <ul className="ml-6 space-y-1.5 text-xs">
-                    <li><strong className="text-foreground">Eksport do Excela</strong> — pełna lista dostawców z danymi kontaktowymi</li>
-                    <li><strong className="text-foreground">Raport AI (PowerPoint)</strong> — podsumowanie rynku, kluczowi gracze, rekomendacje — gotowy wsad do wewnętrznej komunikacji</li>
+                    <li>{t.campaigns.detail.exportExcelDesc}</li>
+                    <li>{t.campaigns.detail.aiReportDesc}</li>
                   </ul>
                 </div>
               </CardContent>
@@ -763,7 +763,7 @@ export function CampaignDetailPage() {
       <motion.div variants={itemVariants}>
         {(!isRunning || suppliers.length > 0) && (
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold">Lista dostawców ({suppliers.length})</h2>
+            <h2 className="text-lg font-semibold">{t.campaigns.detail.suppliersList} ({suppliers.length})</h2>
             {(isCompleted || isAccepted) && (
               <Button variant="outline" size="sm" onClick={handleExport} disabled={exportMutation.isPending}>
                 <Download className="mr-2 h-4 w-4" />

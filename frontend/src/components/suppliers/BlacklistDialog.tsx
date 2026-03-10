@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ShieldAlert, Loader2 } from 'lucide-react';
+import { t } from '@/i18n';
 
 interface BlacklistDialogProps {
     isOpen: boolean;
@@ -31,20 +32,20 @@ export function BlacklistDialog({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2 text-destructive">
                         <ShieldAlert className="h-5 w-5" />
-                        Dodaj do Blacklisty
+                        {t.suppliers.card.addToBlacklist}
                     </DialogTitle>
                     <DialogDescription>
-                        Czy na pewno chcesz dodać <strong>{supplierName}</strong> do Blacklisty? Ten dostawca nie będzie brany pod uwagę w przyszłych kampaniach.
+                        {t.suppliers.card.addToBlacklist}: <strong>{supplierName}</strong>
                     </DialogDescription>
                 </DialogHeader>
                 <div className="py-4 space-y-4">
                     <div className="space-y-2">
                         <label htmlFor="reason" className="text-sm font-medium">
-                            Powód (opcjonalnie)
+                            ({t.common.optional})
                         </label>
                         <Textarea
                             id="reason"
-                            placeholder="np. Słaba jakość komunikacji, nierealistyczne ceny..."
+                            placeholder=""
                             value={reason}
                             onChange={(e) => setReason(e.target.value)}
                             className="resize-none h-24"
@@ -53,7 +54,7 @@ export function BlacklistDialog({
                 </div>
                 <DialogFooter>
                     <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
-                        Anuluj
+                        {t.common.cancel}
                     </Button>
                     <Button variant="destructive" onClick={handleConfirm} disabled={isSubmitting}>
                         {isSubmitting ? (
@@ -61,7 +62,7 @@ export function BlacklistDialog({
                         ) : (
                             <ShieldAlert className="h-4 w-4 mr-2" />
                         )}
-                        Dodaj do Blacklisty
+                        {t.suppliers.card.addToBlacklist}
                     </Button>
                 </DialogFooter>
             </DialogContent>

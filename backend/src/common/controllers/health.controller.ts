@@ -28,7 +28,7 @@ export class HealthController {
      */
     @Get('serp')
     async getSerpHealth(@Query('type') type?: string): Promise<ServiceHealth> {
-        return this.healthService.checkSerpApiHealth(type === 'deep');
+        return this.healthService.checkSerperHealth(type === 'deep');
     }
 
     /**

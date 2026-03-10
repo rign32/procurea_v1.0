@@ -401,7 +401,7 @@ export class AdminService {
             const dbErrors = await this.prisma.apiUsageLog.findMany({
                 where: {
                     status: 'error',
-                    service: { in: ['gemini', 'serpapi', 'serper'] },
+                    service: { in: ['gemini', 'serper'] },
                 },
                 orderBy: { createdAt: 'desc' },
                 take: limit,
@@ -509,10 +509,10 @@ export class AdminService {
                     ...health.services.gemini,
                     apiKey: process.env.GEMINI_API_KEY ? '***' + process.env.GEMINI_API_KEY.slice(-4) : 'NOT SET',
                 },
-                serpApi: {
-                    ...health.services.serpApi,
-                    provider: process.env.SEARCH_PROVIDER || 'serpapi',
-                    apiKey: process.env.SERP_API_KEY ? '***' + process.env.SERP_API_KEY.slice(-4) : 'NOT SET',
+                serper: {
+                    ...health.services.serper,
+                    provider: 'serper',
+                    apiKey: process.env.SERPER_API_KEY ? '***' + process.env.SERPER_API_KEY.slice(-4) : 'NOT SET',
                 },
                 database: health.services.database,
                 email: {
@@ -580,12 +580,12 @@ export class AdminService {
     }
 
     async getSourcingCostPerRequest() {
-        // Get all sourcing-related API calls (gemini + serpapi combined)
+        // Get all sourcing-related API calls (gemini + serper combined)
         const last30Days = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
         const sourcingCalls = await this.prisma.apiUsageLog.findMany({
             where: {
-                service: { in: ['gemini', 'serpapi', 'serper'] },
+                service: { in: ['gemini', 'serper'] },
                 status: 'success',
                 createdAt: { gte: last30Days },
             },
@@ -614,9 +614,9 @@ export class AdminService {
             svc.avgCost = svc.calls > 0 ? svc.cost / svc.calls : 0;
         }
 
-        // Estimate sourcing pipeline cost (typically: multiple SerpAPI + multiple Gemini per pipeline)
+        // Estimate sourcing pipeline cost (typically: multiple Serper + multiple Gemini per pipeline)
         // A single sourcing request roughly uses: 5-15 search queries + 10-20 Gemini calls
-        const avgSerpCost = byService['serpapi']?.avgCost || byService['serper']?.avgCost || 0;
+        const avgSerpCost = byService['serper']?.avgCost || 0;
         const avgGeminiCost = byService['gemini']?.avgCost || 0;
         const estimatedPipelineCost = (avgSerpCost * 10) + (avgGeminiCost * 15);
 

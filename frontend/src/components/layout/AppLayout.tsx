@@ -16,6 +16,7 @@ import {
     Phone
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { t, isEN } from "@/i18n"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuthStore } from "@/stores/auth.store"
@@ -32,13 +33,13 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
     const isFullPlan = user?.plan === 'full';
 
     const navigation = [
-        { name: "Dashboard", href: "/", icon: LayoutDashboard },
-        { name: "Kampanie", href: "/campaigns", icon: Target },
-        ...(isFullPlan ? [{ name: "Zapytania ofertowe", href: "/rfqs", icon: FileText }] : []),
-        { name: "Dostawcy", href: "/suppliers", icon: Users },
-        { name: "Blacklist", href: "/blacklist", icon: ShieldAlert },
-        ...(isFullPlan ? [{ name: "Sekwencje", href: "/sequences", icon: Mail }] : []),
-        { name: "Ustawienia", href: "/settings", icon: Settings },
+        { name: t.nav.dashboard, href: "/", icon: LayoutDashboard },
+        { name: t.nav.campaigns, href: "/campaigns", icon: Target },
+        ...(isFullPlan ? [{ name: t.nav.rfqs, href: "/rfqs", icon: FileText }] : []),
+        { name: t.nav.suppliers, href: "/suppliers", icon: Users },
+        { name: t.nav.blacklist, href: "/blacklist", icon: ShieldAlert },
+        ...(isFullPlan ? [{ name: t.nav.sequences, href: "/sequences", icon: Mail }] : []),
+        { name: t.nav.settings, href: "/settings", icon: Settings },
     ]
 
     return (
@@ -97,9 +98,12 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
                     <div className="rounded-md bg-muted/50 p-3 space-y-1.5">
                         <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                             <HelpCircle className="h-3.5 w-3.5" />
-                            Potrzebujesz pomocy?
+                            {t.nav.needHelp}
                         </div>
-                        <a href="mailto:kontakt@procurea.pl?subject=Zg%C5%82oszenie%20%E2%80%94%20Procurea&body=Dzie%C5%84%20dobry%2C%20dzi%C4%99kuj%C4%99%20za%20zg%C5%82aszanie%20problem%C3%B3w%20i%20sugestii%20rozwoju%20%E2%80%94%20do%C5%82%C4%85czanie%20screenshot%C3%B3w%20oraz%20opisywanie%20sytuacji%2C%20w%20kt%C3%B3rej%20program%20nie%20zadzia%C5%82a%C5%82%20nale%C5%BCycie%20pomo%C5%BCe%20szybciej%20Pa%C5%84stwu%20pom%C3%B3c.%0A%0AMiejsce%20wyst%C4%99powania%3A%20%0AOpis%20problemu%3A%20" className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                        <a href={isEN
+                          ? "mailto:kontakt@procurea.pl?subject=Report%20%E2%80%94%20Procurea&body=Hello%2C%20thank%20you%20for%20reporting%20issues%20and%20suggestions%20%E2%80%94%20attaching%20screenshots%20and%20describing%20the%20situation%20will%20help%20us%20assist%20you%20faster.%0A%0ALocation%3A%20%0ADescription%3A%20"
+                          : "mailto:kontakt@procurea.pl?subject=Zg%C5%82oszenie%20%E2%80%94%20Procurea&body=Dzie%C5%84%20dobry%2C%20dzi%C4%99kuj%C4%99%20za%20zg%C5%82aszanie%20problem%C3%B3w%20i%20sugestii%20rozwoju%20%E2%80%94%20do%C5%82%C4%85czanie%20screenshot%C3%B3w%20oraz%20opisywanie%20sytuacji%2C%20w%20kt%C3%B3rej%20program%20nie%20zadzia%C5%82a%C5%82%20nale%C5%BCycie%20pomo%C5%BCe%20szybciej%20Pa%C5%84stwu%20pom%C3%B3c.%0A%0AMiejsce%20wyst%C4%99powania%3A%20%0AOpis%20problemu%3A%20"
+                        } className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors">
                             <Mail className="h-3.5 w-3.5" />
                             kontakt@procurea.pl
                         </a>
@@ -125,7 +129,7 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
                             variant="ghost"
                             size="icon"
                             onClick={onLogout}
-                            title="Wyloguj"
+                            title={t.nav.logout}
                             className="shrink-0"
                         >
                             <LogOut className="h-4 w-4" />

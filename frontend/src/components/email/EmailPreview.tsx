@@ -97,7 +97,7 @@ export function EmailPreview({
     <div className={`rounded-lg border bg-white ${className}`}>
       {previewSubject && (
         <div className="border-b px-4 py-2 text-sm">
-          <span className="text-muted-foreground">Temat: </span>
+          <span className="text-muted-foreground">{t.emailPreview.subject}: </span>
           <span className="font-medium">{previewSubject}</span>
         </div>
       )}
@@ -110,7 +110,7 @@ export function EmailPreview({
           <Alert className="bg-primary/5 text-primary border-primary/20">
             <Globe2 className="h-4 w-4" />
             <AlertDescription>
-              System automatycznie przetłumaczy tę wiadomość na język preferowany przez dostawcę przed wysyłką.
+              {t.emailPreview.translationNotice}
             </AlertDescription>
           </Alert>
         </div>

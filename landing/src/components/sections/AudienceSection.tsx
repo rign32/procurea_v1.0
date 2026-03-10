@@ -63,7 +63,7 @@ const cardVariants = {
 
 export function AudienceSection() {
   return (
-    <section id="dla-kogo" className="py-24 lg:py-32 bg-muted/30 relative overflow-hidden">
+    <section id={t.sectionIds.audience} className="py-24 lg:py-32 bg-muted/30 relative overflow-hidden">
       <div className="absolute top-20 right-0 w-[500px] h-[500px] rounded-full bg-violet-500/[0.03] blur-[100px] pointer-events-none" />
       <div className="absolute bottom-10 left-0 w-[400px] h-[400px] rounded-full bg-blue-500/[0.03] blur-[80px] pointer-events-none" />
 

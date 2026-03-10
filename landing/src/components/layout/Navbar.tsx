@@ -10,10 +10,10 @@ import { t } from "@/i18n"
 const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 
 const navLinks = [
-  { label: t.nav.howItWorks, href: "#jak-to-dziala" },
-  { label: t.nav.features, href: "#co-zyskujesz" },
-  { label: t.nav.audience, href: "#dla-kogo" },
-  { label: t.nav.faq, href: "#faq" },
+  { label: t.nav.howItWorks, href: `#${t.sectionIds.howItWorks}` },
+  { label: t.nav.features, href: `#${t.sectionIds.features}` },
+  { label: t.nav.audience, href: `#${t.sectionIds.audience}` },
+  { label: t.nav.faq, href: `#${t.sectionIds.faq}` },
 ]
 
 export function Navbar() {

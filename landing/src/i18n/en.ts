@@ -16,6 +16,13 @@ export const EN: LandingTranslations = {
     openMenu: 'Open menu',
     closeMenu: 'Close menu',
   },
+  sectionIds: {
+    howItWorks: 'how-it-works',
+    features: 'features',
+    audience: 'who-its-for',
+    betaSignup: 'join-beta',
+    faq: 'faq',
+  },
   hero: {
     badge: 'AI-Powered Tool · Free Beta Access',
     headlinePart1: 'AI scans the internet',
@@ -254,9 +261,9 @@ export const EN: LandingTranslations = {
     company: 'Company',
     legal: 'Legal',
     productLinks: [
-      { label: 'Features', href: '#co-zyskujesz' },
-      { label: 'How it works', href: '#jak-to-dziala' },
-      { label: 'Who it\'s for', href: '#dla-kogo' },
+      { label: 'Features', href: '#features' },
+      { label: 'How it works', href: '#how-it-works' },
+      { label: 'Who it\'s for', href: '#who-its-for' },
       { label: 'FAQ', href: '#faq' },
     ],
     companyLinks: [

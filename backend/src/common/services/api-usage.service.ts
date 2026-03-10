@@ -20,7 +20,7 @@ export interface ApiUsageStats {
 }
 
 export interface LogApiCallParams {
-    service: 'gemini' | 'serpapi' | 'serper';
+    service: 'gemini' | 'serper';
     endpoint?: string;
     userId?: string;
     requestPayload?: string;
@@ -33,8 +33,7 @@ export interface LogApiCallParams {
 // Cost constants (USD)
 const GEMINI_INPUT_COST_PER_1K = 0.00025;  // gemini-2.0-flash
 const GEMINI_OUTPUT_COST_PER_1K = 0.0005;
-const SERPAPI_COST_PER_CALL = 0.01;   // $50/5k queries
-const SERPER_COST_PER_CALL = 0.001;   // $50/50k queries (10x cheaper)
+const SERPER_COST_PER_CALL = 0.001;   // $50/50k queries — Serper.dev
 
 @Injectable()
 export class ApiUsageService {
@@ -107,8 +106,6 @@ export class ApiUsageService {
                     );
                 }
                 return null;
-            case 'serpapi':
-                return SERPAPI_COST_PER_CALL;
             case 'serper':
                 return SERPER_COST_PER_CALL;
             default:

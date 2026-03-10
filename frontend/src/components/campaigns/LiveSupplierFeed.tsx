@@ -6,7 +6,7 @@ import { rfqsService } from '@/services/rfqs.service';
 import type { Supplier } from '@/types/supplier.types';
 import { t } from '@/i18n';
 
-const MAX_SECONDS = 20 * 60; // 20 minutes
+const MAX_SECONDS = 5 * 60; // 5 minutes
 
 function WaitingForResults({ isRunning, campaignStartedAt, onStop }: { isRunning?: boolean; campaignStartedAt?: string; onStop?: () => void }) {
   const calcRemaining = () => {
@@ -33,8 +33,8 @@ function WaitingForResults({ isRunning, campaignStartedAt, onStop }: { isRunning
   if (!isRunning) {
     return (
       <div className="text-center py-12 text-muted-foreground">
-        <p>Czekam na wyniki wyszukiwania...</p>
-        <p className="text-sm mt-2">Dostawcy będą pojawiać się tutaj w czasie rzeczywistym</p>
+        <p>{t.feed.waitingForResults}</p>
+        <p className="text-sm mt-2">{t.feed.suppliersAppearHere}</p>
       </div>
     );
   }
@@ -42,11 +42,11 @@ function WaitingForResults({ isRunning, campaignStartedAt, onStop }: { isRunning
   return (
     <div className="text-center py-16 space-y-6">
       <div>
-        <p className="text-lg font-medium">Szukam dostawców...</p>
+        <p className="text-lg font-medium">{t.feed.searching}</p>
         <p className="text-sm text-muted-foreground mt-1">
           {secondsLeft > 0
-            ? `Pierwsze wyniki pojawią się w ciągu ${minutes}:${seconds.toString().padStart(2, '0')}`
-            : 'Jeszcze chwilę...'
+            ? t.feed.firstResults.replace('{time}', `${minutes}:${seconds.toString().padStart(2, '0')}`)
+            : t.feed.waitAMoment
           }
         </p>
       </div>
@@ -66,19 +66,9 @@ function WaitingForResults({ isRunning, campaignStartedAt, onStop }: { isRunning
           </text>
         </svg>
       </div>
-      <div className="space-y-2">
-        <p className="text-xs text-muted-foreground">
-          Program działa automatycznie w tle — możesz zamknąć tę stronę
-        </p>
-        {onStop && (
-          <button
-            onClick={onStop}
-            className="text-xs text-amber-600 hover:text-amber-700 underline underline-offset-2"
-          >
-            Zatrzymaj wyszukiwanie
-          </button>
-        )}
-      </div>
+      <p className="text-xs text-muted-foreground">
+        {t.feed.runsInBackground}
+      </p>
     </div>
   );
 }
@@ -115,15 +105,15 @@ export function LiveSupplierFeed({
 
   const handleSendRfq = async (supplierId: string) => {
     if (!rfqRequestId) {
-      toast.error('Brak powiązanego RFQ z tą kampanią');
+      toast.error(t.feed.noLinkedRfq);
       return;
     }
-    if (!window.confirm('Wysłać RFQ do tego dostawcy?')) return;
+    if (!window.confirm(t.feed.sendRfqConfirm)) return;
 
     setSendingTo(supplierId);
     try {
       const result = await rfqsService.sendToSuppliers(rfqRequestId, [supplierId]);
-      toast.success(`Wysłano: ${result.sent}, Błędy: ${result.failed}`);
+      toast.success(t.feed.sentResult.replace('{sent}', String(result.sent)).replace('{failed}', String(result.failed)));
     } catch (err: any) {
       toast.error(`Błąd: ${err.message}`);
     } finally {
@@ -149,7 +139,7 @@ export function LiveSupplierFeed({
         <h3 className="text-lg font-semibold">
           {t.campaigns.detail.liveSuppliers}
           <span className="ml-2 text-sm font-normal text-muted-foreground">
-            ({visibleSuppliers.length} {visibleSuppliers.length === 1 ? 'dostawca' : 'dostawców'})
+            ({visibleSuppliers.length} {visibleSuppliers.length === 1 ? t.feed.supplier : t.feed.suppliers})
           </span>
         </h3>
       </div>
