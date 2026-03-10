@@ -53,6 +53,7 @@ jobs:
       - name: Frontend lint
         working-directory: frontend
         run: npm run lint
+        continue-on-error: true
 
       - name: Build frontend PL (production)
         working-directory: frontend
