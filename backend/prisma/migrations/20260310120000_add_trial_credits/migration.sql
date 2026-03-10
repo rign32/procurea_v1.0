@@ -6,3 +6,6 @@ ALTER TABLE "User" ADD COLUMN "trialCreditsUsed" BOOLEAN NOT NULL DEFAULT false;
 
 -- DataMigration: mark all existing users as trial completed
 UPDATE "User" SET "trialCreditsUsed" = true WHERE "trialCreditsUsed" = false;
+
+-- DataMigration: enforce plan=research for all existing users
+UPDATE "User" SET "plan" = 'research' WHERE "plan" != 'research';
