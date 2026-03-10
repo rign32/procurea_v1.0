@@ -31,13 +31,17 @@ expressApp.use((req, _res, next) => {
     next();
 });
 
+// Capture raw body for Stripe webhook signature verification
+// Must be BEFORE NestJS body parsing kicks in
+expressApp.use('/billing/webhook', express.raw({ type: 'application/json' }));
+
 const createNestServer = async () => {
     if (!app) {
         // Use Express5Adapter for Express 5.x compatibility
         app = await NestFactory.create<NestExpressApplication>(
             AppModule,
             new Express5Adapter(expressApp),
-            { logger: ['error', 'warn', 'log'], rawBody: true }
+            { logger: ['error', 'warn', 'log'] }
         );
 
         app.use(cookieParser());

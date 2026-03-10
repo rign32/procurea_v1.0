@@ -60,7 +60,12 @@ model User {
   
   // Permissions
   campaignAccess String  @default("own") // "all" | "own" | "readonly"
-  plan          String  @default("research") // "research" | "full"
+  plan          String  @default("research") // "research" | "pay_as_you_go" | "unlimited"
+
+  // Billing & Credits
+  searchCredits     Int     @default(0)
+  stripeCustomerId  String? @unique
+  creditTransactions CreditTransaction[]
 
   // Admin Controls
   isBlocked     Boolean   @default(false)
@@ -604,4 +609,22 @@ model CurrencyExchangeRate {
   @@unique([currencyCode, effectiveDate])
   @@index([effectiveDate])
   @@index([currencyCode])
+}
+
+// --- BILLING & CREDITS ---
+
+model CreditTransaction {
+  id               String   @id @default(uuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount           Int      // +N for purchase, -1 for consumption
+  type             String   // "PURCHASE" | "CONSUMPTION" | "SUBSCRIPTION_GRANT"
+  description      String?
+  stripeSessionId  String?
+  campaignId       String?
+  balanceAfter     Int
+  createdAt        DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([stripeSessionId])
 }

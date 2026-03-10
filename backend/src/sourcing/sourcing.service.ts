@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, Optional, BadRequestException } from '@nestjs/common';
 import { normalizeCountry, getLanguageForCountry } from '../common/normalize-country';
 import { PrismaService } from '../prisma/prisma.service';
 import { ProductContext } from './agents/screener.agent';
@@ -296,8 +296,32 @@ export class SourcingService {
         // Fetch user language for translated pipeline output
         let userLanguage = 'pl';
         if (userId) {
-            const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { language: true } });
+            const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { language: true, plan: true, searchCredits: true } });
             userLanguage = user?.language || 'pl';
+
+            // Credit check — unlimited plan bypasses
+            if (user?.plan !== 'unlimited') {
+                if ((user?.searchCredits ?? 0) <= 0) {
+                    await this.prisma.rfqRequest.deleteMany({ where: { campaignId: campaign.id } });
+                    await this.prisma.campaign.delete({ where: { id: campaign.id } });
+                    throw new BadRequestException('Brak kredytów wyszukiwania. Kup pakiet w ustawieniach.');
+                }
+                // Atomically deduct 1 credit
+                await this.prisma.$transaction(async (tx) => {
+                    await tx.user.update({ where: { id: userId }, data: { searchCredits: { decrement: 1 } } });
+                    const updated = await tx.user.findUnique({ where: { id: userId }, select: { searchCredits: true } });
+                    await tx.creditTransaction.create({
+                        data: {
+                            userId,
+                            amount: -1,
+                            type: 'CONSUMPTION',
+                            description: `Kampania: ${dto.name || 'New Campaign'}`,
+                            campaignId: campaign.id,
+                            balanceAfter: updated?.searchCredits ?? 0,
+                        },
+                    });
+                });
+            }
         }
 
         // Run async to not block request
@@ -875,18 +899,18 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 processingPromises.push(p);
             };
 
-            // Search workers collect URLs and immediately feed them to processing
+            // Search workers collect URLs and stream them to processing per-query (interleaved across countries)
             const searchPromises = optimizedStrategies.map(langStrategy =>
                 searchWorkerLimit(async () => {
                     const urls = await this.collectUrlsForStrategy(
                         id,
                         langStrategy,
                         budgetPerWorker,
+                        (item: CollectedUrl) => {
+                            totalCollected++;
+                            processUrlImmediately(item);
+                        },
                     );
-                    totalCollected += urls.length;
-                    for (const item of urls) {
-                        processUrlImmediately(item);
-                    }
                     return urls;
                 })
             );
@@ -1386,6 +1410,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
         campaignId: string,
         langStrategy: { country: string; language: string; queries: string[]; negatives: string[] },
         budgetForWorker: number,
+        onUrlFound?: (item: CollectedUrl) => void,
     ): Promise<CollectedUrl[]> {
         const { country, language, queries, negatives } = langStrategy;
         const workerTag = `[${country.toUpperCase()}/${language.toUpperCase()}]`;
@@ -1445,17 +1470,20 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 }
             }
 
-            // Per-worker deduplication only (global dedup happens after all workers finish)
+            // Per-worker deduplication + immediate streaming to processing
             for (const url of urls) {
                 const domain = this.extractDomain(url);
                 if (localSeenDomains.has(domain)) continue;
                 localSeenDomains.add(domain);
-                collected.push({
+                const item: CollectedUrl = {
                     url,
                     originLanguage: language,
                     originCountry: country,
                     workerTag,
-                });
+                };
+                collected.push(item);
+                // Stream URL to processing immediately (interleaved across countries)
+                if (onUrlFound) onUrlFound(item);
             }
         }
 
@@ -1544,44 +1572,38 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 return 0;
             }
 
-            // 0. CHECK GLOBAL REGISTRY CACHE FIRST!
-            const cachedSupplier = await this.companyRegistry.getByDomain(domain);
-
-            if (cachedSupplier && !this.companyRegistry.isStale(cachedSupplier.lastProcessedAt)) {
-                await this.log(campaignId, `${workerTag} [CACHE HIT] ${cachedSupplier.name || domain} - reusing cached data`);
-
-                // Use cached data directly - skip expensive agents!
-                const enrichedData = {
-                    company_name: cachedSupplier.name,
-                    website: `https://${cachedSupplier.domain}`,
-                    country: normalizeCountry(cachedSupplier.country),
-                    city: cachedSupplier.city,
-                    specialization: cachedSupplier.specialization,
-                    certificates: cachedSupplier.certificates,
-                    employee_count: cachedSupplier.employeeCount,
-                    contact_emails: cachedSupplier.contactEmails?.split(',').map(e => e.trim()).filter(Boolean) || []
-                };
-
-                // Skip to validation and save (bypass agents)
-                const cached = await this.saveSupplierFromCache(
-                    campaignId,
-                    workerTag,
-                    cachedSupplier,
-                    enrichedData,
-                    dto,
-                    processedCompanyNames,
-                    originLanguage,
-                    originCountry
-                );
-                return cached ? 1 : 0;
-            }
+            // 0.5. URL NORMALIZATION — strip CDN/static subdomains, use root domain
+            const NON_CONTENT_SUBDOMAINS = ['cdn', 'static', 'assets', 'media', 'img', 'images', 'files', 'download', 'dl', 'api', 'mail', 'webmail', 'ftp'];
+            let effectiveUrl = url;
+            try {
+                const urlObj = new URL(url);
+                const hostParts = urlObj.hostname.replace(/^www\./, '').split('.');
+                if (hostParts.length >= 3 && NON_CONTENT_SUBDOMAINS.includes(hostParts[0].toLowerCase())) {
+                    const rootDomain = hostParts.slice(1).join('.');
+                    effectiveUrl = `${urlObj.protocol}//www.${rootDomain}`;
+                    await this.log(campaignId, `${workerTag} URL NORMALIZED: ${url} → ${effectiveUrl} (stripped "${hostParts[0]}" subdomain)`);
+                }
+            } catch { /* keep original URL */ }
 
             // 1. SCREENER (merged Explorer + Analyst — single Gemini call)
             await this.log(campaignId, `${workerTag} Screening: ${domain}`);
-            this.sourcingGateway?.emitSupplierUpdate(campaignId, { url, status: 'SCREENING' });
+            this.sourcingGateway?.emitSupplierUpdate(campaignId, { url: effectiveUrl, status: 'SCREENING' });
 
-            const content = await this.scrapingService.fetchContent(url);
-            const screenerResult = await this.screenerAgent.execute(url, content, dto, productContext, userLanguage, dto.searchCriteria?.requiredCertificates);
+            let content = await this.scrapingService.fetchContent(effectiveUrl);
+
+            // FALLBACK: If content is error/empty, try root domain
+            if ((content.startsWith('Error') || content.length < 100) && effectiveUrl === url) {
+                try {
+                    const urlObj = new URL(url);
+                    const rootUrl = `${urlObj.protocol}//${urlObj.hostname.replace(/^www\./, '')}`;
+                    if (rootUrl !== url) {
+                        await this.log(campaignId, `${workerTag} SCRAPE FALLBACK: ${url} failed, trying root ${rootUrl}`);
+                        content = await this.scrapingService.fetchContent(rootUrl);
+                    }
+                } catch { /* keep error content */ }
+            }
+
+            const screenerResult = await this.screenerAgent.execute(effectiveUrl, content, dto, productContext, userLanguage, dto.searchCriteria?.requiredCertificates);
 
             if (!screenerResult.is_relevant) {
                 // DIRECTORY MINING: extract leads from industry portals
@@ -1623,7 +1645,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             const capScore = screenerResult.capability_match_score || 0;
             let isBorderline = false;
 
-            if (capScore < 35) {
+            if (capScore < 40) {
                 // HARD REJECT — clearly irrelevant, but still mine directory leads
                 const mentionedFromLowScore = screenerResult.mentioned_companies || [];
                 if (depth === 0 && mentionedFromLowScore.length > 0) {
@@ -1654,8 +1676,8 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 return 0;
             }
 
-            if (capScore < 60) {
-                // BORDERLINE (35-59) — proceed to enrichment, but apply stricter auditing
+            if (capScore < 65) {
+                // BORDERLINE (40-64) — proceed to enrichment, but apply stricter auditing
                 await this.log(campaignId, `${workerTag} BORDERLINE (${capScore}%) — running enrichment for verification: ${domain}`);
                 isBorderline = true;
 
@@ -1833,7 +1855,14 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 status: 'Active',
                 company_type: screenerResult.company_type || 'NIEJASNY',
             };
-            const auditorResult = await this.auditorAgent.execute(enrichedData, registryData, userLanguage, productContext || undefined);
+            const auditorResult = await this.auditorAgent.execute(enrichedData, registryData, userLanguage, productContext ? {
+                coreProduct: productContext.coreProduct,
+                positiveSignals: productContext.positiveSignals,
+                negativeSignals: productContext.negativeSignals,
+                supplyChainPosition: productContext.supplyChainPosition,
+                disambiguationNote: productContext.disambiguationNote,
+                productCategory: productContext.productCategory,
+            } : undefined);
 
             // CRITICAL: Filter out rejected records
             if (auditorResult.validation_result === 'REJECTED' || auditorResult.is_valid === false) {
@@ -1853,6 +1882,28 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 await this.log(campaignId, `${workerTag} AUDITOR REKLASYFIKACJA: ${domain} ${currentCompanyType}->${verifiedType}`);
                 if (!allowedTypes.includes(verifiedType)) {
                     await this.log(campaignId, `${workerTag} AUDITOR REKLASYFIKACJA -> ODRZUCONY: ${domain} (${verifiedType})`);
+                    return 0;
+                }
+            }
+
+            // GATE: Supply chain mismatch — hardcoded safety net
+            if (productContext?.supplyChainPosition === 'raw material') {
+                const spec = (enrichedData.specialization || auditorResult?.golden_record?.specialization || '').toLowerCase();
+                const machinePatterns = [
+                    'maszyn', 'machine', 'equipment', 'urządze', 'lini', 'extrud', 'wytłaczar',
+                    'equipment manufacturer', 'machinery', 'anlagen', 'maschinen'
+                ];
+                const downstreamPatterns = [
+                    'produkcja rur', 'produkcja opakowań', 'produkcja profili', 'produkcja folii',
+                    'pipe production', 'packaging production', 'thermoform', 'termoform',
+                    'injection mold', 'wtrysk', 'blow mold', 'rozdmuch'
+                ];
+
+                const isMachineManufacturer = machinePatterns.some(p => spec.includes(p));
+                const isDownstreamProcessor = downstreamPatterns.some(p => spec.includes(p));
+
+                if (isMachineManufacturer || isDownstreamProcessor) {
+                    await this.log(campaignId, `${workerTag} SUPPLY CHAIN MISMATCH: "${enrichedData.company_name}" spec="${spec}" → looking for raw material, found ${isMachineManufacturer ? 'machine manufacturer' : 'downstream processor'}`);
                     return 0;
                 }
             }
@@ -1960,13 +2011,17 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
 
             const contactEmailsString = emailArray.join(', ');
 
+            // 4.0.5. TRANSLATE SPECIALIZATION if not in target language
+            const rawSpecialization = enrichmentResult?.enriched_data?.specialization || screenerResult.extracted_data?.specialization || 'General';
+            const translatedSpecialization = await this.translateSpecialization(rawSpecialization, userLanguage);
+
             // 4.1. UPDATE/CREATE GLOBAL REGISTRY ENTRY FIRST (to get ID)
             const supplierDomain = this.extractDomain(finalWebsite);
             const registryEntry = await this.companyRegistry.upsert(supplierDomain, {
                 name: enrichedData.company_name || screenerResult.extracted_data?.company_name || 'Unknown',
                 country: normalizeCountry(enrichmentResult?.enriched_data?.country || screenerResult.extracted_data?.country || 'Europe'),
                 city: enrichmentResult?.enriched_data?.city || screenerResult.extracted_data?.city || null,
-                specialization: enrichmentResult?.enriched_data?.specialization || screenerResult.extracted_data?.specialization || 'General',
+                specialization: translatedSpecialization,
                 certificates: Array.isArray(enrichedData.certificates) ? enrichedData.certificates.join(', ') : (enrichedData.certificates || ''),
                 employeeCount: enrichmentResult?.enriched_data?.employee_count || screenerResult.extracted_data?.employee_count || 'N/A',
                 contactEmails: contactEmailsString,
@@ -1985,7 +2040,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                     country: normalizeCountry(enrichmentResult?.enriched_data?.country || screenerResult.extracted_data?.country || 'Europe'),
                     city: enrichmentResult?.enriched_data?.city || screenerResult.extracted_data?.city || null,
                     website: finalWebsite,
-                    specialization: enrichmentResult?.enriched_data?.specialization || screenerResult.extracted_data?.specialization || 'General',
+                    specialization: translatedSpecialization,
                     certificates: Array.isArray(enrichedData.certificates) ? enrichedData.certificates.join(', ') : (enrichedData.certificates || ''),
                     employeeCount: enrichmentResult?.enriched_data?.employee_count || screenerResult.extracted_data?.employee_count || 'N/A',
                     contactEmails: contactEmailsString,
@@ -2024,143 +2079,19 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
     }
 
     /**
-     * Save supplier from CACHE (skip agents, use cached data)
+     * Translate specialization to target language if needed (post-processing).
      */
-    private async saveSupplierFromCache(
-        campaignId: string,
-        workerTag: string,
-        cachedSupplier: any,
-        enrichedData: any,
-        dto: CreateCampaignDto,
-        processedCompanyNames: Set<string>,
-        originLanguage: string,
-        originCountry: string
-    ): Promise<boolean> {
+    private async translateSpecialization(spec: string, targetLang: string = 'pl'): Promise<string> {
+        if (!spec || spec.length < 3) return spec;
+        const polishIndicators = /[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]|produkcj|dostaw|handl|przetw|wyrob|czujnik|sensor/i;
+        if (targetLang === 'pl' && polishIndicators.test(spec)) return spec;
         try {
-            // Company name deduplication
-            const companyName = enrichedData.company_name || '';
-            const normalizedCompanyName = companyName.toLowerCase().trim();
-
-            if (normalizedCompanyName && processedCompanyNames.has(normalizedCompanyName)) {
-                await this.log(campaignId, `${workerTag} DUPLICATE: Company "${companyName}" already processed`);
-                return false;
-            }
-            if (normalizedCompanyName) {
-                processedCompanyNames.add(normalizedCompanyName);
-            }
-
-            // COUNTRY VALIDATION — same filter as fresh pipeline
-            let supplierCountry = normalizeCountry(enrichedData.country || '');
-            const regionKey = dto?.searchCriteria?.region;
-            const regionConfig = regionKey ? REGION_LANGUAGE_CONFIG[regionKey] : undefined;
-
-            // COUNTRY INFERENCE — when enrichment couldn't determine country, infer from context
-            if (supplierCountry === 'Nieznany') {
-                const cachedDomain = cachedSupplier.domain || '';
-                const tldCountry = inferCountryFromTLD(cachedDomain);
-                if (tldCountry) {
-                    supplierCountry = tldCountry;
-                    await this.log(campaignId, `${workerTag} CACHE COUNTRY INFERRED FROM TLD: ${cachedDomain} → ${tldCountry}`);
-                } else if (originCountry && originCountry !== 'Global') {
-                    supplierCountry = normalizeCountry(originCountry);
-                    await this.log(campaignId, `${workerTag} CACHE COUNTRY INFERRED FROM WORKER: ${cachedDomain} → ${normalizeCountry(originCountry)}`);
-                }
-            }
-
-            // SANCTIONS — universal hard filter
-            if (SANCTIONED_COUNTRIES.has(supplierCountry)) {
-                await this.log(campaignId, `${workerTag} CACHE SANCTIONED: "${companyName}" from ${supplierCountry}`);
-                return false;
-            }
-
-            if (regionConfig?.excludedCountries) {
-                const excluded = regionConfig.excludedCountries.some(
-                    (ex: string) => supplierCountry.toLowerCase().includes(ex.toLowerCase())
-                );
-                if (excluded) {
-                    await this.log(campaignId, `${workerTag} CACHE EXCLUDED COUNTRY: "${companyName}" from ${supplierCountry}`);
-                    return false;
-                }
-            }
-
-            // ALLOWED COUNTRIES — positive filter
-            // Rejects suppliers with unknown country too — can't confirm they're in the region
-            if (regionConfig?.allowedCountries && regionConfig.allowedCountries.length > 0) {
-                if (!regionConfig.allowedCountries.includes(supplierCountry)) {
-                    await this.log(campaignId, `${workerTag} CACHE REGION MISMATCH: "${companyName}" from ${supplierCountry} — not in ${regionKey}`);
-                    return false;
-                }
-            }
-
-            // EMPLOYEE SIZE FILTER — same as fresh pipeline
-            const employeeCount = parseEmployeeCount(enrichedData.employee_count);
-            if (employeeCount !== null && employeeCount > MAX_EMPLOYEE_COUNT) {
-                await this.log(campaignId, `${workerTag} CACHE TOO LARGE: "${companyName}" (${enrichedData.employee_count})`);
-                return false;
-            }
-
-            // PORTAL URL GUARD — same as fresh pipeline
-            if (isPortalDomain(this.extractDomain(enrichedData.website || ''))) {
-                await this.log(campaignId, `${workerTag} CACHE PORTAL URL: "${companyName}" — skipping`);
-                return false;
-            }
-
-            const contactEmails = enrichedData.contact_emails || [];
-            const contactEmailsString = Array.isArray(contactEmails) ? contactEmails.join(', ') : contactEmails;
-            const finalScore = (cachedSupplier.lastAnalysisScore || 5) * 10;
-
-            // Increment usage in registry (and ensure it exists/get ID)
-            const registryEntry = await this.companyRegistry.upsert(cachedSupplier.domain, {}, campaignId);
-
-            // Save to campaign suppliers
-            const newSupplier = await this.prisma.supplier.create({
-                data: {
-                    campaignId: campaignId,
-                    url: enrichedData.website,
-                    name: enrichedData.company_name || 'Unknown Company',
-                    country: normalizeCountry(enrichedData.country || 'Unknown'),
-                    city: enrichedData.city || null,
-                    website: enrichedData.website,
-                    specialization: enrichedData.specialization || 'General',
-                    certificates: enrichedData.certificates || '',
-                    employeeCount: enrichedData.employee_count || 'N/A',
-                    contactEmails: contactEmailsString,
-                    explorerResult: JSON.stringify(cachedSupplier.explorerResult || {}),
-                    analystResult: JSON.stringify(cachedSupplier.analystResult || {}),
-                    enrichmentResult: JSON.stringify(cachedSupplier.enrichmentResult || {}),
-                    auditorResult: JSON.stringify(cachedSupplier.auditorResult || {}),
-                    analysisScore: finalScore / 10,
-
-                    analysisReason: 'Data from Global Registry Cache',
-                    originLanguage: originLanguage,
-                    originCountry: originCountry,
-                    sourceAgent: 'Cache/MultimodalWorker',
-
-                    // Company Classification (from cache — best effort)
-                    companyType: cachedSupplier.explorerResult?.company_type || 'NIEJASNY',
-                    companyTypeConfidence: cachedSupplier.explorerResult?.company_type_confidence || 0,
-                    needsManualClassification: false,
-                    sourceType: 'SEARCH',
-
-                    // Link to Global Registry
-                    registryId: registryEntry.id,
-
-                    // CREATE STRUCTURED CONTACTS FROM CACHE
-                    contacts: {
-                        create: Array.isArray(contactEmails) ? contactEmails.map((email: string) => ({
-                            email: email,
-                            role: 'Cached Contact',
-                            isDecisionMaker: false
-                        })) : []
-                    }
-                }
-            });
-
-            return true;
-        } catch (err: any) {
-            await this.log(campaignId, `${workerTag} Error saving cached supplier: ${err.message}`);
-            return false;
-        }
+            const result = await this.geminiService.generateContent(
+                `Przetłumacz na polski. Zwróć TYLKO przetłumaczony tekst, max 5 słów.\n\nTekst: "${spec}"`
+            );
+            const translated = result.trim().replace(/^["']|["']$/g, '');
+            return translated.length > 0 && translated.length < 100 ? translated : spec;
+        } catch { return spec; }
     }
 
     /**

@@ -337,6 +337,7 @@ export class AuthController {
                 onboardingCompleted: user.onboardingCompleted,
                 isPhoneVerified: user.isPhoneVerified,
                 plan: user.plan,
+                searchCredits: user.searchCredits ?? 0,
             }
         };
     }
@@ -529,6 +530,7 @@ export class AuthController {
                 onboardingCompleted: user.onboardingCompleted,
                 organizationId: user.organizationId,
                 plan: user.plan,
+                searchCredits: user.searchCredits ?? 0,
             };
         } catch (error) {
             await this.authLogsService.logAuthEvent({
@@ -839,6 +841,7 @@ export class AuthController {
                 onboardingCompleted: user.onboardingCompleted,
                 isPhoneVerified: user.isPhoneVerified,
                 plan: user.plan,
+                searchCredits: user.searchCredits ?? 0,
             }
         };
     }
@@ -1011,6 +1014,7 @@ export class AuthController {
                 onboardingCompleted: user.onboardingCompleted,
                 isPhoneVerified: user.isPhoneVerified,
                 plan: user.plan,
+                searchCredits: user.searchCredits ?? 0,
                 organization: user.organization,
             }
         };

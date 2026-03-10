@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PL } from '@/i18n/pl';
 import { useAuthStore } from '@/stores/auth.store';
+import { analytics, startHesitationTracker } from '@/lib/analytics';
 import { Building2, MapPin, UserCheck, ArrowRight, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -20,6 +21,11 @@ export default function OnboardingPage() {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
+    useEffect(() => {
+        analytics.onboardingStepView(1);
+        return startHesitationTracker('onboarding', 45000);
+    }, []);
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -53,7 +59,10 @@ export default function OnboardingPage() {
             }
         }
         setError('');
-        setStep(s => Math.min(3, s + 1));
+        analytics.onboardingStepComplete(step);
+        const nextStep = Math.min(3, step + 1);
+        analytics.onboardingStepView(nextStep);
+        setStep(nextStep);
     };
 
     const handleBack = () => {
@@ -99,10 +108,13 @@ export default function OnboardingPage() {
             const data = await res.json();
             if (!res.ok) throw new Error(data.message || PL.errors.generic);
 
+            analytics.onboardingStepComplete(3);
+            analytics.onboardingCompleted();
             // Update local user state
             setUser(data);
             navigate('/');
         } catch (err: any) {
+            analytics.onboardingFailed(err.message);
             setError(err.message);
         } finally {
             setLoading(false);

@@ -83,6 +83,24 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
             // 20260308_add_ai_summary
             `ALTER TABLE "Campaign" ADD COLUMN IF NOT EXISTS "aiSummary" TEXT`,
             `ALTER TABLE "Campaign" ADD COLUMN IF NOT EXISTS "aiSummaryGeneratedAt" TIMESTAMP(3)`,
+            // 20260310_add_billing_credits
+            `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "searchCredits" INTEGER NOT NULL DEFAULT 0`,
+            `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "stripeCustomerId" TEXT`,
+            `CREATE UNIQUE INDEX IF NOT EXISTS "User_stripeCustomerId_key" ON "User"("stripeCustomerId")`,
+            `CREATE TABLE IF NOT EXISTS "CreditTransaction" (
+                "id" TEXT NOT NULL,
+                "userId" TEXT NOT NULL,
+                "amount" INTEGER NOT NULL,
+                "type" TEXT NOT NULL,
+                "description" TEXT,
+                "stripeSessionId" TEXT,
+                "campaignId" TEXT,
+                "balanceAfter" INTEGER NOT NULL,
+                "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT "CreditTransaction_pkey" PRIMARY KEY ("id")
+            )`,
+            `CREATE INDEX IF NOT EXISTS "CreditTransaction_userId_createdAt_idx" ON "CreditTransaction"("userId", "createdAt")`,
+            `CREATE INDEX IF NOT EXISTS "CreditTransaction_stripeSessionId_idx" ON "CreditTransaction"("stripeSessionId")`,
         ];
 
         let applied = 0;

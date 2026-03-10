@@ -1,6 +1,7 @@
 import { motion } from "framer-motion"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { ArrowRight, CheckCircle } from "lucide-react"
+import { trackCtaClick } from "@/lib/analytics"
 
 const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 
@@ -52,6 +53,7 @@ export function CtaSection() {
               href={APP_URL}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackCtaClick('cta_bottom')}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
               className="group relative inline-flex items-center justify-center"
@@ -65,6 +67,7 @@ export function CtaSection() {
             </motion.a>
             <a
               href="mailto:kontakt@procurea.pl"
+              onClick={() => trackCtaClick('cta_email')}
               className="text-sm font-medium text-gray-400 hover:text-white transition-colors underline underline-offset-4 decoration-gray-600 hover:decoration-gray-400"
             >
               Napisz do nas

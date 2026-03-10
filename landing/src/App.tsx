@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
@@ -10,24 +11,30 @@ import { AudienceSection } from "@/components/sections/AudienceSection"
 import { BetaSignupSection } from "@/components/sections/BetaSignupSection"
 import { CtaSection } from "@/components/sections/CtaSection"
 import { FaqSection } from "@/components/sections/FaqSection"
+import { initSectionTracking } from "@/lib/analytics"
 import { RegulaminPage } from "@/pages/RegulaminPage"
 import { PolitykaPrywatnosciPage } from "@/pages/PolitykaPrywatnosciPage"
 import { RodoPage } from "@/pages/RodoPage"
 
 function LandingPage() {
+  useEffect(() => {
+    const cleanup = initSectionTracking();
+    return cleanup;
+  }, []);
+
   return (
     <div className="min-h-screen">
       <Navbar />
       <main>
-        <HeroSection />
-        <ProblemSection />
-        <HowItWorksSection />
-        <FeaturesSection />
-        <BenefitsSection />
-        <AudienceSection />
-        <BetaSignupSection />
-        <FaqSection />
-        <CtaSection />
+        <div data-track-section="hero"><HeroSection /></div>
+        <div data-track-section="problem"><ProblemSection /></div>
+        <div data-track-section="how-it-works"><HowItWorksSection /></div>
+        <div data-track-section="features"><FeaturesSection /></div>
+        <div data-track-section="benefits"><BenefitsSection /></div>
+        <div data-track-section="audience"><AudienceSection /></div>
+        <div data-track-section="beta-signup"><BetaSignupSection /></div>
+        <div data-track-section="faq"><FaqSection /></div>
+        <div data-track-section="cta"><CtaSection /></div>
       </main>
       <Footer />
     </div>

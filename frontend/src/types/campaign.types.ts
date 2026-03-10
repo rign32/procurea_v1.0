@@ -5,7 +5,7 @@ import type { Supplier } from './supplier.types';
 // Re-export Supplier for convenience
 export type { Supplier } from './supplier.types';
 
-export type CampaignStatus = 'RUNNING' | 'COMPLETED' | 'ERROR' | 'PAUSED' | 'SENDING' | 'ACCEPTED' | 'DONE';
+export type CampaignStatus = 'RUNNING' | 'COMPLETED' | 'STOPPED' | 'ERROR' | 'PAUSED' | 'SENDING' | 'ACCEPTED' | 'DONE';
 
 export type CampaignStage =
   | 'STRATEGY'
@@ -168,7 +168,8 @@ export interface User {
   campaignAccess?: string; // "all" | "own" | "readonly"
   onboardingCompleted?: boolean;
   isPhoneVerified?: boolean;
-  plan?: 'research' | 'full';
+  plan?: 'research' | 'full' | 'pay_as_you_go' | 'unlimited';
+  searchCredits?: number;
 }
 
 // DTOs for API calls

@@ -1,4 +1,4 @@
-import { Mail, Award, MapPin, ExternalLink, XCircle, Globe, ChevronRight, ShieldAlert, Users } from 'lucide-react';
+import { Mail, Award, MapPin, ExternalLink, XCircle, Globe, ChevronRight, ShieldAlert, Users, Factory, Store } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -30,10 +30,6 @@ export function SupplierCard({
     if (score >= 60) return 'secondary';
     return 'destructive';
   };
-
-  const emailCount = supplier.contactEmails
-    ? supplier.contactEmails.split(',').filter((e) => e.trim()).length
-    : supplier.contacts?.length || 0;
 
   return (
     <Card
@@ -68,10 +64,21 @@ export function SupplierCard({
       <CardContent className="space-y-4 pb-4 flex-1">
         {/* Status Chips */}
         <div className="flex flex-wrap gap-2">
-          {emailCount > 0 && (
-            <Badge variant="secondary" className="font-normal text-xs bg-muted/60 hover:bg-muted text-muted-foreground transition-colors">
-              <Mail className="mr-1.5 h-3 w-3" />
-              {emailCount} {emailCount === 1 ? 'kontakt' : 'kontakty'}
+          {supplier.companyType && supplier.companyType !== 'NIEJASNY' && (
+            <Badge
+              variant="secondary"
+              className={`font-normal text-xs transition-colors ${
+                supplier.companyType === 'PRODUCENT'
+                  ? 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                  : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+              }`}
+            >
+              {supplier.companyType === 'PRODUCENT' ? (
+                <Factory className="mr-1.5 h-3 w-3" />
+              ) : (
+                <Store className="mr-1.5 h-3 w-3" />
+              )}
+              {supplier.companyType === 'PRODUCENT' ? 'Producent' : 'Handlowiec'}
             </Badge>
           )}
           {supplier.certificates && (

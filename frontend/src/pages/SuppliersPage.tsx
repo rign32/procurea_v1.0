@@ -18,6 +18,7 @@ import { PL } from '@/i18n/pl';
 import { getCountryFlag } from '@/utils/normalize-country';
 import type { Supplier } from '@/types/supplier.types';
 import { motion } from 'framer-motion';
+import { analytics } from '@/lib/analytics';
 
 const EU_COUNTRIES = new Set([
   'Niemcy', 'Francja', 'Włochy', 'Hiszpania', 'Holandia', 'Belgia', 'Austria',
@@ -29,6 +30,8 @@ const EU_COUNTRIES = new Set([
 export function SuppliersPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  useEffect(() => { analytics.supplierListView(); }, []);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');

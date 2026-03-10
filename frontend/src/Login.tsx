@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { PL } from '@/i18n/pl';
 import { Sparkles, Mail, KeyRound, ArrowLeft, Phone } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
+import { analytics, startHesitationTracker } from '@/lib/analytics';
 
 const GoogleIcon = () => (
     <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
@@ -35,6 +36,11 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
+        analytics.loginPageView();
+        return startHesitationTracker('login', 30000);
+    }, []);
+
+    useEffect(() => {
         // Handle corrupted or incomplete state
         if (isAuthenticated && (!user || !user.id)) {
             useAuthStore.getState().logout();
@@ -43,6 +49,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
         }
 
         if (isAuthenticated && user && !user.isPhoneVerified) {
+            analytics.phoneStarted();
             setStep('phone');
         } else if (!isAuthenticated) {
             setStep('email');
@@ -50,6 +57,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
     }, [isAuthenticated, user]);
 
     const handleSSOLogin = (provider: 'google' | 'microsoft') => {
+        analytics.methodSelected(provider);
         document.cookie = 'procurea_auth_mode=login; path=/; max-age=600; SameSite=Lax';
         window.location.href = `/api/auth/${provider}`;
     };
@@ -60,6 +68,8 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
         setMessage('');
         setLoading(true);
         try {
+            analytics.methodSelected('email');
+            analytics.emailSubmitted();
             const res = await fetch('/api/auth/email/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -67,9 +77,11 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.message || PL.errors.generic);
+            analytics.codeSent();
             setStep('code');
             setMessage(PL.auth.codeSent);
         } catch (err: any) {
+            analytics.codeFailed(err.message);
             setError(err.message);
         } finally {
             setLoading(false);
@@ -88,11 +100,13 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.message || PL.errors.generic);
+            analytics.codeVerified();
             // Store tokens for Authorization header (Firebase Hosting strips cookies)
             if (data.accessToken) localStorage.setItem('procurea_token', data.accessToken);
             if (data.refreshToken) localStorage.setItem('procurea_refresh', data.refreshToken);
             onLogin(data.user);
         } catch (err: any) {
+            analytics.codeFailed(err.message);
             setError(err.message);
         } finally {
             setLoading(false);
@@ -123,9 +137,11 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
                     : (data.message || PL.errors.generic);
                 throw new Error(errorMsg);
             }
+            analytics.phoneOtpSent();
             setStep('phoneCode');
             setMessage(PL.auth.phone.otpSent);
         } catch (err: any) {
+            analytics.phoneFailed(err.message);
             setError(err.message);
         } finally {
             setLoading(false);
@@ -150,9 +166,11 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.message || PL.errors.generic);
+            analytics.phoneVerified();
             // Updating the user will implicitly navigate away via App.tsx routing logic.
             setUser(data);
         } catch (err: any) {
+            analytics.phoneFailed(err.message);
             setError(err.message);
         } finally {
             setLoading(false);

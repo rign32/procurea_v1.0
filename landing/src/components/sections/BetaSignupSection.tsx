@@ -1,6 +1,7 @@
 import { motion } from "framer-motion"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { ArrowRight, CheckCircle, Sparkles, MessageSquare, Gift } from "lucide-react"
+import { trackCtaClick } from "@/lib/analytics"
 
 const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 
@@ -131,6 +132,7 @@ export function BetaSignupSection() {
               href={APP_URL}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackCtaClick('beta_signup')}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
               className="group relative inline-flex items-center justify-center mb-8"

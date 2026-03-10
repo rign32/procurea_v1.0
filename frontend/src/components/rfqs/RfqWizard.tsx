@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,6 +19,7 @@ import { sequencesService, type SequenceTemplate } from '@/services/sequences.se
 import { organizationService } from '@/services/organization.service';
 import { useAuthStore } from '@/stores/auth.store';
 import { cn } from '@/lib/utils';
+import { analytics } from '@/lib/analytics';
 import type { CreateCampaignDto, OrganizationLocation, Region } from '@/types/campaign.types';
 
 // Zod schemas — 4 steps
@@ -137,6 +138,18 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
   const isFullPlan = user?.plan === 'full';
 
   const createMutation = useCreateCampaign();
+  const submittedRef = useRef(false);
+
+  // Track wizard start + abandonment on unmount
+  useEffect(() => {
+    analytics.campaignWizardStart();
+    analytics.campaignWizardStep(0);
+    return () => {
+      if (!submittedRef.current) {
+        analytics.campaignWizardAbandoned(currentStep);
+      }
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load sequences and locations
   useEffect(() => {
@@ -212,6 +225,8 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
 
       try {
         const result = await createMutation.mutateAsync(finalData as CreateCampaignDto);
+        submittedRef.current = true;
+        analytics.campaignCreated(newFormData.targetRegion);
         if (onComplete) {
           onComplete(result.id);
         } else {
@@ -221,6 +236,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
         console.error('Failed to create campaign:', error);
       }
     } else {
+      analytics.campaignWizardStep(currentStep + 1);
       setCurrentStep(currentStep + 1);
     }
   };

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { useCampaigns } from '@/hooks/useCampaigns';
 import { useAuthStore } from '@/stores/auth.store';
 import { PL } from '@/i18n/pl';
 import { motion } from 'framer-motion';
+import { analytics, startHesitationTracker } from '@/lib/analytics';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -19,6 +21,11 @@ export default function Dashboard() {
   const totalSuppliers = campaigns?.reduce((sum, c) => sum + (c.suppliersFound || 0), 0) || 0;
   const pendingOffers = campaigns?.reduce((sum, c) => sum + (c.pendingOffers || 0), 0) || 0;
   const isFullPlan = user?.plan === 'full';
+
+  useEffect(() => {
+    analytics.dashboardView();
+    return startHesitationTracker('dashboard', 30000);
+  }, []);
 
   return (
     <div className="flex flex-col gap-6">
@@ -55,7 +62,7 @@ export default function Dashboard() {
                 <Badge variant="outline" className="bg-background/50">Automatyczne kontakty</Badge>
               </div>
             </div>
-            <Button size="lg" onClick={() => navigate('/campaigns/new')} className="md:ml-4 shadow-soft-xl hover:shadow-glow-primary transition-shadow">
+            <Button size="lg" onClick={() => { analytics.dashboardCtaClick(); navigate('/campaigns/new'); }} className="md:ml-4 shadow-soft-xl hover:shadow-glow-primary transition-shadow">
               Rozpocznij
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
@@ -122,111 +129,74 @@ export default function Dashboard() {
       </div>
 
       {/* Recent Campaigns */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Ostatnie kampanie</CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/campaigns')}>
-                Zobacz wszystkie
-                <ArrowRight className="ml-1 h-4 w-4" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-4 pt-2">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-transparent bg-muted/20">
-                    <div className="space-y-2">
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-3 w-20" />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Skeleton className="h-4 w-16" />
-                      <Skeleton className="h-6 w-20 rounded-full" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : !campaigns || campaigns.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Target className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                <p>Brak kampanii</p>
-                <p className="text-sm mt-1">
-                  Utwórz pierwszą kampanię aby rozpocząć wyszukiwanie
-                </p>
-                <Button
-                  variant="outline"
-                  className="mt-4"
-                  onClick={() => navigate('/campaigns/new')}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  {PL.campaigns.createNew}
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {campaigns.slice(0, 5).map((campaign) => (
-                  <div
-                    key={campaign.id}
-                    className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                    onClick={() => navigate(`/campaigns/${campaign.id}`)}
-                  >
-                    <div>
-                      <p className="text-sm font-medium">{campaign.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(campaign.createdAt).toLocaleDateString('pl-PL')}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold">
-                        {campaign.suppliersFound || 0} dostawców
-                      </span>
-                      <Badge
-                        variant={
-                          campaign.status === 'COMPLETED' ? 'default' :
-                            campaign.status === 'ERROR' ? 'destructive' : 'secondary'
-                        }
-                      >
-                        {PL.campaigns.status[campaign.status.toLowerCase() as keyof typeof PL.campaigns.status]}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* How it works */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Jak działa AI Sourcing?</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[
-                { step: '1', title: 'Strategia', desc: 'AI generuje inteligentne zapytania wyszukiwania w wielu językach', color: 'text-blue-600 bg-blue-100' },
-                { step: '2', title: 'Skanowanie', desc: 'Przeszukiwanie internetu i identyfikacja potencjalnych producentów', color: 'text-yellow-600 bg-yellow-100' },
-                { step: '3', title: 'Analiza', desc: 'Ocena możliwości produkcyjnych i dopasowania do wymagań', color: 'text-purple-600 bg-purple-100' },
-                { step: '4', title: 'Wzbogacanie', desc: 'Szukanie danych kontaktowych i weryfikacja informacji', color: 'text-green-600 bg-green-100' },
-                { step: '5', title: 'Weryfikacja', desc: 'Końcowa walidacja danych i tworzenie profili dostawców', color: 'text-red-600 bg-red-100' },
-              ].map((item) => (
-                <div key={item.step} className="flex items-start gap-3">
-                  <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${item.color}`}>
-                    {item.step}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">{item.title}</p>
-                    <p className="text-xs text-muted-foreground">{item.desc}</p>
-                  </div>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Ostatnie kampanie</CardTitle>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/campaigns')}>
+              Zobacz wszystkie
+              <ArrowRight className="ml-1 h-4 w-4" />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="space-y-2 pt-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-4 p-3 rounded-lg bg-muted/20">
+                  <Skeleton className="h-4 w-48 flex-shrink-0" />
+                  <Skeleton className="h-3 w-20 ml-auto" />
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-6 w-20 rounded-full" />
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          ) : !campaigns || campaigns.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Target className="h-12 w-12 mx-auto mb-4 opacity-20" />
+              <p>Brak kampanii</p>
+              <p className="text-sm mt-1">
+                Utwórz pierwszą kampanię aby rozpocząć wyszukiwanie
+              </p>
+              <Button
+                variant="outline"
+                className="mt-4"
+                onClick={() => navigate('/campaigns/new')}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                {PL.campaigns.createNew}
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {campaigns.slice(0, 5).map((campaign) => (
+                <div
+                  key={campaign.id}
+                  className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                  onClick={() => navigate(`/campaigns/${campaign.id}`)}
+                >
+                  <p className="text-sm font-medium flex-1 min-w-0 truncate">{campaign.name}</p>
+                  <span className="text-xs text-muted-foreground shrink-0">
+                    {new Date(campaign.createdAt).toLocaleDateString('pl-PL')}
+                  </span>
+                  <span className="text-sm font-semibold shrink-0 w-28 text-right">
+                    {campaign.suppliersFound || 0} dostawców
+                  </span>
+                  <Badge
+                    className="shrink-0 w-24 justify-center"
+                    variant={
+                      campaign.status === 'COMPLETED' ? 'default' :
+                        campaign.status === 'ERROR' ? 'destructive' : 'secondary'
+                    }
+                  >
+                    {PL.campaigns.status[campaign.status.toLowerCase() as keyof typeof PL.campaigns.status]}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

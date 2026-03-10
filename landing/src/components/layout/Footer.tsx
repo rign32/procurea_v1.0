@@ -8,7 +8,8 @@ const footerLinks = {
     { label: "FAQ", href: "#faq" },
   ],
   firma: [
-    { label: "Kontakt", href: "mailto:kontakt@procurea.pl" },
+    { label: "kontakt@procurea.pl", href: "mailto:kontakt@procurea.pl" },
+    { label: "+48 536 067 316", href: "tel:+48536067316" },
   ],
 }
 

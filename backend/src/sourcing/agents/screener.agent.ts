@@ -76,24 +76,50 @@ export class ScreenerAgentService {
 === KONTEKST PRODUKTU (KRYTYCZNY) ===
 PRODUKT DOCELOWY: ${productContext.coreProduct}
 KATEGORIA: ${productContext.productCategory}
+POZYCJA W ŁAŃCUCHU DOSTAW: ${productContext.supplyChainPosition || 'N/A'}
 ATRYBUTY SPECYFIKACJI (mogą być niejednoznaczne): ${productContext.specAttributes.join(', ') || 'brak'}
 
-SYGNAŁY POZYTYWNE (firma PRODUKUJE ten produkt):
+SYGNAŁY POZYTYWNE (firma PRODUKUJE/SPRZEDAJE ten produkt):
 ${productContext.positiveSignals.map(s => `  ✅ ${s}`).join('\n')}
 
-SYGNAŁY NEGATYWNE (firma UŻYWA tego produktu, ale go NIE PRODUKUJE):
+SYGNAŁY NEGATYWNE (firma NIE JEST dostawcą tego produktu):
 ${productContext.negativeSignals.map(s => `  ❌ ${s}`).join('\n')}
 
 UWAGA DISAMBIGUACYJNA: ${productContext.disambiguationNote}
 
-KRYTYCZNA DYSTYNKCJA — PRODUKUJE vs UŻYWA:
-Firma która jest REALNYM producentem, ale INNEGO produktu = is_relevant: false!
-Przykłady:
-- Producent drzwi, którego drzwi są malowane farbą RAL 9005 → is_relevant: false, page_type: "Wrong Product Manufacturer", score: 0 (UŻYWA farby)
-- Producent farb proszkowych sprzedający RAL 9005 → is_relevant: true (PRODUKUJE farbę)
-- Lakiernia oferująca malowanie proszkowe RAL 9005 → is_relevant: true (PRODUKUJE usługę malowania)
+=== KRYTYCZNE REGUŁY WALIDACJI PRODUKTOWEJ ===
 
-Jeśli firma to realny producent ale ZŁEGO PRODUKTU:
+REGUŁA 1 — PRODUKUJE vs UŻYWA JAKO SUROWIEC:
+Firma która KUPUJE ten produkt jako input do SWOJEJ produkcji → is_relevant: false
+Przykłady:
+- Szukamy "granulat tworzywowy" → firma produkuje RURY z granulatu → is_relevant: false (KUPUJE granulat, nie sprzedaje)
+- Szukamy "stal nierdzewna" → firma produkuje ZBIORNIKI ze stali → is_relevant: false (KUPUJE stal)
+- Szukamy "farba proszkowa RAL 9005" → producent drzwi malowanych tą farbą → is_relevant: false (KUPUJE farbę)
+
+REGUŁA 2 — PRODUKUJE PRODUKT vs PRODUKUJE MASZYNY DO PRODUKTU:
+Firma która produkuje MASZYNY/URZĄDZENIA do wytwarzania tego produktu → is_relevant: false
+Przykłady:
+- Szukamy "granulat tworzywowy" → firma produkuje MASZYNY do granulacji → is_relevant: false (sprzedaje MASZYNY, nie granulat)
+- Szukamy "olej hydrauliczny" → firma produkuje POMPY hydrauliczne → is_relevant: false (sprzedaje SPRZĘT, nie olej)
+- Szukamy "beton" → firma produkuje BETONIARKI → is_relevant: false (sprzedaje MASZYNY, nie beton)
+
+REGUŁA 3 — SUROWIEC vs WYRÓB GOTOWY:
+${productContext.supplyChainPosition === 'raw material' ? `
+TEN PRODUKT JEST SUROWCEM. Szukamy PRODUCENTÓW/DOSTAWCÓW surowca.
+ODRZUĆ firmy, które:
+- Przetwarzają ten surowiec w gotowe wyroby (rury, opakowania, profile, itp.)
+- Produkują maszyny do obróbki tego surowca
+- Używają tego surowca w swojej produkcji
+
+AKCEPTUJ firmy, które:
+- Wytwarzają/produkują sam surowiec (producent granulatu, rafineria, huta)
+- Sprzedają/dystrybuują surowiec (dystrybutor, handlowiec surowcami)
+- Recyklingują/regranulują surowiec (recykler)
+` : `
+Produkt NIE jest surowcem — stosuj standardowe reguły dopasowania.
+`}
+
+Jeśli firma to producent MASZYN lub WYROBÓW GOTOWYCH z tego materiału:
   is_relevant: false, page_type: "Wrong Product Manufacturer", capability_match_score: 0
 `;
         }
@@ -105,6 +131,8 @@ Jeśli firma to realny producent ale ZŁEGO PRODUKTU:
 
         const systemPrompt = `
 Jesteś Autonomicznym Skautem i Analitykiem Przemysłowym (Industrial Screener & Analyst).
+JĘZYK: Odpowiadaj WYŁĄCZNIE po polsku. Wszystkie pola tekstowe MUSZĄ być w języku ${ScreenerAgentService.LANGUAGE_NAMES[userLanguage] || userLanguage}.
+
 Masz TRZY zadania w jednym kroku:
 
 === KLASYFIKACJA FIRMY (KRYTYCZNE — wykonaj NAJPIERW) ===

@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronRight, Download, Loader2, AlertTriangle, Trash2, BarChart3, CheckCircle2, Mail, Clock, Send, FileDown } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Download, Loader2, AlertTriangle, Trash2, BarChart3, CheckCircle2, Mail, Clock, Send, FileDown, StopCircle, Monitor } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -10,10 +10,12 @@ import { AgentAnimation } from '@/components/campaigns/AgentAnimation';
 import { LiveSupplierFeed } from '@/components/campaigns/LiveSupplierFeed';
 import { useCampaign, useExportCampaign } from '@/hooks/useCampaigns';
 import { useRealTimeMonitor } from '@/hooks/useRealTimeMonitor';
+import useCampaignsStore from '@/stores/campaigns.store';
 import campaignsService from '@/services/campaigns.service';
 import apiClient from '@/services/api.client';
 import { useAuthStore } from '@/stores/auth.store';
 import { PL } from '@/i18n/pl';
+import { analytics } from '@/lib/analytics';
 import { motion } from 'framer-motion';
 
 const containerVariants = {
@@ -49,6 +51,8 @@ export function CampaignDetailPage() {
   const [accepting, setAccepting] = useState(false);
   const { user } = useAuthStore();
   const isFullPlan = user?.plan === 'full';
+  const { activeCampaign } = useCampaignsStore();
+  const rtStatus = activeCampaign?.status;
 
   const deleteMutation = useMutation({
     mutationFn: campaignsService.delete,
@@ -68,18 +72,42 @@ export function CampaignDetailPage() {
 
   useEffect(() => {
     if (!id) navigate('/campaigns');
+    else analytics.campaignDetailView();
   }, [id, navigate]);
 
+  // Auto-refresh when campaign completes (via WebSocket → zustand store)
+  const prevRtStatus = useRef(rtStatus);
+  useEffect(() => {
+    if (
+      prevRtStatus.current === 'RUNNING' &&
+      (rtStatus === 'COMPLETED' || rtStatus === 'STOPPED' || rtStatus === 'ERROR')
+    ) {
+      refetchCampaign();
+    }
+    prevRtStatus.current = rtStatus;
+  }, [rtStatus, refetchCampaign]);
+
   const handleBack = () => {
-    if (window.history.state && window.history.state.idx > 0) {
-      navigate(-1);
-    } else {
-      navigate('/campaigns');
+    navigate('/campaigns');
+  };
+
+  const handleStopCampaign = async () => {
+    if (!id || !window.confirm('Zatrzymać wyszukiwanie? Znalezione wyniki zostaną zachowane.')) return;
+    try {
+      await apiClient.post(`/campaigns/${id}/stop`);
+      analytics.campaignStopped();
+      toast.success('Kampania zatrzymana');
+      refetchCampaign();
+    } catch (err: any) {
+      toast.error(`Błąd: ${err.response?.data?.message || err.message}`);
     }
   };
 
   const handleExport = () => {
-    if (id) exportMutation.mutate(id);
+    if (id) {
+      analytics.exportCsv();
+      exportMutation.mutate(id);
+    }
   };
 
   const [report, setReport] = useState<any>(null);
@@ -103,6 +131,7 @@ export function CampaignDetailPage() {
     setDownloadingPptx(true);
     try {
       const { data } = await apiClient.get(`/reports/campaign/${id}/pptx`, { responseType: 'blob' });
+      analytics.exportPowerpoint();
       downloadBlob(data, `procurea-raport-${campaign?.name || id}.pptx`);
     } catch { toast.error('Błąd generowania PowerPoint'); }
     finally { setDownloadingPptx(false); }
@@ -131,6 +160,7 @@ export function CampaignDetailPage() {
       const result = await apiClient.post(`/campaigns/${id}/accept`, {
         excludedSupplierIds: excludedIds,
       });
+      analytics.suppliersAccepted();
       toast.success(`Zaakceptowano ${result.data.qualified} dostawców. Wysłano ${result.data.offersSent} zaproszenia.`);
       refetchCampaign();
       // Refresh report
@@ -226,6 +256,12 @@ export function CampaignDetailPage() {
           </div>
 
           <div className="flex gap-2">
+            {isRunning && (
+              <Button variant="outline" onClick={handleStopCampaign} className="text-amber-600 hover:bg-amber-50 border-amber-200">
+                <StopCircle className="mr-2 h-4 w-4" />
+                Zatrzymaj
+              </Button>
+            )}
             {isFullPlan && isCompleted && !isAccepted && (
               <Button
                 onClick={handleAcceptAll}
@@ -680,7 +716,7 @@ export function CampaignDetailPage() {
         )
       }
 
-      {/* RUNNING: Agent Animation + Stats sidebar — show only after first supplier appears */}
+      {/* RUNNING: Agent Animation + Info sidebar — show only after first supplier appears */}
       {isRunning && !isError && suppliers.length > 0 && (
         <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
@@ -689,36 +725,33 @@ export function CampaignDetailPage() {
           <div>
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">{PL.campaigns.detail.stats}</CardTitle>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  Wyszukiwanie trwa...
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Status:</span>
-                  <span className="font-medium text-blue-600 flex items-center gap-1">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    Wyszukiwanie trwa...
-                  </span>
+              <CardContent className="space-y-4 text-sm">
+                <div className="flex justify-between items-center pb-3 border-b">
+                  <span className="text-muted-foreground">Znaleziono dostawców:</span>
+                  <span className="font-bold text-2xl text-primary">{suppliers.length}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">{PL.campaigns.detail.suppliersFound}:</span>
-                  <span className="font-semibold text-lg">{suppliers.length}</span>
-                </div>
-                {campaign.rfqRequest && (
-                  <div className="border-t pt-3 mt-3 space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Produkt:</span>
-                      <span className="font-medium">{campaign.rfqRequest.productName}</span>
-                    </div>
-                    {campaign.rfqRequest.quantity != null && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Ilość:</span>
-                        <span className="font-medium">{campaign.rfqRequest.quantity} {campaign.rfqRequest.unit || 'szt'}</span>
-                      </div>
-                    )}
+                <div className="space-y-3 text-muted-foreground">
+                  <div className="flex items-start gap-2">
+                    <Monitor className="h-4 w-4 mt-0.5 shrink-0 text-primary/70" />
+                    <p>Program działa <strong className="text-foreground">automatycznie w tle</strong>. Możesz zamknąć tę stronę i wrócić później wybierając <strong className="text-foreground">"Kampanie"</strong> w menu.</p>
                   </div>
-                )}
-                <div className="text-xs text-muted-foreground mt-3 p-2.5 bg-muted/50 rounded-lg">
-                  Możesz opuścić tę stronę — kampania działa w tle. Wyniki pojawią się automatycznie.
+                  <div className="flex items-start gap-2">
+                    <Clock className="h-4 w-4 mt-0.5 shrink-0 text-primary/70" />
+                    <p>Maksymalny czas wyszukiwania to <strong className="text-foreground">20 minut</strong>. Po tym czasie wyniki na pewno będą gotowe.</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <FileDown className="h-4 w-4 mt-0.5 shrink-0 text-primary/70" />
+                    <p>Po zakończeniu:</p>
+                  </div>
+                  <ul className="ml-6 space-y-1.5 text-xs">
+                    <li><strong className="text-foreground">Eksport do Excela</strong> — pełna lista dostawców z danymi kontaktowymi</li>
+                    <li><strong className="text-foreground">Raport AI (PowerPoint)</strong> — podsumowanie rynku, kluczowi gracze, rekomendacje — gotowy wsad do wewnętrznej komunikacji</li>
+                  </ul>
                 </div>
               </CardContent>
             </Card>
@@ -747,6 +780,8 @@ export function CampaignDetailPage() {
           isRunning={isRunning}
           excludedIds={isFullPlan ? excludedIds : []}
           onExclude={isFullPlan ? handleExclude : undefined}
+          campaignStartedAt={campaign?.createdAt}
+          onStop={handleStopCampaign}
         />
       </motion.div>
 

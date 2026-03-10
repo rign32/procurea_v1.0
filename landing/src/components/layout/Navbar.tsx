@@ -4,6 +4,7 @@ import { useScrollProgress } from "@/hooks/useScrollProgress"
 import { MobileMenu } from "./MobileMenu"
 import { Menu } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { trackCtaClick } from "@/lib/analytics"
 
 const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 
@@ -60,6 +61,7 @@ export function Navbar() {
                 href={APP_URL}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackCtaClick('navbar_login')}
                 className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
                 Zaloguj się
@@ -68,6 +70,7 @@ export function Navbar() {
                 href={APP_URL}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackCtaClick('navbar_cta')}
                 className="inline-flex items-center px-5 py-2 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all duration-200 hover:shadow-md"
               >
                 Testuj za darmo

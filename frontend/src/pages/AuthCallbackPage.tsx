@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/auth.store';
 import { PL } from '../i18n/pl';
+import { analytics } from '../lib/analytics';
 
 /**
  * OAuth callback handler.
@@ -30,6 +31,7 @@ export default function AuthCallbackPage() {
                 const data = await res.json();
 
                 if (data.success && data.user) {
+                    analytics.oauthCallback(true);
                     // Store tokens for Authorization header (Firebase Hosting strips cookies except __session)
                     if (data.accessToken) localStorage.setItem('procurea_token', data.accessToken);
                     if (data.refreshToken) localStorage.setItem('procurea_refresh', data.refreshToken);
@@ -46,6 +48,7 @@ export default function AuthCallbackPage() {
                     throw new Error('Authentication failed');
                 }
             } catch (err: any) {
+                analytics.oauthCallback(false);
                 console.error('[AuthCallback] Error:', err);
                 setError(err.message || PL.errors.generic);
                 setTimeout(() => navigate('/login', { replace: true }), 3000);

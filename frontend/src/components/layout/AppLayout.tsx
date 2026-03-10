@@ -11,7 +11,9 @@ import {
     LogOut,
     Menu,
     X,
-    ShieldAlert
+    ShieldAlert,
+    HelpCircle,
+    Phone
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -89,6 +91,23 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
                             </Link>
                         )
                     })}
+                </div>
+
+                <div className="border-t p-3">
+                    <div className="rounded-md bg-muted/50 p-3 space-y-1.5">
+                        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                            <HelpCircle className="h-3.5 w-3.5" />
+                            Potrzebujesz pomocy?
+                        </div>
+                        <a href="mailto:kontakt@procurea.pl?subject=Zg%C5%82oszenie%20%E2%80%94%20Procurea&body=Dzie%C5%84%20dobry%2C%20dzi%C4%99kuj%C4%99%20za%20zg%C5%82aszanie%20problem%C3%B3w%20i%20sugestii%20rozwoju%20%E2%80%94%20do%C5%82%C4%85czanie%20screenshot%C3%B3w%20oraz%20opisywanie%20sytuacji%2C%20w%20kt%C3%B3rej%20program%20nie%20zadzia%C5%82a%C5%82%20nale%C5%BCycie%20pomo%C5%BCe%20szybciej%20Pa%C5%84stwu%20pom%C3%B3c.%0A%0AMiejsce%20wyst%C4%99powania%3A%20%0AOpis%20problemu%3A%20" className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                            <Mail className="h-3.5 w-3.5" />
+                            kontakt@procurea.pl
+                        </a>
+                        <a href="tel:+48536067316" className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                            <Phone className="h-3.5 w-3.5" />
+                            +48 536 067 316
+                        </a>
+                    </div>
                 </div>
 
                 <div className="border-t p-4">

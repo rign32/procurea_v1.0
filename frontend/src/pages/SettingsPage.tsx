@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Loader2, User as UserIcon, Building, MapPin, Bell, Users, CreditCard } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import { PL } from '@/i18n/pl';
@@ -8,11 +8,14 @@ import { LocationsTab } from '@/components/settings/LocationsTab';
 import { TeamTab } from '@/components/settings/TeamTab';
 import { NotificationsTab } from '@/components/settings/NotificationsTab';
 import { BillingTab } from '@/components/settings/BillingTab';
+import { analytics } from '@/lib/analytics';
 
 type TabKey = 'profile' | 'organization' | 'locations' | 'team' | 'notifications' | 'billing';
 
 export function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabKey>('profile');
+
+  useEffect(() => { analytics.settingsView(); }, []);
   const { user, isLoading } = useAuthStore();
 
   const isFullPlan = user?.plan === 'full';
@@ -25,9 +28,7 @@ export function SettingsPage() {
     ...(isFullPlan ? [{ key: 'locations' as TabKey, label: PL.settings.tabs.locations, icon: <MapPin className="h-4 w-4" /> }] : []),
     { key: 'team', label: PL.settings.tabs.team, icon: <Users className="h-4 w-4" /> },
     { key: 'notifications', label: PL.settings.tabs.notifications, icon: <Bell className="h-4 w-4" /> },
-    ...(isFullPlan ? [
-      { key: 'billing' as TabKey, label: PL.settings.tabs.billing, icon: <CreditCard className="h-4 w-4" /> },
-    ] : []),
+    { key: 'billing' as TabKey, label: PL.settings.tabs.billing, icon: <CreditCard className="h-4 w-4" /> },
   ];
 
   if (isLoading) {

@@ -1,22 +1,31 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
 import { SupplierCard } from '../suppliers/SupplierCard';
 import { rfqsService } from '@/services/rfqs.service';
 import type { Supplier } from '@/types/supplier.types';
 import { PL } from '@/i18n/pl';
 
-function WaitingForResults({ isRunning }: { isRunning?: boolean }) {
-  const [secondsLeft, setSecondsLeft] = useState(120);
+const MAX_SECONDS = 20 * 60; // 20 minutes
+
+function WaitingForResults({ isRunning, campaignStartedAt, onStop }: { isRunning?: boolean; campaignStartedAt?: string; onStop?: () => void }) {
+  const calcRemaining = () => {
+    if (!campaignStartedAt) return MAX_SECONDS;
+    const elapsed = Math.floor((Date.now() - new Date(campaignStartedAt).getTime()) / 1000);
+    return Math.max(0, MAX_SECONDS - elapsed);
+  };
+
+  const [secondsLeft, setSecondsLeft] = useState(calcRemaining);
 
   useEffect(() => {
     if (!isRunning) return;
+    // Re-sync on mount (handles F5 refresh)
+    setSecondsLeft(calcRemaining());
     const interval = setInterval(() => {
-      setSecondsLeft(prev => Math.max(0, prev - 1));
+      setSecondsLeft(calcRemaining());
     }, 1000);
     return () => clearInterval(interval);
-  }, [isRunning]);
+  }, [isRunning, campaignStartedAt]);
 
   const minutes = Math.floor(secondsLeft / 60);
   const seconds = secondsLeft % 60;
@@ -32,7 +41,6 @@ function WaitingForResults({ isRunning }: { isRunning?: boolean }) {
 
   return (
     <div className="text-center py-16 space-y-6">
-      <Loader2 className="mx-auto h-12 w-12 text-primary animate-spin" style={{ animationDuration: '2s' }} />
       <div>
         <p className="text-lg font-medium">Szukam dostawców...</p>
         <p className="text-sm text-muted-foreground mt-1">
@@ -43,13 +51,13 @@ function WaitingForResults({ isRunning }: { isRunning?: boolean }) {
         </p>
       </div>
       <div className="flex justify-center">
-        <svg className="w-20 h-20" viewBox="0 0 100 100">
+        <svg className="w-24 h-24" viewBox="0 0 100 100">
           <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor"
             className="text-muted/30" strokeWidth="4" />
           <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor"
             className="text-primary" strokeWidth="4" strokeLinecap="round"
             strokeDasharray={`${2 * Math.PI * 45}`}
-            strokeDashoffset={`${2 * Math.PI * 45 * (1 - secondsLeft / 120)}`}
+            strokeDashoffset={`${2 * Math.PI * 45 * (1 - secondsLeft / MAX_SECONDS)}`}
             transform="rotate(-90 50 50)"
             style={{ transition: 'stroke-dashoffset 1s linear' }} />
           <text x="50" y="50" textAnchor="middle" dominantBaseline="central"
@@ -58,9 +66,19 @@ function WaitingForResults({ isRunning }: { isRunning?: boolean }) {
           </text>
         </svg>
       </div>
-      <p className="text-xs text-muted-foreground">
-        Dostawcy będą pojawiać się automatycznie
-      </p>
+      <div className="space-y-2">
+        <p className="text-xs text-muted-foreground">
+          Program działa automatycznie w tle — możesz zamknąć tę stronę
+        </p>
+        {onStop && (
+          <button
+            onClick={onStop}
+            className="text-xs text-amber-600 hover:text-amber-700 underline underline-offset-2"
+          >
+            Zatrzymaj wyszukiwanie
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -73,6 +91,8 @@ interface LiveSupplierFeedProps {
   isRunning?: boolean;
   excludedIds?: string[];
   onExclude?: (supplierId: string) => void;
+  campaignStartedAt?: string;
+  onStop?: () => void;
 }
 
 export function LiveSupplierFeed({
@@ -83,6 +103,8 @@ export function LiveSupplierFeed({
   isRunning = false,
   excludedIds = [],
   onExclude,
+  campaignStartedAt,
+  onStop,
 }: LiveSupplierFeedProps) {
   const navigate = useNavigate();
   const [sendingTo, setSendingTo] = useState<string | null>(null);
@@ -118,7 +140,7 @@ export function LiveSupplierFeed({
   const visibleSuppliers = suppliers.filter(s => !excludedIds.includes(s.id));
 
   if (visibleSuppliers.length === 0 && suppliers.length === 0) {
-    return <WaitingForResults isRunning={isRunning} />;
+    return <WaitingForResults isRunning={isRunning} campaignStartedAt={campaignStartedAt} onStop={onStop} />;
   }
 
   return (

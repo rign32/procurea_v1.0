@@ -53,6 +53,9 @@ export class EnrichmentAgentService {
         // AI Enrichment
         const systemPrompt = `
 Jesteś Inżynierem Danych (Data Enrichment Specialist).
+WAŻNE: Odpowiadaj WYŁĄCZNIE w języku ${EnrichmentAgentService.LANGUAGE_NAMES[userLanguage] || userLanguage}.
+Specjalizacja, kraj, miasto — WSZYSTKO po polsku. Nawet jeśli dane wejściowe są w innym języku, PRZETŁUMACZ.
+
 Uzupełnij dane firmy na podstawie kontekstu wyszukiwania.
 
 DANE Z ANALIZY:
@@ -69,14 +72,15 @@ ZADANIA:
 3. Specjalizacja: max 5 słów
 4. Certyfikaty: lista ISO/IATF/AS9100
 
-=== KONTEKST PRODUKTU (KRYTYCZNY) ===
+=== KONTEKST PRODUKTU ===
 PRODUKT DOCELOWY: ${productContext?.coreProduct || 'N/A'}
-SYGNAŁY POZYTYWNE: ${productContext?.positiveSignals?.join(', ') || 'brak'}
-SYGNAŁY NEGATYWNE: ${productContext?.negativeSignals?.join(', ') || 'brak'}
 
-INSTRUKCJA: Specjalizacja MUSI odnosić się do produktu docelowego, NIE do innego produktu
-który firma może mieć w ofercie. Jeśli firma produkuje wiele produktów, wymień TEN
-który jest relevantny do zapytania.
+INSTRUKCJA: Specjalizacja musi RZETELNIE opisywać GŁÓWNĄ działalność firmy (max 5 słów).
+NIE dostosowuj specjalizacji do produktu docelowego — opisz CO FIRMA FAKTYCZNIE ROBI.
+Przykłady:
+- Producent rur z tworzyw → "Produkcja rur z tworzyw sztucznych" (NIE "granulat tworzywowy")
+- Producent maszyn do granulacji → "Maszyny do granulacji tworzyw" (NIE "granulat tworzywowy")
+- Producent granulatu PE → "Produkcja granulatu polietylenowego" (TO jest trafne)
 
 JĘZYK WYJŚCIA: Wszystkie pola tekstowe (specialization, country, city) MUSZĄ być w języku ${EnrichmentAgentService.LANGUAGE_NAMES[userLanguage] || userLanguage}.
 Nazwy firm pozostaw oryginalne — NIE tłumacz nazw własnych.

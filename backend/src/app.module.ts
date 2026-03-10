@@ -23,6 +23,7 @@ import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { AuthMeLoggerMiddleware } from './common/middleware/auth-me-logger.middleware';
 
 import { PostHogModule } from './posthog/posthog.module';
+import { BillingModule } from './billing/billing.module';
 import { SentryModule } from '@sentry/nestjs/setup';
 
 @Module({
@@ -54,6 +55,7 @@ import { SentryModule } from '@sentry/nestjs/setup';
     UploadsModule,
     ReportsModule,
     PostHogModule,
+    BillingModule,
   ],
   controllers: [AppController],
   providers: [

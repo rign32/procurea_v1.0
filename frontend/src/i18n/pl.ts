@@ -129,6 +129,7 @@ export const PL = {
     status: {
       running: 'W toku',
       completed: 'Ukończona',
+      stopped: 'Zatrzymana',
       error: 'Błąd',
       paused: 'Wstrzymana',
     },
@@ -503,23 +504,51 @@ export const PL = {
     },
 
     billing: {
-      title: 'Plan i Płatności',
-      subtitle: 'Zarządzaj subskrypcją',
+      title: 'Kredyty i Płatności',
+      subtitle: 'Zarządzaj kredytami wyszukiwania',
+      currentBalance: 'Dostępne wyszukiwania',
       currentPlan: 'Aktualny plan',
-      freeTrial: 'Free Trial',
-      freeTrialDesc: '3 kampanie sourcingowe',
-      campaignsUsed: 'Wykorzystane kampanie',
-      of: 'z',
-      upgradeCta: 'Skontaktuj się w sprawie rozszerzenia',
-      plans: {
-        basic: 'Basic',
-        basicDesc: '10 kampanii / miesiąc',
-        pro: 'Pro',
-        proDesc: '50 kampanii / miesiąc + priorytet',
-        enterprise: 'Enterprise',
-        enterpriseDesc: 'Bez limitów, dedykowane wsparcie',
+      planResearch: 'Darmowy',
+      planPayAsYouGo: 'Pay as you go',
+      planUnlimited: 'Bez limitu',
+      unlimited: 'Bez limitu',
+      active: 'Aktywna',
+
+      packs: {
+        title: 'Pakiety wyszukiwań',
+        pack1: '1 wyszukiwanie',
+        pack5: '5 wyszukiwań',
+        pack20: '20 wyszukiwań',
+        popular: 'Popularne',
+        bestValue: 'Najlepsza cena',
+        buy: 'Kup',
       },
-      contactSales: 'Skontaktuj się',
+
+      subscription: {
+        title: 'Subskrypcja bez limitu',
+        description: 'Nieograniczone wyszukiwania dostawców co miesiąc',
+        subscribe: 'Subskrybuj',
+        manage: 'Zarządzaj subskrypcją',
+        perMonth: '/mies.',
+      },
+
+      vat: 'netto (+ 23% VAT)',
+      gross: 'brutto',
+
+      history: {
+        title: 'Historia transakcji',
+        date: 'Data',
+        description: 'Opis',
+        amount: 'Ilość',
+        balance: 'Saldo',
+        noTransactions: 'Brak transakcji',
+      },
+
+      checkout: {
+        redirecting: 'Przekierowanie do płatności...',
+        success: 'Płatność zakończona pomyślnie! Kredyty zostały dodane.',
+        canceled: 'Płatność anulowana.',
+      },
     },
   },
 

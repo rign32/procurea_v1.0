@@ -42,7 +42,7 @@ type SearchProvider = 'serpapi' | 'serper';
 export class GoogleSearchService {
   private readonly logger = new Logger(GoogleSearchService.name);
   private serpApiKey = process.env.SERP_API_KEY || '';
-  private serperApiKey = process.env.SERPER_API_KEY || '7640c67f7cf774cb3b3170d27a0abc2b859d4458';
+  private serperApiKey = process.env.SERPER_API_KEY || '';
   private provider: SearchProvider;
   private budget: SearchBudget;
 

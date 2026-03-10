@@ -7,7 +7,7 @@ export class ScrapingService {
     private readonly logger = new Logger(ScrapingService.name);
     private readonly cache = new Map<string, { content: string; timestamp: number }>();
     private readonly CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
-    private readonly MAX_RETRIES = 3;
+    private readonly MAX_RETRIES = 2;
     private readonly CONTENT_LIMIT = 25000;
     private readonly JS_RENDER_MIN_CONTENT = 500; // Threshold: if static content < 500 chars, try JS rendering
 
@@ -60,7 +60,7 @@ export class ScrapingService {
                         'Accept': 'text/html,application/xhtml+xml',
                         'Accept-Language': 'en-US,en;q=0.9,pl;q=0.8,de;q=0.7',
                     },
-                    timeout: 15000,
+                    timeout: 10000,
                     maxContentLength: 5 * 1024 * 1024,
                     maxBodyLength: 5 * 1024 * 1024,
                     maxRedirects: 3,
@@ -76,7 +76,7 @@ export class ScrapingService {
                 return text.substring(0, this.CONTENT_LIMIT);
             } catch (error) {
                 const isLastAttempt = attempt === this.MAX_RETRIES;
-                const delay = Math.pow(2, attempt) * 1000;
+                const delay = attempt * 1500; // 1.5s, 3s instead of 2s, 4s, 8s
 
                 if (isLastAttempt) {
                     this.logger.error(`Failed to fetch ${url} after ${this.MAX_RETRIES} attempts: ${error.message}`);

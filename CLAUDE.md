@@ -1,5 +1,65 @@
 # Procurea — Kontekst dla Claude Code
 
+## Sposób pracy Claude Code (OBOWIĄZKOWE)
+
+### Zasada naczelna
+Claude Code **NIE** uruchamia aplikacji lokalnie (npm run dev, localhost). Środowiskiem testowym jest **staging** (`staging.procurea.pl`). Każda zmiana w kodzie trafia na staging przez GitHub → CI/CD, a użytkownik testuje tam w przeglądarce.
+
+### Workflow: od zadania do produkcji
+
+**Faza 1 — Planowanie**
+1. Użytkownik opisuje zadanie lub sprint (lista tasków)
+2. Claude planuje implementację (plan mode lub todo list)
+3. Po zatwierdzeniu planu → przejście do fazy 2
+
+**Faza 2 — Implementacja**
+1. Claude pisze kod, edytuje pliki
+2. Może uruchamiać `npm run build` / `tsc --noEmit` aby sprawdzić kompilację
+3. **NIE** uruchamia serwerów lokalnie, **NIE** testuje na localhost
+4. Po zakończeniu kodu → zapytaj użytkownika:
+   > „Zmiany gotowe. Rozpocząć procedurę deploy na staging?"
+
+**Faza 3 — Deploy na staging**
+Po potwierdzeniu użytkownika:
+1. `git add` (tylko zmienione/nowe pliki, nie `git add .`)
+2. `git commit` z opisowym komunikatem
+3. Upewnij się, że branch `staging` jest aktualny: `git checkout staging && git merge main`
+4. `git push origin staging` — to uruchamia GitHub Actions
+5. **Monitoruj CI** — sprawdź status workflow:
+   ```
+   curl -s -H "Authorization: token <TOKEN>" \
+     "https://api.github.com/repos/rign32/procurea_v1.0/actions/runs?branch=staging&per_page=1"
+   ```
+6. Jeśli CI **FAILED** → przeczytaj logi, napraw błąd, commitnij poprawkę i powtórz
+7. Jeśli CI **SUCCESS** → poinformuj użytkownika:
+   > „Deploy na staging zakończony. Odśwież staging.procurea.pl i przetestuj."
+
+**Faza 4 — Akceptacja i produkcja**
+1. Użytkownik testuje na staging.procurea.pl
+2. Jeśli znajdzie problemy → Claude naprawia i wraca do fazy 3
+3. Jeśli użytkownik akceptuje (mówi np. „git", „deploy na proda", „ok"):
+   - `git checkout main && git merge staging`
+   - `git push origin main` — to uruchamia deploy na produkcję
+   - **Monitoruj CI** — sprawdź status workflow dla brancha main
+   - Jeśli CI **SUCCESS** → potwierdź:
+     > „Produkcja wdrożona. app.procurea.pl zaktualizowane."
+   - Jeśli CI **FAILED** → przeczytaj logi, napraw, powtórz
+
+### Zasady monitorowania CI/CD
+- **NIGDY** nie kończ zadania zanim CI nie przejdzie pomyślnie
+- Jeśli CI trwa > 5 minut, sprawdź status co minutę
+- Po wykryciu błędu CI, automatycznie przeczytaj logi i zaproponuj fix
+- GitHub API token do monitorowania: użyj `ghp_...` jeśli dostępny, albo poproś użytkownika
+
+### Czego Claude Code NIE robi
+- **NIE** uruchamia `npm run dev`, `npm start` ani żadnych serwerów lokalnych
+- **NIE** deployuje bezpośrednio na produkcję (`firebase deploy --only hosting:app,functions:api`) — tylko przez merge do `main`
+- **NIE** pushuje na `main` bez wcześniejszej akceptacji staging przez użytkownika
+- **NIE** tworzy commitów bez zapytania użytkownika o gotowość do deploy
+- **NIE** używa `git add .` ani `git add -A` — tylko konkretne pliki
+
+---
+
 ## Architektura projektu
 
 - **Backend**: NestJS + Prisma + PostgreSQL (Docker, port 5432)
@@ -118,10 +178,12 @@ Baza danych to PostgreSQL (via Docker). Stary opis o SQLite jest nieaktualny.
 - Deploy backendu na staging **NIE** wpływa na produkcję (i odwrotnie)
 
 ### Flow pracy
-1. Zrób zmiany w kodzie na feature branchu
-2. Merge do **`staging`** → automatyczny deploy na staging
-3. Przetestuj na staging (auto-login na konto testowe)
-4. Po akceptacji: merge do **`main`** → automatyczny deploy na produkcję
+1. Zrób zmiany w kodzie na branchu `main` (working directory)
+2. Commit → `git checkout staging && git merge main && git push origin staging`
+3. GitHub Actions deployuje na staging automatycznie
+4. Użytkownik testuje na staging
+5. Po akceptacji: `git checkout main && git push origin main`
+6. GitHub Actions deployuje na produkcję automatycznie
 
 ### Deploy manualny (staging)
 Jeśli potrzebny szybki deploy bez CI:

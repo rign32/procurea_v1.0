@@ -31,7 +31,14 @@ export class AuditorAgentService {
         pt: 'português', fi: 'suomi', ja: '日本語', ko: '한국어', zh: '中文',
     };
 
-    async execute(websiteData: any, registryData: any, userLanguage: string = 'pl', productContext?: { coreProduct: string; positiveSignals: string[]; negativeSignals: string[] }): Promise<any> {
+    async execute(websiteData: any, registryData: any, userLanguage: string = 'pl', productContext?: {
+        coreProduct: string;
+        positiveSignals: string[];
+        negativeSignals: string[];
+        supplyChainPosition?: string;
+        disambiguationNote?: string;
+        productCategory?: string;
+    }): Promise<any> {
         this.logger.log('Executing Auditor Agent - STRICT VALIDATION MODE...');
 
         // Pre-validation checks
@@ -95,15 +102,42 @@ Odrzuć (REJECTED) TYLKO gdy:
 2. URL wyraźnie wskazuje na blog/artykuł (/blog/, /news/, /article/)
 3. Dane są ewidentnie sfabrykowane (nierealna kombinacja)
 
-validation_result: "APPROVED" powinno być DOMYŚLNE, chyba że są KONKRETNE DOWODY na falsyfikat.
-Przy wątpliwościach używaj "NEEDS_REVIEW" zamiast "REJECTED".
+validation_result: Przy odrzuceniu z powodu SPÓJNOŚCI DANYCH → daj szansę (NEEDS_REVIEW).
+Ale przy odrzuceniu z powodu ZŁEGO PRODUKTU → odrzuć zdecydowanie (REJECTED).
+Walidacja produktowa jest WAŻNIEJSZA niż walidacja spójności danych.
 
-=== KONTEKST PRODUKTU ===
+=== KONTEKST PRODUKTU (KRYTYCZNY) ===
 PRODUKT DOCELOWY: ${productContext?.coreProduct || 'N/A'}
+KATEGORIA: ${productContext?.productCategory || 'N/A'}
+POZYCJA W ŁAŃCUCHU DOSTAW: ${productContext?.supplyChainPosition || 'N/A'}
+UWAGA: ${productContext?.disambiguationNote || 'brak'}
 
-KRYTYCZNA WALIDACJA: Jeśli firma jest PRODUCENTEM ale INNEGO produktu niż docelowy,
-ODRZUĆ ją. Przykład: szukamy "olej hydrauliczny" → firma produkuje "systemy hydrauliczne"
-(pompy, zawory, siłowniki) ale NIE produkuje oleju → REJECTED.
+SYGNAŁY POZYTYWNE (firma produkuje/sprzedaje ten produkt):
+${productContext?.positiveSignals?.map(s => `  ✅ ${s}`).join('\n') || 'brak'}
+
+SYGNAŁY NEGATYWNE (firma NIE jest dostawcą tego produktu):
+${productContext?.negativeSignals?.map(s => `  ❌ ${s}`).join('\n') || 'brak'}
+
+=== WALIDACJA PRODUKTOWA (KRYTYCZNA) ===
+
+KROK 1: Sprawdź czy specjalizacja firmy RZECZYWIŚCIE pokrywa się z produktem docelowym.
+KROK 2: Sprawdź czy firma SPRZEDAJE ten produkt, czy tylko go KUPUJE/UŻYWA.
+KROK 3: Sprawdź czy firma produkuje PRODUKT, czy MASZYNY do jego produkcji.
+
+ODRZUĆ (REJECTED) gdy:
+- Firma produkuje INNY produkt niż docelowy (np. szukamy oleju → firma produkuje pompy)
+- Firma PRZETWARZA surowiec w gotowe wyroby (np. szukamy granulatu → firma produkuje rury Z granulatu)
+- Firma produkuje MASZYNY/URZĄDZENIA do obróbki tego produktu (np. szukamy granulatu → firma produkuje ekstruzery/granulatory)
+- Firma jest z KOMPLETNIE INNEJ branży
+
+${productContext?.supplyChainPosition === 'raw material' ? `
+UWAGA — SZUKAMY SUROWCA:
+Produkt "${productContext?.coreProduct}" jest SUROWCEM. Akceptuj TYLKO:
+- Producentów/wytwórców tego surowca
+- Dystrybutorów/handlowców tego surowca
+- Recyklerów/regranulatorów tego surowca
+ODRZUĆ producentów gotowych wyrobów z tego surowca!
+` : ''}
 Firma musi WYTWARZAĆ lub SPRZEDAWAĆ szukany produkt, nie tylko działać w powiązanej branży.
 
 === ZADANIE ===

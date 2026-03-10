@@ -64,6 +64,7 @@ export function CampaignsPage() {
     const variants: Record<CampaignStatus, 'default' | 'secondary' | 'destructive'> = {
       RUNNING: 'secondary',
       COMPLETED: 'default',
+      STOPPED: 'secondary',
       ERROR: 'destructive',
       PAUSED: 'secondary',
       SENDING: 'default',
