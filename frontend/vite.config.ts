@@ -7,6 +7,16 @@ export default defineConfig(({ mode }) => ({
   plugins: [react()],
   build: {
     outDir: mode.includes('-en') ? 'dist-en' : 'dist',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'query-vendor': ['@tanstack/react-query'],
+          'ui-vendor': ['framer-motion', 'lucide-react'],
+          'form-vendor': ['react-hook-form', 'zod', '@hookform/resolvers'],
+        },
+      },
+    },
   },
   resolve: {
     alias: {

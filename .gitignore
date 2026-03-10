@@ -43,3 +43,12 @@ backend/error-logs.json
 
 # Screenshots
 screeny/
+
+# Build artifacts (EN variants)
+dist-en/
+
+# TypeScript incremental build
+*.tsbuildinfo
+
+# Node.js binaries (should never be in repo)
+node-v*/

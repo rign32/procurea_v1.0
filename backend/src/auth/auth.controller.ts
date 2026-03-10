@@ -55,8 +55,6 @@ const getCookieOptions = (isProduction: boolean, domain?: string): CookieOptions
     path: '/',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     sameSite: 'lax',
-    // @ts-ignore - Partitioned is not yet in types but supported by browsers
-    partitioned: false
 });
 
 @Controller('auth')
@@ -154,8 +152,6 @@ export class AuthController {
                 path: '/',
                 maxAge: 30000, // 30 seconds
                 sameSite: 'lax',
-                // @ts-ignore
-                partitioned: false,
             });
 
             await this.authLogsService.logAuthEvent({
@@ -301,8 +297,6 @@ export class AuthController {
             path: '/',
             maxAge: this.tokensService.getAccessTokenExpirySeconds() * 1000,
             sameSite: 'lax',
-            // @ts-ignore
-            partitioned: false,
         });
 
         // Refresh token cookie (30 days)
@@ -313,8 +307,6 @@ export class AuthController {
             path: '/',
             maxAge: this.tokensService.getRefreshTokenExpirySeconds() * 1000,
             sameSite: 'lax',
-            // @ts-ignore
-            partitioned: false,
         });
 
         // Clear exchange token cookie
@@ -442,8 +434,6 @@ export class AuthController {
                 path: '/',
                 maxAge: this.tokensService.getAccessTokenExpirySeconds() * 1000,
                 sameSite: 'lax',
-                // @ts-ignore
-                partitioned: false,
             });
 
             // New refresh token cookie
@@ -454,8 +444,6 @@ export class AuthController {
                 path: '/',
                 maxAge: this.tokensService.getRefreshTokenExpirySeconds() * 1000,
                 sameSite: 'lax',
-                // @ts-ignore
-                partitioned: false,
             });
 
             await this.authLogsService.logAuthEvent({
@@ -693,8 +681,6 @@ export class AuthController {
                 path: '/',
                 maxAge: 30000, // 30 seconds
                 sameSite: 'lax',
-                // @ts-ignore
-                partitioned: false,
             });
 
             await this.authLogsService.logAuthEvent({

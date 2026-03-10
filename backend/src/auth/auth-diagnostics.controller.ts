@@ -57,8 +57,6 @@ export class AuthDiagnosticsController {
             secure: true,
             sameSite: 'none',
             path: '/',
-            // @ts-ignore
-            partitioned: true,
         });
 
         return {

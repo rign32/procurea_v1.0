@@ -1,26 +1,29 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import AppLayout from './components/layout/AppLayout'
-import Dashboard from './pages/Dashboard'
 import Login from './Login'
 import AuthCallbackPage from './pages/AuthCallbackPage'
-import OnboardingPage from './pages/OnboardingPage'
-import CampaignsPage from './pages/CampaignsPage'
-import CampaignDetailPage from './pages/CampaignDetailPage'
-import RfqWizardPage from './pages/RfqWizardPage'
-import SuppliersPage from './pages/SuppliersPage'
-import SupplierDetailPage from './pages/SupplierDetailPage'
-import RfqsPage from './pages/RfqsPage'
-import RfqDetailPage from './pages/RfqDetailPage'
-import SupplierPortalPage from './pages/SupplierPortalPage'
-import SequencesPage from './pages/SequencesPage'
-import SettingsPage from './pages/SettingsPage'
-import BlacklistPage from './pages/BlacklistPage'
 import { useAuthStore } from './stores/auth.store'
 import apiClient from './services/api.client'
+import type { User } from './types/campaign.types'
+
+// Lazy-loaded pages (code splitting)
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const OnboardingPage = lazy(() => import('./pages/OnboardingPage'))
+const CampaignsPage = lazy(() => import('./pages/CampaignsPage'))
+const CampaignDetailPage = lazy(() => import('./pages/CampaignDetailPage'))
+const RfqWizardPage = lazy(() => import('./pages/RfqWizardPage'))
+const SuppliersPage = lazy(() => import('./pages/SuppliersPage'))
+const SupplierDetailPage = lazy(() => import('./pages/SupplierDetailPage'))
+const RfqsPage = lazy(() => import('./pages/RfqsPage'))
+const RfqDetailPage = lazy(() => import('./pages/RfqDetailPage'))
+const SupplierPortalPage = lazy(() => import('./pages/SupplierPortalPage'))
+const SequencesPage = lazy(() => import('./pages/SequencesPage'))
+const SettingsPage = lazy(() => import('./pages/SettingsPage'))
+const BlacklistPage = lazy(() => import('./pages/BlacklistPage'))
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -137,8 +140,8 @@ function App() {
           markSessionValidated();
           console.log('[Staging] Auto-login successful:', data.user.email);
         }
-      } catch (err: any) {
-        console.error('[Staging] Auto-login failed:', err.message);
+      } catch (err: unknown) {
+        console.error('[Staging] Auto-login failed:', err instanceof Error ? err.message : err);
       } finally {
         setStagingRefreshed(true);
       }
@@ -159,14 +162,15 @@ function App() {
         const res = await apiClient.get('/auth/me');
         // Refresh user data (picks up new fields like plan)
         if (res.data?.id) setUser(res.data);
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const axiosErr = err as { response?: { status?: number }; message?: string };
         // Only logout on authentication errors (401, 403)
-        if (err.response?.status === 401 || err.response?.status === 403) {
+        if (axiosErr.response?.status === 401 || axiosErr.response?.status === 403) {
           console.log('[App] Stale session detected (401/403), logging out');
           logout();
         } else if (retryCount < 2) {
           // Retry network errors or other 5xx errors
-          console.log(`[App] Session validation failed (${err.message}), retrying... (${retryCount + 1}/2)`);
+          console.log(`[App] Session validation failed (${axiosErr.message}), retrying... (${retryCount + 1}/2)`);
           setTimeout(() => validateSession(retryCount + 1), 1000);
         } else {
           // After 2 retries, assume network issue and stay logged in
@@ -176,9 +180,9 @@ function App() {
     };
 
     validateSession();
-  }, [hydrated, impersonating, isAuthenticated, user?.id, sessionValidated, markSessionValidated, logout]);
+  }, [hydrated, impersonating, isAuthenticated, user?.id, sessionValidated, markSessionValidated, setUser, logout]);
 
-  const handleLogin = (loggedInUser: any) => {
+  const handleLogin = (loggedInUser: User) => {
     setUser(loggedInUser)
     markSessionValidated()
   }
@@ -231,6 +235,7 @@ function App() {
         }}
       />
       <Router>
+        <Suspense fallback={<div className="flex h-screen items-center justify-center bg-background"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
         <Routes>
           <Route
             path="/login"
@@ -281,6 +286,7 @@ function App() {
           {/* Catch all */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
+        </Suspense>
       </Router>
     </QueryClientProvider>
   )

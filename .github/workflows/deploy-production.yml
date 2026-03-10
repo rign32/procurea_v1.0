@@ -29,6 +29,18 @@ jobs:
         working-directory: backend
         run: npm ci
 
+      - name: Backend type check
+        working-directory: backend
+        run: npx tsc --noEmit
+
+      - name: Backend lint
+        working-directory: backend
+        run: npm run lint
+
+      - name: Backend tests
+        working-directory: backend
+        run: npm test -- --passWithNoTests
+
       - name: Build backend
         working-directory: backend
         run: npm run build
@@ -36,6 +48,14 @@ jobs:
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
+
+      - name: Frontend type check
+        working-directory: frontend
+        run: npx tsc -b
+
+      - name: Frontend lint
+        working-directory: frontend
+        run: npm run lint
 
       - name: Build frontend PL (production)
         working-directory: frontend
