@@ -1,23 +1,5 @@
 import { Link } from "react-router-dom"
-
-const footerLinks = {
-  produkt: [
-    { label: "Co zyskujesz", href: "#co-zyskujesz" },
-    { label: "Jak to działa", href: "#jak-to-dziala" },
-    { label: "Dla kogo", href: "#dla-kogo" },
-    { label: "FAQ", href: "#faq" },
-  ],
-  firma: [
-    { label: "kontakt@procurea.pl", href: "mailto:kontakt@procurea.pl" },
-    { label: "+48 536 067 316", href: "tel:+48536067316" },
-  ],
-}
-
-const legalLinks = [
-  { label: "Regulamin", to: "/regulamin" },
-  { label: "Polityka prywatności", to: "/polityka-prywatnosci" },
-  { label: "RODO", to: "/rodo" },
-]
+import { t } from "@/i18n"
 
 export function Footer() {
   return (
@@ -33,17 +15,17 @@ export function Footer() {
               <span className="text-lg font-bold text-white">Procurea</span>
             </Link>
             <p className="text-sm text-gray-500 leading-relaxed max-w-xs">
-              Polskie narzędzie AI do wyszukiwania dostawców. Obecnie w beta testach.
+              {t.footer.brand}
             </p>
           </div>
 
-          {/* Produkt */}
+          {/* Product */}
           <div>
             <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 text-gray-500">
-              Produkt
+              {t.footer.product}
             </h3>
             <ul className="space-y-2.5">
-              {footerLinks.produkt.map((link) => (
+              {t.footer.productLinks.map((link) => (
                 <li key={link.label}>
                   <a
                     href={link.href}
@@ -56,13 +38,13 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Firma */}
+          {/* Company */}
           <div>
             <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 text-gray-500">
-              Firma
+              {t.footer.company}
             </h3>
             <ul className="space-y-2.5">
-              {footerLinks.firma.map((link) => (
+              {t.footer.companyLinks.map((link) => (
                 <li key={link.label}>
                   <a
                     href={link.href}
@@ -75,13 +57,13 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Prawne */}
+          {/* Legal */}
           <div>
             <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 text-gray-500">
-              Prawne
+              {t.footer.legal}
             </h3>
             <ul className="space-y-2.5">
-              {legalLinks.map((link) => (
+              {t.footer.legalLinks.map((link) => (
                 <li key={link.label}>
                   <Link
                     to={link.to}
@@ -98,7 +80,7 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="mt-12 pt-8 border-t border-white/[0.06]">
           <p className="text-xs text-gray-600 text-center">
-            &copy; {new Date().getFullYear()} Procurea sp. z o.o. Wszelkie prawa zastrzeżone.
+            &copy; {new Date().getFullYear()} {t.footer.copyright}
           </p>
         </div>
       </div>

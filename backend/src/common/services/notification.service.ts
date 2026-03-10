@@ -45,7 +45,7 @@ export class NotificationService {
         // 1. Email
         if (channels.email) {
             // Check if we have a specific template for this event, otherwise generic
-            await this.emailService.sendNotificationEmail(user.email, payload.subject, payload.message);
+            await this.emailService.sendNotificationEmail(user.email, payload.subject, payload.message, user.language || 'pl');
         }
 
         // 2. SMS (Only if phone verified)

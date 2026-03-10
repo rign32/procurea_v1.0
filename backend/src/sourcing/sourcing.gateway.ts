@@ -20,6 +20,10 @@ import { Server, Socket } from 'socket.io';
                 'https://admin.procurea.pl',
                 'https://vendor.procurea.pl',
                 'https://api.procurea.pl',
+                // EN domains (procurea.io)
+                'https://procurea.io',
+                'https://www.procurea.io',
+                'https://app.procurea.io',
             ]
             : true, // Allow all in development
         credentials: true,

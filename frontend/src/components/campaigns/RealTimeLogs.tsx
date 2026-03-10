@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { CheckCircle2, AlertCircle, Info, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { CampaignLog } from '@/types/campaign.types';
-import { PL } from '@/i18n/pl';
+import { t } from '@/i18n';
 
 interface RealTimeLogsProps {
   logs: CampaignLog[];
@@ -61,7 +61,7 @@ export function RealTimeLogs({ logs, isConnected = false, isPolling = false, max
     <Card className="h-full flex flex-col">
       <CardHeader className="flex-shrink-0">
         <div className="flex items-center justify-between">
-          <CardTitle>{PL.campaigns.detail.realTimeLogs}</CardTitle>
+          <CardTitle>{t.campaigns.detail.realTimeLogs}</CardTitle>
           <div className="flex items-center gap-2">
             <div
               className={`h-2 w-2 rounded-full ${

@@ -3,8 +3,11 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
+  build: {
+    outDir: mode.includes('-en') ? 'dist-en' : 'dist',
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -29,5 +32,4 @@ export default defineConfig({
       },
     },
   },
-})
-
+}))

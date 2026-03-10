@@ -171,11 +171,13 @@ export class OrganizationService {
         try {
             const org = await this.prisma.organization.findUnique({ where: { id: organizationId } });
             let inviterName = 'Zespół';
+            let locale = 'pl';
             if (requestingUserId) {
-                const inviter = await this.prisma.user.findUnique({ where: { id: requestingUserId } });
+                const inviter = await this.prisma.user.findUnique({ where: { id: requestingUserId }, select: { name: true, language: true } });
                 if (inviter?.name) inviterName = inviter.name;
+                if (inviter?.language) locale = inviter.language;
             }
-            await this.emailService.sendTeamInvite(data.email, inviterName, org?.name || 'Procurea');
+            await this.emailService.sendTeamInvite(data.email, inviterName, org?.name || 'Procurea', locale);
         } catch (err) {
             this.logger.error(`Failed to send team invite email to ${data.email}:`, err);
         }

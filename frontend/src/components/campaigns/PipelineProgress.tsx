@@ -2,7 +2,7 @@ import { CheckCircle2, Circle, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import type { CampaignStage } from '@/types/campaign.types';
-import { PL } from '@/i18n/pl';
+import { t } from '@/i18n';
 
 interface StageInfo {
   stage: CampaignStage;
@@ -17,11 +17,11 @@ interface PipelineProgressProps {
 }
 
 const STAGES: Array<{ stage: CampaignStage; label: string; color: string }> = [
-  { stage: 'STRATEGY', label: PL.campaigns.stage.strategy, color: 'bg-blue-500' },
-  { stage: 'SCANNING', label: PL.campaigns.stage.scanning, color: 'bg-yellow-500' },
-  { stage: 'ANALYSIS', label: PL.campaigns.stage.analysis, color: 'bg-purple-500' },
-  { stage: 'ENRICHMENT', label: PL.campaigns.stage.enrichment, color: 'bg-green-500' },
-  { stage: 'AUDIT', label: PL.campaigns.stage.audit, color: 'bg-red-500' },
+  { stage: 'STRATEGY', label: t.campaigns.stage.strategy, color: 'bg-blue-500' },
+  { stage: 'SCANNING', label: t.campaigns.stage.scanning, color: 'bg-yellow-500' },
+  { stage: 'ANALYSIS', label: t.campaigns.stage.analysis, color: 'bg-purple-500' },
+  { stage: 'ENRICHMENT', label: t.campaigns.stage.enrichment, color: 'bg-green-500' },
+  { stage: 'AUDIT', label: t.campaigns.stage.audit, color: 'bg-red-500' },
 ];
 
 export function PipelineProgress({ currentStage, progress }: PipelineProgressProps) {
@@ -49,7 +49,7 @@ export function PipelineProgress({ currentStage, progress }: PipelineProgressPro
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{PL.campaigns.detail.progress}</CardTitle>
+        <CardTitle>{t.campaigns.detail.progress}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {STAGES.map(({ stage, label, color }) => {

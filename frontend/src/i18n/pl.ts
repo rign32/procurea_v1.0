@@ -504,8 +504,8 @@ export const PL = {
     },
 
     billing: {
-      title: 'Kredyty i Płatności',
-      subtitle: 'Zarządzaj kredytami wyszukiwania',
+      title: 'Wyszukiwania i Płatności',
+      subtitle: 'Zarządzaj pakietami wyszukiwań',
       currentBalance: 'Dostępne wyszukiwania',
       currentPlan: 'Aktualny plan',
       planResearch: 'Darmowy',
@@ -522,7 +522,15 @@ export const PL = {
         popular: 'Popularne',
         bestValue: 'Najlepsza cena',
         buy: 'Kup',
+        perSearch: '/ wyszukiwanie',
+        noExpiry: 'Zakupione wyszukiwania nie wygasają — korzystaj w dowolnym momencie.',
       },
+
+      payAsYouGo: {
+        title: 'Płać za wyszukiwanie',
+        description: 'Kupuj pakiety wyszukiwań i korzystaj bez limitu czasu.',
+      },
+      or: 'lub',
 
       subscription: {
         title: 'Subskrypcja bez limitu',
@@ -530,6 +538,9 @@ export const PL = {
         subscribe: 'Subskrybuj',
         manage: 'Zarządzaj subskrypcją',
         perMonth: '/mies.',
+        benefit1: 'Bez limitu wyszukiwań dostawców',
+        benefit2: 'Bez opłat za pojedyncze wyszukiwanie',
+        benefit3: 'Rozliczenie miesięczne',
       },
 
       vat: 'netto (+ 23% VAT)',
@@ -546,8 +557,14 @@ export const PL = {
 
       checkout: {
         redirecting: 'Przekierowanie do płatności...',
-        success: 'Płatność zakończona pomyślnie! Kredyty zostały dodane.',
+        success: 'Płatność zakończona pomyślnie! Wyszukiwania zostały dodane.',
         canceled: 'Płatność anulowana.',
+      },
+
+      topUp: {
+        title: 'Brak dostępnych wyszukiwań',
+        description: 'Aby utworzyć nową kampanię, musisz mieć co najmniej 1 wyszukiwanie. Doładuj konto w zakładce Plan.',
+        action: 'Doładuj wyszukiwania',
       },
     },
   },

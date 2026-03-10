@@ -36,4 +36,9 @@ export const billingService = {
         const { data } = await apiClient.post('/billing/portal');
         return data;
     },
+
+    verifySession: async (sessionId: string): Promise<{ fulfilled: boolean; credits?: number; plan?: string }> => {
+        const { data } = await apiClient.post('/billing/verify-session', { sessionId });
+        return data;
+    },
 };

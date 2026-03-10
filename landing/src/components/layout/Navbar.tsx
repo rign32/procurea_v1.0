@@ -5,14 +5,15 @@ import { MobileMenu } from "./MobileMenu"
 import { Menu } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { trackCtaClick } from "@/lib/analytics"
+import { t } from "@/i18n"
 
 const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 
 const navLinks = [
-  { label: "Jak to działa", href: "#jak-to-dziala" },
-  { label: "Co zyskujesz", href: "#co-zyskujesz" },
-  { label: "Dla kogo", href: "#dla-kogo" },
-  { label: "FAQ", href: "#faq" },
+  { label: t.nav.howItWorks, href: "#jak-to-dziala" },
+  { label: t.nav.features, href: "#co-zyskujesz" },
+  { label: t.nav.audience, href: "#dla-kogo" },
+  { label: t.nav.faq, href: "#faq" },
 ]
 
 export function Navbar() {
@@ -64,7 +65,7 @@ export function Navbar() {
                 onClick={() => trackCtaClick('navbar_login')}
                 className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
-                Zaloguj się
+                {t.nav.login}
               </a>
               <a
                 href={APP_URL}
@@ -73,7 +74,7 @@ export function Navbar() {
                 onClick={() => trackCtaClick('navbar_cta')}
                 className="inline-flex items-center px-5 py-2 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all duration-200 hover:shadow-md"
               >
-                Testuj za darmo
+                {t.nav.cta}
               </a>
             </div>
 
@@ -81,7 +82,7 @@ export function Navbar() {
             <button
               onClick={() => setMobileOpen(true)}
               className="md:hidden flex items-center justify-center h-9 w-9 rounded-lg text-foreground hover:bg-black/[0.04] transition-colors"
-              aria-label="Otwórz menu"
+              aria-label={t.nav.openMenu}
             >
               <Menu className="h-5 w-5" />
             </button>

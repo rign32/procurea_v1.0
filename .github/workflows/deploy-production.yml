@@ -37,16 +37,33 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      - name: Build frontend (production)
+      - name: Build frontend PL (production)
         working-directory: frontend
         run: npm run build
+
+      - name: Build frontend EN (production)
+        working-directory: frontend
+        run: npm run build:en
+
+      - name: Install landing dependencies
+        working-directory: landing
+        run: npm ci
+
+      - name: Build landing PL
+        working-directory: landing
+        run: npm run build
+
+      - name: Build landing EN
+        working-directory: landing
+        run: npm run build:en
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      - name: Deploy hosting (app) and Cloud Functions
+      - name: Deploy all hosting targets and Cloud Functions
         run: |
-          firebase deploy --only hosting:app,functions:api \
+          firebase deploy \
+            --only hosting:app,hosting:app-en,hosting:landing,hosting:landing-en,functions:api \
             --token "$FIREBASE_TOKEN" \
             --project project-c64b9be9-1d92-4bc6-be7 \
             --non-interactive

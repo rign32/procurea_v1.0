@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { sequencesService } from '@/services/sequences.service';
-import { PL } from '@/i18n/pl';
+import { t } from '@/i18n';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Globe2 } from 'lucide-react';
 
@@ -57,7 +57,7 @@ export function EmailPreview({
         }
       } catch (err: any) {
         if (!cancelled) {
-          setError(err.message || PL.errors.generic);
+          setError(err.message || t.errors.generic);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -77,7 +77,7 @@ export function EmailPreview({
     return (
       <div className={`rounded-lg border bg-muted/30 p-8 text-center ${className}`}>
         <div className="animate-pulse text-muted-foreground">
-          {PL.common.loading}
+          {t.common.loading}
         </div>
       </div>
     );

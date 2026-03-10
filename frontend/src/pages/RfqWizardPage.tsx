@@ -2,7 +2,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { RfqWizard } from '@/components/rfqs/RfqWizard';
-import { PL } from '@/i18n/pl';
+import { t } from '@/i18n';
 
 export function RfqWizardPage() {
   const navigate = useNavigate();
@@ -20,12 +20,12 @@ export function RfqWizardPage() {
           variant="ghost"
           size="icon"
           onClick={() => navigate('/campaigns')}
-          title={PL.campaigns.detail.backToCampaigns}
+          title={t.campaigns.detail.backToCampaigns}
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">{PL.campaigns.wizard.title}</h1>
+          <h1 className="text-3xl font-bold">{t.campaigns.wizard.title}</h1>
           <p className="text-muted-foreground mt-1">
             Wypełnij formularz aby uruchomić wyszukiwanie AI
           </p>

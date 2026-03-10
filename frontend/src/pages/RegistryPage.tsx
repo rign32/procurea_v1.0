@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useSuppliers } from '@/hooks/useSuppliers';
-import { PL } from '@/i18n/pl';
+import { t } from '@/i18n';
 import type { Supplier } from '@/types/supplier.types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -75,9 +75,9 @@ export function RegistryPage() {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <p className="text-destructive">{PL.errors.generic}</p>
+          <p className="text-destructive">{t.errors.generic}</p>
           <Button onClick={() => window.location.reload()} className="mt-4">
-            {PL.common.refresh}
+            {t.common.refresh}
           </Button>
         </div>
       </div>
@@ -88,8 +88,8 @@ export function RegistryPage() {
     <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-6">
       {/* Header */}
       <motion.div variants={itemVariants}>
-        <h1 className="text-3xl font-bold">{PL.registry.title}</h1>
-        <p className="text-muted-foreground mt-1">{PL.registry.subtitle}</p>
+        <h1 className="text-3xl font-bold">{t.registry.title}</h1>
+        <p className="text-muted-foreground mt-1">{t.registry.subtitle}</p>
       </motion.div>
 
       {/* Stats Cards */}
@@ -100,7 +100,7 @@ export function RegistryPage() {
               <Building2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">{PL.registry.stats.totalCompanies}</p>
+              <p className="text-sm text-muted-foreground">{t.registry.stats.totalCompanies}</p>
               <p className="text-2xl font-bold">{stats.total}</p>
             </div>
           </CardContent>
@@ -111,7 +111,7 @@ export function RegistryPage() {
               <Mail className="h-5 w-5 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">{PL.registry.stats.withEmails}</p>
+              <p className="text-sm text-muted-foreground">{t.registry.stats.withEmails}</p>
               <p className="text-2xl font-bold">{stats.withEmails}</p>
             </div>
           </CardContent>
@@ -122,7 +122,7 @@ export function RegistryPage() {
               <BarChart3 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">{PL.registry.stats.averageQuality}</p>
+              <p className="text-sm text-muted-foreground">{t.registry.stats.averageQuality}</p>
               <p className="text-2xl font-bold">{stats.avgScore}</p>
             </div>
           </CardContent>
@@ -136,7 +136,7 @@ export function RegistryPage() {
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder={`${PL.common.search}...`}
+          placeholder={`${t.common.search}...`}
           className="w-full rounded-md border border-input bg-background px-10 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
       </motion.div>
@@ -146,7 +146,7 @@ export function RegistryPage() {
         {filteredCompanies.length === 0 ? (
           <EmptyState
             icon={Building2}
-            title={PL.common.noData}
+            title={t.common.noData}
             description={
               searchQuery
                 ? 'Brak wyników dla podanego zapytania'
@@ -161,16 +161,16 @@ export function RegistryPage() {
                   <thead>
                     <tr className="border-b bg-muted/50">
                       <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                        {PL.registry.table.company}
+                        {t.registry.table.company}
                       </th>
                       <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                        {PL.registry.table.country}
+                        {t.registry.table.country}
                       </th>
                       <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                        {PL.registry.table.quality}
+                        {t.registry.table.quality}
                       </th>
                       <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                        {PL.registry.table.verified}
+                        {t.registry.table.verified}
                       </th>
                       <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                         Specjalizacja

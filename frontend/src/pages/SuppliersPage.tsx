@@ -14,7 +14,7 @@ import { suppliersService } from '@/services/suppliers.service';
 import { apiClient } from '@/services/api.client';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { PL } from '@/i18n/pl';
+import { t } from '@/i18n';
 import { getCountryFlag } from '@/utils/normalize-country';
 import type { Supplier } from '@/types/supplier.types';
 import { motion } from 'framer-motion';
@@ -184,9 +184,9 @@ export function SuppliersPage() {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <p className="text-destructive">{PL.errors.generic}</p>
+          <p className="text-destructive">{t.errors.generic}</p>
           <Button onClick={() => window.location.reload()} className="mt-4">
-            {PL.common.refresh}
+            {t.common.refresh}
           </Button>
         </div>
       </div>
@@ -198,12 +198,12 @@ export function SuppliersPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">{PL.suppliers.title}</h1>
-          <p className="text-muted-foreground mt-1">{PL.suppliers.allSuppliers}</p>
+          <h1 className="text-3xl font-bold">{t.suppliers.title}</h1>
+          <p className="text-muted-foreground mt-1">{t.suppliers.allSuppliers}</p>
         </div>
         <Button variant="outline" onClick={handleExportCSV}>
           <Download className="mr-2 h-4 w-4" />
-          {PL.common.export}
+          {t.common.export}
         </Button>
       </div>
 
@@ -413,7 +413,7 @@ export function SuppliersPage() {
           <CardContent className="flex flex-col items-center justify-center py-16">
             <div className="text-center">
               <Users className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">{PL.common.noData}</h3>
+              <h3 className="text-lg font-semibold mb-2">{t.common.noData}</h3>
               <p className="text-muted-foreground">
                 {searchQuery || selectedCountries.length > 0 || selectedCampaigns.length > 0
                   ? 'Brak dostawców spełniających kryteria wyszukiwania'

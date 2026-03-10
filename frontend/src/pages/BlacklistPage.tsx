@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { SearchInput } from '@/components/ui/search-input';
-import { PL } from '@/i18n/pl';
+import { t } from '@/i18n';
 import { toast } from 'sonner';
 import { getCountryFlag, normalizeCountry } from '@/utils/normalize-country';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -106,7 +106,7 @@ export function BlacklistPage() {
     if (error) {
         return (
             <div className="flex h-full items-center justify-center text-destructive">
-                {PL.errors.generic}
+                {t.errors.generic}
             </div>
         );
     }

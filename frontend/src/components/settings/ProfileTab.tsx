@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { PL } from '@/i18n/pl';
+import { t } from '@/i18n';
 import profileService from '@/services/profile.service';
 import type { UpdateProfileDto } from '@/services/profile.service';
 import { useAuthStore } from '@/stores/auth.store';
@@ -45,10 +45,10 @@ export function ProfileTab({ user }: ProfileTabProps) {
             }
             await profileService.updateProfile(payload);
             updateUser(payload);
-            toast.success(PL.common.success);
+            toast.success(t.common.success);
         } catch (error) {
             console.error('Failed to update profile:', error);
-            toast.error(PL.common.error);
+            toast.error(t.common.error);
         } finally {
             setIsSaving(false);
         }
@@ -60,7 +60,7 @@ export function ProfileTab({ user }: ProfileTabProps) {
         <motion.div variants={itemVariants} initial="hidden" animate="show">
             <Card>
                 <CardHeader>
-                    <CardTitle>{PL.settings.profile.title}</CardTitle>
+                    <CardTitle>{t.settings.profile.title}</CardTitle>
                     <CardDescription>Zarządzaj swoimi danymi osobowymi</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -82,7 +82,7 @@ export function ProfileTab({ user }: ProfileTabProps) {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <Label htmlFor="name">{PL.settings.profile.name}</Label>
+                                <Label htmlFor="name">{t.settings.profile.name}</Label>
                                 <Input
                                     id="name"
                                     {...register('name', { required: "Imię i nazwisko jest wymagane" })}
@@ -93,7 +93,7 @@ export function ProfileTab({ user }: ProfileTabProps) {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="email">{PL.settings.profile.email}</Label>
+                                <Label htmlFor="email">{t.settings.profile.email}</Label>
                                 <Input
                                     id="email"
                                     value={user.email}
@@ -104,7 +104,7 @@ export function ProfileTab({ user }: ProfileTabProps) {
 
                             <div className="space-y-2">
                                 <Label htmlFor="phone" className="flex items-center gap-1.5">
-                                    {PL.settings.profile.phone}
+                                    {t.settings.profile.phone}
                                     {user?.isPhoneVerified && (
                                         <Lock className="h-3.5 w-3.5 text-muted-foreground" />
                                     )}
@@ -134,7 +134,7 @@ export function ProfileTab({ user }: ProfileTabProps) {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="jobTitle">{PL.settings.profile.jobTitle}</Label>
+                                <Label htmlFor="jobTitle">{t.settings.profile.jobTitle}</Label>
                                 <Input
                                     id="jobTitle"
                                     {...register('jobTitle')}
@@ -143,7 +143,7 @@ export function ProfileTab({ user }: ProfileTabProps) {
                             </div>
 
                             <div className="space-y-2 md:col-span-2">
-                                <Label htmlFor="companyName">{PL.settings.profile.companyName}</Label>
+                                <Label htmlFor="companyName">{t.settings.profile.companyName}</Label>
                                 <Input
                                     id="companyName"
                                     {...register('companyName', { required: "Nazwa firmy jest wymagana" })}
@@ -160,7 +160,7 @@ export function ProfileTab({ user }: ProfileTabProps) {
                         <div className="flex justify-end">
                             <Button type="submit" disabled={isSaving}>
                                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                {PL.common.save}
+                                {t.common.save}
                             </Button>
                         </div>
                     </form>

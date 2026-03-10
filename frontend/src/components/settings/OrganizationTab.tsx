@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { PL } from '@/i18n/pl';
+import { t } from '@/i18n';
 import organizationService from '@/services/organization.service';
 import type { UpdateOrganizationDto, Organization } from '@/services/organization.service';
 import { toast } from 'sonner';
@@ -54,7 +54,7 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
             setValue('footerPhone', data.footerPhone || user?.phone || '');
         } catch (error) {
             console.error('Failed to load organization:', error);
-            toast.error(PL.common.error);
+            toast.error(t.common.error);
         } finally {
             setIsLoading(false);
         }
@@ -67,10 +67,10 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
         try {
             const updated = await organizationService.update(organization.id, data);
             setOrganization(updated);
-            toast.success(PL.common.success);
+            toast.success(t.common.success);
         } catch (error) {
             console.error('Failed to update organization:', error);
-            toast.error(PL.common.error);
+            toast.error(t.common.error);
         } finally {
             setIsSaving(false);
         }
@@ -80,7 +80,7 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
         return (
             <Card>
                 <CardContent className="py-8 text-center text-muted-foreground">
-                    {PL.settings.organization.title} - {PL.common.noData}
+                    {t.settings.organization.title} - {t.common.noData}
                 </CardContent>
             </Card>
         );
@@ -103,7 +103,7 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
         >
             <Card>
                 <CardHeader>
-                    <CardTitle>{PL.settings.organization.title}</CardTitle>
+                    <CardTitle>{t.settings.organization.title}</CardTitle>
                     <CardDescription>Konfiguracja danych organizacji</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -111,7 +111,7 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <Label htmlFor="orgName">{PL.settings.organization.name}</Label>
+                                <Label htmlFor="orgName">{t.settings.organization.name}</Label>
                                 <Input
                                     id="orgName"
                                     {...register('name')}
@@ -119,7 +119,7 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
                             </div>
 
                             <div className="space-y-2">
-                                <Label>{PL.settings.organization.domain}</Label>
+                                <Label>{t.settings.organization.domain}</Label>
                                 <div className="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                                     {organization?.domain || '—'}
                                 </div>
@@ -149,14 +149,14 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
 
                         <div className="border-t pt-6 mt-6">
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-medium">{PL.footer.title}</h3>
+                                <h3 className="text-lg font-medium">{t.footer.title}</h3>
                                 <div className="flex items-center space-x-2">
                                     <Switch
                                         id="footer-enabled"
                                         checked={footerEnabled}
                                         onCheckedChange={(checked) => setValue('footerEnabled', checked)}
                                     />
-                                    <Label htmlFor="footer-enabled">{PL.footer.enabled}</Label>
+                                    <Label htmlFor="footer-enabled">{t.footer.enabled}</Label>
                                 </div>
                             </div>
 
@@ -165,32 +165,32 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
                                     <div className="space-y-4">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-2">
-                                                <Label>{PL.footer.firstName}</Label>
+                                                <Label>{t.footer.firstName}</Label>
                                                 <Input {...register('footerFirstName')} placeholder="Jan" />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label>{PL.footer.lastName}</Label>
+                                                <Label>{t.footer.lastName}</Label>
                                                 <Input {...register('footerLastName')} placeholder="Kowalski" />
                                             </div>
                                         </div>
 
                                         <div className="space-y-2">
-                                            <Label>{PL.footer.company}</Label>
+                                            <Label>{t.footer.company}</Label>
                                             <Input {...register('footerCompany')} placeholder="Firma Sp. z o.o." />
                                         </div>
 
                                         <div className="space-y-2">
-                                            <Label>{PL.footer.position}</Label>
+                                            <Label>{t.footer.position}</Label>
                                             <Input {...register('footerPosition')} placeholder="Dyrektor Zakupów" />
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-2">
-                                                <Label>{PL.footer.email}</Label>
+                                                <Label>{t.footer.email}</Label>
                                                 <Input {...register('footerEmail')} placeholder="jan@firma.pl" />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label>{PL.footer.phone}</Label>
+                                                <Label>{t.footer.phone}</Label>
                                                 <Input {...register('footerPhone')} placeholder="+48 123..." />
                                             </div>
                                         </div>
@@ -198,7 +198,7 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
 
                                     <div className="space-y-4">
                                         <Label className="flex items-center gap-2">
-                                            <Eye className="h-4 w-4" /> {PL.footer.preview}
+                                            <Eye className="h-4 w-4" /> {t.footer.preview}
                                         </Label>
                                         <div className="border rounded-md p-6 bg-white dark:bg-zinc-900 text-sm font-sans shadow-sm h-full flex flex-col justify-center">
                                             <p className="text-muted-foreground mb-4 italic">[Treść wiadomości email...]</p>
@@ -222,7 +222,7 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
                         <div className="flex justify-end pt-4">
                             <Button type="submit" disabled={isSaving}>
                                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                {PL.common.save}
+                                {t.common.save}
                             </Button>
                         </div>
                     </form>

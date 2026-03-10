@@ -1218,7 +1218,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             include: {
                 rfqRequest: {
                     include: {
-                        owner: { select: { email: true, name: true } },
+                        owner: { select: { email: true, name: true, language: true } },
                     },
                 },
             },
@@ -1232,10 +1232,12 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             return;
         }
 
+        const ownerLocale = campaign.rfqRequest?.owner?.language || 'pl';
         const sent = await this.emailService.sendFeedbackRequestEmail(
             ownerEmail,
             campaign.name,
             campaign.id,
+            ownerLocale,
         );
 
         if (sent) {

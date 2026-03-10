@@ -16,7 +16,7 @@ import {
     DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { EmailPreview } from '@/components/email/EmailPreview';
-import { PL } from '@/i18n/pl';
+import { t } from '@/i18n';
 import { useAuthStore } from '@/stores/auth.store';
 import sequencesService from '@/services/sequences.service';
 import type { SequenceTemplate, SequenceStep } from '@/services/sequences.service';
@@ -60,7 +60,7 @@ export function SequencesPage() {
             setTemplates(data);
         } catch (err) {
             console.error('Failed to load templates:', err);
-            toast.error(PL.common.error);
+            toast.error(t.common.error);
         } finally {
             setIsLoading(false);
         }
@@ -78,9 +78,9 @@ export function SequencesPage() {
             await loadTemplates();
             setCreateDialog(false);
             setNewName('');
-            toast.success(PL.common.success);
+            toast.success(t.common.success);
         } catch (err) {
-            toast.error(PL.common.error);
+            toast.error(t.common.error);
         } finally {
             setIsSaving(false);
         }
@@ -94,22 +94,22 @@ export function SequencesPage() {
             await loadTemplates();
             setCloneDialog({ open: false, templateId: null });
             setCloneName('');
-            toast.success(PL.common.success);
+            toast.success(t.common.success);
         } catch (err) {
-            toast.error(PL.common.error);
+            toast.error(t.common.error);
         } finally {
             setIsSaving(false);
         }
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm(PL.sequences.deleteConfirm)) return;
+        if (!confirm(t.sequences.deleteConfirm)) return;
         try {
             await sequencesService.delete(id);
             await loadTemplates();
-            toast.success(PL.common.deleted);
+            toast.success(t.common.deleted);
         } catch (err: any) {
-            toast.error(err?.response?.data?.message || PL.common.error);
+            toast.error(err?.response?.data?.message || t.common.error);
         }
     };
 
@@ -123,22 +123,22 @@ export function SequencesPage() {
             });
             await loadTemplates();
             setEditingStep(null);
-            toast.success(PL.common.success);
+            toast.success(t.common.success);
         } catch (err) {
-            toast.error(PL.common.error);
+            toast.error(t.common.error);
         } finally {
             setIsSaving(false);
         }
     };
 
     const handleDeleteStep = async (stepId: string) => {
-        if (!confirm(PL.sequences.deleteStepConfirm)) return;
+        if (!confirm(t.sequences.deleteStepConfirm)) return;
         try {
             await sequencesService.deleteStep(stepId);
             await loadTemplates();
-            toast.success(PL.common.deleted);
+            toast.success(t.common.deleted);
         } catch (err: any) {
-            toast.error(err?.response?.data?.message || PL.common.error);
+            toast.error(err?.response?.data?.message || t.common.error);
         }
     };
 
@@ -150,9 +150,9 @@ export function SequencesPage() {
             await loadTemplates();
             setAddStepDialog({ open: false, templateId: null });
             setNewStep({ dayOffset: 0, type: 'REMINDER', subject: '', bodySnippet: '' });
-            toast.success(PL.common.success);
+            toast.success(t.common.success);
         } catch (err: any) {
-            toast.error(err?.response?.data?.message || PL.common.error);
+            toast.error(err?.response?.data?.message || t.common.error);
         } finally {
             setIsSaving(false);
         }
@@ -160,9 +160,9 @@ export function SequencesPage() {
 
     const stepTypeLabel = (type: string) => {
         switch (type) {
-            case 'INITIAL': return PL.sequences.stepType.initial;
-            case 'REMINDER': return PL.sequences.stepType.reminder;
-            case 'FINAL': return PL.sequences.stepType.final;
+            case 'INITIAL': return t.sequences.stepType.initial;
+            case 'REMINDER': return t.sequences.stepType.reminder;
+            case 'FINAL': return t.sequences.stepType.final;
             default: return type;
         }
     };
@@ -194,14 +194,14 @@ export function SequencesPage() {
             {/* Header */}
             <motion.div variants={itemVariants} className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold">{PL.sequences.title}</h1>
+                    <h1 className="text-3xl font-bold">{t.sequences.title}</h1>
                     <p className="text-muted-foreground mt-1">
                         Zarządzaj szablonami sekwencji emailowych wysyłanych do dostawców
                     </p>
                 </div>
                 <Button onClick={() => setCreateDialog(true)}>
                     <Plus className="mr-2 h-4 w-4" />
-                    {PL.sequences.create}
+                    {t.sequences.create}
                 </Button>
             </motion.div>
 
@@ -239,12 +239,12 @@ export function SequencesPage() {
                                                     <h3 className="font-semibold">{template.name}</h3>
                                                     {template.isSystem && (
                                                         <Badge variant="outline" className="text-[10px] py-0">
-                                                            {PL.sequences.system}
+                                                            {t.sequences.system}
                                                         </Badge>
                                                     )}
                                                 </div>
                                                 <p className="text-sm text-muted-foreground">
-                                                    {template.steps.length} {PL.sequences.steps.toLowerCase()} · Utworzono {new Date(template.createdAt).toLocaleDateString('pl-PL')}
+                                                    {template.steps.length} {t.sequences.steps.toLowerCase()} · Utworzono {new Date(template.createdAt).toLocaleDateString('pl-PL')}
                                                 </p>
                                             </div>
                                         </div>
@@ -262,7 +262,7 @@ export function SequencesPage() {
                                                         setCloneDialog({ open: true, templateId: template.id });
                                                     }}>
                                                         <Copy className="mr-2 h-4 w-4" />
-                                                        {PL.sequences.clone}
+                                                        {t.sequences.clone}
                                                     </DropdownMenuItem>
                                                     {!template.isSystem && (
                                                         <DropdownMenuItem
@@ -270,7 +270,7 @@ export function SequencesPage() {
                                                             onClick={() => handleDelete(template.id)}
                                                         >
                                                             <Trash2 className="mr-2 h-4 w-4" />
-                                                            {PL.common.delete}
+                                                            {t.common.delete}
                                                         </DropdownMenuItem>
                                                     )}
                                                 </DropdownMenuContent>
@@ -293,7 +293,7 @@ export function SequencesPage() {
                                                             </div>
                                                             <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                                                                 <Clock className="h-3 w-3" />
-                                                                {PL.sequences.day} {step.dayOffset}
+                                                                {t.sequences.day} {step.dayOffset}
                                                             </div>
                                                         </div>
                                                         <div className="flex-1 min-w-0">
@@ -309,7 +309,7 @@ export function SequencesPage() {
                                                                 className="h-7 text-xs"
                                                                 onClick={() => setPreviewStepId(step.id === previewStepId ? null : step.id)}
                                                             >
-                                                                {PL.sequences.preview}
+                                                                {t.sequences.preview}
                                                             </Button>
                                                             {!template.isSystem && (
                                                                 <>
@@ -323,7 +323,7 @@ export function SequencesPage() {
                                                                             body: step.bodySnippet,
                                                                         })}
                                                                     >
-                                                                        {PL.common.edit}
+                                                                        {t.common.edit}
                                                                     </Button>
                                                                     <Button
                                                                         variant="ghost"
@@ -342,7 +342,7 @@ export function SequencesPage() {
                                                 {/* Email Preview */}
                                                 {previewStepId && template.steps.some(s => s.id === previewStepId) && (
                                                     <div className="mt-4">
-                                                        <Label className="mb-2 block">{PL.sequences.preview}</Label>
+                                                        <Label className="mb-2 block">{t.sequences.preview}</Label>
                                                         <EmailPreview
                                                             stepId={previewStepId}
                                                             organizationId={user?.organizationId || undefined}
@@ -369,7 +369,7 @@ export function SequencesPage() {
                                                         }}
                                                     >
                                                         <Plus className="mr-2 h-4 w-4" />
-                                                        {PL.sequences.addStep}
+                                                        {t.sequences.addStep}
                                                     </Button>
                                                 )}
                                                 {template.isSystem && (
@@ -382,8 +382,8 @@ export function SequencesPage() {
                                             {/* Variables Reference */}
                                             <div className="border-t px-4 py-3 bg-muted/30">
                                                 <p className="text-xs text-muted-foreground">
-                                                    <span className="font-medium">{PL.sequences.variables}:</span>{' '}
-                                                    {PL.sequences.variablesList}
+                                                    <span className="font-medium">{t.sequences.variables}:</span>{' '}
+                                                    {t.sequences.variablesList}
                                                 </p>
                                             </div>
                                         </div>
@@ -399,7 +399,7 @@ export function SequencesPage() {
             <Dialog open={createDialog} onOpenChange={setCreateDialog}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>{PL.sequences.create}</DialogTitle>
+                        <DialogTitle>{t.sequences.create}</DialogTitle>
                         <DialogDescription>Nowy szablon z domyślnymi krokami</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
@@ -414,11 +414,11 @@ export function SequencesPage() {
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setCreateDialog(false)}>
-                            {PL.common.cancel}
+                            {t.common.cancel}
                         </Button>
                         <Button onClick={handleCreate} disabled={isSaving || !newName.trim()}>
                             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {PL.sequences.create}
+                            {t.sequences.create}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -428,12 +428,12 @@ export function SequencesPage() {
             <Dialog open={cloneDialog.open} onOpenChange={(open) => setCloneDialog(prev => ({ ...prev, open }))}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>{PL.sequences.clone}</DialogTitle>
+                        <DialogTitle>{t.sequences.clone}</DialogTitle>
                         <DialogDescription>Utwórz kopię szablonu z nową nazwą</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label>{PL.sequences.cloneName}</Label>
+                            <Label>{t.sequences.cloneName}</Label>
                             <Input
                                 value={cloneName}
                                 onChange={(e) => setCloneName(e.target.value)}
@@ -442,11 +442,11 @@ export function SequencesPage() {
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setCloneDialog({ open: false, templateId: null })}>
-                            {PL.common.cancel}
+                            {t.common.cancel}
                         </Button>
                         <Button onClick={handleClone} disabled={isSaving || !cloneName.trim()}>
                             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {PL.sequences.clone}
+                            {t.sequences.clone}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -461,14 +461,14 @@ export function SequencesPage() {
                     {editingStep && (
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <Label>{PL.sequences.subject}</Label>
+                                <Label>{t.sequences.subject}</Label>
                                 <Input
                                     value={editingStep.subject}
                                     onChange={(e) => setEditingStep(prev => prev ? { ...prev, subject: e.target.value } : null)}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label>{PL.sequences.body}</Label>
+                                <Label>{t.sequences.body}</Label>
                                 <textarea
                                     className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                     value={editingStep.body}
@@ -476,17 +476,17 @@ export function SequencesPage() {
                                 />
                             </div>
                             <div className="text-xs text-muted-foreground">
-                                {PL.sequences.variables}: {PL.sequences.variablesList}
+                                {t.sequences.variables}: {t.sequences.variablesList}
                             </div>
                         </div>
                     )}
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setEditingStep(null)}>
-                            {PL.common.cancel}
+                            {t.common.cancel}
                         </Button>
                         <Button onClick={handleUpdateStep} disabled={isSaving}>
                             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {PL.common.save}
+                            {t.common.save}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -496,12 +496,12 @@ export function SequencesPage() {
             <Dialog open={addStepDialog.open} onOpenChange={(open) => setAddStepDialog(prev => ({ ...prev, open }))}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>{PL.sequences.addStep}</DialogTitle>
+                        <DialogTitle>{t.sequences.addStep}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label>{PL.sequences.day}</Label>
+                                <Label>{t.sequences.day}</Label>
                                 <Input
                                     type="number"
                                     min={0}
@@ -516,14 +516,14 @@ export function SequencesPage() {
                                     value={newStep.type}
                                     onChange={(e) => setNewStep(prev => ({ ...prev, type: e.target.value }))}
                                 >
-                                    <option value="INITIAL">{PL.sequences.stepType.initial}</option>
-                                    <option value="REMINDER">{PL.sequences.stepType.reminder}</option>
-                                    <option value="FINAL">{PL.sequences.stepType.final}</option>
+                                    <option value="INITIAL">{t.sequences.stepType.initial}</option>
+                                    <option value="REMINDER">{t.sequences.stepType.reminder}</option>
+                                    <option value="FINAL">{t.sequences.stepType.final}</option>
                                 </select>
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label>{PL.sequences.subject}</Label>
+                            <Label>{t.sequences.subject}</Label>
                             <Input
                                 value={newStep.subject}
                                 onChange={(e) => setNewStep(prev => ({ ...prev, subject: e.target.value }))}
@@ -531,7 +531,7 @@ export function SequencesPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>{PL.sequences.body}</Label>
+                            <Label>{t.sequences.body}</Label>
                             <textarea
                                 className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                 value={newStep.bodySnippet}
@@ -542,11 +542,11 @@ export function SequencesPage() {
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setAddStepDialog({ open: false, templateId: null })}>
-                            {PL.common.cancel}
+                            {t.common.cancel}
                         </Button>
                         <Button onClick={handleAddStep} disabled={isSaving || !newStep.subject.trim()}>
                             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {PL.sequences.addStep}
+                            {t.sequences.addStep}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

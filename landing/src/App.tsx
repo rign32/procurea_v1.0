@@ -12,9 +12,19 @@ import { BetaSignupSection } from "@/components/sections/BetaSignupSection"
 import { CtaSection } from "@/components/sections/CtaSection"
 import { FaqSection } from "@/components/sections/FaqSection"
 import { initSectionTracking } from "@/lib/analytics"
+import { t } from "@/i18n"
+
+// PL legal pages
 import { RegulaminPage } from "@/pages/RegulaminPage"
 import { PolitykaPrywatnosciPage } from "@/pages/PolitykaPrywatnosciPage"
 import { RodoPage } from "@/pages/RodoPage"
+
+// EN legal pages
+import { TermsPage } from "@/pages/TermsPage"
+import { PrivacyPolicyPage } from "@/pages/PrivacyPolicyPage"
+import { GdprPage } from "@/pages/GdprPage"
+
+const isEN = t.meta.lang === 'en'
 
 function LandingPage() {
   useEffect(() => {
@@ -46,9 +56,19 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/regulamin" element={<RegulaminPage />} />
-        <Route path="/polityka-prywatnosci" element={<PolitykaPrywatnosciPage />} />
-        <Route path="/rodo" element={<RodoPage />} />
+        {isEN ? (
+          <>
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            <Route path="/gdpr" element={<GdprPage />} />
+          </>
+        ) : (
+          <>
+            <Route path="/regulamin" element={<RegulaminPage />} />
+            <Route path="/polityka-prywatnosci" element={<PolitykaPrywatnosciPage />} />
+            <Route path="/rodo" element={<RodoPage />} />
+          </>
+        )}
       </Routes>
     </BrowserRouter>
   )

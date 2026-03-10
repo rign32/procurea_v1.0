@@ -20,7 +20,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { PL } from '@/i18n/pl';
+import { t } from '@/i18n';
 import organizationService from '@/services/organization.service';
 import type { OrgMember } from '@/services/organization.service';
 import { toast } from 'sonner';
@@ -83,7 +83,7 @@ export function TeamTab({ user }: TeamTabProps) {
             setMembers(data);
         } catch (error) {
             console.error('Failed to load members:', error);
-            toast.error(PL.common.error);
+            toast.error(t.common.error);
         } finally {
             setIsLoading(false);
         }
@@ -102,29 +102,29 @@ export function TeamTab({ user }: TeamTabProps) {
                 role: data.role,
                 campaignAccess: data.role === 'ADMIN' ? 'all' : data.campaignAccess,
             });
-            toast.success(PL.settings.team.inviteSent);
+            toast.success(t.settings.team.inviteSent);
             await loadMembers();
             setIsDialogOpen(false);
             reset({ email: '', role: 'USER', campaignAccess: 'own' });
         } catch (error: any) {
             console.error('Failed to invite member:', error);
-            toast.error(error?.message || PL.common.error);
+            toast.error(error?.message || t.common.error);
         } finally {
             setIsSaving(false);
         }
     };
 
     const handleRemove = async (memberId: string, memberEmail: string) => {
-        if (!confirm(`${PL.settings.team.removeConfirm} ${memberEmail}?`)) return;
+        if (!confirm(`${t.settings.team.removeConfirm} ${memberEmail}?`)) return;
         if (!user?.organizationId) return;
 
         try {
             await organizationService.removeMember(user.organizationId, memberId);
-            toast.success(PL.common.deleted);
+            toast.success(t.common.deleted);
             loadMembers();
         } catch (error: any) {
             console.error('Failed to remove member:', error);
-            toast.error(error?.message || PL.common.error);
+            toast.error(error?.message || t.common.error);
         }
     };
 
@@ -136,7 +136,7 @@ export function TeamTab({ user }: TeamTabProps) {
             setEditingMemberId(null);
             loadMembers();
         } catch (error: any) {
-            toast.error(error?.message || PL.common.error);
+            toast.error(error?.message || t.common.error);
         }
     };
 
@@ -146,7 +146,7 @@ export function TeamTab({ user }: TeamTabProps) {
         return (
             <Card>
                 <CardContent className="py-8 text-center text-muted-foreground">
-                    {PL.settings.team.title} - {PL.common.noData}
+                    {t.settings.team.title} - {t.common.noData}
                 </CardContent>
             </Card>
         );
@@ -157,13 +157,13 @@ export function TeamTab({ user }: TeamTabProps) {
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
-                        <CardTitle>{PL.settings.team.title}</CardTitle>
-                        <CardDescription>{PL.settings.team.subtitle}</CardDescription>
+                        <CardTitle>{t.settings.team.title}</CardTitle>
+                        <CardDescription>{t.settings.team.subtitle}</CardDescription>
                     </div>
                     {isAdmin && (
                         <Button onClick={() => setIsDialogOpen(true)} size="sm">
                             <Plus className="mr-2 h-4 w-4" />
-                            {PL.settings.team.invite}
+                            {t.settings.team.invite}
                         </Button>
                     )}
                 </CardHeader>
@@ -175,7 +175,7 @@ export function TeamTab({ user }: TeamTabProps) {
                     ) : members.length === 0 ? (
                         <div className="text-center py-12 border-dashed border-2 rounded-lg">
                             <Users className="mx-auto h-12 w-12 text-muted-foreground opacity-50 mb-4" />
-                            <p className="text-muted-foreground">{PL.settings.team.noMembers}</p>
+                            <p className="text-muted-foreground">{t.settings.team.noMembers}</p>
                         </div>
                     ) : (
                         <div className="space-y-3">
@@ -198,11 +198,11 @@ export function TeamTab({ user }: TeamTabProps) {
                                                     {member.name || member.email}
                                                 </span>
                                                 <Badge variant={member.role === 'ADMIN' ? 'default' : 'secondary'} className="text-[10px]">
-                                                    {member.role === 'ADMIN' ? PL.settings.team.roleAdmin : PL.settings.team.roleMember}
+                                                    {member.role === 'ADMIN' ? t.settings.team.roleAdmin : t.settings.team.roleMember}
                                                 </Badge>
                                                 {member.id === user?.id && (
                                                     <Badge variant="outline" className="text-[10px]">
-                                                        {PL.settings.team.you}
+                                                        {t.settings.team.you}
                                                     </Badge>
                                                 )}
                                             </div>
@@ -262,8 +262,8 @@ export function TeamTab({ user }: TeamTabProps) {
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>{PL.settings.team.inviteTitle}</DialogTitle>
-                            <DialogDescription>{PL.settings.team.inviteSubtitle}</DialogDescription>
+                            <DialogTitle>{t.settings.team.inviteTitle}</DialogTitle>
+                            <DialogDescription>{t.settings.team.inviteSubtitle}</DialogDescription>
                         </DialogHeader>
 
                         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -282,7 +282,7 @@ export function TeamTab({ user }: TeamTabProps) {
                             </div>
 
                             <div className="space-y-2">
-                                <Label>{PL.settings.team.role}</Label>
+                                <Label>{t.settings.team.role}</Label>
                                 <div className="flex gap-3">
                                     <button
                                         type="button"
@@ -294,8 +294,8 @@ export function TeamTab({ user }: TeamTabProps) {
                                     >
                                         <UserIcon className="h-4 w-4" />
                                         <div className="text-left">
-                                            <div className="font-medium">{PL.settings.team.roleMember}</div>
-                                            <div className="text-xs text-muted-foreground">{PL.settings.team.roleMemberDesc}</div>
+                                            <div className="font-medium">{t.settings.team.roleMember}</div>
+                                            <div className="text-xs text-muted-foreground">{t.settings.team.roleMemberDesc}</div>
                                         </div>
                                     </button>
                                     <button
@@ -308,8 +308,8 @@ export function TeamTab({ user }: TeamTabProps) {
                                     >
                                         <Shield className="h-4 w-4" />
                                         <div className="text-left">
-                                            <div className="font-medium">{PL.settings.team.roleAdmin}</div>
-                                            <div className="text-xs text-muted-foreground">{PL.settings.team.roleAdminDesc}</div>
+                                            <div className="font-medium">{t.settings.team.roleAdmin}</div>
+                                            <div className="text-xs text-muted-foreground">{t.settings.team.roleAdminDesc}</div>
                                         </div>
                                     </button>
                                 </div>
@@ -346,11 +346,11 @@ export function TeamTab({ user }: TeamTabProps) {
 
                             <DialogFooter>
                                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                                    {PL.common.cancel}
+                                    {t.common.cancel}
                                 </Button>
                                 <Button type="submit" disabled={isSaving}>
                                     {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    {PL.settings.team.sendInvite}
+                                    {t.settings.team.sendInvite}
                                 </Button>
                             </DialogFooter>
                         </form>

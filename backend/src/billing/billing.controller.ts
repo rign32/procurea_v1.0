@@ -38,10 +38,21 @@ export class BillingController {
         return this.billingService.getPortalUrl(userId);
     }
 
+    @Post('verify-session')
+    @UseGuards(AuthGuard('jwt'))
+    async verifySession(@Req() req, @Body() body: { sessionId: string }) {
+        const userId = req.user.userId || req.user.sub;
+        if (!body.sessionId) throw new BadRequestException('sessionId is required');
+        return this.billingService.verifyAndFulfillSession(userId, body.sessionId);
+    }
+
     @Post('webhook')
     @SkipThrottle()
     async handleWebhook(@Req() req, @Headers('stripe-signature') signature: string) {
-        // express.raw() middleware sets req.body as Buffer for /billing/webhook
+        const bodyType = Buffer.isBuffer(req.body) ? 'Buffer' : typeof req.body;
+        const hasRawBody = !!(req as any).rawBody;
+        console.log(`[Webhook] Body type: ${bodyType}, size: ${req.body?.length ?? 'N/A'}, hasRawBody: ${hasRawBody}, sig: ${signature ? 'present' : 'missing'}`);
+
         const rawBody = Buffer.isBuffer(req.body) ? req.body : (req as any).rawBody;
         if (!rawBody) {
             throw new BadRequestException('Raw body not available for webhook verification');

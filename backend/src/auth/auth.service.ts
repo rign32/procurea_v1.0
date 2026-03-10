@@ -151,8 +151,8 @@ export class AuthService {
         // Store magic code in Redis (10 minute TTL)
         await this.redisService.setMagicCode(email, magicCode, user.id, 600);
 
-        // Send real email via Resend
-        await this.emailService.sendMagicLink(email, magicCode);
+        // Send real email via Resend (locale-aware)
+        await this.emailService.sendMagicLink(email, magicCode, user.language || 'pl');
 
         // For development convenience, still log it
         console.log(`[DEV MAGIC CODE] To: ${email} | Code: ${magicCode}`);

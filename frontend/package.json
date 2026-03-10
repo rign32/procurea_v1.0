@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "build:staging": "tsc -b && vite build --mode staging",
+    "build:en": "tsc -b && vite build --mode production-en",
+    "build:staging-en": "tsc -b && vite build --mode staging-en",
     "lint": "eslint .",
     "preview": "vite preview"
   },

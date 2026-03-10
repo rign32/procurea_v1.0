@@ -19,6 +19,15 @@
         ],
         "app-staging": [
           "procurea-app-staging"
+        ],
+        "app-en": [
+          "procurea-app-en"
+        ],
+        "landing-en": [
+          "procurea-landing-en"
+        ],
+        "app-staging-en": [
+          "procurea-app-staging-en"
         ]
       }
     }

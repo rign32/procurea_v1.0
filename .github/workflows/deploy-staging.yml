@@ -37,9 +37,15 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      - name: Build frontend (staging)
+      - name: Build frontend PL (staging)
         working-directory: frontend
         run: npm run build:staging
+        env:
+          VITE_STAGING_SECRET: ${{ secrets.VITE_STAGING_SECRET }}
+
+      - name: Build frontend EN (staging)
+        working-directory: frontend
+        run: npm run build:staging-en
         env:
           VITE_STAGING_SECRET: ${{ secrets.VITE_STAGING_SECRET }}
 
@@ -48,7 +54,8 @@ jobs:
 
       - name: Deploy staging
         run: |
-          firebase deploy --only hosting:app-staging,functions:apiStaging \
+          firebase deploy \
+            --only hosting:app-staging,hosting:app-staging-en,functions:apiStaging \
             --token "$FIREBASE_TOKEN" \
             --project project-c64b9be9-1d92-4bc6-be7 \
             --non-interactive

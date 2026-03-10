@@ -1,16 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Loader2, Trash2 } from 'lucide-react';
+import { Plus, Loader2, Trash2, Search } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { SearchInput } from '@/components/ui/search-input';
 import { StatusTabs } from '@/components/ui/status-tabs';
 import { usePagination } from '@/hooks/usePagination';
 import { useCampaigns } from '@/hooks/useCampaigns';
 import campaignsService from '@/services/campaigns.service';
-import { PL } from '@/i18n/pl';
+import { t } from '@/i18n';
 import { useAuthStore } from '@/stores/auth.store';
 import type { Campaign, CampaignStatus } from '@/types/campaign.types';
 import { motion } from 'framer-motion';
@@ -19,12 +20,20 @@ export function CampaignsPage() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const canCreate = user?.role === 'ADMIN' || user?.campaignAccess !== 'readonly';
+  const credits = user?.searchCredits ?? 0;
   const queryClient = useQueryClient();
   const { data: campaigns, isLoading, error } = useCampaigns();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [showTopUpDialog, setShowTopUpDialog] = useState(false);
   const isFullPlan = user?.plan === 'full';
+  const hasCredits = user?.plan === 'unlimited' || credits > 0;
+
+  const handleCreateCampaign = () => {
+    if (!hasCredits) { setShowTopUpDialog(true); return; }
+    navigate('/campaigns/new');
+  };
 
   const deleteMutation = useMutation({
     mutationFn: campaignsService.delete,
@@ -53,11 +62,11 @@ export function CampaignsPage() {
   };
 
   const tabs = [
-    { key: 'ALL', label: PL.campaigns.filters.all, count: statusCounts.ALL },
-    { key: 'RUNNING', label: PL.campaigns.status.running, count: statusCounts.RUNNING },
-    { key: 'COMPLETED', label: PL.campaigns.status.completed, count: statusCounts.COMPLETED },
-    { key: 'ERROR', label: PL.campaigns.status.error, count: statusCounts.ERROR },
-    { key: 'PAUSED', label: PL.campaigns.status.paused, count: statusCounts.PAUSED },
+    { key: 'ALL', label: t.campaigns.filters.all, count: statusCounts.ALL },
+    { key: 'RUNNING', label: t.campaigns.status.running, count: statusCounts.RUNNING },
+    { key: 'COMPLETED', label: t.campaigns.status.completed, count: statusCounts.COMPLETED },
+    { key: 'ERROR', label: t.campaigns.status.error, count: statusCounts.ERROR },
+    { key: 'PAUSED', label: t.campaigns.status.paused, count: statusCounts.PAUSED },
   ];
 
   const getStatusBadge = (status: Campaign['status']) => {
@@ -73,14 +82,14 @@ export function CampaignsPage() {
     };
     return (
       <Badge variant={variants[status]}>
-        {PL.campaigns.status[status.toLowerCase() as keyof typeof PL.campaigns.status]}
+        {t.campaigns.status[status.toLowerCase() as keyof typeof t.campaigns.status]}
       </Badge>
     );
   };
 
   const getStageBadge = (stage: Campaign['stage']) => (
     <Badge variant="outline">
-      {PL.campaigns.stage[stage.toLowerCase() as keyof typeof PL.campaigns.stage]}
+      {t.campaigns.stage[stage.toLowerCase() as keyof typeof t.campaigns.stage]}
     </Badge>
   );
 
@@ -96,8 +105,8 @@ export function CampaignsPage() {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <p className="text-destructive">{PL.errors.generic}</p>
-          <Button onClick={() => window.location.reload()} className="mt-4">{PL.common.refresh}</Button>
+          <p className="text-destructive">{t.errors.generic}</p>
+          <Button onClick={() => window.location.reload()} className="mt-4">{t.common.refresh}</Button>
         </div>
       </div>
     );
@@ -108,14 +117,22 @@ export function CampaignsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">{PL.campaigns.title}</h1>
+          <h1 className="text-3xl font-bold">{t.campaigns.title}</h1>
           <p className="text-muted-foreground mt-1">Zarządzaj kampaniami sourcingowymi AI</p>
         </div>
         {canCreate && (
-          <Button onClick={() => navigate('/campaigns/new')} size="lg">
-            <Plus className="mr-2 h-5 w-5" />
-            {PL.campaigns.createNew}
-          </Button>
+          <div className="flex items-center gap-3">
+            {user?.plan !== 'unlimited' && (
+              <Badge variant={credits > 0 ? 'secondary' : 'destructive'} className="flex items-center gap-1.5 px-3 py-1">
+                <Search className="h-3.5 w-3.5" />
+                {credits} wyszukiwań
+              </Badge>
+            )}
+            <Button onClick={handleCreateCampaign} size="lg">
+              <Plus className="mr-2 h-5 w-5" />
+              {t.campaigns.createNew}
+            </Button>
+          </div>
         )}
       </div>
 
@@ -125,7 +142,7 @@ export function CampaignsPage() {
         <SearchInput
           value={search}
           onChange={setSearch}
-          placeholder={PL.campaigns.filters.searchPlaceholder}
+          placeholder={t.campaigns.filters.searchPlaceholder}
           className="sm:ml-auto sm:w-72"
         />
       </div>
@@ -135,12 +152,12 @@ export function CampaignsPage() {
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">{PL.campaigns.noCampaigns}</h3>
-              <p className="text-muted-foreground mb-6">{PL.campaigns.createFirst}</p>
+              <h3 className="text-lg font-semibold mb-2">{t.campaigns.noCampaigns}</h3>
+              <p className="text-muted-foreground mb-6">{t.campaigns.createFirst}</p>
               {canCreate && (
-                <Button onClick={() => navigate('/campaigns/new')}>
+                <Button onClick={handleCreateCampaign}>
                   <Plus className="mr-2 h-4 w-4" />
-                  {PL.campaigns.createNew}
+                  {t.campaigns.createNew}
                 </Button>
               )}
             </div>
@@ -176,7 +193,7 @@ export function CampaignsPage() {
                   <button
                     onClick={(e) => { e.stopPropagation(); setDeleteId(campaign.id); }}
                     className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
-                    title={PL.campaigns.deleteCampaign}
+                    title={t.campaigns.deleteCampaign}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -224,10 +241,10 @@ export function CampaignsPage() {
               </p>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={prevPage} disabled={currentPage === 1}>
-                  {PL.common.previous}
+                  {t.common.previous}
                 </Button>
                 <Button variant="outline" size="sm" onClick={nextPage} disabled={currentPage === totalPages}>
-                  {PL.common.nextPage}
+                  {t.common.nextPage}
                 </Button>
               </div>
             </div>
@@ -235,21 +252,39 @@ export function CampaignsPage() {
         </>
       )}
 
+      {/* Top-up Dialog */}
+      <Dialog open={showTopUpDialog} onOpenChange={setShowTopUpDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t.settings.billing.topUp.title}</DialogTitle>
+            <DialogDescription>{t.settings.billing.topUp.description}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTopUpDialog(false)}>
+              {t.common.cancel}
+            </Button>
+            <Button onClick={() => navigate('/settings?tab=billing')}>
+              {t.settings.billing.topUp.action}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Delete Confirmation Dialog */}
       {deleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setDeleteId(null)}>
           <div className="bg-background rounded-lg p-6 max-w-md mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold mb-2">{PL.campaigns.deleteCampaign}</h3>
-            <p className="text-muted-foreground mb-6">{PL.campaigns.deleteConfirm}</p>
+            <h3 className="text-lg font-semibold mb-2">{t.campaigns.deleteCampaign}</h3>
+            <p className="text-muted-foreground mb-6">{t.campaigns.deleteConfirm}</p>
             <div className="flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setDeleteId(null)}>{PL.common.cancel}</Button>
+              <Button variant="outline" onClick={() => setDeleteId(null)}>{t.common.cancel}</Button>
               <Button
                 variant="destructive"
                 onClick={() => deleteMutation.mutate(deleteId)}
                 disabled={deleteMutation.isPending}
               >
                 {deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                {PL.common.delete}
+                {t.common.delete}
               </Button>
             </div>
           </div>

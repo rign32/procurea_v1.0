@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { PL } from '@/i18n/pl';
+import { t } from '@/i18n';
 import apiClient from '@/services/api.client';
 import { toast } from 'sonner';
 
@@ -75,23 +75,23 @@ export function NotificationsTab({ user, isFullPlan = false }: NotificationsTabP
                     { key: 'sourcingCompleted', value: prefs.sourcingCompleted },
                 ],
             });
-            toast.success(PL.settings.notifications.saved);
+            toast.success(t.settings.notifications.saved);
             setIsDirty(false);
         } catch {
-            toast.error(PL.common.error);
+            toast.error(t.common.error);
         } finally {
             setIsSaving(false);
         }
     };
 
-    const t = PL.settings.notifications;
+    const nt = t.settings.notifications;
 
     return (
         <motion.div variants={itemVariants} initial="hidden" animate="show" className="space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>{t.title}</CardTitle>
-                    <CardDescription>{t.subtitle}</CardDescription>
+                    <CardTitle>{nt.title}</CardTitle>
+                    <CardDescription>{nt.subtitle}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     {isFullPlan && (
@@ -119,7 +119,7 @@ export function NotificationsTab({ user, isFullPlan = false }: NotificationsTabP
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
                                     <Label className="text-base">Koniec akcji ofertowej</Label>
-                                    <p className="text-sm text-muted-foreground">{t.campaignCompletedDesc}</p>
+                                    <p className="text-sm text-muted-foreground">{nt.campaignCompletedDesc}</p>
                                 </div>
                                 <Switch
                                     checked={prefs.campaignCompleted}

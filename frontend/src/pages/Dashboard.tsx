@@ -1,13 +1,14 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Target, FileText, Users, Sparkles, ArrowRight, Plus } from 'lucide-react';
+import { Target, FileText, Users, Sparkles, ArrowRight, Plus, Search } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useCampaigns } from '@/hooks/useCampaigns';
 import { useAuthStore } from '@/stores/auth.store';
-import { PL } from '@/i18n/pl';
+import { t } from '@/i18n';
 import { motion } from 'framer-motion';
 import { analytics, startHesitationTracker } from '@/lib/analytics';
 
@@ -21,6 +22,14 @@ export default function Dashboard() {
   const totalSuppliers = campaigns?.reduce((sum, c) => sum + (c.suppliersFound || 0), 0) || 0;
   const pendingOffers = campaigns?.reduce((sum, c) => sum + (c.pendingOffers || 0), 0) || 0;
   const isFullPlan = user?.plan === 'full';
+  const [showTopUpDialog, setShowTopUpDialog] = useState(false);
+  const hasCredits = user?.plan === 'unlimited' || (user?.searchCredits ?? 0) > 0;
+
+  const handleCreateCampaign = () => {
+    if (!hasCredits) { setShowTopUpDialog(true); return; }
+    analytics.dashboardCtaClick();
+    navigate('/campaigns/new');
+  };
 
   useEffect(() => {
     analytics.dashboardView();
@@ -32,7 +41,7 @@ export default function Dashboard() {
       {/* Welcome Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
-          {PL.dashboard.welcome}, {user?.name || 'User'}!
+          {t.dashboard.welcome}, {user?.name || 'User'}!
         </h1>
         <p className="text-muted-foreground mt-1">
           AI-Powered Sourcing - inteligentne wyszukiwanie producentów
@@ -62,7 +71,7 @@ export default function Dashboard() {
                 <Badge variant="outline" className="bg-background/50">Automatyczne kontakty</Badge>
               </div>
             </div>
-            <Button size="lg" onClick={() => { analytics.dashboardCtaClick(); navigate('/campaigns/new'); }} className="md:ml-4 shadow-soft-xl hover:shadow-glow-primary transition-shadow">
+            <Button size="lg" onClick={handleCreateCampaign} className="md:ml-4 shadow-soft-xl hover:shadow-glow-primary transition-shadow">
               Rozpocznij
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
@@ -99,9 +108,9 @@ export default function Dashboard() {
             className={`col-span-1 md:col-span-2 ${isFullPlan ? 'lg:col-span-3 grid gap-4 md:grid-cols-2 lg:grid-cols-3' : 'lg:col-span-2 grid gap-4 md:grid-cols-2'}`}
           >
             {[
-              { title: PL.dashboard.metrics.activeCampaigns, icon: Target, val: totalCampaigns, desc: `${activeCampaigns} aktywnych`, link: '/campaigns' },
-              { title: PL.dashboard.metrics.activeSuppliers, icon: Users, val: totalSuppliers, desc: 'znalezionych we wszystkich', link: '/suppliers' },
-              ...(isFullPlan ? [{ title: PL.dashboard.metrics.pendingOffers, icon: FileText, val: pendingOffers, desc: 'oczekujących na odpowiedź', link: '/rfqs' }] : [])
+              { title: t.dashboard.metrics.activeCampaigns, icon: Target, val: totalCampaigns, desc: `${activeCampaigns} aktywnych`, link: '/campaigns' },
+              { title: t.dashboard.metrics.activeSuppliers, icon: Users, val: totalSuppliers, desc: 'znalezionych we wszystkich', link: '/suppliers' },
+              ...(isFullPlan ? [{ title: t.dashboard.metrics.pendingOffers, icon: FileText, val: pendingOffers, desc: 'oczekujących na odpowiedź', link: '/rfqs' }] : [])
             ].map((stat, i) => (
               <motion.div
                 key={i}
@@ -161,10 +170,10 @@ export default function Dashboard() {
               <Button
                 variant="outline"
                 className="mt-4"
-                onClick={() => navigate('/campaigns/new')}
+                onClick={handleCreateCampaign}
               >
                 <Plus className="mr-2 h-4 w-4" />
-                {PL.campaigns.createNew}
+                {t.campaigns.createNew}
               </Button>
             </div>
           ) : (
@@ -189,7 +198,7 @@ export default function Dashboard() {
                         campaign.status === 'ERROR' ? 'destructive' : 'secondary'
                     }
                   >
-                    {PL.campaigns.status[campaign.status.toLowerCase() as keyof typeof PL.campaigns.status]}
+                    {t.campaigns.status[campaign.status.toLowerCase() as keyof typeof t.campaigns.status]}
                   </Badge>
                 </div>
               ))}
@@ -197,6 +206,24 @@ export default function Dashboard() {
           )}
         </CardContent>
       </Card>
+
+      {/* Top-up Dialog */}
+      <Dialog open={showTopUpDialog} onOpenChange={setShowTopUpDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t.settings.billing.topUp.title}</DialogTitle>
+            <DialogDescription>{t.settings.billing.topUp.description}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTopUpDialog(false)}>
+              {t.common.cancel}
+            </Button>
+            <Button onClick={() => navigate('/settings?tab=billing')}>
+              {t.settings.billing.topUp.action}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

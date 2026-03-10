@@ -18,6 +18,12 @@ if (process.env.DATABASE_URL_STAGING && !process.env.DATABASE_URL) {
 const expressApp = express();
 let app: NestExpressApplication;
 
+// Capture raw body for Stripe webhook signature verification
+// Must be BEFORE prefix stripping AND before NestJS body parsing
+const webhookRawParser = express.raw({ type: 'application/json' });
+expressApp.use('/api/billing/webhook', webhookRawParser);
+expressApp.use('/billing/webhook', webhookRawParser);
+
 // Strip /api prefix from incoming requests
 // Firebase Hosting rewrites /api/** → Cloud Function with full path
 // NestJS controllers are defined without /api prefix (e.g., @Controller('auth'))
@@ -30,10 +36,6 @@ expressApp.use((req, _res, next) => {
     }
     next();
 });
-
-// Capture raw body for Stripe webhook signature verification
-// Must be BEFORE NestJS body parsing kicks in
-expressApp.use('/billing/webhook', express.raw({ type: 'application/json' }));
 
 const createNestServer = async () => {
     if (!app) {
@@ -68,6 +70,11 @@ const createNestServer = async () => {
                 'https://staging.procurea.pl',
                 'https://procurea-app-staging.web.app',
                 'https://project-c64b9be9-1d92-4bc6-be7.web.app',
+                // EN domains (procurea.io)
+                'https://procurea.io',
+                'https://www.procurea.io',
+                'https://app.procurea.io',
+                'https://staging.procurea.io',
             ],
             methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
             credentials: true,

@@ -33,6 +33,17 @@ export class EmailService {
         }
     }
 
+    // Locale-aware helpers
+    private getFromEmailForLocale(locale?: string): string {
+        if (locale === 'en') return 'noreply@procurea.io';
+        return this.fromEmail; // noreply@procurea.pl
+    }
+
+    private getAppUrl(locale?: string): string {
+        if (locale === 'en') return process.env.FRONTEND_URL_EN || 'https://app.procurea.io';
+        return process.env.FRONTEND_URL || 'https://app.procurea.pl';
+    }
+
     private getDebugRouting(originalTo: string, originalSubject: string) {
         if (this.overrideEmail) {
             this.logger.log(`[EMAIL OVERRIDE] Redirecting email from ${originalTo} to ${this.overrideEmail}`);
@@ -44,17 +55,18 @@ export class EmailService {
         return { to: originalTo, subject: originalSubject };
     }
 
-    async sendMagicLink(email: string, code: string): Promise<boolean> {
+    async sendMagicLink(email: string, code: string, locale?: string): Promise<boolean> {
         if (!this.resend) {
             this.logger.warn(`[MOCK EMAIL] To: ${email} | Code: ${code} (Resend not configured)`);
             return false;
         }
 
+        const isEn = locale === 'en';
         try {
-            const { to, subject } = this.getDebugRouting(email, 'Twój kod logowania do Procurea');
+            const { to, subject } = this.getDebugRouting(email, isEn ? 'Your Procurea login code' : 'Twój kod logowania do Procurea');
             const f = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
             await this.resend.emails.send({
-                from: this.fromEmail,
+                from: this.getFromEmailForLocale(locale),
                 to: to,
                 subject: subject,
                 html: `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
@@ -66,8 +78,8 @@ export class EmailService {
   <tr><td style="padding:28px 0 20px 0;font-family:${f};font-size:18px;font-weight:700;color:#4F46E5;">Procurea</td></tr>
   <tr><td style="height:1px;background:#F1F5F9;"></td></tr>
   <tr><td style="padding:28px 0 8px 0;font-family:${f};color:#374151;font-size:15px;line-height:1.75;">
-    <p style="margin:0 0 6px 0;font-weight:600;color:#111827;font-size:17px;">Kod weryfikacyjny</p>
-    <p style="margin:0 0 24px 0;">Użyj poniższego kodu, aby zalogować się do swojego konta:</p>
+    <p style="margin:0 0 6px 0;font-weight:600;color:#111827;font-size:17px;">${isEn ? 'Verification code' : 'Kod weryfikacyjny'}</p>
+    <p style="margin:0 0 24px 0;">${isEn ? 'Use the code below to sign in to your account:' : 'Użyj poniższego kodu, aby zalogować się do swojego konta:'}</p>
   </td></tr>
   <tr><td align="center" style="padding:0 0 24px 0;">
     <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:20px 32px;display:inline-block;">
@@ -75,7 +87,7 @@ export class EmailService {
     </div>
   </td></tr>
   <tr><td style="padding:0 0 28px 0;font-family:${f};font-size:13px;color:#94A3B8;text-align:center;">
-    Kod wygasa za 10 minut. Jeśli nie prosiłeś o ten kod, zignoruj tę wiadomość.
+    ${isEn ? 'This code expires in 10 minutes. If you did not request this code, please ignore this message.' : 'Kod wygasa za 10 minut. Jeśli nie prosiłeś o ten kod, zignoruj tę wiadomość.'}
   </td></tr>
   <tr><td style="height:1px;background:#F1F5F9;"></td></tr>
   <tr><td style="padding:16px 0 0 0;font-family:${f};font-size:11px;color:#D1D5DB;">&copy; ${new Date().getFullYear()} Procurea</td></tr>
@@ -89,15 +101,16 @@ export class EmailService {
         }
     }
 
-    async sendWelcomeEmail(email: string, name: string): Promise<boolean> {
+    async sendWelcomeEmail(email: string, name: string, locale?: string): Promise<boolean> {
         if (!this.resend) return false;
 
+        const isEn = locale === 'en';
         try {
-            const { to, subject } = this.getDebugRouting(email, 'Witaj w Procurea!');
+            const { to, subject } = this.getDebugRouting(email, isEn ? 'Welcome to Procurea!' : 'Witaj w Procurea!');
             const f = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
-            const dashboardUrl = `${process.env.FRONTEND_URL || 'https://app.procurea.pl'}/dashboard`;
+            const dashboardUrl = `${this.getAppUrl(locale)}/dashboard`;
             await this.resend.emails.send({
-                from: this.fromEmail,
+                from: this.getFromEmailForLocale(locale),
                 to: to,
                 subject: subject,
                 html: `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
@@ -109,12 +122,12 @@ export class EmailService {
   <tr><td style="padding:28px 0 20px 0;font-family:${f};font-size:18px;font-weight:700;color:#4F46E5;">Procurea</td></tr>
   <tr><td style="height:1px;background:#F1F5F9;"></td></tr>
   <tr><td style="padding:28px 0 8px 0;font-family:${f};color:#374151;font-size:15px;line-height:1.75;">
-    <p style="margin:0 0 6px 0;font-weight:600;color:#111827;font-size:17px;">Witaj, ${name}!</p>
-    <p style="margin:0 0 8px 0;">Cieszymy się, że jesteś z nami. Twoje konto w Procurea jest już gotowe.</p>
-    <p style="margin:0 0 0 0;">Możesz teraz tworzyć zapytania ofertowe i wyszukiwać nowych dostawców.</p>
+    <p style="margin:0 0 6px 0;font-weight:600;color:#111827;font-size:17px;">${isEn ? `Welcome, ${name}!` : `Witaj, ${name}!`}</p>
+    <p style="margin:0 0 8px 0;">${isEn ? "We're glad to have you on board. Your Procurea account is ready." : 'Cieszymy się, że jesteś z nami. Twoje konto w Procurea jest już gotowe.'}</p>
+    <p style="margin:0 0 0 0;">${isEn ? 'You can now create RFQs and search for new suppliers.' : 'Możesz teraz tworzyć zapytania ofertowe i wyszukiwać nowych dostawców.'}</p>
   </td></tr>
   <tr><td align="center" style="padding:24px 0 28px 0;">
-    <a href="${dashboardUrl}" style="display:inline-block;background:#4F46E5;color:#FFFFFF;padding:12px 36px;text-decoration:none;border-radius:6px;font-family:${f};font-weight:600;font-size:14px;">Przejdź do Pulpitu</a>
+    <a href="${dashboardUrl}" style="display:inline-block;background:#4F46E5;color:#FFFFFF;padding:12px 36px;text-decoration:none;border-radius:6px;font-family:${f};font-weight:600;font-size:14px;">${isEn ? 'Go to Dashboard' : 'Przejdź do Pulpitu'}</a>
   </td></tr>
   <tr><td style="height:1px;background:#F1F5F9;"></td></tr>
   <tr><td style="padding:16px 0 0 0;font-family:${f};font-size:11px;color:#D1D5DB;">&copy; ${new Date().getFullYear()} Procurea</td></tr>
@@ -129,8 +142,9 @@ export class EmailService {
     }
 
 
-    async sendTeamInvite(email: string, inviterName: string, organizationName: string): Promise<boolean> {
-        const loginUrl = `${process.env.FRONTEND_URL || 'https://app.procurea.pl'}/login`;
+    async sendTeamInvite(email: string, inviterName: string, organizationName: string, locale?: string): Promise<boolean> {
+        const loginUrl = `${this.getAppUrl(locale)}/login`;
+        const isEn = locale === 'en';
 
         if (!this.resend) {
             this.logger.log(`[MOCK EMAIL] Team invite to: ${email} | Org: ${organizationName} | Inviter: ${inviterName}`);
@@ -138,10 +152,12 @@ export class EmailService {
         }
 
         try {
-            const { to, subject } = this.getDebugRouting(email, `${inviterName} zaprasza Cię do ${organizationName} w Procurea`);
+            const { to, subject } = this.getDebugRouting(email, isEn
+                ? `${inviterName} invites you to join ${organizationName} on Procurea`
+                : `${inviterName} zaprasza Cię do ${organizationName} w Procurea`);
             const f = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
             await this.resend.emails.send({
-                from: this.fromEmail,
+                from: this.getFromEmailForLocale(locale),
                 to,
                 subject,
                 html: `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
@@ -153,15 +169,17 @@ export class EmailService {
   <tr><td style="padding:28px 0 20px 0;font-family:${f};font-size:18px;font-weight:700;color:#4F46E5;">Procurea</td></tr>
   <tr><td style="height:1px;background:#F1F5F9;"></td></tr>
   <tr><td style="padding:28px 0 8px 0;font-family:${f};color:#374151;font-size:15px;line-height:1.75;">
-    <p style="margin:0 0 6px 0;font-weight:600;color:#111827;font-size:17px;">Zaproszenie do zespołu</p>
-    <p style="margin:0 0 8px 0;"><strong>${inviterName}</strong> zaprasza Cię do dołączenia do organizacji <strong>${organizationName}</strong> w Procurea.</p>
-    <p style="margin:0 0 0 0;">Kliknij poniższy przycisk, aby zalogować się i rozpocząć pracę ze swoim zespołem.</p>
+    <p style="margin:0 0 6px 0;font-weight:600;color:#111827;font-size:17px;">${isEn ? 'Team invitation' : 'Zaproszenie do zespołu'}</p>
+    <p style="margin:0 0 8px 0;">${isEn
+        ? `<strong>${inviterName}</strong> invites you to join <strong>${organizationName}</strong> on Procurea.`
+        : `<strong>${inviterName}</strong> zaprasza Cię do dołączenia do organizacji <strong>${organizationName}</strong> w Procurea.`}</p>
+    <p style="margin:0 0 0 0;">${isEn ? 'Click the button below to sign in and start working with your team.' : 'Kliknij poniższy przycisk, aby zalogować się i rozpocząć pracę ze swoim zespołem.'}</p>
   </td></tr>
   <tr><td align="center" style="padding:24px 0 14px 0;">
-    <a href="${loginUrl}" style="display:inline-block;background:#4F46E5;color:#FFFFFF;padding:12px 36px;text-decoration:none;border-radius:6px;font-family:${f};font-weight:600;font-size:14px;">Zaloguj się do Procurea</a>
+    <a href="${loginUrl}" style="display:inline-block;background:#4F46E5;color:#FFFFFF;padding:12px 36px;text-decoration:none;border-radius:6px;font-family:${f};font-weight:600;font-size:14px;">${isEn ? 'Sign in to Procurea' : 'Zaloguj się do Procurea'}</a>
   </td></tr>
   <tr><td style="padding:0 0 28px 0;font-family:${f};font-size:13px;color:#94A3B8;text-align:center;">
-    Jeśli nie znasz osoby, która wysłała zaproszenie, zignoruj tę wiadomość.
+    ${isEn ? "If you don't know the person who sent this invitation, please ignore this message." : 'Jeśli nie znasz osoby, która wysłała zaproszenie, zignoruj tę wiadomość.'}
   </td></tr>
   <tr><td style="height:1px;background:#F1F5F9;"></td></tr>
   <tr><td style="padding:16px 0 0 0;font-family:${f};font-size:11px;color:#D1D5DB;">&copy; ${new Date().getFullYear()} Procurea</td></tr>
@@ -175,17 +193,18 @@ export class EmailService {
         }
     }
 
-    async sendNotificationEmail(email: string, subject: string, message: string): Promise<boolean> {
+    async sendNotificationEmail(email: string, subject: string, message: string, locale?: string): Promise<boolean> {
         if (!this.resend) {
             this.logger.log(`[MOCK EMAIL] To: ${email} | Subject: ${subject} | Body: ${message}`);
             return true;
         }
 
+        const isEn = locale === 'en';
         try {
             const { to, subject: routedSubject } = this.getDebugRouting(email, subject);
             const f = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
             await this.resend.emails.send({
-                from: this.fromEmail,
+                from: this.getFromEmailForLocale(locale),
                 to: to,
                 subject: routedSubject,
                 html: `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
@@ -201,7 +220,7 @@ export class EmailService {
     <p style="margin:0 0 0 0;">${message}</p>
   </td></tr>
   <tr><td style="padding:16px 0 28px 0;font-family:${f};font-size:12px;color:#94A3B8;">
-    Otrzymałeś tę wiadomość na podstawie ustawień powiadomień w Procurea.
+    ${isEn ? 'You received this message based on your notification settings in Procurea.' : 'Otrzymałeś tę wiadomość na podstawie ustawień powiadomień w Procurea.'}
   </td></tr>
   <tr><td style="height:1px;background:#F1F5F9;"></td></tr>
   <tr><td style="padding:16px 0 0 0;font-family:${f};font-size:11px;color:#D1D5DB;">&copy; ${new Date().getFullYear()} Procurea</td></tr>
@@ -215,7 +234,7 @@ export class EmailService {
         }
     }
 
-    async sendEmail(options: { to: string; subject: string; html: string; organizationId?: string }): Promise<boolean> {
+    async sendEmail(options: { to: string; subject: string; html: string; organizationId?: string; locale?: string }): Promise<boolean> {
         if (!this.resend) {
             this.logger.log(`[MOCK EMAIL] To: ${options.to} | Subject: ${options.subject}`);
             return true;
@@ -248,7 +267,7 @@ export class EmailService {
             }
 
             await this.resend.emails.send({
-                from: this.fromEmail,
+                from: this.getFromEmailForLocale(options.locale),
                 to: to,
                 subject: subject,
                 html: finalHtml,
@@ -265,9 +284,11 @@ export class EmailService {
         email: string,
         campaignName: string,
         campaignId: string,
+        locale?: string,
     ): Promise<boolean> {
         const tallyBaseUrl = process.env.TALLY_FEEDBACK_URL || 'https://tally.so/r/Ek117r';
         const surveyUrl = `${tallyBaseUrl}?campaignName=${encodeURIComponent(campaignName)}&campaignId=${campaignId}`;
+        const isEn = locale === 'en';
 
         if (!this.resend) {
             this.logger.log(`[MOCK EMAIL] Feedback request to: ${email} | Campaign: ${campaignName} | URL: ${surveyUrl}`);
@@ -275,10 +296,12 @@ export class EmailService {
         }
 
         try {
-            const { to, subject } = this.getDebugRouting(email, `Procurea - Jak oceniasz kampanię "${campaignName}"?`);
+            const { to, subject } = this.getDebugRouting(email, isEn
+                ? `Procurea — How would you rate "${campaignName}"?`
+                : `Procurea - Jak oceniasz kampanię "${campaignName}"?`);
             const f = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
             await this.resend.emails.send({
-                from: this.fromEmail,
+                from: this.getFromEmailForLocale(locale),
                 to,
                 subject,
                 html: `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
@@ -290,15 +313,19 @@ export class EmailService {
   <tr><td style="padding:28px 0 20px 0;font-family:${f};font-size:18px;font-weight:700;color:#4F46E5;">Procurea</td></tr>
   <tr><td style="height:1px;background:#F1F5F9;"></td></tr>
   <tr><td style="padding:28px 0 8px 0;font-family:${f};color:#374151;font-size:15px;line-height:1.75;">
-    <p style="margin:0 0 6px 0;font-weight:600;color:#111827;font-size:17px;">Twoja opinia ma dla nas znaczenie</p>
-    <p style="margin:0 0 12px 0;">Kampania sourcingowa <strong>${campaignName}</strong> została zakończona.</p>
-    <p style="margin:0 0 12px 0;">Chcielibyśmy poznać Twoją opinię, aby nieustannie ulepszać nasze narzędzie. Wypełnienie krótkiej ankiety zajmie około 2 minuty.</p>
+    <p style="margin:0 0 6px 0;font-weight:600;color:#111827;font-size:17px;">${isEn ? 'Your feedback matters to us' : 'Twoja opinia ma dla nas znaczenie'}</p>
+    <p style="margin:0 0 12px 0;">${isEn
+        ? `Your sourcing campaign <strong>${campaignName}</strong> has been completed.`
+        : `Kampania sourcingowa <strong>${campaignName}</strong> została zakończona.`}</p>
+    <p style="margin:0 0 12px 0;">${isEn
+        ? "We'd love to hear your thoughts to help us continuously improve our tool. The short survey takes about 2 minutes."
+        : 'Chcielibyśmy poznać Twoją opinię, aby nieustannie ulepszać nasze narzędzie. Wypełnienie krótkiej ankiety zajmie około 2 minuty.'}</p>
   </td></tr>
   <tr><td align="center" style="padding:12px 0 14px 0;">
-    <a href="${surveyUrl}" style="display:inline-block;background:#4F46E5;color:#FFFFFF;padding:12px 36px;text-decoration:none;border-radius:6px;font-family:${f};font-weight:600;font-size:14px;">Oceń kampanię</a>
+    <a href="${surveyUrl}" style="display:inline-block;background:#4F46E5;color:#FFFFFF;padding:12px 36px;text-decoration:none;border-radius:6px;font-family:${f};font-weight:600;font-size:14px;">${isEn ? 'Rate this campaign' : 'Oceń kampanię'}</a>
   </td></tr>
   <tr><td style="padding:8px 0 28px 0;font-family:${f};font-size:13px;color:#94A3B8;text-align:center;">
-    Twoja odpowiedź jest dla nas bardzo cenna i pomoże nam lepiej dostosować Procurea do Twoich potrzeb.
+    ${isEn ? 'Your response is very valuable and will help us better tailor Procurea to your needs.' : 'Twoja odpowiedź jest dla nas bardzo cenna i pomoże nam lepiej dostosować Procurea do Twoich potrzeb.'}
   </td></tr>
   <tr><td style="height:1px;background:#F1F5F9;"></td></tr>
   <tr><td style="padding:16px 0 0 0;font-family:${f};font-size:11px;color:#D1D5DB;">&copy; ${new Date().getFullYear()} Procurea</td></tr>

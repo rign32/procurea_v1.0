@@ -14,7 +14,7 @@ import useCampaignsStore from '@/stores/campaigns.store';
 import campaignsService from '@/services/campaigns.service';
 import apiClient from '@/services/api.client';
 import { useAuthStore } from '@/stores/auth.store';
-import { PL } from '@/i18n/pl';
+import { t } from '@/i18n';
 import { analytics } from '@/lib/analytics';
 import { motion } from 'framer-motion';
 
@@ -190,9 +190,9 @@ export function CampaignDetailPage() {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <p className="text-muted-foreground">{PL.errors.notFound}</p>
+          <p className="text-muted-foreground">{t.errors.notFound}</p>
           <Button onClick={() => navigate('/campaigns')} className="mt-4">
-            {PL.campaigns.detail.backToCampaigns}
+            {t.campaigns.detail.backToCampaigns}
           </Button>
         </div>
       </div>
@@ -204,15 +204,15 @@ export function CampaignDetailPage() {
   const isError = campaign.status === 'ERROR';
 
   const getStatusBadge = () => {
-    if (isError) return <Badge variant="destructive">{PL.campaigns.status.error}</Badge>;
+    if (isError) return <Badge variant="destructive">{t.campaigns.status.error}</Badge>;
     if (campaign.status === 'SENDING') return <Badge className="bg-blue-600">Wysyłanie sekwencji</Badge>;
     if (campaign.status === 'ACCEPTED') return <Badge className="bg-green-600">Zaakceptowana</Badge>;
     if (campaign.status === 'DONE') return <Badge className="bg-emerald-700">Zakończona</Badge>;
-    if (isCompleted) return <Badge variant="default">{PL.campaigns.status.completed}</Badge>;
+    if (isCompleted) return <Badge variant="default">{t.campaigns.status.completed}</Badge>;
     return (
       <Badge variant="secondary" className="animate-pulse bg-blue-100 text-blue-700 border-blue-200">
         <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-        {PL.campaigns.status.running}
+        {t.campaigns.status.running}
       </Badge>
     );
   };
@@ -232,7 +232,7 @@ export function CampaignDetailPage() {
     >
       {/* Breadcrumbs */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-[-10px]">
-        <button onClick={() => navigate('/campaigns')} className="hover:text-foreground transition-colors">{PL.campaigns.title}</button>
+        <button onClick={() => navigate('/campaigns')} className="hover:text-foreground transition-colors">{t.campaigns.title}</button>
         <ChevronRight className="h-4 w-4" />
         <span className="text-foreground font-medium line-clamp-1">{campaign.name}</span>
       </div>
@@ -241,7 +241,7 @@ export function CampaignDetailPage() {
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-4">
-            <Button variant="ghost" size="icon" onClick={handleBack} title={PL.campaigns.detail.backToCampaigns}>
+            <Button variant="ghost" size="icon" onClick={handleBack} title={t.campaigns.detail.backToCampaigns}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
@@ -269,12 +269,12 @@ export function CampaignDetailPage() {
                 className="bg-green-600 hover:bg-green-700"
               >
                 {accepting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
-                {accepting ? 'Akceptowanie...' : PL.campaigns.detail.acceptAllSuppliers}
+                {accepting ? 'Akceptowanie...' : t.campaigns.detail.acceptAllSuppliers}
               </Button>
             )}
             <Button variant="outline" onClick={() => setShowDelete(true)} className="text-destructive hover:bg-destructive/10">
               <Trash2 className="mr-2 h-4 w-4" />
-              {PL.campaigns.deleteCampaign}
+              {t.campaigns.deleteCampaign}
             </Button>
           </div>
         </div>
@@ -308,27 +308,27 @@ export function CampaignDetailPage() {
           <motion.div variants={itemVariants} className={`grid grid-cols-1 gap-4 ${isFullPlan ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">{PL.campaigns.detail.suppliersFound}</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">{t.campaigns.detail.suppliersFound}</CardTitle>
               </CardHeader>
               <CardContent><p className="text-3xl font-bold">{report?.totalSuppliers || suppliers.length}</p></CardContent>
             </Card>
             {isFullPlan && (
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">{PL.campaigns.detail.qualified}</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">{t.campaigns.detail.qualified}</CardTitle>
               </CardHeader>
               <CardContent><p className="text-3xl font-bold text-green-600">{qualifiedCount}</p></CardContent>
             </Card>
             )}
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">{PL.campaigns.detail.rejected}</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">{t.campaigns.detail.rejected}</CardTitle>
               </CardHeader>
               <CardContent><p className="text-3xl font-bold text-red-600">{excludedCount}</p></CardContent>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">{PL.campaigns.detail.averageScore}</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">{t.campaigns.detail.averageScore}</CardTitle>
               </CardHeader>
               <CardContent><p className="text-3xl font-bold">{avgScore}%</p></CardContent>
             </Card>
@@ -767,7 +767,7 @@ export function CampaignDetailPage() {
             {(isCompleted || isAccepted) && (
               <Button variant="outline" size="sm" onClick={handleExport} disabled={exportMutation.isPending}>
                 <Download className="mr-2 h-4 w-4" />
-                {PL.campaigns.detail.exportCSV}
+                {t.campaigns.detail.exportCSV}
               </Button>
             )}
           </div>
@@ -789,17 +789,17 @@ export function CampaignDetailPage() {
       {showDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowDelete(false)}>
           <div className="bg-background rounded-lg p-6 max-w-md mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold mb-2">{PL.campaigns.deleteCampaign}</h3>
-            <p className="text-muted-foreground mb-6">{PL.campaigns.deleteConfirm}</p>
+            <h3 className="text-lg font-semibold mb-2">{t.campaigns.deleteCampaign}</h3>
+            <p className="text-muted-foreground mb-6">{t.campaigns.deleteConfirm}</p>
             <div className="flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setShowDelete(false)}>{PL.common.cancel}</Button>
+              <Button variant="outline" onClick={() => setShowDelete(false)}>{t.common.cancel}</Button>
               <Button
                 variant="destructive"
                 onClick={() => id && deleteMutation.mutate(id)}
                 disabled={deleteMutation.isPending}
               >
                 {deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                {PL.common.delete}
+                {t.common.delete}
               </Button>
             </div>
           </div>

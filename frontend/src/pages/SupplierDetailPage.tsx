@@ -24,7 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { BlacklistDialog } from '@/components/suppliers/BlacklistDialog';
 import { useSupplier } from '@/hooks/useSuppliers';
 import { useAuthStore } from '@/stores/auth.store';
-import { PL } from '@/i18n/pl';
+import { t } from '@/i18n';
 import { motion } from 'framer-motion';
 
 const containerVariants = {
@@ -88,11 +88,11 @@ export function SupplierDetailPage() {
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
           <p className="text-destructive">
-            {error ? PL.errors.generic : PL.errors.notFound}
+            {error ? t.errors.generic : t.errors.notFound}
           </p>
           <Button onClick={() => navigate('/suppliers')} className="mt-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            {PL.common.back}
+            {t.common.back}
           </Button>
         </div>
       </div>
@@ -120,7 +120,7 @@ export function SupplierDetailPage() {
     >
       {/* Breadcrumbs */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-[-10px]">
-        <button onClick={() => navigate('/suppliers')} className="hover:text-foreground transition-colors">{PL.suppliers.title}</button>
+        <button onClick={() => navigate('/suppliers')} className="hover:text-foreground transition-colors">{t.suppliers.title}</button>
         <ChevronRight className="h-4 w-4" />
         <span className="text-foreground font-medium line-clamp-1">{supplier.name}</span>
       </div>
@@ -133,7 +133,7 @@ export function SupplierDetailPage() {
           className="mb-4"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          {PL.common.back}
+          {t.common.back}
         </Button>
 
         <div className="flex items-start justify-between gap-4">
@@ -191,17 +191,17 @@ export function SupplierDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Globe className="h-5 w-5" />
-                  {PL.suppliers.detail.overview}
+                  {t.suppliers.detail.overview}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
                   <div>
                     <dt className="text-sm font-medium text-muted-foreground">
-                      {PL.suppliers.filters.country}
+                      {t.suppliers.filters.country}
                     </dt>
                     <dd className="text-sm mt-1">
-                      {supplier.country || PL.common.noData}
+                      {supplier.country || t.common.noData}
                     </dd>
                   </div>
                   <div>
@@ -209,15 +209,15 @@ export function SupplierDetailPage() {
                       Miasto
                     </dt>
                     <dd className="text-sm mt-1">
-                      {supplier.city || PL.common.noData}
+                      {supplier.city || t.common.noData}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-muted-foreground">
-                      {PL.suppliers.detail.specialization}
+                      {t.suppliers.detail.specialization}
                     </dt>
                     <dd className="text-sm mt-1">
-                      {supplier.specialization || PL.common.noData}
+                      {supplier.specialization || t.common.noData}
                     </dd>
                   </div>
                   <div>
@@ -236,17 +236,17 @@ export function SupplierDetailPage() {
                           {supplier.website}
                         </a>
                       ) : (
-                        PL.common.noData
+                        t.common.noData
                       )}
                     </dd>
                   </div>
                   {supplier.employeeCount && supplier.employeeCount !== 'N/A' && (
                     <div>
                       <dt className="text-sm font-medium text-muted-foreground">
-                        {PL.suppliers.detail.companySize}
+                        {t.suppliers.detail.companySize}
                       </dt>
                       <dd className="text-sm mt-1">
-                        {supplier.employeeCount} {PL.suppliers.detail.employees}
+                        {supplier.employeeCount} {t.suppliers.detail.employees}
                       </dd>
                     </div>
                   )}
@@ -261,7 +261,7 @@ export function SupplierDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Brain className="h-5 w-5" />
-                  {PL.suppliers.detail.aiInsights}
+                  {t.suppliers.detail.aiInsights}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -269,7 +269,7 @@ export function SupplierDetailPage() {
                   <div className="text-center">
                     <div className="text-4xl font-bold">{scorePercent}%</div>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {PL.suppliers.detail.overall}
+                      {t.suppliers.detail.overall}
                     </p>
                   </div>
                   <div className="flex-1">
@@ -289,7 +289,7 @@ export function SupplierDetailPage() {
                 {supplier.analysisReason && (
                   <div className="rounded-lg bg-muted/50 p-4">
                     <p className="text-sm font-medium mb-1">
-                      {PL.suppliers.detail.recommendation}
+                      {t.suppliers.detail.recommendation}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {supplier.analysisReason}
@@ -307,7 +307,7 @@ export function SupplierDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
-                  {PL.suppliers.detail.contacts}
+                  {t.suppliers.detail.contacts}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -326,7 +326,7 @@ export function SupplierDetailPage() {
                             </span>
                             {contact.isDecisionMaker && (
                               <Badge variant="default" className="text-xs">
-                                {PL.suppliers.detail.primary}
+                                {t.suppliers.detail.primary}
                               </Badge>
                             )}
                           </div>
@@ -378,7 +378,7 @@ export function SupplierDetailPage() {
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    {PL.common.noData}
+                    {t.common.noData}
                   </p>
                 )}
               </CardContent>
@@ -394,7 +394,7 @@ export function SupplierDetailPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Award className="h-5 w-5" />
-                {PL.suppliers.detail.certificates}
+                {t.suppliers.detail.certificates}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -408,7 +408,7 @@ export function SupplierDetailPage() {
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  {PL.common.noData}
+                  {t.common.noData}
                 </p>
               )}
             </CardContent>
@@ -417,12 +417,12 @@ export function SupplierDetailPage() {
           {/* Quick Info Card */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">{PL.suppliers.detail.scoring}</CardTitle>
+              <CardTitle className="text-base">{t.suppliers.detail.scoring}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">
-                  {PL.suppliers.detail.overall}
+                  {t.suppliers.detail.overall}
                 </span>
                 <Badge
                   variant={getScoreVariant(scorePercent)}
@@ -434,17 +434,17 @@ export function SupplierDetailPage() {
               {supplier.employeeCount && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">
-                    {PL.suppliers.detail.companySize}
+                    {t.suppliers.detail.companySize}
                   </span>
                   <span>
-                    {supplier.employeeCount} {PL.suppliers.detail.employees}
+                    {supplier.employeeCount} {t.suppliers.detail.employees}
                   </span>
                 </div>
               )}
               {isFullPlan && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">
-                    {PL.suppliers.detail.contacts}
+                    {t.suppliers.detail.contacts}
                   </span>
                   <span>
                     {supplier.contacts?.length ||
@@ -457,7 +457,7 @@ export function SupplierDetailPage() {
               )}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">
-                  {PL.suppliers.detail.certificates}
+                  {t.suppliers.detail.certificates}
                 </span>
                 <span>{certificates.length}</span>
               </div>

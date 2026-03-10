@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/auth.store';
-import { PL } from '../i18n/pl';
+import { t } from '../i18n';
 import { analytics } from '../lib/analytics';
 
 /**
@@ -50,7 +50,7 @@ export default function AuthCallbackPage() {
             } catch (err: any) {
                 analytics.oauthCallback(false);
                 console.error('[AuthCallback] Error:', err);
-                setError(err.message || PL.errors.generic);
+                setError(err.message || t.errors.generic);
                 setTimeout(() => navigate('/login', { replace: true }), 3000);
             }
         };
@@ -62,9 +62,9 @@ export default function AuthCallbackPage() {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background">
                 <div className="text-center space-y-4">
-                    <div className="text-destructive text-lg font-medium">{PL.auth.loginError}</div>
+                    <div className="text-destructive text-lg font-medium">{t.auth.loginError}</div>
                     <p className="text-muted-foreground text-sm">{error}</p>
-                    <p className="text-xs text-muted-foreground">{PL.auth.redirectingToLogin}</p>
+                    <p className="text-xs text-muted-foreground">{t.auth.redirectingToLogin}</p>
                 </div>
             </div>
         );
@@ -74,7 +74,7 @@ export default function AuthCallbackPage() {
         <div className="min-h-screen flex items-center justify-center bg-background">
             <div className="text-center space-y-4">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
-                <p className="text-muted-foreground">{PL.auth.loggingIn}</p>
+                <p className="text-muted-foreground">{t.auth.loggingIn}</p>
             </div>
         </div>
     );

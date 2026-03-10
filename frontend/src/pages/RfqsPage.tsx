@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useRfqs } from '@/hooks/useRfqs';
-import { PL } from '@/i18n/pl';
+import { t } from '@/i18n';
 import { useAuthStore } from '@/stores/auth.store';
 import type { RfqRequest } from '@/types/campaign.types';
 import { motion } from 'framer-motion';
@@ -26,9 +26,9 @@ export function RfqsPage() {
   const { data, isLoading, error } = useRfqs(TAB_TO_STATUS[activeTab]);
 
   const tabs: { key: TabKey; label: string }[] = [
-    { key: 'draft', label: PL.rfqs.tabs.draft },
-    { key: 'active', label: PL.rfqs.tabs.active },
-    { key: 'closed', label: PL.rfqs.tabs.closed },
+    { key: 'draft', label: t.rfqs.tabs.draft },
+    { key: 'active', label: t.rfqs.tabs.active },
+    { key: 'closed', label: t.rfqs.tabs.closed },
   ];
 
   const filteredRfqs = useMemo(() => {
@@ -50,7 +50,7 @@ export function RfqsPage() {
 
     return (
       <Badge variant={variants[status]}>
-        {PL.rfqs.status[status.toLowerCase() as keyof typeof PL.rfqs.status]}
+        {t.rfqs.status[status.toLowerCase() as keyof typeof t.rfqs.status]}
       </Badge>
     );
   };
@@ -75,9 +75,9 @@ export function RfqsPage() {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <p className="text-destructive">{PL.errors.generic}</p>
+          <p className="text-destructive">{t.errors.generic}</p>
           <Button onClick={() => window.location.reload()} className="mt-4">
-            {PL.common.refresh}
+            {t.common.refresh}
           </Button>
         </div>
       </div>
@@ -89,7 +89,7 @@ export function RfqsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">{PL.rfqs.title}</h1>
+          <h1 className="text-3xl font-bold">{t.rfqs.title}</h1>
           <p className="text-muted-foreground mt-1">
             Zarządzaj zapytaniami ofertowymi
           </p>
@@ -97,7 +97,7 @@ export function RfqsPage() {
         {canCreate && (
           <Button onClick={() => navigate('/campaigns/new')} size="lg">
             <Plus className="mr-2 h-5 w-5" />
-            {PL.rfqs.createNew}
+            {t.rfqs.createNew}
           </Button>
         )}
       </div>
@@ -124,14 +124,14 @@ export function RfqsPage() {
           <CardContent className="flex flex-col items-center justify-center py-16">
             <div className="text-center">
               <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">{PL.common.noData}</h3>
+              <h3 className="text-lg font-semibold mb-2">{t.common.noData}</h3>
               <p className="text-muted-foreground mb-6">
                 Brak zapytań ofertowych w kategorii &ldquo;{tabs.find((t) => t.key === activeTab)?.label}&rdquo;
               </p>
               {canCreate && (
                 <Button onClick={() => navigate('/campaigns/new')}>
                   <Plus className="mr-2 h-4 w-4" />
-                  {PL.rfqs.createNew}
+                  {t.rfqs.createNew}
                 </Button>
               )}
             </div>
@@ -172,18 +172,18 @@ export function RfqsPage() {
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
-                      <p className="text-muted-foreground">{PL.rfqs.detail.quantity}</p>
+                      <p className="text-muted-foreground">{t.rfqs.detail.quantity}</p>
                       <p className="font-medium">
                         {rfq.quantity != null ? `${rfq.quantity} ${rfq.unit || 'szt.'}` : '—'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">{PL.rfqs.detail.targetPrice}</p>
+                      <p className="text-muted-foreground">{t.rfqs.detail.targetPrice}</p>
                       <p className="font-medium">{formatCurrency(rfq.targetPrice, rfq.currency)}</p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">{PL.rfqs.detail.offers}</p>
-                      <p className="font-medium">{rfq.offers?.length ?? 0} {PL.rfqs.detail.offersReceived}</p>
+                      <p className="text-muted-foreground">{t.rfqs.detail.offers}</p>
+                      <p className="font-medium">{rfq.offers?.length ?? 0} {t.rfqs.detail.offersReceived}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Utworzono</p>
@@ -196,7 +196,7 @@ export function RfqsPage() {
                   {rfq.campaignId && (
                     <div className="mt-3 pt-3 border-t">
                       <p className="text-xs text-muted-foreground">
-                        {PL.rfqs.detail.linkedCampaign}: {rfq.campaign?.name || rfq.campaignId}
+                        {t.rfqs.detail.linkedCampaign}: {rfq.campaign?.name || rfq.campaignId}
                       </p>
                     </div>
                   )}

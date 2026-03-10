@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { SupplierCard } from '../suppliers/SupplierCard';
 import { rfqsService } from '@/services/rfqs.service';
 import type { Supplier } from '@/types/supplier.types';
-import { PL } from '@/i18n/pl';
+import { t } from '@/i18n';
 
 const MAX_SECONDS = 20 * 60; // 20 minutes
 
@@ -147,7 +147,7 @@ export function LiveSupplierFeed({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">
-          {PL.campaigns.detail.liveSuppliers}
+          {t.campaigns.detail.liveSuppliers}
           <span className="ml-2 text-sm font-normal text-muted-foreground">
             ({visibleSuppliers.length} {visibleSuppliers.length === 1 ? 'dostawca' : 'dostawców'})
           </span>

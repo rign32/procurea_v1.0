@@ -20,7 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useRfq, useOffers, useAcceptOffer, useRejectOffer, useShortlistOffer, useCompareOffers } from '@/hooks/useRfqs';
 import { offersService } from '@/services/rfqs.service';
-import { PL } from '@/i18n/pl';
+import { t } from '@/i18n';
 import type { Offer, OfferPriceTier } from '@/types/campaign.types';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -36,12 +36,12 @@ const itemVariants = {
 };
 
 const STATUS_BADGE: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; label: string }> = {
-  PENDING: { variant: 'secondary', label: PL.rfqs.offer.pending },
-  VIEWED: { variant: 'outline', label: PL.rfqs.offer.viewed },
-  SUBMITTED: { variant: 'default', label: PL.rfqs.offer.submitted },
-  SHORTLISTED: { variant: 'default', label: PL.rfqs.offer.shortlisted },
-  ACCEPTED: { variant: 'default', label: PL.rfqs.offer.accepted },
-  REJECTED: { variant: 'destructive', label: PL.rfqs.offer.rejected },
+  PENDING: { variant: 'secondary', label: t.rfqs.offer.pending },
+  VIEWED: { variant: 'outline', label: t.rfqs.offer.viewed },
+  SUBMITTED: { variant: 'default', label: t.rfqs.offer.submitted },
+  SHORTLISTED: { variant: 'default', label: t.rfqs.offer.shortlisted },
+  ACCEPTED: { variant: 'default', label: t.rfqs.offer.accepted },
+  REJECTED: { variant: 'destructive', label: t.rfqs.offer.rejected },
 };
 
 // Find the price for a specific quantity from tiers
@@ -97,7 +97,7 @@ function AlternativeOfferCard({ alt, unit }: { alt: Offer; unit: string }) {
     <div className="mt-3 pt-3 border-t border-dashed">
       <div className="flex items-center gap-2 mb-2">
         <Layers className="h-3.5 w-3.5 text-amber-600" />
-        <span className="text-xs font-semibold text-amber-700">{PL.rfqs.offer.alternativeOffer}</span>
+        <span className="text-xs font-semibold text-amber-700">{t.rfqs.offer.alternativeOffer}</span>
         {alt.altMaterial && (
           <Badge variant="outline" className="text-[10px] px-1.5 py-0">
             {alt.altMaterial}
@@ -109,7 +109,7 @@ function AlternativeOfferCard({ alt, unit }: { alt: Offer; unit: string }) {
       )}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
         <div>
-          <p className="text-muted-foreground text-xs">{PL.rfqs.offer.price}</p>
+          <p className="text-muted-foreground text-xs">{t.rfqs.offer.price}</p>
           {alt.priceTiers && alt.priceTiers.length > 0 ? (
             <PriceTiersDisplay tiers={alt.priceTiers} currency={alt.currency || 'EUR'} unit={unit} />
           ) : (
@@ -117,13 +117,13 @@ function AlternativeOfferCard({ alt, unit }: { alt: Offer; unit: string }) {
           )}
         </div>
         <div>
-          <p className="text-muted-foreground text-xs">{PL.rfqs.offer.moq}</p>
+          <p className="text-muted-foreground text-xs">{t.rfqs.offer.moq}</p>
           <p className="font-medium text-xs">{alt.moq || '—'}</p>
         </div>
         <div>
-          <p className="text-muted-foreground text-xs">{PL.rfqs.offer.leadTime}</p>
+          <p className="text-muted-foreground text-xs">{t.rfqs.offer.leadTime}</p>
           <p className="font-medium text-xs">
-            {alt.leadTime ? `${alt.leadTime} ${PL.rfqs.detail.weeks}` : '—'}
+            {alt.leadTime ? `${alt.leadTime} ${t.rfqs.detail.weeks}` : '—'}
           </p>
         </div>
       </div>
@@ -238,7 +238,7 @@ export function RfqDetailPage() {
   if (!rfq) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-destructive">{PL.errors.notFound}</p>
+        <p className="text-destructive">{t.errors.notFound}</p>
       </div>
     );
   }
@@ -303,7 +303,7 @@ export function RfqDetailPage() {
     >
       {/* Breadcrumbs */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-[-10px]">
-        <button onClick={() => navigate('/rfqs')} className="hover:text-foreground transition-colors">{PL.rfqs.title}</button>
+        <button onClick={() => navigate('/rfqs')} className="hover:text-foreground transition-colors">{t.rfqs.title}</button>
         <ChevronRight className="h-4 w-4" />
         <span className="text-foreground font-medium line-clamp-1">{rfq.productName}</span>
       </div>
@@ -317,7 +317,7 @@ export function RfqDetailPage() {
           className="mb-3"
         >
           <ArrowLeft className="mr-1 h-4 w-4" />
-          {PL.rfqs.detail.backToRfqs}
+          {t.rfqs.detail.backToRfqs}
         </Button>
 
         <div className="flex items-start justify-between gap-4">
@@ -328,7 +328,7 @@ export function RfqDetailPage() {
             </p>
           </div>
           <Badge variant={rfq.status === 'DRAFT' ? 'secondary' : rfq.status === 'CLOSED' ? 'outline' : 'default'}>
-            {PL.rfqs.status[rfq.status?.toLowerCase() as keyof typeof PL.rfqs.status] || rfq.status}
+            {t.rfqs.status[rfq.status?.toLowerCase() as keyof typeof t.rfqs.status] || rfq.status}
           </Badge>
         </div>
       </motion.div>
@@ -339,40 +339,40 @@ export function RfqDetailPage() {
           <CardContent className="pt-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
-                <p className="text-muted-foreground">{PL.rfqs.detail.quantity}</p>
+                <p className="text-muted-foreground">{t.rfqs.detail.quantity}</p>
                 <p className="font-medium">{rfq.quantity} {rfqUnit}</p>
               </div>
               <div>
-                <p className="text-muted-foreground">{PL.rfqs.detail.targetPrice}</p>
+                <p className="text-muted-foreground">{t.rfqs.detail.targetPrice}</p>
                 <p className="font-medium">{formatCurrency(rfq.targetPrice, rfq.currency)}</p>
               </div>
               {rfq.material && (
                 <div>
-                  <p className="text-muted-foreground">{PL.rfqs.detail.material}</p>
+                  <p className="text-muted-foreground">{t.rfqs.detail.material}</p>
                   <p className="font-medium">{rfq.material}</p>
                 </div>
               )}
               {rfq.eau && (
                 <div>
-                  <p className="text-muted-foreground">{PL.rfqs.detail.eau}</p>
+                  <p className="text-muted-foreground">{t.rfqs.detail.eau}</p>
                   <p className="font-medium">{rfq.eau} / rok</p>
                 </div>
               )}
               {rfq.incoterms && (
                 <div>
-                  <p className="text-muted-foreground">{PL.rfqs.detail.incoterms}</p>
+                  <p className="text-muted-foreground">{t.rfqs.detail.incoterms}</p>
                   <p className="font-medium">{rfq.incoterms}</p>
                 </div>
               )}
               {rfq.desiredDeliveryDate && (
                 <div>
-                  <p className="text-muted-foreground">{PL.rfqs.detail.delivery}</p>
+                  <p className="text-muted-foreground">{t.rfqs.detail.delivery}</p>
                   <p className="font-medium">{new Date(rfq.desiredDeliveryDate).toLocaleDateString('pl-PL')}</p>
                 </div>
               )}
               {rfq.campaignId && (
                 <div>
-                  <p className="text-muted-foreground">{PL.rfqs.detail.linkedCampaign}</p>
+                  <p className="text-muted-foreground">{t.rfqs.detail.linkedCampaign}</p>
                   <button
                     onClick={() => navigate(`/campaigns/${rfq.campaignId}`)}
                     className="font-medium text-indigo-600 hover:underline"
@@ -390,7 +390,7 @@ export function RfqDetailPage() {
       <motion.div variants={itemVariants}>
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">
-            {PL.rfqs.detail.offers} ({offers?.length || 0})
+            {t.rfqs.detail.offers} ({offers?.length || 0})
           </h2>
           {selectedOffers.size >= 2 && (
             <Button
@@ -400,7 +400,7 @@ export function RfqDetailPage() {
               disabled={compareMutation.isPending}
             >
               <BarChart3 className="mr-1 h-4 w-4" />
-              {PL.rfqs.detail.compareSelected} ({selectedOffers.size})
+              {t.rfqs.detail.compareSelected} ({selectedOffers.size})
             </Button>
           )}
         </div>
@@ -423,15 +423,15 @@ export function RfqDetailPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left py-2 pr-4">{PL.rfqs.offer.supplier}</th>
+                      <th className="text-left py-2 pr-4">{t.rfqs.offer.supplier}</th>
                       <th className="text-right py-2 px-4">
                         {rfqQty > 0
-                          ? PL.rfqs.offer.priceForQty.replace('{qty}', rfqQty.toLocaleString())
-                          : PL.rfqs.offer.price}
+                          ? t.rfqs.offer.priceForQty.replace('{qty}', rfqQty.toLocaleString())
+                          : t.rfqs.offer.price}
                       </th>
-                      <th className="text-right py-2 px-4">{PL.rfqs.offer.moq}</th>
-                      <th className="text-right py-2 px-4">{PL.rfqs.offer.leadTime}</th>
-                      <th className="text-right py-2 pl-4">{PL.rfqs.offer.status}</th>
+                      <th className="text-right py-2 px-4">{t.rfqs.offer.moq}</th>
+                      <th className="text-right py-2 px-4">{t.rfqs.offer.leadTime}</th>
+                      <th className="text-right py-2 pl-4">{t.rfqs.offer.status}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -466,7 +466,7 @@ export function RfqDetailPage() {
                           </td>
                           <td className="py-2 px-4 text-right">{offer.moq || '—'}</td>
                           <td className={`py-2 px-4 text-right ${isFastest ? 'text-green-700 font-bold' : ''}`}>
-                            {offer.leadTime ? `${offer.leadTime} ${PL.rfqs.detail.weeks}` : '—'}
+                            {offer.leadTime ? `${offer.leadTime} ${t.rfqs.detail.weeks}` : '—'}
                             {isFastest && <span className="ml-1 text-xs">min</span>}
                           </td>
                           <td className="py-2 pl-4 text-right">{getStatusBadge(offer.status)}</td>
@@ -490,7 +490,7 @@ export function RfqDetailPage() {
           <Card className="border-dashed">
             <CardContent className="flex flex-col items-center py-12">
               <SendIcon className="h-10 w-10 text-muted-foreground mb-3" />
-              <p className="text-muted-foreground">{PL.rfqs.detail.noOffers}</p>
+              <p className="text-muted-foreground">{t.rfqs.detail.noOffers}</p>
             </CardContent>
           </Card>
         </motion.div>
@@ -553,7 +553,7 @@ export function RfqDetailPage() {
 
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                         <div>
-                          <p className="text-muted-foreground">{PL.rfqs.offer.price}</p>
+                          <p className="text-muted-foreground">{t.rfqs.offer.price}</p>
                           {offer.priceTiers && offer.priceTiers.length > 0 ? (
                             <PriceTiersDisplay
                               tiers={offer.priceTiers}
@@ -565,17 +565,17 @@ export function RfqDetailPage() {
                           )}
                         </div>
                         <div>
-                          <p className="text-muted-foreground">{PL.rfqs.offer.moq}</p>
+                          <p className="text-muted-foreground">{t.rfqs.offer.moq}</p>
                           <p className="font-medium">{offer.moq || '—'}</p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground">{PL.rfqs.offer.leadTime}</p>
+                          <p className="text-muted-foreground">{t.rfqs.offer.leadTime}</p>
                           <p className="font-medium">
-                            {offer.leadTime ? `${offer.leadTime} ${PL.rfqs.detail.weeks}` : '—'}
+                            {offer.leadTime ? `${offer.leadTime} ${t.rfqs.detail.weeks}` : '—'}
                           </p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground">{PL.rfqs.detail.created}</p>
+                          <p className="text-muted-foreground">{t.rfqs.detail.created}</p>
                           <p className="font-medium text-xs">
                             {new Date(offer.createdAt).toLocaleDateString('pl-PL')}
                           </p>
@@ -633,7 +633,7 @@ export function RfqDetailPage() {
                           disabled={acceptMutation.isPending}
                         >
                           <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
-                          {PL.rfqs.offer.acceptOffer}
+                          {t.rfqs.offer.acceptOffer}
                         </Button>
                         {offer.status === 'SUBMITTED' && (
                           <Button
@@ -643,7 +643,7 @@ export function RfqDetailPage() {
                             disabled={shortlistMutation.isPending}
                           >
                             <Star className="mr-1 h-3.5 w-3.5" />
-                            {PL.rfqs.offer.shortlisted}
+                            {t.rfqs.offer.shortlisted}
                           </Button>
                         )}
                         <Button
@@ -653,7 +653,7 @@ export function RfqDetailPage() {
                           disabled={rejectMutation.isPending}
                         >
                           <XCircle className="mr-1 h-3.5 w-3.5" />
-                          {PL.rfqs.offer.reject}
+                          {t.rfqs.offer.reject}
                         </Button>
                       </div>
                     )}
@@ -672,23 +672,23 @@ export function RfqDetailPage() {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <Card className="max-w-md w-full">
               <CardHeader>
-                <CardTitle>{PL.rfqs.offer.reject}</CardTitle>
+                <CardTitle>{t.rfqs.offer.reject}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">{PL.rfqs.detail.confirmReject}</p>
+                <p className="text-sm text-muted-foreground">{t.rfqs.detail.confirmReject}</p>
                 <div>
-                  <label className="block text-sm font-medium mb-1">{PL.rfqs.detail.rejectReason}</label>
+                  <label className="block text-sm font-medium mb-1">{t.rfqs.detail.rejectReason}</label>
                   <textarea
                     rows={3}
                     value={rejectReason}
                     onChange={(e) => setRejectReason(e.target.value)}
-                    placeholder={PL.rfqs.detail.rejectReasonPlaceholder}
+                    placeholder={t.rfqs.detail.rejectReasonPlaceholder}
                     className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
                   />
                 </div>
                 <div className="flex gap-2 justify-end">
                   <Button variant="outline" onClick={() => { setRejectDialogId(null); setRejectReason(''); }}>
-                    {PL.common.cancel}
+                    {t.common.cancel}
                   </Button>
                   <Button
                     variant="destructive"
@@ -698,7 +698,7 @@ export function RfqDetailPage() {
                     {rejectMutation.isPending ? (
                       <Loader2 className="mr-1 h-4 w-4 animate-spin" />
                     ) : null}
-                    {PL.rfqs.offer.reject}
+                    {t.rfqs.offer.reject}
                   </Button>
                 </div>
               </CardContent>
@@ -713,13 +713,13 @@ export function RfqDetailPage() {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <Card className="max-w-md w-full">
               <CardHeader>
-                <CardTitle>{PL.rfqs.offer.acceptOffer}</CardTitle>
+                <CardTitle>{t.rfqs.offer.acceptOffer}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">{PL.rfqs.detail.confirmAccept}</p>
+                <p className="text-sm text-muted-foreground">{t.rfqs.detail.confirmAccept}</p>
                 <div className="flex gap-2 justify-end">
                   <Button variant="outline" onClick={() => setAcceptDialogId(null)}>
-                    {PL.common.cancel}
+                    {t.common.cancel}
                   </Button>
                   <Button
                     className="bg-green-600 hover:bg-green-700"
@@ -729,7 +729,7 @@ export function RfqDetailPage() {
                     {acceptMutation.isPending ? (
                       <Loader2 className="mr-1 h-4 w-4 animate-spin" />
                     ) : null}
-                    {PL.rfqs.offer.acceptOffer}
+                    {t.rfqs.offer.acceptOffer}
                   </Button>
                 </div>
               </CardContent>

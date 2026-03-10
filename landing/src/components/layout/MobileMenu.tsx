@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { trackCtaClick } from "@/lib/analytics"
+import { t } from "@/i18n"
 
 interface MobileMenuProps {
   open: boolean
@@ -38,7 +39,7 @@ export function MobileMenu({ open, onClose, links, appUrl }: MobileMenuProps) {
                 <button
                   onClick={onClose}
                   className="p-2 text-muted-foreground hover:text-foreground"
-                  aria-label="Zamknij menu"
+                  aria-label={t.nav.closeMenu}
                 >
                   <X className="h-6 w-6" />
                 </button>
@@ -62,12 +63,12 @@ export function MobileMenu({ open, onClose, links, appUrl }: MobileMenuProps) {
               <div className="mt-auto flex flex-col gap-3">
                 <a href={appUrl} target="_blank" rel="noopener noreferrer" onClick={() => trackCtaClick('mobile_login')}>
                   <Button variant="secondary" className="w-full">
-                    Zaloguj się
+                    {t.nav.login}
                   </Button>
                 </a>
                 <a href={appUrl} target="_blank" rel="noopener noreferrer" onClick={() => trackCtaClick('mobile_cta')}>
                   <Button variant="primary" className="w-full">
-                    Testuj za darmo
+                    {t.nav.cta}
                   </Button>
                 </a>
               </div>

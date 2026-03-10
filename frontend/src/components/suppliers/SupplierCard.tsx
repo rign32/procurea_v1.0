@@ -3,7 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Supplier } from '@/types/supplier.types';
-import { PL } from '@/i18n/pl';
+import { t } from '@/i18n';
 import { normalizeCountry, getCountryFlag } from '@/utils/normalize-country';
 
 interface SupplierCardProps {
@@ -130,7 +130,7 @@ export function SupplierCard({
               onClick?.();
             }}
           >
-            {PL.common.viewDetails}
+            {t.common.viewDetails}
             <ChevronRight className="ml-1 h-4 w-4 opacity-50" />
           </Button>
           {onSendRfq && (
@@ -143,7 +143,7 @@ export function SupplierCard({
               }}
             >
               <Mail className="mr-1.5 h-4 w-4" />
-              {PL.suppliers.card.sendRFQ}
+              {t.suppliers.card.sendRFQ}
             </Button>
           )}
           {onExclude && (

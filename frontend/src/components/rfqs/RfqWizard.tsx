@@ -13,7 +13,8 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { useCreateCampaign } from '@/hooks/useCampaigns';
-import { PL } from '@/i18n/pl';
+import { t } from '@/i18n';
+import { toast } from 'sonner';
 import { EmailPreview } from '@/components/email/EmailPreview';
 import { sequencesService, type SequenceTemplate } from '@/services/sequences.service';
 import { organizationService } from '@/services/organization.service';
@@ -171,8 +172,8 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
   const steps = [
     { id: 'product', label: 'Produkt i specyfikacja', schema: step1Schema },
     { id: 'search-logistics', label: 'Wyszukiwanie i logistyka', schema: step2Schema },
-    ...(isFullPlan ? [{ id: 'email', label: PL.sequences.emailConfig, schema: step3Schema }] : []),
-    { id: 'summary', label: PL.campaigns.wizard.step5, schema: z.any() },
+    ...(isFullPlan ? [{ id: 'email', label: t.sequences.emailConfig, schema: step3Schema }] : []),
+    { id: 'summary', label: t.campaigns.wizard.step5, schema: z.any() },
   ];
 
   const currentSchema = steps[currentStep].schema;
@@ -232,8 +233,18 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
         } else {
           navigate(`/campaigns/${result.id}`);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to create campaign:', error);
+        const msg = error?.message || 'Nie udało się utworzyć kampanii';
+        const isCreditsError = error?.statusCode === 400 && (msg.toLowerCase().includes('kredyt') || msg.toLowerCase().includes('wyszukiw'));
+        if (isCreditsError) {
+          toast.error(msg, {
+            duration: 8000,
+            action: { label: 'Doładuj wyszukiwania', onClick: () => navigate('/settings?tab=billing') },
+          });
+        } else {
+          toast.error(msg);
+        }
       }
     } else {
       analytics.campaignWizardStep(currentStep + 1);
@@ -285,40 +296,40 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
             {steps[currentStep]?.id === 'product' && (
               <div className="space-y-5">
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">{PL.campaigns.wizard.basicInfo.productName} *</label>
-                  <input type="text" {...form.register('productName')} maxLength={200} placeholder={PL.campaigns.wizard.basicInfo.productNamePlaceholder} className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                  <label className="block text-sm font-medium mb-1.5">{t.campaigns.wizard.basicInfo.productName} *</label>
+                  <input type="text" {...form.register('productName')} maxLength={200} placeholder={t.campaigns.wizard.basicInfo.productNamePlaceholder} className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                   {form.formState.errors.productName && <p className="text-sm text-destructive mt-1">{form.formState.errors.productName.message as string}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">{PL.campaigns.wizard.specs.material}</label>
-                  <input type="text" {...form.register('material')} maxLength={100} placeholder={PL.campaigns.wizard.specs.materialPlaceholder} className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                  <label className="block text-sm font-medium mb-1.5">{t.campaigns.wizard.specs.material}</label>
+                  <input type="text" {...form.register('material')} maxLength={100} placeholder={t.campaigns.wizard.specs.materialPlaceholder} className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1.5">{PL.campaigns.wizard.specs.quantity}</label>
-                    <input type="number" min={1} {...form.register('quantity', { valueAsNumber: true })} placeholder={PL.campaigns.wizard.specs.quantityPlaceholder} className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                    <label className="block text-sm font-medium mb-1.5">{t.campaigns.wizard.specs.quantity}</label>
+                    <input type="number" min={1} {...form.register('quantity', { valueAsNumber: true })} placeholder={t.campaigns.wizard.specs.quantityPlaceholder} className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                     {form.formState.errors.quantity && <p className="text-sm text-destructive mt-1">{form.formState.errors.quantity.message as string}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1.5">{PL.campaigns.wizard.specs.unit}</label>
+                    <label className="block text-sm font-medium mb-1.5">{t.campaigns.wizard.specs.unit}</label>
                     <input type="text" {...form.register('unit')} maxLength={20} defaultValue="szt." placeholder="szt." className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">{PL.campaigns.wizard.specs.eau} <span className="text-muted-foreground font-normal">(opcjonalne)</span></label>
-                  <input type="number" {...form.register('eau', { valueAsNumber: true })} placeholder={PL.campaigns.wizard.specs.eauPlaceholder} className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                  <label className="block text-sm font-medium mb-1.5">{t.campaigns.wizard.specs.eau} <span className="text-muted-foreground font-normal">(opcjonalne)</span></label>
+                  <input type="number" {...form.register('eau', { valueAsNumber: true })} placeholder={t.campaigns.wizard.specs.eauPlaceholder} className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">{PL.campaigns.wizard.specs.partNumber} <span className="text-muted-foreground font-normal">(opcjonalne)</span></label>
-                  <input type="text" {...form.register('partNumber')} maxLength={100} placeholder={PL.campaigns.wizard.specs.partNumberPlaceholder} className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                  <label className="block text-sm font-medium mb-1.5">{t.campaigns.wizard.specs.partNumber} <span className="text-muted-foreground font-normal">(opcjonalne)</span></label>
+                  <input type="text" {...form.register('partNumber')} maxLength={100} placeholder={t.campaigns.wizard.specs.partNumberPlaceholder} className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">{PL.campaigns.wizard.upload.title}</label>
+                  <label className="block text-sm font-medium mb-1.5">{t.campaigns.wizard.upload.title}</label>
                   <FileUpload value={attachments} onChange={setAttachments} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">{PL.campaigns.wizard.basicInfo.description} <span className="text-muted-foreground font-normal">(opcjonalne)</span></label>
-                  <textarea {...form.register('description')} maxLength={1000} placeholder={PL.campaigns.wizard.basicInfo.descriptionPlaceholder} rows={3} className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                  <label className="block text-sm font-medium mb-1.5">{t.campaigns.wizard.basicInfo.description} <span className="text-muted-foreground font-normal">(opcjonalne)</span></label>
+                  <textarea {...form.register('description')} maxLength={1000} placeholder={t.campaigns.wizard.basicInfo.descriptionPlaceholder} rows={3} className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                 </div>
               </div>
             )}
@@ -328,7 +339,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
               <div className="space-y-6">
                 {/* Region — visual radio buttons */}
                 <div>
-                  <label className="block text-sm font-medium mb-3">{PL.campaigns.wizard.search.region}</label>
+                  <label className="block text-sm font-medium mb-3">{t.campaigns.wizard.search.region}</label>
                   <div className="grid grid-cols-2 gap-3">
                     {REGION_OPTIONS.map((opt) => {
                       const isSelected = form.watch('targetRegion') === opt.value;
@@ -461,11 +472,11 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
 
                 {/* Certificates */}
                 <div>
-                  <label className="block text-sm font-medium mb-2">{PL.campaigns.wizard.search.certificates}</label>
+                  <label className="block text-sm font-medium mb-2">{t.campaigns.wizard.search.certificates}</label>
                   <TagInput
                     value={certificates}
                     onChange={setCertificates}
-                    placeholder={PL.campaigns.wizard.search.certificatesPlaceholder}
+                    placeholder={t.campaigns.wizard.search.certificatesPlaceholder}
                     suggestions={['ISO 9001', 'ISO 14001', 'ISO 13485', 'IATF 16949', 'AS9100', 'CE', 'UL', 'RoHS', 'REACH']}
                   />
                 </div>
@@ -473,7 +484,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                 {/* Incoterms — multi-select with tooltips */}
                 <div>
                   <label className="block text-sm font-medium mb-3">
-                    {PL.campaigns.wizard.logistics.incoterms}
+                    {t.campaigns.wizard.logistics.incoterms}
                     <span className="text-muted-foreground font-normal ml-1">(wielokrotny wybór)</span>
                   </label>
                   <TooltipProvider delayDuration={200}>
@@ -523,7 +534,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                 {/* Delivery location */}
                 {isFullPlan && (
                 <div>
-                  <label className="block text-sm font-medium mb-2">{PL.campaigns.wizard.logistics.deliveryLocation}</label>
+                  <label className="block text-sm font-medium mb-2">{t.campaigns.wizard.logistics.deliveryLocation}</label>
                   <select {...form.register('deliveryLocationId')} className="w-full px-3 py-2.5 border rounded-md bg-background text-sm">
                     <option value="">Wybierz lokalizację</option>
                     {locations.map((loc) => (
@@ -556,19 +567,19 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                 <div>
                   <label className="block text-sm font-medium mb-2">
                     <Mail className="inline-block w-4 h-4 mr-1" />
-                    {PL.sequences.selectTemplate}
+                    {t.sequences.selectTemplate}
                   </label>
                   <select
                     {...form.register('sequenceTemplateId')}
                     className="w-full px-3 py-2.5 border rounded-md bg-background text-sm"
                   >
-                    <option value="">{PL.sequences.defaultTemplate}</option>
+                    <option value="">{t.sequences.defaultTemplate}</option>
                     {sequences.map((seq, index) => (
                       <option key={seq.id} value={seq.id}>
-                        {seq.name} {seq.isSystem ? `(${PL.sequences.system})` : ''}
+                        {seq.name} {seq.isSystem ? `(${t.sequences.system})` : ''}
                         {index === 0 ? ' (Rekomendowana)' : ''}
                         {' — '}
-                        {seq.steps.length} {PL.sequences.steps.toLowerCase()}
+                        {seq.steps.length} {t.sequences.steps.toLowerCase()}
                       </option>
                     ))}
                   </select>
@@ -584,11 +595,11 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                   if (!selected) return null;
                   return (
                     <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-                      <h4 className="text-sm font-medium">{PL.sequences.steps}:</h4>
+                      <h4 className="text-sm font-medium">{t.sequences.steps}:</h4>
                       {selected.steps.map((step) => (
                         <div key={step.id} className="flex items-start gap-3 text-sm">
                           <span className="rounded-full bg-primary/10 text-primary px-2 py-0.5 text-xs font-medium whitespace-nowrap">
-                            {PL.sequences.day} {step.dayOffset}
+                            {t.sequences.day} {step.dayOffset}
                           </span>
                           <div>
                             <p className="font-medium">{step.subject}</p>
@@ -602,7 +613,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
 
                 {/* Email preview — without bottom translation notice */}
                 <div>
-                  <h4 className="text-sm font-medium mb-2">{PL.sequences.preview}</h4>
+                  <h4 className="text-sm font-medium mb-2">{t.sequences.preview}</h4>
                   <EmailPreview
                     stepId={(() => {
                       const selectedId = form.watch('sequenceTemplateId');
@@ -660,7 +671,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                   {/* Attachments summary */}
                   {attachments.length > 0 && (
                     <div className="border-t pt-4 mt-4">
-                      <h4 className="text-sm font-medium mb-2">{PL.campaigns.wizard.summary.attachments} ({attachments.length})</h4>
+                      <h4 className="text-sm font-medium mb-2">{t.campaigns.wizard.summary.attachments} ({attachments.length})</h4>
                       <div className="space-y-1">
                         {attachments.map((file: any) => (
                           <p key={file.id} className="text-xs text-muted-foreground">📎 {file.filename}</p>
@@ -683,15 +694,15 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
             <div className="flex justify-between pt-4">
               <Button type="button" variant="outline" onClick={handleBack} disabled={currentStep === 0 || createMutation.isPending}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                {PL.common.back}
+                {t.common.back}
               </Button>
               <Button type="submit" disabled={createMutation.isPending}>
                 {createMutation.isPending ? (
                   <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Tworzenie...</>
                 ) : currentStep === steps.length - 1 ? (
-                  PL.campaigns.wizard.summary.launch
+                  t.campaigns.wizard.summary.launch
                 ) : (
-                  <>{PL.common.next}<ArrowRight className="ml-2 h-4 w-4" /></>
+                  <>{t.common.next}<ArrowRight className="ml-2 h-4 w-4" /></>
                 )}
               </Button>
             </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PL } from '@/i18n/pl';
+import { t } from '@/i18n';
 import { Sparkles, Mail, KeyRound, ArrowLeft, Phone } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import { analytics, startHesitationTracker } from '@/lib/analytics';
@@ -76,10 +76,10 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
                 body: JSON.stringify({ email }),
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.message || PL.errors.generic);
+            if (!res.ok) throw new Error(data.message || t.errors.generic);
             analytics.codeSent();
             setStep('code');
-            setMessage(PL.auth.codeSent);
+            setMessage(t.auth.codeSent);
         } catch (err: any) {
             analytics.codeFailed(err.message);
             setError(err.message);
@@ -99,7 +99,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
                 body: JSON.stringify({ email, code }),
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.message || PL.errors.generic);
+            if (!res.ok) throw new Error(data.message || t.errors.generic);
             analytics.codeVerified();
             // Store tokens for Authorization header (Firebase Hosting strips cookies)
             if (data.accessToken) localStorage.setItem('procurea_token', data.accessToken);
@@ -119,7 +119,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
         setMessage('');
 
         if (!user?.id) {
-            setError(PL.errors.generic);
+            setError(t.errors.generic);
             return;
         }
 
@@ -134,12 +134,12 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
                 const data = await res.json().catch(() => ({}));
                 const errorMsg = data.message === 'Missing userId or phone'
                     ? 'Wystąpił błąd sesji. Odśwież stronę i spróbuj ponownie.'
-                    : (data.message || PL.errors.generic);
+                    : (data.message || t.errors.generic);
                 throw new Error(errorMsg);
             }
             analytics.phoneOtpSent();
             setStep('phoneCode');
-            setMessage(PL.auth.phone.otpSent);
+            setMessage(t.auth.phone.otpSent);
         } catch (err: any) {
             analytics.phoneFailed(err.message);
             setError(err.message);
@@ -153,7 +153,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
         setError('');
 
         if (!user?.id) {
-            setError(PL.errors.generic);
+            setError(t.errors.generic);
             return;
         }
 
@@ -165,7 +165,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
                 body: JSON.stringify({ userId: user.id, phone, code: phoneCode }),
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.message || PL.errors.generic);
+            if (!res.ok) throw new Error(data.message || t.errors.generic);
             analytics.phoneVerified();
             // Updating the user will implicitly navigate away via App.tsx routing logic.
             setUser(data);
@@ -179,14 +179,14 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
 
 
     // Calculate dynamic title/subtitle based on step
-    let title = PL.auth.loginTitle;
-    let subtitle = PL.auth.loginSubtitle;
+    let title = t.auth.loginTitle;
+    let subtitle = t.auth.loginSubtitle;
     if (step === 'code') {
-        title = PL.auth.code;
-        subtitle = `${PL.auth.codeSentTo} ${email}`;
+        title = t.auth.code;
+        subtitle = `${t.auth.codeSentTo} ${email}`;
     } else if (step === 'phone' || step === 'phoneCode') {
-        title = PL.auth.phone.title;
-        subtitle = PL.auth.phone.subtitle;
+        title = t.auth.phone.title;
+        subtitle = t.auth.phone.subtitle;
     }
 
     return (
@@ -236,7 +236,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
                                         disabled={loading}
                                     >
                                         <GoogleIcon />
-                                        {PL.auth.continueWithGoogle}
+                                        {t.auth.continueWithGoogle}
                                     </Button>
                                     <Button
                                         type="button"
@@ -246,7 +246,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
                                         disabled={loading}
                                     >
                                         <MicrosoftIcon />
-                                        {PL.auth.continueWithMicrosoft}
+                                        {t.auth.continueWithMicrosoft}
                                     </Button>
                                 </div>
 
@@ -257,7 +257,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
                                     </div>
                                     <div className="relative flex justify-center text-xs uppercase">
                                         <span className="bg-card px-2 text-muted-foreground">
-                                            {PL.auth.orSeparator}
+                                            {t.auth.orSeparator}
                                         </span>
                                     </div>
                                 </div>
@@ -266,7 +266,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
                                 <form onSubmit={handleEmailSubmit} className="space-y-4">
                                     <div className="space-y-2">
                                         <label className="text-sm font-medium" htmlFor="email">
-                                            {PL.auth.email}
+                                            {t.auth.email}
                                         </label>
                                         <div className="relative">
                                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -276,13 +276,13 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}
                                                 required
-                                                placeholder={PL.auth.emailPlaceholder}
+                                                placeholder={t.auth.emailPlaceholder}
                                                 className="w-full rounded-md border border-input bg-background px-10 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                                             />
                                         </div>
                                     </div>
                                     <Button type="submit" className="w-full" disabled={loading}>
-                                        {loading ? PL.common.loading : PL.auth.sendCode}
+                                        {loading ? t.common.loading : t.auth.sendCode}
                                     </Button>
                                 </form>
                             </>
@@ -292,7 +292,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
                             <form onSubmit={handleCodeSubmit} className="space-y-4">
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium" htmlFor="code">
-                                        {PL.auth.code}
+                                        {t.auth.code}
                                     </label>
                                     <div className="relative">
                                         <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -302,13 +302,13 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
                                             value={code}
                                             onChange={(e) => setCode(e.target.value)}
                                             required
-                                            placeholder={PL.auth.codePlaceholder}
+                                            placeholder={t.auth.codePlaceholder}
                                             className="w-full rounded-md border border-input bg-background px-10 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                                         />
                                     </div>
                                 </div>
                                 <Button type="submit" className="w-full" disabled={loading}>
-                                    {loading ? PL.common.loading : PL.auth.verify}
+                                    {loading ? t.common.loading : t.auth.verify}
                                 </Button>
                                 <Button
                                     type="button"
@@ -317,7 +317,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
                                     onClick={() => { setStep('email'); setMessage(''); setError(''); }}
                                 >
                                     <ArrowLeft className="mr-2 h-4 w-4" />
-                                    {PL.common.back}
+                                    {t.common.back}
                                 </Button>
                             </form>
                         )}
@@ -326,7 +326,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
                             <form onSubmit={handlePhoneSubmit} className="space-y-4">
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium" htmlFor="phone">
-                                        {PL.auth.phone.phoneNumber}
+                                        {t.auth.phone.phoneNumber}
                                     </label>
                                     <div className="relative">
                                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -336,13 +336,13 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
                                             value={phone}
                                             onChange={(e) => setPhone(e.target.value)}
                                             required
-                                            placeholder={PL.auth.phone.phonePlaceholder}
+                                            placeholder={t.auth.phone.phonePlaceholder}
                                             className="w-full rounded-md border border-input bg-background px-10 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                                         />
                                     </div>
                                 </div>
                                 <Button type="submit" className="w-full" disabled={loading}>
-                                    {loading ? PL.common.loading : PL.auth.phone.sendOtp}
+                                    {loading ? t.common.loading : t.auth.phone.sendOtp}
                                 </Button>
                             </form>
                         )}
@@ -351,7 +351,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
                             <form onSubmit={handlePhoneCodeSubmit} className="space-y-4">
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium" htmlFor="phoneCode">
-                                        {PL.auth.phone.otpCode}
+                                        {t.auth.phone.otpCode}
                                     </label>
                                     <div className="relative">
                                         <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -361,13 +361,13 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
                                             value={phoneCode}
                                             onChange={(e) => setPhoneCode(e.target.value)}
                                             required
-                                            placeholder={PL.auth.phone.otpPlaceholder}
+                                            placeholder={t.auth.phone.otpPlaceholder}
                                             className="w-full rounded-md border border-input bg-background px-10 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                                         />
                                     </div>
                                 </div>
                                 <Button type="submit" className="w-full" disabled={loading}>
-                                    {loading ? PL.common.loading : PL.auth.phone.verifyOtp}
+                                    {loading ? t.common.loading : t.auth.phone.verifyOtp}
                                 </Button>
                                 <Button
                                     type="button"
@@ -376,7 +376,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
                                     onClick={() => { setStep('phone'); setMessage(''); setError(''); }}
                                 >
                                     <ArrowLeft className="mr-2 h-4 w-4" />
-                                    {PL.common.back}
+                                    {t.common.back}
                                 </Button>
                             </form>
                         )}
@@ -386,7 +386,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
 
                 {/* Footer */}
                 <p className="text-center text-xs text-muted-foreground">
-                    {PL.auth.footerTagline}
+                    {t.auth.footerTagline}
                 </p>
             </div>
         </div>

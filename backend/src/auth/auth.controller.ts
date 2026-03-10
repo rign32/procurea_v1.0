@@ -19,7 +19,7 @@ const isProductionEnvironment = () => {
     const frontendUrl = process.env.FRONTEND_URL || '';
     const nodeEnv = process.env.NODE_ENV;
 
-    const isProduction = functionTarget || kService || frontendUrl.includes('procurea.pl') || nodeEnv === 'production';
+    const isProduction = functionTarget || kService || frontendUrl.includes('procurea.pl') || frontendUrl.includes('procurea.io') || nodeEnv === 'production';
 
     console.log('[isProductionEnvironment] Diagnostics:');
     console.log('  - FUNCTION_TARGET:', functionTarget, `(${process.env.FUNCTION_TARGET || 'undefined'})`);
@@ -31,15 +31,32 @@ const isProductionEnvironment = () => {
     return isProduction;
 };
 
-const getCookieOptions = (isProduction: boolean): CookieOptions => ({
+// Detect cookie domain based on request origin (procurea.pl vs procurea.io)
+const getCookieDomain = (req: any): string | undefined => {
+    if (!isProductionEnvironment()) return undefined;
+    const origin = req?.headers?.origin || req?.headers?.referer || '';
+    if (origin.includes('procurea.io')) return '.procurea.io';
+    return '.procurea.pl';
+};
+
+// Detect frontend URL based on request origin
+const getFrontendUrlFromReq = (req: any): string => {
+    const origin = req?.headers?.origin || req?.headers?.referer || '';
+    if (origin.includes('procurea.io')) {
+        return process.env.FRONTEND_URL_EN || 'https://app.procurea.io';
+    }
+    return process.env.FRONTEND_URL || 'https://app.procurea.pl';
+};
+
+const getCookieOptions = (isProduction: boolean, domain?: string): CookieOptions => ({
     httpOnly: true,
     secure: isProduction,
-    domain: isProduction ? '.procurea.pl' : undefined,
+    domain: domain,
     path: '/',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    sameSite: 'lax', // 'none' required for cross-site OAuth redirects
+    sameSite: 'lax',
     // @ts-ignore - Partitioned is not yet in types but supported by browsers
-    partitioned: false // Enable CHIPS (Cookies Having Independent Partitioned State)
+    partitioned: false
 });
 
 @Controller('auth')
@@ -75,11 +92,11 @@ export class AuthController {
         const isProd = isProductionEnvironment();
         res.clearCookie('procurea_auth_mode', {
             path: '/',
-            domain: isProd ? '.procurea.pl' : undefined
+            domain: getCookieDomain(req)
         });
         res.clearCookie('procurea_auth_origin', {
             path: '/',
-            domain: isProd ? '.procurea.pl' : undefined
+            domain: getCookieDomain(req)
         });
 
         // Log OAuth callback start
@@ -133,7 +150,7 @@ export class AuthController {
             res.cookie('procurea_exchange', exchangeToken, {
                 httpOnly: true,
                 secure: isProduction,
-                domain: isProduction ? '.procurea.pl' : undefined,
+                domain: getCookieDomain(req),
                 path: '/',
                 maxAge: 30000, // 30 seconds
                 sameSite: 'lax',
@@ -152,10 +169,12 @@ export class AuthController {
             });
 
             // Redirect to frontend WITHOUT token in URL (security improvement)
-            // Determine redirect URL based on origin (admin vs app)
+            // Determine redirect URL based on origin (admin, app-en, or app)
             let frontendUrl: string;
             if (origin === 'admin') {
                 frontendUrl = process.env.ADMIN_URL || 'https://admin.procurea.pl';
+            } else if (origin === 'app-en') {
+                frontendUrl = process.env.FRONTEND_URL_EN || 'https://app.procurea.io';
             } else {
                 frontendUrl = process.env.FRONTEND_URL || 'https://app.procurea.pl';
             }
@@ -278,7 +297,7 @@ export class AuthController {
         res.cookie('procurea_token', accessToken, {
             httpOnly: true,
             secure: isProduction,
-            domain: isProduction ? '.procurea.pl' : undefined,
+            domain: getCookieDomain(req),
             path: '/',
             maxAge: this.tokensService.getAccessTokenExpirySeconds() * 1000,
             sameSite: 'lax',
@@ -290,7 +309,7 @@ export class AuthController {
         res.cookie('procurea_refresh', refreshToken, {
             httpOnly: true,
             secure: isProduction,
-            domain: isProduction ? '.procurea.pl' : undefined,
+            domain: getCookieDomain(req),
             path: '/',
             maxAge: this.tokensService.getRefreshTokenExpirySeconds() * 1000,
             sameSite: 'lax',
@@ -301,7 +320,7 @@ export class AuthController {
         // Clear exchange token cookie
         res.clearCookie('procurea_exchange', {
             path: '/',
-            domain: isProduction ? '.procurea.pl' : undefined
+            domain: getCookieDomain(req)
         });
 
         await this.authLogsService.logAuthEvent({
@@ -419,7 +438,7 @@ export class AuthController {
             res.cookie('procurea_token', newAccessToken, {
                 httpOnly: true,
                 secure: isProduction,
-                domain: isProduction ? '.procurea.pl' : undefined,
+                domain: getCookieDomain(req),
                 path: '/',
                 maxAge: this.tokensService.getAccessTokenExpirySeconds() * 1000,
                 sameSite: 'lax',
@@ -431,7 +450,7 @@ export class AuthController {
             res.cookie('procurea_refresh', newRefreshToken, {
                 httpOnly: true,
                 secure: isProduction,
-                domain: isProduction ? '.procurea.pl' : undefined,
+                domain: getCookieDomain(req),
                 path: '/',
                 maxAge: this.tokensService.getRefreshTokenExpirySeconds() * 1000,
                 sameSite: 'lax',
@@ -618,7 +637,7 @@ export class AuthController {
         const isProd = isProductionEnvironment();
         res.clearCookie('procurea_auth_mode', {
             path: '/',
-            domain: isProd ? '.procurea.pl' : undefined
+            domain: getCookieDomain(req)
         });
 
         await this.authLogsService.logAuthEvent({
@@ -670,7 +689,7 @@ export class AuthController {
             res.cookie('procurea_exchange', exchangeToken, {
                 httpOnly: true,
                 secure: isProduction,
-                domain: isProduction ? '.procurea.pl' : undefined,
+                domain: getCookieDomain(req),
                 path: '/',
                 maxAge: 30000, // 30 seconds
                 sameSite: 'lax',
@@ -689,7 +708,14 @@ export class AuthController {
             });
 
             // Redirect to frontend WITHOUT token in URL (security improvement)
-            const frontendUrl = process.env.FRONTEND_URL || 'https://app.procurea.pl';
+            // Determine redirect URL based on origin cookie (app-en for procurea.io)
+            const origin = req.cookies?.procurea_auth_origin || 'app';
+            let frontendUrl: string;
+            if (origin === 'app-en') {
+                frontendUrl = process.env.FRONTEND_URL_EN || 'https://app.procurea.io';
+            } else {
+                frontendUrl = process.env.FRONTEND_URL || 'https://app.procurea.pl';
+            }
             const redirectUrl = `${frontendUrl}/auth/callback?userId=${user.id}&needsPhone=${!user.isPhoneVerified}&onboardingCompleted=${user.onboardingCompleted}&isNewUser=${isNewUser}&authMode=${authMode}`;
 
             await this.authLogsService.logAuthEvent({
@@ -741,11 +767,11 @@ export class AuthController {
         const isProduction = isProductionEnvironment();
         res.clearCookie('procurea_token', {
             path: '/',
-            domain: isProduction ? '.procurea.pl' : undefined
+            domain: getCookieDomain(req)
         });
         res.clearCookie('procurea_refresh', {
             path: '/',
-            domain: isProduction ? '.procurea.pl' : undefined
+            domain: getCookieDomain(req)
         });
 
         return res.json({ success: true, message: 'Logged out successfully' });
@@ -753,7 +779,7 @@ export class AuthController {
 
     // ========== CANCEL REGISTRATION ==========
     @Post('registration/cancel')
-    async cancelRegistration(@Body() body: { userId: string }, @Res() res: Response) {
+    async cancelRegistration(@Body() body: { userId: string }, @Req() req, @Res() res: Response) {
         if (!body.userId) {
             throw new BadRequestException('Missing userId');
         }
@@ -764,7 +790,7 @@ export class AuthController {
         const isProduction = isProductionEnvironment();
         res.clearCookie('procurea_token', {
             path: '/',
-            domain: isProduction ? '.procurea.pl' : undefined
+            domain: getCookieDomain(req)
         });
 
         return res.json(result);
@@ -789,6 +815,7 @@ export class AuthController {
     @Throttle({ default: { ttl: 600000, limit: 10 } }) // 10 per 10 minutes
     async emailVerify(
         @Body() body: { email: string; code: string },
+        @Req() req,
         @Res({ passthrough: true }) res: Response
     ) {
         if (!body.email || !body.code) {
@@ -808,7 +835,7 @@ export class AuthController {
         res.cookie('procurea_token', accessToken, {
             httpOnly: true,
             secure: isProduction,
-            domain: isProduction ? '.procurea.pl' : undefined,
+            domain: getCookieDomain(req),
             path: '/',
             maxAge: this.tokensService.getAccessTokenExpirySeconds() * 1000,
             sameSite: 'lax',
@@ -817,7 +844,7 @@ export class AuthController {
         res.cookie('procurea_refresh', refreshToken, {
             httpOnly: true,
             secure: isProduction,
-            domain: isProduction ? '.procurea.pl' : undefined,
+            domain: getCookieDomain(req),
             path: '/',
             maxAge: this.tokensService.getRefreshTokenExpirySeconds() * 1000,
             sameSite: 'lax',
@@ -866,7 +893,7 @@ export class AuthController {
         const token = this.jwtService.sign(payload);
 
         const isProduction = isProductionEnvironment();
-        res.cookie('procurea_token', token, getCookieOptions(isProduction));
+        res.cookie('procurea_token', token, getCookieOptions(isProduction, getCookieDomain(req)));
 
         return { ...user, isNewUser };
     }
@@ -890,7 +917,7 @@ export class AuthController {
 
     @Post('phone/verify')
     @Throttle({ default: { ttl: 600000, limit: 10 } }) // 10 per 10 minutes
-    async verifyPhoneOtp(@Body() body: { userId: string; phone: string; code: string }, @Res({ passthrough: true }) res: Response) {
+    async verifyPhoneOtp(@Body() body: { userId: string; phone: string; code: string }, @Req() req, @Res({ passthrough: true }) res: Response) {
         if (!body.userId || !body.phone || !body.code) throw new BadRequestException('Missing fields');
         const user = await this.authService.verifyPhone(body.userId, body.phone, body.code);
 
@@ -900,7 +927,7 @@ export class AuthController {
 
         // Set authentication cookie
         const isProduction = isProductionEnvironment();
-        res.cookie('procurea_token', token, getCookieOptions(isProduction));
+        res.cookie('procurea_token', token, getCookieOptions(isProduction, getCookieDomain(req)));
 
         // Return user to let frontend know status (token is in cookie)
         return { ...user, token: undefined }; // Don't return token in body if using cookies, or keep it for legacy? Keeping it out is cleaner.
@@ -943,7 +970,7 @@ export class AuthController {
 
         // Set authentication cookie
         const isProduction = isProductionEnvironment();
-        res.cookie('procurea_token', token, getCookieOptions(isProduction));
+        res.cookie('procurea_token', token, getCookieOptions(isProduction, getCookieDomain(req)));
 
         return user;
     }

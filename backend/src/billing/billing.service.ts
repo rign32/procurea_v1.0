@@ -3,10 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import Stripe from 'stripe';
 
-const CREDIT_PACKS: Record<string, { credits: number; priceNet: number; label: string }> = {
-    pack_1:  { credits: 1,  priceNet: 7000,  label: '1 wyszukiwanie' },
-    pack_5:  { credits: 5,  priceNet: 24000, label: '5 wyszukiwań' },
-    pack_20: { credits: 20, priceNet: 60000, label: '20 wyszukiwań' },
+const CREDIT_PACKS: Record<string, { credits: number; priceNet: number; label: string; priceNetUsd: number; labelEn: string }> = {
+    pack_1:  { credits: 1,  priceNet: 7000,  label: '1 wyszukiwanie', priceNetUsd: 4900,  labelEn: '1 search' },
+    pack_5:  { credits: 5,  priceNet: 24000, label: '5 wyszukiwań',   priceNetUsd: 19000, labelEn: '5 searches' },
+    pack_20: { credits: 20, priceNet: 60000, label: '20 wyszukiwań',  priceNetUsd: 56000, labelEn: '20 searches' },
 };
 
 @Injectable()
@@ -93,12 +93,25 @@ export class BillingService {
 
     // --- Helpers ---
 
-    private getFrontendUrl(): string {
+    private getFrontendUrl(lang?: string): string {
         // Staging detection: DATABASE_URL_STAGING is only set for apiStaging Cloud Function
         if (process.env.DATABASE_URL_STAGING) {
-            return 'https://staging.procurea.pl';
+            return lang === 'en'
+                ? 'https://procurea-app-staging-en.web.app'
+                : 'https://procurea-app-staging.web.app';
+        }
+        if (lang === 'en') {
+            return this.configService.get<string>('FRONTEND_URL_EN') || 'https://app.procurea.io';
         }
         return this.configService.get<string>('FRONTEND_URL') || 'https://app.procurea.pl';
+    }
+
+    private async getUserLanguage(userId: string): Promise<string> {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { language: true },
+        });
+        return user?.language || 'pl';
     }
 
     // --- Checkout Sessions ---
@@ -109,60 +122,81 @@ export class BillingService {
 
         const stripe = this.ensureStripe();
         const customerId = await this.getOrCreateCustomer(userId);
-        const vatRateId = await this.getVatTaxRateId();
+        const lang = await this.getUserLanguage(userId);
+        const isEn = lang === 'en';
 
-        const frontendUrl = this.getFrontendUrl();
+        const frontendUrl = this.getFrontendUrl(lang);
+
+        const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = {
+            price_data: {
+                currency: isEn ? 'usd' : 'pln',
+                product_data: {
+                    name: isEn ? `Pack: ${pack.labelEn}` : `Pakiet: ${pack.label}`,
+                    description: isEn
+                        ? `${pack.credits} supplier ${pack.credits === 1 ? 'search' : 'searches'}`
+                        : `${pack.credits} ${pack.credits === 1 ? 'wyszukiwanie dostawców' : 'wyszukiwań dostawców'}`,
+                },
+                unit_amount: isEn ? pack.priceNetUsd : pack.priceNet,
+            },
+            quantity: 1,
+        };
+
+        // Polish VAT for PLN payments, Stripe automatic tax for international (USD)
+        if (!isEn) {
+            const vatRateId = await this.getVatTaxRateId();
+            lineItem.tax_rates = [vatRateId];
+        }
 
         const session = await stripe.checkout.sessions.create({
             customer: customerId,
             mode: 'payment',
-            locale: 'pl',
-            line_items: [{
-                price_data: {
-                    currency: 'pln',
-                    product_data: {
-                        name: `Pakiet: ${pack.label}`,
-                        description: `${pack.credits} ${pack.credits === 1 ? 'wyszukiwanie dostawców' : 'wyszukiwań dostawców'}`,
-                    },
-                    unit_amount: pack.priceNet,
-                },
-                quantity: 1,
-                tax_rates: [vatRateId],
-            }],
+            locale: isEn ? 'en' : 'pl',
+            line_items: [lineItem],
             invoice_creation: { enabled: true },
+            ...(isEn && { automatic_tax: { enabled: true } }),
             metadata: {
                 userId,
                 packId,
                 credits: String(pack.credits),
                 type: 'credit_purchase',
             },
-            success_url: `${frontendUrl}/settings?billing=success`,
+            success_url: `${frontendUrl}/settings?billing=success&session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${frontendUrl}/settings?billing=canceled`,
         });
 
-        if (!session.url) throw new BadRequestException('Nie udało się utworzyć sesji płatności');
+        if (!session.url) throw new BadRequestException(isEn ? 'Failed to create checkout session' : 'Nie udało się utworzyć sesji płatności');
         return { url: session.url };
     }
 
     async createSubscriptionCheckout(userId: string): Promise<{ url: string }> {
         const stripe = this.ensureStripe();
         const customerId = await this.getOrCreateCustomer(userId);
-        const vatRateId = await this.getVatTaxRateId();
+        const lang = await this.getUserLanguage(userId);
+        const isEn = lang === 'en';
 
-        const priceId = this.configService.get<string>('STRIPE_UNLIMITED_PRICE_ID');
-        if (!priceId) throw new BadRequestException('Subskrypcja nie jest skonfigurowana');
+        const priceId = isEn
+            ? (this.configService.get<string>('STRIPE_UNLIMITED_PRICE_ID_USD') || this.configService.get<string>('STRIPE_UNLIMITED_PRICE_ID'))
+            : this.configService.get<string>('STRIPE_UNLIMITED_PRICE_ID');
+        if (!priceId) throw new BadRequestException(isEn ? 'Subscription not configured' : 'Subskrypcja nie jest skonfigurowana');
 
-        const frontendUrl = this.getFrontendUrl();
+        const frontendUrl = this.getFrontendUrl(lang);
+
+        const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = {
+            price: priceId,
+            quantity: 1,
+        };
+
+        if (!isEn) {
+            const vatRateId = await this.getVatTaxRateId();
+            lineItem.tax_rates = [vatRateId];
+        }
 
         const session = await stripe.checkout.sessions.create({
             customer: customerId,
             mode: 'subscription',
-            locale: 'pl',
-            line_items: [{
-                price: priceId,
-                quantity: 1,
-                tax_rates: [vatRateId],
-            }],
+            locale: isEn ? 'en' : 'pl',
+            line_items: [lineItem],
+            ...(isEn && { automatic_tax: { enabled: true } }),
             metadata: {
                 userId,
                 type: 'unlimited_subscription',
@@ -170,12 +204,59 @@ export class BillingService {
             subscription_data: {
                 metadata: { userId },
             },
-            success_url: `${frontendUrl}/settings?billing=success`,
+            success_url: `${frontendUrl}/settings?billing=success&session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${frontendUrl}/settings?billing=canceled`,
         });
 
         if (!session.url) throw new BadRequestException('Nie udało się utworzyć sesji płatności');
         return { url: session.url };
+    }
+
+    // --- Verify & Fulfill (webhook-independent) ---
+
+    async verifyAndFulfillSession(userId: string, sessionId: string): Promise<{ fulfilled: boolean; credits?: number; plan?: string }> {
+        const stripe = this.ensureStripe();
+
+        let session: Stripe.Checkout.Session;
+        try {
+            session = await stripe.checkout.sessions.retrieve(sessionId);
+        } catch {
+            throw new BadRequestException('Invalid session ID');
+        }
+
+        // Ownership validation
+        if (session.metadata?.userId !== userId) {
+            throw new BadRequestException('Session does not belong to this user');
+        }
+
+        // Check payment status
+        if (session.payment_status !== 'paid') {
+            return { fulfilled: false };
+        }
+
+        // Idempotency: check if already processed
+        const existing = await this.prisma.creditTransaction.findFirst({
+            where: { stripeSessionId: session.id },
+        });
+
+        if (existing) {
+            const user = await this.prisma.user.findUnique({
+                where: { id: userId },
+                select: { searchCredits: true, plan: true },
+            });
+            return { fulfilled: true, credits: user?.searchCredits, plan: user?.plan };
+        }
+
+        // Fulfill using existing logic
+        await this.handleCheckoutCompleted(session);
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { searchCredits: true, plan: true },
+        });
+
+        this.logger.log(`Verified and fulfilled session ${sessionId} for user ${userId}`);
+        return { fulfilled: true, credits: user?.searchCredits, plan: user?.plan };
     }
 
     // --- Webhook ---
@@ -337,14 +418,14 @@ export class BillingService {
         const stripe = this.ensureStripe();
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
-            select: { stripeCustomerId: true },
+            select: { stripeCustomerId: true, language: true },
         });
 
         if (!user?.stripeCustomerId) {
             throw new BadRequestException('Brak konta Stripe. Dokonaj najpierw zakupu.');
         }
 
-        const frontendUrl = this.getFrontendUrl();
+        const frontendUrl = this.getFrontendUrl(user.language || 'pl');
 
         const portalSession = await stripe.billingPortal.sessions.create({
             customer: user.stripeCustomerId,

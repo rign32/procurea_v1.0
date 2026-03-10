@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PL } from '@/i18n/pl';
+import { t } from '@/i18n';
 import { useAuthStore } from '@/stores/auth.store';
 import { analytics, startHesitationTracker } from '@/lib/analytics';
 import { Building2, MapPin, UserCheck, ArrowRight, ArrowLeft } from 'lucide-react';
@@ -54,7 +54,7 @@ export default function OnboardingPage() {
         }
         if (step === 2) {
             if (!formData.companyName) {
-                setError(PL.auth.onboarding.companyNameRequired);
+                setError(t.auth.onboarding.companyNameRequired);
                 return;
             }
         }
@@ -106,7 +106,7 @@ export default function OnboardingPage() {
             });
 
             const data = await res.json();
-            if (!res.ok) throw new Error(data.message || PL.errors.generic);
+            if (!res.ok) throw new Error(data.message || t.errors.generic);
 
             analytics.onboardingStepComplete(3);
             analytics.onboardingCompleted();
@@ -143,22 +143,22 @@ export default function OnboardingPage() {
                 className="w-full max-w-md space-y-6"
             >
                 <div className="text-center space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight">{PL.auth.onboarding.title}</h1>
-                    <p className="text-muted-foreground">{PL.auth.onboarding.subtitle}</p>
+                    <h1 className="text-3xl font-bold tracking-tight">{t.auth.onboarding.title}</h1>
+                    <p className="text-muted-foreground">{t.auth.onboarding.subtitle}</p>
                 </div>
 
                 <Card className="shadow-lg">
                     <CardHeader className="text-center pb-2">
                         <StepIndicator />
                         <CardTitle className="text-xl">
-                            {step === 1 && PL.auth.onboarding.step1Title}
-                            {step === 2 && PL.auth.onboarding.step2Title}
-                            {step === 3 && PL.auth.onboarding.step3Title}
+                            {step === 1 && t.auth.onboarding.step1Title}
+                            {step === 2 && t.auth.onboarding.step2Title}
+                            {step === 3 && t.auth.onboarding.step3Title}
                         </CardTitle>
                         <CardDescription>
-                            {step === 1 && PL.auth.onboarding.step1Subtitle}
-                            {step === 2 && PL.auth.onboarding.step2Subtitle}
-                            {step === 3 && PL.auth.onboarding.step3Subtitle}
+                            {step === 1 && t.auth.onboarding.step1Subtitle}
+                            {step === 2 && t.auth.onboarding.step2Subtitle}
+                            {step === 3 && t.auth.onboarding.step3Subtitle}
                         </CardDescription>
                     </CardHeader>
 
@@ -176,22 +176,22 @@ export default function OnboardingPage() {
                                 <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <Label htmlFor="firstName">{PL.auth.onboarding.firstName}</Label>
+                                            <Label htmlFor="firstName">{t.auth.onboarding.firstName}</Label>
                                             <Input
                                                 id="firstName"
                                                 name="firstName"
-                                                placeholder={PL.auth.onboarding.firstNamePlaceholder}
+                                                placeholder={t.auth.onboarding.firstNamePlaceholder}
                                                 value={formData.firstName}
                                                 onChange={handleChange}
                                                 required
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="lastName">{PL.auth.onboarding.lastName}</Label>
+                                            <Label htmlFor="lastName">{t.auth.onboarding.lastName}</Label>
                                             <Input
                                                 id="lastName"
                                                 name="lastName"
-                                                placeholder={PL.auth.onboarding.lastNamePlaceholder}
+                                                placeholder={t.auth.onboarding.lastNamePlaceholder}
                                                 value={formData.lastName}
                                                 onChange={handleChange}
                                                 required
@@ -199,14 +199,14 @@ export default function OnboardingPage() {
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="jobTitle">{PL.auth.onboarding.jobTitle}</Label>
+                                        <Label htmlFor="jobTitle">{t.auth.onboarding.jobTitle}</Label>
                                         <div className="relative">
                                             <UserCheck className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                             <Input
                                                 id="jobTitle"
                                                 name="jobTitle"
                                                 className="pl-9"
-                                                placeholder={PL.auth.onboarding.jobTitlePlaceholder}
+                                                placeholder={t.auth.onboarding.jobTitlePlaceholder}
                                                 value={formData.jobTitle}
                                                 onChange={handleChange}
                                             />
@@ -219,14 +219,14 @@ export default function OnboardingPage() {
                             {step === 2 && (
                                 <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                                     <div className="space-y-2">
-                                        <Label htmlFor="companyName">{PL.auth.onboarding.companyName} *</Label>
+                                        <Label htmlFor="companyName">{t.auth.onboarding.companyName} *</Label>
                                         <div className="relative">
                                             <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                             <Input
                                                 id="companyName"
                                                 name="companyName"
                                                 className="pl-9"
-                                                placeholder={PL.auth.onboarding.companyNamePlaceholder}
+                                                placeholder={t.auth.onboarding.companyNamePlaceholder}
                                                 value={formData.companyName}
                                                 onChange={handleChange}
                                                 required
@@ -320,11 +320,11 @@ export default function OnboardingPage() {
 
                                 {step < 3 ? (
                                     <Button type="submit" className="flex-1">
-                                        {PL.common.next} <ArrowRight className="ml-2 h-4 w-4" />
+                                        {t.common.next} <ArrowRight className="ml-2 h-4 w-4" />
                                     </Button>
                                 ) : (
                                     <Button type="submit" disabled={loading} className="flex-1">
-                                        {loading ? PL.common.loading : PL.auth.onboarding.complete}
+                                        {loading ? t.common.loading : t.auth.onboarding.complete}
                                     </Button>
                                 )}
                             </div>

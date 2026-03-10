@@ -27,7 +27,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Checkbox } from '@/components/ui/checkbox';
-import { PL } from '@/i18n/pl';
+import { t } from '@/i18n';
 import organizationService from '@/services/organization.service';
 import type { OrganizationLocation } from '@/types/campaign.types';
 import { toast } from 'sonner';
@@ -79,7 +79,7 @@ export function LocationsTab({ user }: LocationsTabProps) {
             setLocations(data);
         } catch (error) {
             console.error('Failed to load locations:', error);
-            toast.error(PL.common.error);
+            toast.error(t.common.error);
         } finally {
             setIsLoading(false);
         }
@@ -119,16 +119,16 @@ export function LocationsTab({ user }: LocationsTabProps) {
 
             if (editingLocation) {
                 await organizationService.updateLocation(user.organizationId, editingLocation.id, payload);
-                toast.success(PL.common.success);
+                toast.success(t.common.success);
             } else {
                 await organizationService.addLocation(user.organizationId, payload);
-                toast.success(PL.common.success);
+                toast.success(t.common.success);
             }
             await loadLocations();
             setIsDialogOpen(false);
         } catch (error) {
             console.error('Failed to save location:', error);
-            toast.error(PL.common.error);
+            toast.error(t.common.error);
         } finally {
             setIsSaving(false);
         }
@@ -140,11 +140,11 @@ export function LocationsTab({ user }: LocationsTabProps) {
 
         try {
             await organizationService.removeLocation(user.organizationId, id);
-            toast.success(PL.common.deleted);
+            toast.success(t.common.deleted);
             loadLocations();
         } catch (error) {
             console.error('Failed to delete location:', error);
-            toast.error(PL.common.error);
+            toast.error(t.common.error);
         }
     };
 
@@ -152,7 +152,7 @@ export function LocationsTab({ user }: LocationsTabProps) {
         return (
             <Card>
                 <CardContent className="py-8 text-center text-muted-foreground">
-                    {PL.settings.organization.locations} - {PL.common.noData}
+                    {t.settings.organization.locations} - {t.common.noData}
                 </CardContent>
             </Card>
         );
@@ -163,12 +163,12 @@ export function LocationsTab({ user }: LocationsTabProps) {
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
-                        <CardTitle>{PL.settings.organization.locations}</CardTitle>
+                        <CardTitle>{t.settings.organization.locations}</CardTitle>
                         <CardDescription>Zarządzaj adresami dostaw</CardDescription>
                     </div>
                     <Button onClick={() => handleOpenDialog()} size="sm">
                         <Plus className="mr-2 h-4 w-4" />
-                        {PL.settings.organization.addLocation}
+                        {t.settings.organization.addLocation}
                     </Button>
                 </CardHeader>
                 <CardContent>
@@ -219,14 +219,14 @@ export function LocationsTab({ user }: LocationsTabProps) {
                                         <DropdownMenuContent align="end">
                                             <DropdownMenuItem onClick={() => handleOpenDialog(location)}>
                                                 <Edit2 className="mr-2 h-4 w-4" />
-                                                {PL.common.edit}
+                                                {t.common.edit}
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
                                                 className="text-destructive focus:text-destructive"
                                                 onClick={() => handleDelete(location.id)}
                                             >
                                                 <Trash2 className="mr-2 h-4 w-4" />
-                                                {PL.common.delete}
+                                                {t.common.delete}
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
@@ -240,7 +240,7 @@ export function LocationsTab({ user }: LocationsTabProps) {
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>
-                                {editingLocation ? PL.common.edit : PL.settings.organization.addLocation}
+                                {editingLocation ? t.common.edit : t.settings.organization.addLocation}
                             </DialogTitle>
                             <DialogDescription>
                                 Wprowadź dane lokalizacji dostawy.
@@ -249,7 +249,7 @@ export function LocationsTab({ user }: LocationsTabProps) {
 
                         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="loc-name">{PL.settings.location.name}</Label>
+                                <Label htmlFor="loc-name">{t.settings.location.name}</Label>
                                 <Input
                                     id="loc-name"
                                     {...register('name', { required: true })}
@@ -300,16 +300,16 @@ export function LocationsTab({ user }: LocationsTabProps) {
                                     checked={watch('isDefault')}
                                     onCheckedChange={(checked) => setValue('isDefault', checked as boolean)}
                                 />
-                                <Label htmlFor="isDefault">{PL.settings.location.isDefault}</Label>
+                                <Label htmlFor="isDefault">{t.settings.location.isDefault}</Label>
                             </div>
 
                             <DialogFooter>
                                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                                    {PL.common.cancel}
+                                    {t.common.cancel}
                                 </Button>
                                 <Button type="submit" disabled={isSaving}>
                                     {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    {PL.common.save}
+                                    {t.common.save}
                                 </Button>
                             </DialogFooter>
                         </form>

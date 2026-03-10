@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, Infinity, Loader2, ExternalLink, TrendingUp, Star } from 'lucide-react';
+import { Search, Infinity, Loader2, ExternalLink, Check } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { PL } from '@/i18n/pl';
+import { t, isEN } from '@/i18n';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { billingService } from '@/services/billing.service';
@@ -12,35 +12,21 @@ import type { BillingInfo } from '@/services/billing.service';
 import apiClient from '@/services/api.client';
 import { useAuthStore } from '@/stores/auth.store';
 
-const t = PL.settings.billing;
+const bt = t.settings.billing;
+const CURRENCY = isEN ? 'USD' : 'PLN';
 
 const PACKS = [
-    { id: 'pack_1', credits: 1, priceNet: 70, label: t.packs.pack1 },
-    { id: 'pack_5', credits: 5, priceNet: 240, label: t.packs.pack5, badge: t.packs.popular },
-    { id: 'pack_20', credits: 20, priceNet: 600, label: t.packs.pack20, badge: t.packs.bestValue },
+    { id: 'pack_1', credits: 1, priceNet: isEN ? 49 : 70, unitPrice: isEN ? 49 : 70, label: bt.packs.pack1 },
+    { id: 'pack_5', credits: 5, priceNet: isEN ? 190 : 240, unitPrice: isEN ? 38 : 48, label: bt.packs.pack5, badge: bt.packs.popular },
+    { id: 'pack_20', credits: 20, priceNet: isEN ? 560 : 600, unitPrice: isEN ? 28 : 30, label: bt.packs.pack20, badge: bt.packs.bestValue },
 ];
 
-const SUBSCRIPTION_PRICE_NET = 1000;
+const SUBSCRIPTION_PRICE_NET = isEN ? 780 : 1000;
 const VAT_RATE = 0.23;
 
-function formatPln(amount: number): string {
+function formatPrice(amount: number): string {
+    if (isEN) return `$${amount.toFixed(2)}`;
     return `${amount.toFixed(2).replace('.', ',')} PLN`;
-}
-
-function getPlanLabel(plan: string): string {
-    switch (plan) {
-        case 'unlimited': return t.planUnlimited;
-        case 'pay_as_you_go': return t.planPayAsYouGo;
-        default: return t.planResearch;
-    }
-}
-
-function getPlanVariant(plan: string): 'default' | 'secondary' | 'outline' {
-    switch (plan) {
-        case 'unlimited': return 'default';
-        case 'pay_as_you_go': return 'secondary';
-        default: return 'outline';
-    }
 }
 
 const containerVariants = {
@@ -62,6 +48,7 @@ export function BillingTab({ user }: BillingTabProps) {
     const [billingInfo, setBillingInfo] = useState<BillingInfo | null>(null);
     const [loading, setLoading] = useState(true);
     const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+    const [selectedPack, setSelectedPack] = useState('pack_5');
     const { setUser } = useAuthStore();
 
     useEffect(() => {
@@ -70,15 +57,27 @@ export function BillingTab({ user }: BillingTabProps) {
 
     useEffect(() => {
         const billingStatus = searchParams.get('billing');
+        const sessionId = searchParams.get('session_id');
         if (billingStatus === 'success') {
-            toast.success(t.checkout.success);
             searchParams.delete('billing');
+            searchParams.delete('session_id');
             setSearchParams(searchParams, { replace: true });
-            loadBillingInfo();
-            // Refresh user data in store (picks up new credits/plan)
-            apiClient.get('/auth/me').then(res => { if (res.data?.id) setUser(res.data); }).catch(() => {});
+
+            const fulfill = async () => {
+                if (sessionId) {
+                    try {
+                        await billingService.verifySession(sessionId);
+                    } catch (err) {
+                        console.error('Failed to verify session:', err);
+                    }
+                }
+                loadBillingInfo();
+                apiClient.get('/auth/me').then(res => { if (res.data?.id) setUser(res.data); }).catch(() => {});
+                toast.success(bt.checkout.success);
+            };
+            fulfill();
         } else if (billingStatus === 'canceled') {
-            toast.error(t.checkout.canceled);
+            toast.error(bt.checkout.canceled);
             searchParams.delete('billing');
             setSearchParams(searchParams, { replace: true });
         }
@@ -144,159 +143,192 @@ export function BillingTab({ user }: BillingTabProps) {
             variants={containerVariants}
             initial="hidden"
             animate="show"
-            className="space-y-8 max-w-4xl mx-auto mt-4"
+            className="space-y-4"
         >
-            {/* Current Balance */}
-            <motion.div variants={itemVariants}>
-                <Card>
-                    <CardContent className="flex items-center justify-between p-6">
-                        <div>
-                            <p className="text-sm text-muted-foreground">{t.currentBalance}</p>
-                            <p className="text-4xl font-bold mt-1">
-                                {isUnlimited ? (
-                                    <span className="flex items-center gap-2">
-                                        <Infinity className="h-8 w-8" />
-                                        {t.unlimited}
-                                    </span>
-                                ) : (
-                                    credits
-                                )}
-                            </p>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-sm text-muted-foreground mb-1">{t.currentPlan}</p>
-                            <Badge variant={getPlanVariant(plan)}>
-                                {getPlanLabel(plan)}
-                            </Badge>
-                        </div>
-                    </CardContent>
-                </Card>
-            </motion.div>
-
-            {/* Credit Packs */}
-            {!isUnlimited && (
+            {isUnlimited ? (
+                /* Unlimited plan — single status card */
                 <motion.div variants={itemVariants}>
-                    <h3 className="text-lg font-semibold mb-4">{t.packs.title}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {PACKS.map((pack) => {
-                            const gross = pack.priceNet * (1 + VAT_RATE);
-                            const isLoading = checkoutLoading === pack.id;
-                            return (
-                                <Card key={pack.id} className="relative">
-                                    {pack.badge && (
-                                        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                                            <Badge variant="default" className="text-xs">
-                                                {pack.id === 'pack_5' && <Star className="h-3 w-3 mr-1" />}
-                                                {pack.id === 'pack_20' && <TrendingUp className="h-3 w-3 mr-1" />}
-                                                {pack.badge}
+                    <Card className="border-primary/30 bg-primary/5">
+                        <CardContent className="flex items-center justify-between p-6">
+                            <div>
+                                <h3 className="font-semibold text-lg">{bt.subscription.title}</h3>
+                                <p className="text-muted-foreground text-sm">{bt.subscription.description}</p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Badge variant="outline" className="px-3 py-1.5 text-base font-medium">
+                                    <Infinity className="h-4 w-4 mr-1" />
+                                    {bt.unlimited}
+                                </Badge>
+                                {billingInfo?.hasStripeCustomer && (
+                                    <Button variant="outline" onClick={handleManageSubscription}>
+                                        <ExternalLink className="h-4 w-4 mr-2" />
+                                        {bt.subscription.manage}
+                                    </Button>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </motion.div>
+            ) : (
+                /* Two-column layout: Pay-per-search vs Subscription */
+                <motion.div variants={itemVariants}>
+                    {(() => {
+                        const selected = PACKS.find(p => p.id === selectedPack) || PACKS[1];
+                        const selectedGross = selected.priceNet * (1 + VAT_RATE);
+                        return (
+                            <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch min-h-[420px]">
+                                {/* LEFT: Pay per search — pack selector */}
+                                <Card className="flex flex-col">
+                                    <CardHeader className="pb-3">
+                                        <div className="flex items-center justify-between">
+                                            <CardTitle className="text-lg">{bt.payAsYouGo.title}</CardTitle>
+                                            <Badge variant="outline" className="px-2.5 py-1 text-sm font-medium">
+                                                <Search className="h-3.5 w-3.5 mr-1.5" />
+                                                {credits} {bt.currentBalance.toLowerCase()}
                                             </Badge>
                                         </div>
-                                    )}
-                                    <CardHeader className="text-center pb-2">
-                                        <CardTitle className="text-lg">{pack.label}</CardTitle>
-                                        <div className="mt-2">
-                                            <span className="text-3xl font-bold">{pack.priceNet}</span>
-                                            <span className="text-muted-foreground ml-1">PLN</span>
-                                        </div>
-                                        <CardDescription>
-                                            {t.vat}
-                                            <br />
-                                            <span className="text-xs">({formatPln(gross)} {t.gross})</span>
-                                        </CardDescription>
+                                        <CardDescription>{bt.payAsYouGo.description}</CardDescription>
                                     </CardHeader>
-                                    <CardContent className="pt-2">
+                                    <CardContent className="flex-1 flex flex-col">
+                                        <div className="border rounded-lg divide-y overflow-hidden">
+                                            {PACKS.map((pack) => {
+                                                const isSelected = selectedPack === pack.id;
+                                                return (
+                                                    <button
+                                                        key={pack.id}
+                                                        type="button"
+                                                        onClick={() => setSelectedPack(pack.id)}
+                                                        className={`w-full flex items-center justify-between px-4 py-4 text-left transition-colors ${isSelected ? 'bg-primary/5 border-l-2 border-l-primary' : 'hover:bg-muted/50'}`}
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-primary' : 'border-muted-foreground/30'}`}>
+                                                                {isSelected && <div className="h-2 w-2 rounded-full bg-primary" />}
+                                                            </div>
+                                                            <div>
+                                                                <span className="font-medium text-sm">{pack.label}</span>
+                                                                {pack.badge && (
+                                                                    <Badge variant="secondary" className="ml-2 text-[10px] px-1.5 py-0">{pack.badge}</Badge>
+                                                                )}
+                                                                {isSelected && (
+                                                                    <p className="text-xs text-primary mt-0.5">{isEN ? `$${pack.unitPrice}` : `${pack.unitPrice} PLN`} {bt.packs.perSearch}</p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <span className={`font-bold text-sm ${isSelected ? 'text-primary' : ''}`}>
+                                                            {isEN ? `$${pack.priceNet}` : `${pack.priceNet} PLN`}
+                                                        </span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+
+                                        <div className="mt-4 space-y-1">
+                                            <p className="text-xs text-muted-foreground">
+                                                {isEN ? bt.vat : `${bt.vat} (${formatPrice(selectedGross)} ${bt.gross})`}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">{bt.packs.noExpiry}</p>
+                                        </div>
+
                                         <Button
-                                            className="w-full"
-                                            onClick={() => handleCreditCheckout(pack.id)}
+                                            className="w-full mt-auto pt-3"
+                                            onClick={() => handleCreditCheckout(selectedPack)}
                                             disabled={!!checkoutLoading}
                                         >
-                                            {isLoading ? (
+                                            {checkoutLoading === selectedPack ? (
                                                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
                                             ) : (
                                                 <Search className="h-4 w-4 mr-2" />
                                             )}
-                                            {isLoading ? t.checkout.redirecting : t.packs.buy}
+                                            {checkoutLoading === selectedPack
+                                                ? bt.checkout.redirecting
+                                                : `${bt.packs.buy} ${selected.label} — ${isEN ? `$${selected.priceNet}` : `${selected.priceNet} PLN`}`}
                                         </Button>
                                     </CardContent>
                                 </Card>
-                            );
-                        })}
-                    </div>
+
+                                {/* "lub" divider */}
+                                <div className="hidden lg:flex absolute inset-y-0 left-1/2 -translate-x-1/2 items-center z-10 pointer-events-none">
+                                    <div className="bg-background border rounded-full px-3 py-1 text-sm font-medium text-muted-foreground shadow-sm">
+                                        {bt.or}
+                                    </div>
+                                </div>
+                                <div className="flex lg:hidden justify-center -my-2">
+                                    <span className="text-sm font-medium text-muted-foreground">— {bt.or} —</span>
+                                </div>
+
+                                {/* RIGHT: Subscription — centered */}
+                                <Card className="border-primary/30 bg-gradient-to-b from-primary/5 to-transparent flex flex-col">
+                                    <CardContent className="flex-1 flex flex-col items-center justify-center text-center p-6 gap-5">
+                                        <div>
+                                            <h3 className="text-lg font-semibold">{bt.subscription.title}</h3>
+                                            <p className="text-sm text-muted-foreground mt-1">{bt.subscription.description}</p>
+                                        </div>
+                                        <div>
+                                            <div className="flex items-baseline justify-center gap-1">
+                                                {isEN && <span className="text-4xl font-bold">$</span>}
+                                                <span className="text-4xl font-bold">{SUBSCRIPTION_PRICE_NET}</span>
+                                                <span className="text-muted-foreground">{isEN ? '' : ' PLN'}{bt.subscription.perMonth}</span>
+                                            </div>
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                {isEN ? bt.vat : `${bt.vat} (${formatPrice(SUBSCRIPTION_PRICE_NET * (1 + VAT_RATE))} ${bt.gross}${bt.subscription.perMonth})`}
+                                            </p>
+                                        </div>
+                                        <ul className="text-sm text-muted-foreground space-y-1.5">
+                                            <li className="flex items-center gap-2">
+                                                <Check className="h-4 w-4 text-primary shrink-0" />
+                                                {bt.subscription.benefit1}
+                                            </li>
+                                            <li className="flex items-center gap-2">
+                                                <Check className="h-4 w-4 text-primary shrink-0" />
+                                                {bt.subscription.benefit2}
+                                            </li>
+                                            <li className="flex items-center gap-2">
+                                                <Check className="h-4 w-4 text-primary shrink-0" />
+                                                {bt.subscription.benefit3}
+                                            </li>
+                                        </ul>
+                                        <Button
+                                            size="lg"
+                                            className="w-full"
+                                            onClick={handleSubscriptionCheckout}
+                                            disabled={!!checkoutLoading}
+                                        >
+                                            {checkoutLoading === 'subscription' ? (
+                                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                            ) : (
+                                                <Infinity className="h-4 w-4 mr-2" />
+                                            )}
+                                            {checkoutLoading === 'subscription' ? bt.checkout.redirecting : bt.subscription.subscribe}
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        );
+                    })()}
                 </motion.div>
             )}
-
-            {/* Subscription */}
-            <motion.div variants={itemVariants}>
-                {isUnlimited ? (
-                    <Card className="border-primary/30">
-                        <CardContent className="flex items-center justify-between p-6">
-                            <div>
-                                <h3 className="font-semibold text-lg">{t.subscription.title}</h3>
-                                <p className="text-muted-foreground text-sm">{t.subscription.description}</p>
-                            </div>
-                            {billingInfo?.hasStripeCustomer && (
-                                <Button variant="outline" onClick={handleManageSubscription}>
-                                    <ExternalLink className="h-4 w-4 mr-2" />
-                                    {t.subscription.manage}
-                                </Button>
-                            )}
-                        </CardContent>
-                    </Card>
-                ) : (
-                    <Card className="border-primary/20">
-                        <CardHeader className="text-center pb-2">
-                            <CardTitle className="text-lg">{t.subscription.title}</CardTitle>
-                            <div className="mt-2">
-                                <span className="text-3xl font-bold">{SUBSCRIPTION_PRICE_NET}</span>
-                                <span className="text-muted-foreground ml-1">PLN{t.subscription.perMonth}</span>
-                            </div>
-                            <CardDescription>
-                                {t.vat}
-                                <br />
-                                <span className="text-xs">({formatPln(SUBSCRIPTION_PRICE_NET * (1 + VAT_RATE))} {t.gross}{t.subscription.perMonth})</span>
-                            </CardDescription>
-                            <p className="text-sm text-muted-foreground mt-2">{t.subscription.description}</p>
-                        </CardHeader>
-                        <CardContent className="pt-2 max-w-xs mx-auto">
-                            <Button
-                                className="w-full"
-                                variant="default"
-                                onClick={handleSubscriptionCheckout}
-                                disabled={!!checkoutLoading}
-                            >
-                                {checkoutLoading === 'subscription' ? (
-                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                ) : (
-                                    <Infinity className="h-4 w-4 mr-2" />
-                                )}
-                                {checkoutLoading === 'subscription' ? t.checkout.redirecting : t.subscription.subscribe}
-                            </Button>
-                        </CardContent>
-                    </Card>
-                )}
-            </motion.div>
 
             {/* Transaction History */}
             {transactions.length > 0 && (
                 <motion.div variants={itemVariants}>
-                    <h3 className="text-lg font-semibold mb-4">{t.history.title}</h3>
+                    <h3 className="text-lg font-semibold mb-4">{bt.history.title}</h3>
                     <Card>
                         <CardContent className="p-0">
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
                                     <thead>
                                         <tr className="border-b bg-muted/50">
-                                            <th className="text-left p-3 font-medium">{t.history.date}</th>
-                                            <th className="text-left p-3 font-medium">{t.history.description}</th>
-                                            <th className="text-right p-3 font-medium">{t.history.amount}</th>
-                                            <th className="text-right p-3 font-medium">{t.history.balance}</th>
+                                            <th className="text-left p-3 font-medium">{bt.history.date}</th>
+                                            <th className="text-left p-3 font-medium">{bt.history.description}</th>
+                                            <th className="text-right p-3 font-medium">{bt.history.amount}</th>
+                                            <th className="text-right p-3 font-medium">{bt.history.balance}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {transactions.map((tx) => (
                                             <tr key={tx.id} className="border-b last:border-0">
                                                 <td className="p-3 text-muted-foreground">
-                                                    {new Date(tx.createdAt).toLocaleDateString('pl-PL')}
+                                                    {new Date(tx.createdAt).toLocaleDateString(isEN ? 'en-US' : 'pl-PL')}
                                                 </td>
                                                 <td className="p-3">{tx.description || tx.type}</td>
                                                 <td className={`p-3 text-right font-medium ${tx.amount > 0 ? 'text-green-600' : 'text-red-500'}`}>
