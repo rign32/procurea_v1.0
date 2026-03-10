@@ -123,6 +123,7 @@ function App() {
             'Content-Type': 'application/json',
             'X-Staging-Secret': import.meta.env.VITE_STAGING_SECRET || '',
           },
+          body: JSON.stringify({ language: import.meta.env.VITE_LANGUAGE || 'pl' }),
           credentials: 'include',
         });
 

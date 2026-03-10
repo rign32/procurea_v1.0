@@ -54,7 +54,7 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
 
             {/* Sidebar */}
             <div className={cn(
-                "fixed inset-y-0 left-0 z-50 w-64 transform border-r bg-sidebar text-sidebar-foreground transition-transform duration-200 ease-in-out lg:static lg:translate-x-0",
+                "fixed inset-y-0 left-0 z-50 w-64 flex flex-col transform border-r bg-sidebar text-sidebar-foreground transition-transform duration-200 ease-in-out lg:static lg:translate-x-0",
                 sidebarOpen ? "translate-x-0" : "-translate-x-full"
             )}>
                 <div className="flex h-14 items-center border-b px-4">
@@ -101,11 +101,11 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
                             {t.nav.needHelp}
                         </div>
                         <a href={isEN
-                          ? "mailto:kontakt@procurea.pl?subject=Report%20%E2%80%94%20Procurea&body=Hello%2C%20thank%20you%20for%20reporting%20issues%20and%20suggestions%20%E2%80%94%20attaching%20screenshots%20and%20describing%20the%20situation%20will%20help%20us%20assist%20you%20faster.%0A%0ALocation%3A%20%0ADescription%3A%20"
+                          ? "mailto:hello@procurea.io?subject=Report%20%E2%80%94%20Procurea&body=Hello%2C%20thank%20you%20for%20reporting%20issues%20and%20suggestions%20%E2%80%94%20attaching%20screenshots%20and%20describing%20the%20situation%20will%20help%20us%20assist%20you%20faster.%0A%0ALocation%3A%20%0ADescription%3A%20"
                           : "mailto:kontakt@procurea.pl?subject=Zg%C5%82oszenie%20%E2%80%94%20Procurea&body=Dzie%C5%84%20dobry%2C%20dzi%C4%99kuj%C4%99%20za%20zg%C5%82aszanie%20problem%C3%B3w%20i%20sugestii%20rozwoju%20%E2%80%94%20do%C5%82%C4%85czanie%20screenshot%C3%B3w%20oraz%20opisywanie%20sytuacji%2C%20w%20kt%C3%B3rej%20program%20nie%20zadzia%C5%82a%C5%82%20nale%C5%BCycie%20pomo%C5%BCe%20szybciej%20Pa%C5%84stwu%20pom%C3%B3c.%0A%0AMiejsce%20wyst%C4%99powania%3A%20%0AOpis%20problemu%3A%20"
                         } className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors">
                             <Mail className="h-3.5 w-3.5" />
-                            kontakt@procurea.pl
+                            {isEN ? 'hello@procurea.io' : 'kontakt@procurea.pl'}
                         </a>
                         <a href="tel:+48536067316" className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors">
                             <Phone className="h-3.5 w-3.5" />

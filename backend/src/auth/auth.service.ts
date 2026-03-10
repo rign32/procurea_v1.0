@@ -466,8 +466,14 @@ export class AuthService {
     }
 
     // --- STAGING AUTO-LOGIN ---
-    async autoLoginStaging(): Promise<any> {
-        const stagingEmail = 'staging@procurea.dev';
+    async autoLoginStaging(language: string = 'pl'): Promise<any> {
+        const isEnglish = language === 'en';
+        const stagingEmail = isEnglish ? 'staging-en@procurea.dev' : 'staging@procurea.dev';
+        const userName = isEnglish ? 'Staging Tester EN' : 'Staging Tester';
+        const orgName = isEnglish ? 'Procurea Staging EN' : 'Procurea Staging';
+        const locationAddress = isEnglish
+            ? '123 Test Street, London, UK'
+            : 'ul. Testowa 1, 00-001 Warszawa';
 
         const existing = await this.prisma.user.findUnique({
             where: { email: stagingEmail },
@@ -481,14 +487,14 @@ export class AuthService {
         if (existing) {
             // Ensure staging user has an organization
             if (!existing.organizationId) {
-                console.log('[STAGING] Staging user missing org, creating...');
+                console.log(`[STAGING] Staging user (${language}) missing org, creating...`);
                 const org = await this.prisma.organization.create({
                     data: {
-                        name: 'Procurea Staging',
+                        name: orgName,
                         locations: {
                             create: [{
                                 name: 'HQ',
-                                address: 'ul. Testowa 1, 00-001 Warszawa',
+                                address: locationAddress,
                                 isDefault: true,
                             }]
                         }
@@ -498,7 +504,7 @@ export class AuthService {
                     where: { id: existing.id },
                     data: { organizationId: org.id },
                 });
-                console.log(`[STAGING] Linked org ${org.id} to staging user`);
+                console.log(`[STAGING] Linked org ${org.id} to staging user (${language})`);
                 return this.prisma.user.findUnique({
                     where: { id: existing.id },
                     include: { organization: { include: { locations: true } } }
@@ -511,33 +517,33 @@ export class AuthService {
         const created = await this.prisma.user.create({
             data: {
                 email: stagingEmail,
-                name: 'Staging Tester',
+                name: userName,
                 role: 'ADMIN',
                 ssoProvider: 'staging',
                 isPhoneVerified: true,
                 phoneVerifiedAt: new Date(),
                 onboardingCompleted: true,
-                companyName: 'Procurea Staging',
+                companyName: orgName,
                 jobTitle: 'QA Tester',
-                language: 'pl',
+                language,
             },
         });
 
         await this.prisma.organization.create({
             data: {
-                name: 'Procurea Staging',
+                name: orgName,
                 users: { connect: { id: created.id } },
                 locations: {
                     create: [{
                         name: 'HQ',
-                        address: 'ul. Testowa 1, 00-001 Warszawa',
+                        address: locationAddress,
                         isDefault: true,
                     }]
                 }
             }
         });
 
-        console.log(`[STAGING] Created staging user: ${stagingEmail}`);
+        console.log(`[STAGING] Created staging user (${language}): ${stagingEmail}`);
 
         return this.prisma.user.findUnique({
             where: { id: created.id },

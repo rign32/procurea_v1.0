@@ -1018,7 +1018,8 @@ export class AuthController {
             throw new ForbiddenException('Invalid staging secret');
         }
 
-        const user = await this.authService.autoLoginStaging();
+        const language = req.body?.language || req.headers['x-staging-language'] || 'pl';
+        const user = await this.authService.autoLoginStaging(language);
 
         const accessToken = this.tokensService.generateAccessToken(user.id, user.email, user.role);
         const refreshToken = await this.tokensService.generateRefreshToken(user.id);
