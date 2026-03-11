@@ -336,7 +336,7 @@ export class EmailService {
     ): Promise<boolean> {
         const isEn = locale === 'en';
         const tallyBaseUrl = isEn
-            ? (process.env.TALLY_FEEDBACK_URL_EN || 'https://tally.so/r/3EDkBp')
+            ? (process.env.TALLY_FEEDBACK_URL_EN || 'https://tally.so/r/ODPykk')
             : (process.env.TALLY_FEEDBACK_URL || 'https://tally.so/r/Ek117r');
         const surveyUrl = `${tallyBaseUrl}?campaignName=${encodeURIComponent(campaignName)}&campaignId=${campaignId}`;
 
