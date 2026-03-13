@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, Infinity as InfinityIcon, Loader2, ExternalLink, Check, XCircle, Sparkles, ChevronDown } from 'lucide-react';
+import { Search, Infinity as InfinityIcon, Loader2, ExternalLink, Check, XCircle, Zap, ChevronDown } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,9 +16,9 @@ import type { User } from '@/types/campaign.types';
 const bt = t.settings.billing;
 
 const PACKS = [
-    { id: 'pack_10', credits: 10, priceNet: isEN ? 89 : 149, unitPrice: isEN ? 8.90 : 14.90, label: bt.packs.pack10 },
-    { id: 'pack_25', credits: 25, priceNet: isEN ? 199 : 299, unitPrice: isEN ? 7.96 : 11.96, label: bt.packs.pack25, badge: bt.packs.popular, savings: bt.packs.savings25 },
-    { id: 'pack_50', credits: 50, priceNet: isEN ? 299 : 499, unitPrice: isEN ? 5.98 : 9.98, label: bt.packs.pack50, badge: bt.packs.bestValue, savings: bt.packs.savings50 },
+    { id: 'pack_10', credits: 10, priceNet: isEN ? 89 : 149, unitPrice: isEN ? 8.90 : 14.90, label: bt.packs.pack10, coffeeLabel: bt.packs.coffeeLatte },
+    { id: 'pack_25', credits: 25, priceNet: isEN ? 199 : 299, unitPrice: isEN ? 7.96 : 11.96, label: bt.packs.pack25, badge: bt.packs.popular, savings: bt.packs.savings25, coffeeLabel: bt.packs.coffeeAmericano },
+    { id: 'pack_50', credits: 50, priceNet: isEN ? 299 : 499, unitPrice: isEN ? 5.98 : 9.98, label: bt.packs.pack50, badge: bt.packs.bestValue, savings: bt.packs.savings50, coffeeLabel: bt.packs.coffeeEspresso },
 ];
 
 const SUBSCRIPTION_PRICE_NET = isEN ? 399 : 599;
@@ -160,10 +160,10 @@ function CoffeeSvgAnimation() {
 }
 
 /* ── Floating sparkle particle ── */
-function FloatingSparkle({ delay, x, duration }: { delay: number; x: number; duration: number }) {
+function FloatingSparkle({ delay, x, duration, size = 'sm' }: { delay: number; x: number; duration: number; size?: 'sm' | 'md' }) {
     return (
         <motion.div
-            className="absolute w-1 h-1 rounded-full bg-primary/40"
+            className={`absolute rounded-full bg-primary/40 ${size === 'md' ? 'w-1.5 h-1.5' : 'w-1 h-1'}`}
             style={{ left: `${x}%`, top: '80%' }}
             animate={{
                 y: [0, -30, -60],
@@ -417,6 +417,8 @@ export function BillingTab({ user }: BillingTabProps) {
                                     <FloatingSparkle delay={1.2} x={45} duration={4} />
                                     <FloatingSparkle delay={2.1} x={75} duration={3.2} />
                                     <FloatingSparkle delay={0.8} x={90} duration={3.8} />
+                                    <FloatingSparkle delay={1.8} x={30} duration={3.6} size="md" />
+                                    <FloatingSparkle delay={0.4} x={60} duration={4.2} size="md" />
 
                                     <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
                                         {/* Left: icon + title + benefits */}
@@ -428,10 +430,12 @@ export function BillingTab({ user }: BillingTabProps) {
                                                     animate={{ scale: 1, rotate: 0 }}
                                                     transition={{ type: 'spring', stiffness: 300, damping: 15, delay: 0.3 }}
                                                 >
-                                                    <Sparkles className="h-5 w-5 text-primary" />
+                                                    <Zap className="h-5 w-5 text-primary" />
                                                 </motion.div>
                                                 <div>
-                                                    <h3 className="text-xl font-bold">{bt.subscription.title}</h3>
+                                                    <h3 className="text-xl font-bold bg-gradient-to-r from-primary via-blue-500 to-primary bg-clip-text text-transparent">
+                                                        {bt.subscription.title}
+                                                    </h3>
                                                     <p className="text-sm text-muted-foreground">{bt.subscription.description}</p>
                                                 </div>
                                             </div>
@@ -467,11 +471,22 @@ export function BillingTab({ user }: BillingTabProps) {
                                                     </motion.li>
                                                 ))}
                                             </ul>
+
+                                            {/* Energy bar */}
+                                            <motion.div
+                                                className="h-1 w-24 rounded-full bg-gradient-to-r from-primary via-blue-400 to-primary/50 mt-3"
+                                                initial={{ scaleX: 0, opacity: 0 }}
+                                                animate={{ scaleX: 1, opacity: 1 }}
+                                                transition={{ duration: 0.6, delay: 1.0, ease: 'easeOut' }}
+                                                style={{ transformOrigin: 'left' }}
+                                            />
                                         </div>
 
                                         {/* Right: price + CTA */}
-                                        <div className="text-center lg:text-right space-y-4 lg:min-w-[220px]">
-                                            <div>
+                                        <div className="relative text-center lg:text-right space-y-4 lg:min-w-[220px]">
+                                            {/* Price glow backdrop */}
+                                            <div className="absolute -inset-4 bg-primary/5 rounded-2xl blur-xl pointer-events-none" />
+                                            <div className="relative">
                                                 <motion.div
                                                     className="flex items-baseline justify-center lg:justify-end gap-1"
                                                     initial={{ filter: 'blur(8px)', opacity: 0 }}
@@ -520,7 +535,7 @@ export function BillingTab({ user }: BillingTabProps) {
                         <div className="flex flex-col md:flex-row items-center gap-5 md:gap-6">
                             <CoffeeSvgAnimation />
                             <div className="flex-1 space-y-1.5 text-center md:text-left">
-                                <h2 className="text-xl md:text-2xl font-bold tracking-tight">
+                                <h2 className="text-2xl font-bold tracking-tight">
                                     {bt.packs.header}
                                 </h2>
                                 <p className="text-muted-foreground text-sm">
@@ -592,7 +607,7 @@ export function BillingTab({ user }: BillingTabProps) {
                                                         </span>
                                                     </div>
                                                     <div className="text-[10px] text-muted-foreground mt-0.5">
-                                                        {bt.packs.coffeePrice}
+                                                        {pack.coffeeLabel}
                                                     </div>
                                                 </div>
 
@@ -667,38 +682,40 @@ export function BillingTab({ user }: BillingTabProps) {
                                 animate={{ height: 'auto', opacity: 1 }}
                                 exit={{ height: 0, opacity: 0 }}
                                 transition={{ duration: 0.3 }}
-                                className="overflow-hidden"
+                                className="overflow-hidden mt-3"
                             >
-                                <Card>
+                                <Card className="shadow-sm">
                                     <CardContent className="p-0">
                                         <div className="overflow-x-auto">
-                                            <table className="w-full text-sm">
+                                            <table className="w-full">
                                                 <thead>
-                                                    <tr className="border-b bg-muted/50">
-                                                        <th className="text-left p-3 font-medium">{bt.history.date}</th>
-                                                        <th className="text-left p-3 font-medium">{bt.history.description}</th>
-                                                        <th className="text-right p-3 font-medium">{bt.history.amount}</th>
-                                                        <th className="text-right p-3 font-medium">{bt.history.balance}</th>
+                                                    <tr className="border-b bg-muted/40">
+                                                        <th className="text-left p-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{bt.history.date}</th>
+                                                        <th className="text-left p-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{bt.history.description}</th>
+                                                        <th className="text-right p-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{bt.history.amount}</th>
+                                                        <th className="text-right p-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{bt.history.balance}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {transactions.map((tx) => (
-                                                        <tr key={tx.id} className="border-b last:border-0">
-                                                            <td className="p-3 text-muted-foreground">
+                                                        <tr key={tx.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                                                            <td className="p-4 py-4 text-sm text-muted-foreground whitespace-nowrap">
                                                                 {new Date(tx.createdAt).toLocaleDateString(isEN ? 'en-US' : 'pl-PL')}
                                                             </td>
-                                                            <td className="p-3">
-                                                                <span>{tx.description || tx.type}</span>
-                                                                {hasOrg && tx.source && (
-                                                                    <Badge variant="outline" className="ml-2 text-[10px] px-1.5 py-0">
-                                                                        {tx.source === 'org' ? bt.sourceOrg : bt.sourcePersonal}
-                                                                    </Badge>
-                                                                )}
+                                                            <td className="p-4 py-4 text-sm">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span>{tx.description || tx.type}</span>
+                                                                    {hasOrg && tx.source && (
+                                                                        <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                                                                            {tx.source === 'org' ? bt.sourceOrg : bt.sourcePersonal}
+                                                                        </Badge>
+                                                                    )}
+                                                                </div>
                                                             </td>
-                                                            <td className={`p-3 text-right font-medium ${tx.amount > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                                                            <td className={`p-4 py-4 text-right text-base font-semibold ${tx.amount > 0 ? 'text-green-600' : 'text-red-500'}`}>
                                                                 {tx.amount > 0 ? '+' : ''}{tx.amount}
                                                             </td>
-                                                            <td className="p-3 text-right text-muted-foreground">{tx.balanceAfter}</td>
+                                                            <td className="p-4 py-4 text-right text-sm text-muted-foreground">{tx.balanceAfter}</td>
                                                         </tr>
                                                     ))}
                                                 </tbody>

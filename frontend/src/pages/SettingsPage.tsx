@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Loader2, User as UserIcon, Building, MapPin, Bell, Users, CreditCard } from 'lucide-react';
+import { Loader2, User as UserIcon, Building, MapPin, Bell, Users } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import { t } from '@/i18n';
 import { ProfileTab } from '@/components/settings/ProfileTab';
@@ -8,17 +8,15 @@ import { OrganizationTab } from '@/components/settings/OrganizationTab';
 import { LocationsTab } from '@/components/settings/LocationsTab';
 import { TeamTab } from '@/components/settings/TeamTab';
 import { NotificationsTab } from '@/components/settings/NotificationsTab';
-import { BillingTab } from '@/components/settings/BillingTab';
 import { analytics } from '@/lib/analytics';
 
-type TabKey = 'profile' | 'organization' | 'locations' | 'team' | 'notifications' | 'billing';
+type TabKey = 'profile' | 'organization' | 'locations' | 'team' | 'notifications';
 
-const VALID_TABS: TabKey[] = ['profile', 'organization', 'locations', 'team', 'notifications', 'billing'];
+const VALID_TABS: TabKey[] = ['profile', 'organization', 'locations', 'team', 'notifications'];
 
 export function SettingsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<TabKey>(() => {
-    if (searchParams.has('billing')) return 'billing';
     const tab = searchParams.get('tab');
     if (tab && VALID_TABS.includes(tab as TabKey)) return tab as TabKey;
     return 'profile';
@@ -33,7 +31,6 @@ export function SettingsPage() {
   const { user, isLoading } = useAuthStore();
 
   const isFullPlan = user?.plan === 'full';
-  const isTrialActive = user?.trialCreditsUsed === false;
 
   const tabs: { key: TabKey; label: string; icon: React.ReactNode }[] = [
     { key: 'profile', label: t.settings.tabs.profile, icon: <UserIcon className="h-4 w-4" /> },
@@ -43,7 +40,6 @@ export function SettingsPage() {
     ...(isFullPlan ? [{ key: 'locations' as TabKey, label: t.settings.tabs.locations, icon: <MapPin className="h-4 w-4" /> }] : []),
     { key: 'team', label: t.settings.tabs.team, icon: <Users className="h-4 w-4" /> },
     { key: 'notifications', label: t.settings.tabs.notifications, icon: <Bell className="h-4 w-4" /> },
-    ...(!isTrialActive ? [{ key: 'billing' as TabKey, label: t.settings.tabs.billing, icon: <CreditCard className="h-4 w-4" /> }] : []),
   ];
 
   if (isLoading) {
@@ -88,7 +84,6 @@ export function SettingsPage() {
         {activeTab === 'locations' && <LocationsTab user={user} />}
         {activeTab === 'team' && <TeamTab user={user} />}
         {activeTab === 'notifications' && <NotificationsTab user={user} isFullPlan={isFullPlan} />}
-        {activeTab === 'billing' && <BillingTab user={user} />}
       </div>
     </div>
   );

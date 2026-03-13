@@ -13,6 +13,7 @@ import { useCampaigns } from '@/hooks/useCampaigns';
 import campaignsService from '@/services/campaigns.service';
 import { t, isEN } from '@/i18n';
 import { useAuthStore } from '@/stores/auth.store';
+import { useUIStore } from '@/stores/ui.store';
 import type { Campaign, CampaignStatus } from '@/types/campaign.types';
 import { motion } from 'framer-motion';
 
@@ -276,7 +277,7 @@ export function CampaignsPage() {
             <Button onClick={() => {
               localStorage.setItem(`procurea_trial_dismissed_${user?.id}`, 'true');
               setTrialPopupDismissed(true);
-              navigate('/settings?tab=billing');
+              useUIStore.getState().openBillingModal();
             }}>
               {t.settings.billing.trial.ended.action}
             </Button>
@@ -294,7 +295,7 @@ export function CampaignsPage() {
             <Button variant="outline" onClick={() => setShowTopUpDialog(false)}>
               {t.common.cancel}
             </Button>
-            <Button onClick={() => navigate('/settings?tab=billing')}>
+            <Button onClick={() => useUIStore.getState().openBillingModal()}>
               {t.settings.billing.topUp.action}
             </Button>
           </DialogFooter>

@@ -19,6 +19,7 @@ import { EmailPreview } from '@/components/email/EmailPreview';
 import { sequencesService, type SequenceTemplate } from '@/services/sequences.service';
 import { organizationService } from '@/services/organization.service';
 import { useAuthStore } from '@/stores/auth.store';
+import { useUIStore } from '@/stores/ui.store';
 import { cn } from '@/lib/utils';
 import { analytics } from '@/lib/analytics';
 import type { CreateCampaignDto, OrganizationLocation, Region } from '@/types/campaign.types';
@@ -194,7 +195,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
         if (isCreditsError) {
           toast.error(msg, {
             duration: 8000,
-            action: { label: t.settings.billing.topUp.action, onClick: () => navigate('/settings?tab=billing') },
+            action: { label: t.settings.billing.topUp.action, onClick: () => useUIStore.getState().openBillingModal() },
           });
         } else {
           toast.error(msg);

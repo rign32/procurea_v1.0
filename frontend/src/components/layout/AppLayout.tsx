@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { Link, Outlet, useLocation } from "react-router-dom"
+import { useState, useEffect } from "react"
+import { Link, Outlet, useLocation, useSearchParams } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
     LayoutDashboard,
@@ -13,13 +13,17 @@ import {
     X,
     ShieldAlert,
     HelpCircle,
-    Phone
+    Phone,
+    CreditCard,
+    ArrowUpRight,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { t, isEN } from "@/i18n"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuthStore } from "@/stores/auth.store"
+import { useUIStore } from "@/stores/ui.store"
+import { BillingModal } from "@/components/billing/BillingModal"
 
 interface AppLayoutProps {
     onLogout?: () => void
@@ -27,18 +31,28 @@ interface AppLayoutProps {
 
 export default function AppLayout({ onLogout }: AppLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(false)
+    const { billingModalOpen, setBillingModalOpen, openBillingModal } = useUIStore()
     const location = useLocation()
+    const [searchParams] = useSearchParams()
     const { user } = useAuthStore()
+
+    // Auto-open billing modal when Stripe redirects back with ?billing=success/canceled
+    useEffect(() => {
+        if (searchParams.has('billing')) {
+            openBillingModal()
+        }
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     const isFullPlan = user?.plan === 'full';
 
-    const navigation = [
+    const navigation: { name: string; href?: string; icon: typeof LayoutDashboard; action?: () => void; badge?: typeof ArrowUpRight }[] = [
         { name: t.nav.dashboard, href: "/", icon: LayoutDashboard },
         { name: t.nav.campaigns, href: "/campaigns", icon: Target },
         ...(isFullPlan ? [{ name: t.nav.rfqs, href: "/rfqs", icon: FileText }] : []),
         { name: t.nav.suppliers, href: "/suppliers", icon: Users },
         { name: t.nav.blacklist, href: "/blacklist", icon: ShieldAlert },
         ...(isFullPlan ? [{ name: t.nav.sequences, href: "/sequences", icon: Mail }] : []),
+        { name: t.nav.plan, icon: CreditCard, action: () => openBillingModal(), badge: ArrowUpRight },
         { name: t.nav.settings, href: "/settings", icon: Settings },
     ]
 
@@ -76,11 +90,28 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
 
                 <div className="flex flex-1 flex-col gap-1 overflow-y-auto p-2">
                     {navigation.map((item) => {
-                        const isActive = location.pathname === item.href
+                        const isActive = !item.action && location.pathname === item.href
+
+                        if (item.action) {
+                            return (
+                                <button
+                                    key={item.name}
+                                    onClick={() => { item.action!(); setSidebarOpen(false); }}
+                                    className={cn(
+                                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-muted-foreground w-full text-left"
+                                    )}
+                                >
+                                    <item.icon className="h-4 w-4" />
+                                    {item.name}
+                                    {item.badge && <item.badge className="h-3 w-3 ml-auto opacity-50" />}
+                                </button>
+                            )
+                        }
+
                         return (
                             <Link
                                 key={item.name}
-                                to={item.href}
+                                to={item.href!}
                                 className={cn(
                                     "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                                     isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-muted-foreground"
@@ -166,6 +197,9 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
                     </AnimatePresence>
                 </main>
             </div>
+
+            {/* Billing/Plan popup modal */}
+            <BillingModal open={billingModalOpen} onOpenChange={setBillingModalOpen} />
         </div>
     )
 }

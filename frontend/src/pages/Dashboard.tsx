@@ -8,6 +8,7 @@ import { Target, FileText, Users, Sparkles, ArrowRight, Plus } from 'lucide-reac
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useCampaigns } from '@/hooks/useCampaigns';
 import { useAuthStore } from '@/stores/auth.store';
+import { useUIStore } from '@/stores/ui.store';
 import { t, isEN } from '@/i18n';
 import { motion } from 'framer-motion';
 import { analytics, startHesitationTracker } from '@/lib/analytics';
@@ -236,7 +237,7 @@ export default function Dashboard() {
             <Button onClick={() => {
               localStorage.setItem(`procurea_trial_dismissed_${user?.id}`, 'true');
               setTrialPopupDismissed(true);
-              navigate('/settings?tab=billing');
+              useUIStore.getState().openBillingModal();
             }}>
               {t.settings.billing.trial.ended.action}
             </Button>
@@ -254,7 +255,7 @@ export default function Dashboard() {
             <Button variant="outline" onClick={() => setShowTopUpDialog(false)}>
               {t.common.cancel}
             </Button>
-            <Button onClick={() => navigate('/settings?tab=billing')}>
+            <Button onClick={() => useUIStore.getState().openBillingModal()}>
               {t.settings.billing.topUp.action}
             </Button>
           </DialogFooter>
