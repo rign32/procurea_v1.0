@@ -588,12 +588,37 @@ export class AuthService {
         });
 
         if (existing) {
+            // Always refresh staging user fields for testing
+            await this.prisma.user.update({
+                where: { id: existing.id },
+                data: {
+                    trialCreditsUsed: true,
+                    searchCredits: Math.max(existing.searchCredits, 50),
+                }
+            });
+
+            if (existing.organization) {
+                await this.prisma.organization.update({
+                    where: { id: existing.organization.id },
+                    data: {
+                        trialCreditsUsed: true,
+                        searchCredits: Math.max(existing.organization.searchCredits ?? 0, 50),
+                        plan: existing.organization.plan || 'research',
+                        domain: existing.organization.domain || 'procurea.dev',
+                    }
+                });
+            }
+
             // Ensure staging user has an organization
             if (!existing.organizationId) {
                 console.log(`[STAGING] Staging user (${language}) missing org, creating...`);
                 const org = await this.prisma.organization.create({
                     data: {
                         name: orgName,
+                        domain: 'procurea.dev',
+                        searchCredits: 50,
+                        trialCreditsUsed: true,
+                        plan: 'research',
                         locations: {
                             create: [{
                                 name: 'HQ',
@@ -608,12 +633,12 @@ export class AuthService {
                     data: { organizationId: org.id },
                 });
                 console.log(`[STAGING] Linked org ${org.id} to staging user (${language})`);
-                return this.prisma.user.findUnique({
-                    where: { id: existing.id },
-                    include: { organization: { include: { locations: true } } }
-                });
             }
-            return existing;
+
+            return this.prisma.user.findUnique({
+                where: { id: existing.id },
+                include: { organization: { include: { locations: true } } }
+            });
         }
 
         // Create staging user with completed onboarding
