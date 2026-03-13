@@ -48,6 +48,9 @@ export const blockUser = (id: string, reason?: string) =>
 export const unblockUser = (id: string) =>
     api.post(`/admin/users/${id}/unblock`);
 
+export const deleteUser = (id: string) =>
+    api.delete(`/admin/users/${id}`);
+
 // Error Logs
 export const getErrorLogs = (category?: string, limit?: number) =>
     api.get('/admin/errors', { params: { category, limit } });

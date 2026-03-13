@@ -70,6 +70,7 @@ export const EN: Translations = {
     loggingIn: 'Logging in...',
     loginError: 'Login error',
     redirectingToLogin: 'Redirecting to login page...',
+    accountBlocked: 'Your account has been temporarily blocked. Please contact the administrator.',
     footerTagline: 'AI-powered manufacturer sourcing',
 
     // Onboarding
@@ -813,9 +814,13 @@ export const EN: Translations = {
       or: 'or',
 
       hero: {
-        title: 'Less than a coffee. More than hours of research.',
-        subtitle: 'Get 100-250 verified suppliers in 15-20 minutes',
+        title: 'For the price of a coffee — 100-250 suppliers in 15 minutes',
+        subtitle: 'One search replaces 10 hours of manual research. Verified suppliers with contact data.',
       },
+      orBuyPack: 'or buy a single pack',
+      creditsAvailable: 'searches available',
+      showHistory: 'Show transaction history',
+      hideHistory: 'Hide transaction history',
 
       valueProps: {
         time: 'Instead of hours of manual research',

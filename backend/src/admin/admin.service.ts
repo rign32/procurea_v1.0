@@ -228,14 +228,24 @@ export class AdminService {
             throw new BadRequestException('Cannot block admin users');
         }
 
-        return this.prisma.user.update({
-            where: { id: userId },
-            data: {
-                isBlocked: true,
-                blockedAt: new Date(),
-                blockedReason: reason,
-            },
-        });
+        const [updatedUser] = await this.prisma.$transaction([
+            this.prisma.user.update({
+                where: { id: userId },
+                data: {
+                    isBlocked: true,
+                    blockedAt: new Date(),
+                    blockedReason: reason,
+                },
+            }),
+            // Revoke all active refresh tokens to invalidate existing sessions
+            this.prisma.refreshToken.updateMany({
+                where: { userId, revoked: false },
+                data: { revoked: true, revokedAt: new Date() },
+            }),
+        ]);
+
+        this.logger.log(`User blocked: ${user.email} (${userId}), reason: ${reason || 'none'}`);
+        return updatedUser;
     }
 
     async unblockUser(userId: string) {
@@ -247,6 +257,48 @@ export class AdminService {
                 blockedReason: null,
             },
         });
+    }
+
+    async deleteUser(userId: string) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { id: true, email: true, role: true },
+        });
+
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        if (user.role === 'ADMIN') {
+            throw new BadRequestException('Cannot delete admin users');
+        }
+
+        await this.prisma.$transaction(async (tx) => {
+            // 1. Delete AuditLogs (userId NOT NULL, no cascade)
+            await tx.auditLog.deleteMany({ where: { userId } });
+
+            // 2. Set null on nullable relations (no cascade defined)
+            await tx.aiInteraction.updateMany({
+                where: { userId },
+                data: { userId: null },
+            });
+            await tx.apiUsageLog.updateMany({
+                where: { userId },
+                data: { userId: null },
+            });
+            await tx.rfqRequest.updateMany({
+                where: { ownerId: userId },
+                data: { ownerId: null },
+            });
+
+            // 3. Delete the User record
+            // Cascades handle: RefreshToken, CreditTransaction, UserSharingPreference
+            await tx.user.delete({ where: { id: userId } });
+        });
+
+        this.logger.log(`User deleted: ${user.email} (${userId})`);
+
+        return { success: true, message: `User ${user.email} has been deleted` };
     }
 
     async initiatePasswordReset(userId: string) {

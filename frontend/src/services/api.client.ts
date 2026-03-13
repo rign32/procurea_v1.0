@@ -41,11 +41,11 @@ apiClient.interceptors.request.use(
 // Response Interceptor - Handle errors and token refresh
 let isRefreshing = false;
 let failedQueue: Array<{
-  resolve: (value?: any) => void;
-  reject: (reason?: any) => void;
+  resolve: (value?: unknown) => void;
+  reject: (reason?: unknown) => void;
 }> = [];
 
-const processQueue = (error: any = null) => {
+const processQueue = (error: unknown = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error);
@@ -67,6 +67,16 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean;
     };
+
+    // Handle 403 ACCOUNT_BLOCKED - Don't try to refresh, redirect to login with blocked message
+    if (error.response?.status === 403 && error.response?.data?.message === 'ACCOUNT_BLOCKED') {
+      localStorage.removeItem('procurea_token');
+      localStorage.removeItem('procurea_refresh');
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login?blocked=true';
+      }
+      return Promise.reject(error);
+    }
 
     // Handle 401 Unauthorized - Try refresh token
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -97,7 +107,7 @@ apiClient.interceptors.response.use(
         isRefreshing = false;
         processQueue();
         return apiClient(originalRequest);
-      } catch (refreshError) {
+      } catch (refreshError: unknown) {
         isRefreshing = false;
         processQueue(refreshError);
         // Clear stale tokens
@@ -105,7 +115,9 @@ apiClient.interceptors.response.use(
         localStorage.removeItem('procurea_refresh');
 
         if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+          const axiosErr = refreshError as { response?: { data?: { message?: string } } };
+          const isBlocked = axiosErr?.response?.data?.message === 'ACCOUNT_BLOCKED';
+          window.location.href = isBlocked ? '/login?blocked=true' : '/login';
         }
         return Promise.reject(refreshError);
       }

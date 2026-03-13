@@ -47,10 +47,18 @@ export default function AuthCallbackPage() {
                 } else {
                     throw new Error('Authentication failed');
                 }
-            } catch (err: any) {
+            } catch (err: unknown) {
                 analytics.oauthCallback(false);
+                const errMsg = err instanceof Error ? err.message : String(err);
                 console.error('[AuthCallback] Error:', err);
-                setError(err.message || t.errors.generic);
+
+                // If user is blocked, redirect immediately with blocked param
+                if (errMsg === 'ACCOUNT_BLOCKED') {
+                    navigate('/login?blocked=true', { replace: true });
+                    return;
+                }
+
+                setError(errMsg || t.errors.generic);
                 setTimeout(() => navigate('/login', { replace: true }), 3000);
             }
         };

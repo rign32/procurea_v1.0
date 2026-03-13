@@ -5,6 +5,7 @@ import { t } from '@/i18n';
 import { Sparkles, Mail, KeyRound, ArrowLeft, Phone } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import { analytics, startHesitationTracker } from '@/lib/analytics';
+import type { User } from '@/types/campaign.types';
 
 const GoogleIcon = () => (
     <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
@@ -24,7 +25,7 @@ const MicrosoftIcon = () => (
     </svg>
 );
 
-export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
+export default function Login({ onLogin }: { onLogin: (user: User) => void }) {
     const { user, isAuthenticated, setUser } = useAuthStore();
     const [email, setEmail] = useState('');
     const [step, setStep] = useState<'email' | 'code' | 'phone' | 'phoneCode'>('email');
@@ -34,6 +35,17 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
+    const [blockedMessage, setBlockedMessage] = useState('');
+
+    // Detect ?blocked=true URL param (set by OAuth redirect or API interceptor)
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('blocked') === 'true') {
+            setBlockedMessage(t.auth.accountBlocked);
+            // Clean URL to prevent showing message on manual refresh
+            window.history.replaceState({}, '', '/login');
+        }
+    }, []);
 
     useEffect(() => {
         analytics.loginPageView();
@@ -80,9 +92,10 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
             analytics.codeSent();
             setStep('code');
             setMessage(t.auth.codeSent);
-        } catch (err: any) {
-            analytics.codeFailed(err.message);
-            setError(err.message);
+        } catch (err: unknown) {
+            const errMsg = err instanceof Error ? err.message : String(err);
+            analytics.codeFailed(errMsg);
+            setError(errMsg);
         } finally {
             setLoading(false);
         }
@@ -99,15 +112,24 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
                 body: JSON.stringify({ email, code }),
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.message || t.errors.generic);
+            if (!res.ok) {
+                if (data.message === 'ACCOUNT_BLOCKED') {
+                    setBlockedMessage(t.auth.accountBlocked);
+                    setStep('email');
+                    setLoading(false);
+                    return;
+                }
+                throw new Error(data.message || t.errors.generic);
+            }
             analytics.codeVerified();
             // Store tokens for Authorization header (Firebase Hosting strips cookies)
             if (data.accessToken) localStorage.setItem('procurea_token', data.accessToken);
             if (data.refreshToken) localStorage.setItem('procurea_refresh', data.refreshToken);
             onLogin(data.user);
-        } catch (err: any) {
-            analytics.codeFailed(err.message);
-            setError(err.message);
+        } catch (err: unknown) {
+            const errMsg = err instanceof Error ? err.message : String(err);
+            analytics.codeFailed(errMsg);
+            setError(errMsg);
         } finally {
             setLoading(false);
         }
@@ -140,9 +162,10 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
             analytics.phoneOtpSent();
             setStep('phoneCode');
             setMessage(t.auth.phone.otpSent);
-        } catch (err: any) {
-            analytics.phoneFailed(err.message);
-            setError(err.message);
+        } catch (err: unknown) {
+            const errMsg = err instanceof Error ? err.message : String(err);
+            analytics.phoneFailed(errMsg);
+            setError(errMsg);
         } finally {
             setLoading(false);
         }
@@ -169,9 +192,10 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
             analytics.phoneVerified();
             // Updating the user will implicitly navigate away via App.tsx routing logic.
             setUser(data);
-        } catch (err: any) {
-            analytics.phoneFailed(err.message);
-            setError(err.message);
+        } catch (err: unknown) {
+            const errMsg = err instanceof Error ? err.message : String(err);
+            analytics.phoneFailed(errMsg);
+            setError(errMsg);
         } finally {
             setLoading(false);
         }
@@ -213,6 +237,11 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
                         <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
                     </CardHeader>
                     <CardContent className="space-y-4">
+                        {blockedMessage && (
+                            <div className="rounded-md bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive font-medium">
+                                {blockedMessage}
+                            </div>
+                        )}
                         {error && (
                             <div className="rounded-md bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
                                 {error}

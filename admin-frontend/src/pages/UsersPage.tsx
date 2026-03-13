@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { getUsers, impersonateUser, blockUser, unblockUser } from '../services/api';
+import { getUsers, impersonateUser, blockUser, unblockUser, deleteUser } from '../services/api';
 import {
     Search,
     ExternalLink,
@@ -13,6 +13,7 @@ import {
     Phone,
     Building2,
     LogIn,
+    Trash2,
 } from 'lucide-react';
 
 interface User {
@@ -111,6 +112,28 @@ export default function UsersPage() {
             fetchUsers();
         } catch (err) {
             console.error(err);
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handleDelete = async (user: User) => {
+        if (user.role === 'ADMIN') {
+            alert('Nie można usunąć konta administratora');
+            return;
+        }
+        const confirmed = window.confirm(
+            `Czy na pewno chcesz usunąć użytkownika ${user.email}? Ta operacja jest nieodwracalna.`
+        );
+        if (!confirmed) return;
+
+        setActionLoading(user.id);
+        try {
+            await deleteUser(user.id);
+            fetchUsers();
+        } catch (err: any) {
+            console.error(err);
+            alert(`Błąd podczas usuwania: ${err?.response?.data?.message || err?.message || 'Nieznany błąd'}`);
         } finally {
             setActionLoading(null);
         }
@@ -246,6 +269,17 @@ export default function UsersPage() {
                                                     {user.isBlocked ? <UserCheck size={12} /> : <UserX size={12} />}
                                                     {user.isBlocked ? 'Odblokuj' : 'Zablokuj'}
                                                 </button>
+                                                {user.role !== 'ADMIN' && (
+                                                    <button
+                                                        onClick={() => handleDelete(user)}
+                                                        disabled={actionLoading === user.id}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-danger-muted text-danger hover:bg-danger/20 transition-all disabled:opacity-50"
+                                                        title="Usuń użytkownika"
+                                                    >
+                                                        {actionLoading === user.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                                                        Usuń
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>

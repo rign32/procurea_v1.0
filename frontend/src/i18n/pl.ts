@@ -68,6 +68,7 @@ export const PL = {
     loggingIn: 'Logowanie...',
     loginError: 'Błąd logowania',
     redirectingToLogin: 'Przekierowywanie do strony logowania...',
+    accountBlocked: 'Twoje konto zostało tymczasowo zablokowane. Skontaktuj się z administratorem.',
     footerTagline: 'Inteligentne wyszukiwanie producentów z pomocą AI',
 
     // Onboarding
@@ -811,9 +812,13 @@ export const PL = {
       or: 'lub',
 
       hero: {
-        title: 'Mniej niż kawa. Więcej niż godziny researchu.',
-        subtitle: 'Otrzymaj od 100 do 250 zweryfikowanych dostawców w 15-20 minut',
+        title: 'Za cenę kawy — 100-250 dostawców w 15 minut',
+        subtitle: 'Jedno wyszukiwanie zastępuje 10 godzin ręcznego researchu. Zweryfikowani dostawcy z danymi kontaktowymi.',
       },
+      orBuyPack: 'lub kup pojedynczy pakiet',
+      creditsAvailable: 'dostępnych wyszukiwań',
+      showHistory: 'Pokaż historię transakcji',
+      hideHistory: 'Ukryj historię transakcji',
 
       valueProps: {
         time: 'Zamiast godzin ręcznego researchu',

@@ -1,6 +1,6 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { Request } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -68,7 +68,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
         if (user.isBlocked) {
             console.log('[JWT Strategy] User is blocked:', payload.sub);
-            throw new UnauthorizedException('User account is blocked');
+            throw new ForbiddenException('ACCOUNT_BLOCKED');
         }
 
         console.log('[JWT Strategy] ✅ User validated:', user.email);

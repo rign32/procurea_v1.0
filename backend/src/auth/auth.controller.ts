@@ -154,6 +154,28 @@ export class AuthController {
                 oauthUser.name
             );
 
+            // Check if user is blocked before proceeding
+            if (user.isBlocked) {
+                await this.authLogsService.logAuthEvent({
+                    requestId,
+                    action: 'oauth_blocked_user',
+                    provider: 'google',
+                    userId: user.id,
+                    email: user.email,
+                    success: false,
+                    errorMessage: 'Blocked user attempted OAuth login'
+                });
+                let blockedRedirectUrl: string;
+                if (origin === 'admin') {
+                    blockedRedirectUrl = process.env.ADMIN_URL || 'https://admin.procurea.pl';
+                } else if (origin === 'app-en') {
+                    blockedRedirectUrl = process.env.FRONTEND_URL_EN || 'https://app.procurea.io';
+                } else {
+                    blockedRedirectUrl = process.env.FRONTEND_URL || 'https://app.procurea.pl';
+                }
+                return res.redirect(`${blockedRedirectUrl}/login?blocked=true`);
+            }
+
             await this.authLogsService.logAuthEvent({
                 requestId,
                 action: 'user_validated',
@@ -304,6 +326,19 @@ export class AuthController {
             throw new BadRequestException('User not found');
         }
 
+        // Check if user is blocked
+        if (user.isBlocked) {
+            await this.authLogsService.logAuthEvent({
+                requestId,
+                action: 'exchange_user_blocked',
+                userId: user.id,
+                email: user.email,
+                success: false,
+                errorMessage: 'Blocked user attempted token exchange'
+            });
+            throw new ForbiddenException('ACCOUNT_BLOCKED');
+        }
+
         // Generate access token (15 minutes) and refresh token (30 days)
         const accessToken = this.tokensService.generateAccessToken(user.id, user.email, user.role);
         const refreshToken = await this.tokensService.generateRefreshToken(user.id);
@@ -430,6 +465,19 @@ export class AuthController {
                     errorMessage: 'User not found'
                 });
                 throw new UnauthorizedException('User not found');
+            }
+
+            // Check if user is blocked
+            if (user.isBlocked) {
+                await this.authLogsService.logAuthEvent({
+                    requestId,
+                    action: 'refresh_user_blocked',
+                    userId: user.id,
+                    email: user.email,
+                    success: false,
+                    errorMessage: 'Blocked user attempted token refresh'
+                });
+                throw new ForbiddenException('ACCOUNT_BLOCKED');
             }
 
             // Rotate refresh token (invalidate old, create new)
@@ -657,6 +705,27 @@ export class AuthController {
                 oauthUser.name
             );
 
+            // Check if user is blocked before proceeding
+            if (user.isBlocked) {
+                await this.authLogsService.logAuthEvent({
+                    requestId,
+                    action: 'oauth_blocked_user',
+                    provider: 'microsoft',
+                    userId: user.id,
+                    email: user.email,
+                    success: false,
+                    errorMessage: 'Blocked user attempted OAuth login'
+                });
+                const blockedOrigin = req.cookies?.procurea_auth_origin || 'app';
+                let blockedRedirectUrl: string;
+                if (blockedOrigin === 'app-en') {
+                    blockedRedirectUrl = process.env.FRONTEND_URL_EN || 'https://app.procurea.io';
+                } else {
+                    blockedRedirectUrl = process.env.FRONTEND_URL || 'https://app.procurea.pl';
+                }
+                return res.redirect(`${blockedRedirectUrl}/login?blocked=true`);
+            }
+
             await this.authLogsService.logAuthEvent({
                 requestId,
                 action: 'user_validated',
@@ -818,6 +887,11 @@ export class AuthController {
 
         // Verify the magic code
         const user = await this.authService.verifyEmailCode(body.email, body.code);
+
+        // Check if user is blocked
+        if (user.isBlocked) {
+            throw new ForbiddenException('ACCOUNT_BLOCKED');
+        }
 
         // Generate tokens (same as OAuth flow)
         const accessToken = this.tokensService.generateAccessToken(user.id, user.email, user.role);

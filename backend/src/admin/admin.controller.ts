@@ -3,6 +3,7 @@ import {
     Get,
     Post,
     Patch,
+    Delete,
     Param,
     Body,
     Query,
@@ -83,6 +84,12 @@ export class AdminController {
     @UseGuards(AuthGuard('jwt'), AdminGuard)
     async unblockUser(@Param('id') id: string) {
         return this.adminService.unblockUser(id);
+    }
+
+    @Delete('users/:id')
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    async deleteUser(@Param('id') id: string) {
+        return this.adminService.deleteUser(id);
     }
 
     @Post('users/:id/reset-password')
