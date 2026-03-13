@@ -358,7 +358,7 @@ export class AdminService {
         });
     }
 
-    async deleteUser(userId: string) {
+    async deleteUser(userId: string, requestingUserId: string) {
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
             select: { id: true, email: true, role: true },
@@ -368,8 +368,8 @@ export class AdminService {
             throw new NotFoundException('User not found');
         }
 
-        if (user.role === 'ADMIN') {
-            throw new BadRequestException('Cannot delete admin users');
+        if (userId === requestingUserId) {
+            throw new BadRequestException('Cannot delete your own account');
         }
 
         await this.prisma.$transaction(async (tx) => {

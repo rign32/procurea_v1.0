@@ -197,10 +197,6 @@ export default function UsersPage() {
     };
 
     const handleDelete = async (user: User) => {
-        if (user.role === 'ADMIN') {
-            alert('Nie mozna usunac konta administratora');
-            return;
-        }
         const confirmed = window.confirm(
             `Czy na pewno chcesz usunac uzytkownika ${user.email}? Ta operacja jest nieodwracalna.`
         );
@@ -367,17 +363,15 @@ export default function UsersPage() {
                                                             {user.isBlocked ? <UserCheck size={12} /> : <UserX size={12} />}
                                                             {user.isBlocked ? 'Odblokuj' : 'Zablokuj'}
                                                         </button>
-                                                        {user.role !== 'ADMIN' && (
-                                                            <button
-                                                                onClick={() => handleDelete(user)}
-                                                                disabled={actionLoading === user.id}
-                                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-danger-muted text-danger hover:bg-danger/20 transition-all disabled:opacity-50"
-                                                                title="Usun uzytkownika"
-                                                            >
-                                                                {actionLoading === user.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
-                                                                Usun
-                                                            </button>
-                                                        )}
+                                                        <button
+                                                            onClick={() => handleDelete(user)}
+                                                            disabled={actionLoading === user.id}
+                                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-danger-muted text-danger hover:bg-danger/20 transition-all disabled:opacity-50"
+                                                            title="Usun uzytkownika"
+                                                        >
+                                                            {actionLoading === user.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                                                            Usun
+                                                        </button>
                                                         <ChevronDown
                                                             size={14}
                                                             className={`text-text-muted transition-transform ${isExpanded ? 'rotate-180' : ''}`}

@@ -94,8 +94,8 @@ export class AdminController {
 
     @Delete('users/:id')
     @UseGuards(AuthGuard('jwt'), AdminGuard)
-    async deleteUser(@Param('id') id: string) {
-        return this.adminService.deleteUser(id);
+    async deleteUser(@Param('id') id: string, @Request() req) {
+        return this.adminService.deleteUser(id, req.user.id);
     }
 
     @Post('users/:id/reset-password')
