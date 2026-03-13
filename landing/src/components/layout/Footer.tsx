@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom"
 import { t } from "@/i18n"
+import { CookieConsent } from "@/lib/cookieconsent"
 
 export function Footer() {
   return (
@@ -73,6 +74,15 @@ export function Footer() {
                   </Link>
                 </li>
               ))}
+              <li>
+                <button
+                  type="button"
+                  onClick={() => CookieConsent.showPreferences()}
+                  className="text-sm text-gray-400 hover:text-white transition-colors"
+                >
+                  {t.footer.cookieSettings}
+                </button>
+              </li>
             </ul>
           </div>
         </div>

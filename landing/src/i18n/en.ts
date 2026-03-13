@@ -275,6 +275,7 @@ export const EN: LandingTranslations = {
       { label: 'Privacy Policy', to: '/privacy' },
       { label: 'GDPR', to: '/gdpr' },
     ],
+    cookieSettings: 'Cookie Settings',
     copyright: 'Procurea sp. z o.o. All rights reserved.',
   },
   legal: {

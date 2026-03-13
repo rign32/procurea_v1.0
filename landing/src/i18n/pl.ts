@@ -283,6 +283,7 @@ export const PL = {
       { label: 'Polityka prywatności', to: '/polityka-prywatnosci' },
       { label: 'RODO', to: '/rodo' },
     ],
+    cookieSettings: 'Ustawienia cookies',
     copyright: 'Procurea sp. z o.o. Wszelkie prawa zastrzeżone.',
   },
   legal: {

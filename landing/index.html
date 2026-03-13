@@ -1,11 +1,22 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=%VITE_GA_MEASUREMENT_ID%"></script>
+    <!-- Google Consent Mode v2 — default denied until user accepts -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
+      gtag('consent', 'default', {
+        'ad_storage': 'denied',
+        'ad_user_data': 'denied',
+        'ad_personalization': 'denied',
+        'analytics_storage': 'denied',
+        'wait_for_update': 500
+      });
+    </script>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=%VITE_GA_MEASUREMENT_ID%"></script>
+    <script>
       gtag('js', new Date());
       gtag('config', '%VITE_GA_MEASUREMENT_ID%');
     </script>
@@ -21,17 +32,20 @@
     <meta property="og:url" content="https://procurea.pl/" />
     <meta property="og:title" content="Procurea - Darmowe Beta Testy AI Sourcingu" />
     <meta property="og:description" content="Polskie narzędzie AI do wyszukiwania dostawców. Testuj za darmo." />
-    <meta property="og:image" content="https://procurea.pl/og-image.png" />
+    <meta property="og:image" content="https://procurea.pl/hero-screenshot.png" />
     <meta property="og:locale" content="pl_PL" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Procurea - Darmowe Beta Testy AI Sourcingu" />
     <meta name="twitter:description" content="Polskie narzędzie AI do wyszukiwania dostawców. Testuj za darmo." />
-    <meta name="twitter:image" content="https://procurea.pl/og-image.png" />
+    <meta name="twitter:image" content="https://procurea.pl/hero-screenshot.png" />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href="https://procurea.pl/" />
+    <link rel="alternate" hreflang="pl" href="https://procurea.pl/" />
+    <link rel="alternate" hreflang="en" href="https://procurea.io/" />
+    <link rel="alternate" hreflang="x-default" href="https://procurea.io/" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
