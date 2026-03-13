@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Animated gradient border for subscription card */
+@property --border-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+.animate-border-rotate {
+    animation: border-rotate 4s linear infinite;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

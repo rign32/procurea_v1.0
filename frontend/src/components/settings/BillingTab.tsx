@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, Infinity as InfinityIcon, Loader2, ExternalLink, Check, XCircle, Sparkles, Clock, Building2, Zap, Users, Wallet } from 'lucide-react';
+import { Search, Infinity as InfinityIcon, Loader2, ExternalLink, Check, XCircle, Sparkles, Coffee, Wallet, ChevronDown } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { t, isEN } from '@/i18n';
 import { toast } from 'sonner';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { billingService } from '@/services/billing.service';
 import type { BillingInfo } from '@/services/billing.service';
 import apiClient from '@/services/api.client';
@@ -34,19 +34,68 @@ function formatUnit(amount: number): string {
     return `${amount.toFixed(2).replace('.', ',')} PLN`;
 }
 
+/* ── Count-up animation hook ── */
+function useCountUp(target: number, duration = 1.2) {
+    const [current, setCurrent] = useState(0);
+    const hasRun = useRef(false);
+
+    useEffect(() => {
+        if (hasRun.current || target === 0) return;
+        hasRun.current = true;
+        const startTime = performance.now();
+        const animate = (now: number) => {
+            const elapsed = (now - startTime) / 1000;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+            setCurrent(Math.round(target * eased));
+            if (progress < 1) requestAnimationFrame(animate);
+        };
+        requestAnimationFrame(animate);
+    }, [target, duration]);
+
+    return current;
+}
+
+/* ── Coffee cup with animated steam ── */
+function CoffeeCupAnimation() {
+    return (
+        <motion.div
+            className="relative shrink-0"
+            initial={{ y: 12, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.15 }}
+        >
+            <Coffee className="w-14 h-14 md:w-16 md:h-16 text-primary" strokeWidth={1.5} />
+            {/* Steam wisps */}
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                <div className="w-0.5 h-5 bg-gradient-to-t from-primary/40 to-transparent rounded-full animate-steam-1" />
+                <div className="w-0.5 h-7 bg-gradient-to-t from-primary/30 to-transparent rounded-full animate-steam-2" />
+                <div className="w-0.5 h-4 bg-gradient-to-t from-primary/35 to-transparent rounded-full animate-steam-3" />
+            </div>
+        </motion.div>
+    );
+}
+
+/* ── Animation variants ── */
 const containerVariants = {
     hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { staggerChildren: 0.1 } },
+    show: { opacity: 1, transition: { staggerChildren: 0.15, delayChildren: 0.1 } },
 };
 
 const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' as const } },
+    hidden: { opacity: 0, y: 30 },
+    show: {
+        opacity: 1, y: 0,
+        transition: { type: 'spring' as const, stiffness: 300, damping: 24 },
+    },
 };
 
-const cardHover = {
-    scale: 1.02,
-    transition: { duration: 0.2 },
+const packCardVariants = {
+    hidden: { opacity: 0, y: 50, scale: 0.95 },
+    show: {
+        opacity: 1, y: 0, scale: 1,
+        transition: { type: 'spring' as const, stiffness: 260, damping: 20 },
+    },
 };
 
 interface BillingTabProps {
@@ -59,7 +108,10 @@ export function BillingTab({ user }: BillingTabProps) {
     const [loading, setLoading] = useState(true);
     const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
     const [cancelLoading, setCancelLoading] = useState(false);
+    const [historyOpen, setHistoryOpen] = useState(false);
     const { setUser } = useAuthStore();
+
+    const displayPrice = useCountUp(SUBSCRIPTION_PRICE_NET);
 
     useEffect(() => {
         loadBillingInfo();
@@ -91,7 +143,7 @@ export function BillingTab({ user }: BillingTabProps) {
             searchParams.delete('billing');
             setSearchParams(searchParams, { replace: true });
         }
-    }, [searchParams]);
+    }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
     async function loadBillingInfo() {
         try {
@@ -158,12 +210,12 @@ export function BillingTab({ user }: BillingTabProps) {
         );
     }
 
-    const orgCredits = billingInfo?.orgCredits ?? user?.orgCredits ?? 0;
-    const personalCredits = billingInfo?.personalCredits ?? user?.personalCredits ?? 0;
+    const orgCredits = billingInfo?.orgCredits ?? (user as unknown as Record<string, unknown>)?.orgCredits as number ?? 0;
+    const personalCredits = billingInfo?.personalCredits ?? (user as unknown as Record<string, unknown>)?.personalCredits as number ?? 0;
     const totalCredits = orgCredits + personalCredits;
-    const effectivePlan = billingInfo?.orgPlan ?? user?.orgPlan ?? billingInfo?.plan ?? user?.plan ?? 'research';
+    const effectivePlan = billingInfo?.orgPlan ?? (user as unknown as Record<string, unknown>)?.orgPlan as string ?? billingInfo?.plan ?? user?.plan ?? 'research';
     const isUnlimited = effectivePlan === 'unlimited';
-    const hasOrg = user?.hasOrganization ?? !!user?.organizationId;
+    const hasOrg = (user as unknown as Record<string, unknown>)?.hasOrganization as boolean ?? !!user?.organizationId;
     const transactions = billingInfo?.recentTransactions ?? [];
 
     return (
@@ -180,9 +232,9 @@ export function BillingTab({ user }: BillingTabProps) {
                         ? "border-amber-500/30 bg-amber-500/5"
                         : "border-primary/30 bg-gradient-to-br from-primary/5 via-primary/3 to-transparent"
                     }>
-                        <CardContent className="flex items-center justify-between p-6">
+                        <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6">
                             <div className="flex items-center gap-4">
-                                <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${billingInfo?.cancelAtPeriodEnd ? 'bg-amber-500/10' : 'bg-primary/10'}`}>
+                                <div className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 ${billingInfo?.cancelAtPeriodEnd ? 'bg-amber-500/10' : 'bg-primary/10'}`}>
                                     <InfinityIcon className={`h-6 w-6 ${billingInfo?.cancelAtPeriodEnd ? 'text-amber-500' : 'text-primary'}`} />
                                 </div>
                                 <div>
@@ -196,7 +248,7 @@ export function BillingTab({ user }: BillingTabProps) {
                                     </p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 flex-wrap">
                                 <Badge variant="outline" className="px-3 py-1.5 text-base font-medium">
                                     <InfinityIcon className="h-4 w-4 mr-1" />
                                     {bt.unlimited}
@@ -224,48 +276,142 @@ export function BillingTab({ user }: BillingTabProps) {
                 </motion.div>
             ) : (
                 <>
-                    {/* ──── HERO SECTION ──── */}
-                    <motion.div variants={itemVariants} className="text-center space-y-3 pt-2">
-                        <h2 className="text-2xl font-bold tracking-tight">
-                            {bt.hero.title}
-                        </h2>
-                        <p className="text-muted-foreground max-w-lg mx-auto">
-                            {bt.hero.subtitle}
-                        </p>
-                        {totalCredits > 0 && (
-                            <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-primary/5 border border-primary/20">
-                                {hasOrg && (
-                                    <>
-                                        <div className="flex items-center gap-1.5">
-                                            <Users className="h-4 w-4 text-primary" />
-                                            <span className="text-sm font-medium">{orgCredits} {bt.orgCredits.toLowerCase()}</span>
-                                        </div>
-                                        <span className="text-muted-foreground">+</span>
-                                    </>
-                                )}
-                                <div className="flex items-center gap-1.5">
+                    {/* ===== 1. HERO — Coffee animation + copy ===== */}
+                    <motion.div variants={itemVariants} className="flex flex-col md:flex-row items-center gap-6 md:gap-8 pt-2">
+                        <CoffeeCupAnimation />
+                        <div className="flex-1 space-y-2 text-center md:text-left">
+                            <h2 className="text-2xl font-bold tracking-tight">
+                                {bt.hero.title}
+                            </h2>
+                            <p className="text-muted-foreground">
+                                {bt.hero.subtitle}
+                            </p>
+                            {totalCredits > 0 && (
+                                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/20">
                                     <Wallet className="h-4 w-4 text-primary" />
-                                    <span className="text-sm font-medium">{personalCredits} {bt.personalCredits.toLowerCase()}</span>
+                                    <span className="text-sm font-medium">
+                                        {totalCredits} {bt.creditsAvailable}
+                                    </span>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </motion.div>
 
-                    {/* ──── VALUE PROPS — 3 columns ──── */}
-                    <motion.div variants={itemVariants} className="grid grid-cols-3 gap-4">
-                        {[
-                            { icon: Clock, text: bt.valueProps.time },
-                            { icon: Building2, text: bt.valueProps.results },
-                            { icon: Zap, text: bt.valueProps.speed },
-                        ].map((prop, i) => (
-                            <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                                <prop.icon className="h-5 w-5 text-primary shrink-0" />
-                                <span className="text-sm text-muted-foreground">{prop.text}</span>
-                            </div>
-                        ))}
+                    {/* ===== 2. SUBSCRIPTION — Animated gradient border ===== */}
+                    <motion.div variants={itemVariants}>
+                        <div className="relative p-[2px] rounded-xl overflow-hidden">
+                            {/* Rotating conic-gradient border */}
+                            <div
+                                className="absolute inset-0 animate-border-rotate"
+                                style={{
+                                    background: 'conic-gradient(from var(--border-angle, 0deg), hsl(226 100% 55%) 0%, transparent 25%, transparent 75%, hsl(226 100% 55%) 100%)',
+                                }}
+                            />
+                            {/* Glow layer */}
+                            <div
+                                className="absolute inset-0 animate-border-rotate blur-md"
+                                style={{
+                                    background: 'conic-gradient(from var(--border-angle, 0deg), hsl(226 100% 55% / 0.3) 0%, transparent 25%, transparent 75%, hsl(226 100% 55% / 0.3) 100%)',
+                                }}
+                            />
+
+                            <Card className="relative bg-card z-10">
+                                <CardContent className="relative p-6 md:p-8">
+                                    {/* Shimmer overlay */}
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent animate-shimmer pointer-events-none" />
+
+                                    <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+                                        {/* Left: icon + title + benefits */}
+                                        <div className="flex-1 space-y-4">
+                                            <div className="flex items-center gap-3">
+                                                <motion.div
+                                                    className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0"
+                                                    initial={{ scale: 0, rotate: -90 }}
+                                                    animate={{ scale: 1, rotate: 0 }}
+                                                    transition={{ type: 'spring', stiffness: 300, damping: 15, delay: 0.3 }}
+                                                >
+                                                    <Sparkles className="h-5 w-5 text-primary" />
+                                                </motion.div>
+                                                <div>
+                                                    <h3 className="text-xl font-bold">{bt.subscription.title}</h3>
+                                                    <p className="text-sm text-muted-foreground">{bt.subscription.description}</p>
+                                                </div>
+                                            </div>
+
+                                            <ul className="space-y-2.5">
+                                                {[bt.subscription.benefit1, bt.subscription.benefit2, bt.subscription.benefit3].map((benefit, i) => (
+                                                    <motion.li
+                                                        key={i}
+                                                        initial={{ opacity: 0, x: -20 }}
+                                                        animate={{ opacity: 1, x: 0 }}
+                                                        transition={{
+                                                            type: 'spring',
+                                                            stiffness: 400,
+                                                            damping: 15,
+                                                            delay: 0.5 + i * 0.15,
+                                                        }}
+                                                        className="flex items-center gap-2.5 text-sm"
+                                                    >
+                                                        <motion.div
+                                                            initial={{ scale: 0 }}
+                                                            animate={{ scale: 1 }}
+                                                            transition={{
+                                                                type: 'spring',
+                                                                stiffness: 500,
+                                                                damping: 15,
+                                                                delay: 0.6 + i * 0.15,
+                                                            }}
+                                                            className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0"
+                                                        >
+                                                            <Check className="h-3 w-3 text-primary" />
+                                                        </motion.div>
+                                                        {benefit}
+                                                    </motion.li>
+                                                ))}
+                                            </ul>
+                                        </div>
+
+                                        {/* Right: price + CTA */}
+                                        <div className="text-center lg:text-right space-y-4 lg:min-w-[220px]">
+                                            <div>
+                                                <div className="flex items-baseline justify-center lg:justify-end gap-1">
+                                                    {isEN && <span className="text-3xl font-bold">$</span>}
+                                                    <span className="text-5xl font-bold tracking-tight">{displayPrice}</span>
+                                                    <span className="text-muted-foreground text-lg">{isEN ? '' : ' PLN'}{bt.subscription.perMonth}</span>
+                                                </div>
+                                                <p className="text-xs text-muted-foreground mt-1">
+                                                    {isEN ? bt.vat : `${bt.vat} (${formatPrice(SUBSCRIPTION_PRICE_NET * (1 + VAT_RATE))} ${bt.gross}${bt.subscription.perMonth})`}
+                                                </p>
+                                            </div>
+
+                                            <Button
+                                                size="lg"
+                                                className="w-full lg:w-auto px-8"
+                                                onClick={handleSubscriptionCheckout}
+                                                disabled={!!checkoutLoading}
+                                            >
+                                                {checkoutLoading === 'subscription' ? (
+                                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                                ) : (
+                                                    <InfinityIcon className="h-4 w-4 mr-2" />
+                                                )}
+                                                {checkoutLoading === 'subscription' ? bt.checkout.redirecting : bt.subscription.subscribe}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
                     </motion.div>
 
-                    {/* ──── CREDIT PACKS — 3 cards ──── */}
+                    {/* ===== 3. DIVIDER ===== */}
+                    <motion.div variants={itemVariants} className="flex items-center gap-4">
+                        <div className="flex-1 h-px bg-border" />
+                        <span className="text-sm font-medium text-muted-foreground px-2">{bt.orBuyPack}</span>
+                        <div className="flex-1 h-px bg-border" />
+                    </motion.div>
+
+                    {/* ===== 4. PACK CARDS ===== */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {PACKS.map((pack, index) => {
                             const isHighlighted = index === 1;
@@ -273,13 +419,14 @@ export function BillingTab({ user }: BillingTabProps) {
                             return (
                                 <motion.div
                                     key={pack.id}
-                                    variants={itemVariants}
-                                    whileHover={cardHover}
+                                    variants={packCardVariants}
+                                    whileHover={{ y: -4 }}
+                                    className="will-change-transform"
                                 >
-                                    <Card className={`relative overflow-hidden transition-shadow duration-300 h-full flex flex-col ${
+                                    <Card className={`relative overflow-hidden h-full flex flex-col transition-shadow duration-200 ${
                                         isHighlighted
-                                            ? 'border-primary shadow-lg ring-1 ring-primary/20'
-                                            : 'hover:border-primary/40 hover:shadow-md'
+                                            ? 'border-primary shadow-lg animate-pulse-ring'
+                                            : 'hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5'
                                     }`}>
                                         {/* Badge */}
                                         {pack.badge && (
@@ -323,9 +470,14 @@ export function BillingTab({ user }: BillingTabProps) {
                                             {/* Savings badge */}
                                             {'savings' in pack && pack.savings && (
                                                 <div className="text-center mb-4">
-                                                    <Badge variant="secondary" className="text-xs">
-                                                        {pack.savings}
-                                                    </Badge>
+                                                    <motion.div
+                                                        animate={{ scale: [1, 1.05, 1] }}
+                                                        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                                                    >
+                                                        <Badge variant="secondary" className="text-xs">
+                                                            {pack.savings}
+                                                        </Badge>
+                                                    </motion.div>
                                                 </div>
                                             )}
 
@@ -356,127 +508,74 @@ export function BillingTab({ user }: BillingTabProps) {
                             );
                         })}
                     </div>
-
-                    {/* ──── "lub" divider ──── */}
-                    <motion.div variants={itemVariants} className="flex items-center gap-4">
-                        <div className="flex-1 h-px bg-border" />
-                        <span className="text-sm font-medium text-muted-foreground px-2">{bt.or}</span>
-                        <div className="flex-1 h-px bg-border" />
-                    </motion.div>
-
-                    {/* ──── SUBSCRIPTION — Hero card ──── */}
-                    <motion.div variants={itemVariants} whileHover={{ scale: 1.01, transition: { duration: 0.2 } }}>
-                        <Card className="relative overflow-hidden border-primary/30 bg-gradient-to-br from-primary/8 via-primary/4 to-transparent">
-                            {/* Shimmer effect overlay */}
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent animate-shimmer" />
-
-                            <CardContent className="relative p-8">
-                                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-                                    {/* Left: info */}
-                                    <div className="flex-1 space-y-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                                                <Sparkles className="h-5 w-5 text-primary" />
-                                            </div>
-                                            <div>
-                                                <h3 className="text-xl font-bold">{bt.subscription.title}</h3>
-                                                <p className="text-sm text-muted-foreground">{bt.subscription.description}</p>
-                                            </div>
-                                        </div>
-
-                                        <ul className="space-y-2.5">
-                                            {[bt.subscription.benefit1, bt.subscription.benefit2, bt.subscription.benefit3].map((benefit, i) => (
-                                                <motion.li
-                                                    key={i}
-                                                    initial={{ opacity: 0, x: -10 }}
-                                                    animate={{ opacity: 1, x: 0 }}
-                                                    transition={{ delay: 0.5 + i * 0.1 }}
-                                                    className="flex items-center gap-2.5 text-sm"
-                                                >
-                                                    <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                                                        <Check className="h-3 w-3 text-primary" />
-                                                    </div>
-                                                    {benefit}
-                                                </motion.li>
-                                            ))}
-                                        </ul>
-                                    </div>
-
-                                    {/* Right: price + CTA */}
-                                    <div className="text-center lg:text-right space-y-4 lg:min-w-[220px]">
-                                        <div>
-                                            <div className="flex items-baseline justify-center lg:justify-end gap-1">
-                                                {isEN && <span className="text-3xl font-bold">$</span>}
-                                                <span className="text-5xl font-bold tracking-tight">{SUBSCRIPTION_PRICE_NET}</span>
-                                                <span className="text-muted-foreground text-lg">{isEN ? '' : ' PLN'}{bt.subscription.perMonth}</span>
-                                            </div>
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                                {isEN ? bt.vat : `${bt.vat} (${formatPrice(SUBSCRIPTION_PRICE_NET * (1 + VAT_RATE))} ${bt.gross}${bt.subscription.perMonth})`}
-                                            </p>
-                                        </div>
-
-                                        <Button
-                                            size="lg"
-                                            className="w-full lg:w-auto px-8"
-                                            onClick={handleSubscriptionCheckout}
-                                            disabled={!!checkoutLoading}
-                                        >
-                                            {checkoutLoading === 'subscription' ? (
-                                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                            ) : (
-                                                <InfinityIcon className="h-4 w-4 mr-2" />
-                                            )}
-                                            {checkoutLoading === 'subscription' ? bt.checkout.redirecting : bt.subscription.subscribe}
-                                        </Button>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </motion.div>
                 </>
             )}
 
-            {/* ──── TRANSACTION HISTORY ──── */}
+            {/* ===== 5. TRANSACTION HISTORY (collapsible) ===== */}
             {transactions.length > 0 && (
                 <motion.div variants={itemVariants}>
-                    <h3 className="text-lg font-semibold mb-4">{bt.history.title}</h3>
-                    <Card>
-                        <CardContent className="p-0">
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
-                                    <thead>
-                                        <tr className="border-b bg-muted/50">
-                                            <th className="text-left p-3 font-medium">{bt.history.date}</th>
-                                            <th className="text-left p-3 font-medium">{bt.history.description}</th>
-                                            <th className="text-right p-3 font-medium">{bt.history.amount}</th>
-                                            <th className="text-right p-3 font-medium">{bt.history.balance}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {transactions.map((tx) => (
-                                            <tr key={tx.id} className="border-b last:border-0">
-                                                <td className="p-3 text-muted-foreground">
-                                                    {new Date(tx.createdAt).toLocaleDateString(isEN ? 'en-US' : 'pl-PL')}
-                                                </td>
-                                                <td className="p-3">
-                                                    <span>{tx.description || tx.type}</span>
-                                                    {hasOrg && tx.source && (
-                                                        <Badge variant="outline" className="ml-2 text-[10px] px-1.5 py-0">
-                                                            {tx.source === 'org' ? bt.sourceOrg : bt.sourcePersonal}
-                                                        </Badge>
-                                                    )}
-                                                </td>
-                                                <td className={`p-3 text-right font-medium ${tx.amount > 0 ? 'text-green-600' : 'text-red-500'}`}>
-                                                    {tx.amount > 0 ? '+' : ''}{tx.amount}
-                                                </td>
-                                                <td className="p-3 text-right text-muted-foreground">{tx.balanceAfter}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <button
+                        onClick={() => setHistoryOpen(!historyOpen)}
+                        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-2"
+                    >
+                        <motion.div
+                            animate={{ rotate: historyOpen ? 180 : 0 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            <ChevronDown className="h-4 w-4" />
+                        </motion.div>
+                        {historyOpen ? bt.hideHistory : bt.showHistory}
+                    </button>
+
+                    <AnimatePresence>
+                        {historyOpen && (
+                            <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.3 }}
+                                className="overflow-hidden"
+                            >
+                                <Card>
+                                    <CardContent className="p-0">
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-sm">
+                                                <thead>
+                                                    <tr className="border-b bg-muted/50">
+                                                        <th className="text-left p-3 font-medium">{bt.history.date}</th>
+                                                        <th className="text-left p-3 font-medium">{bt.history.description}</th>
+                                                        <th className="text-right p-3 font-medium">{bt.history.amount}</th>
+                                                        <th className="text-right p-3 font-medium">{bt.history.balance}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {transactions.map((tx) => (
+                                                        <tr key={tx.id} className="border-b last:border-0">
+                                                            <td className="p-3 text-muted-foreground">
+                                                                {new Date(tx.createdAt).toLocaleDateString(isEN ? 'en-US' : 'pl-PL')}
+                                                            </td>
+                                                            <td className="p-3">
+                                                                <span>{tx.description || tx.type}</span>
+                                                                {hasOrg && tx.source && (
+                                                                    <Badge variant="outline" className="ml-2 text-[10px] px-1.5 py-0">
+                                                                        {tx.source === 'org' ? bt.sourceOrg : bt.sourcePersonal}
+                                                                    </Badge>
+                                                                )}
+                                                            </td>
+                                                            <td className={`p-3 text-right font-medium ${tx.amount > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                                                                {tx.amount > 0 ? '+' : ''}{tx.amount}
+                                                            </td>
+                                                            <td className="p-3 text-right text-muted-foreground">{tx.balanceAfter}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </motion.div>
             )}
         </motion.div>
