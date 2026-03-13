@@ -101,6 +101,53 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
             )`,
             `CREATE INDEX IF NOT EXISTS "CreditTransaction_userId_createdAt_idx" ON "CreditTransaction"("userId", "createdAt")`,
             `CREATE INDEX IF NOT EXISTS "CreditTransaction_stripeSessionId_idx" ON "CreditTransaction"("stripeSessionId")`,
+            // 20260310120000_add_trial_credits
+            `ALTER TABLE "User" ALTER COLUMN "searchCredits" SET DEFAULT 10`,
+            `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "trialCreditsUsed" BOOLEAN NOT NULL DEFAULT false`,
+            // 20260308200000_add_feedback_email_sent_at
+            `ALTER TABLE "Campaign" ADD COLUMN IF NOT EXISTS "feedbackEmailSentAt" TIMESTAMP(3)`,
+            // 20260313_add_stripe_subscription_fields (User)
+            `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "stripeSubscriptionId" TEXT`,
+            `CREATE UNIQUE INDEX IF NOT EXISTS "User_stripeSubscriptionId_key" ON "User"("stripeSubscriptionId")`,
+            `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "subscriptionCancelAtPeriodEnd" BOOLEAN NOT NULL DEFAULT false`,
+            // 20260313120000_org_credits_sharing — Organization billing fields
+            `ALTER TABLE "Organization" ADD COLUMN IF NOT EXISTS "searchCredits" INTEGER NOT NULL DEFAULT 10`,
+            `ALTER TABLE "Organization" ADD COLUMN IF NOT EXISTS "trialCreditsUsed" BOOLEAN NOT NULL DEFAULT false`,
+            `ALTER TABLE "Organization" ADD COLUMN IF NOT EXISTS "plan" TEXT NOT NULL DEFAULT 'research'`,
+            `ALTER TABLE "Organization" ADD COLUMN IF NOT EXISTS "stripeCustomerId" TEXT`,
+            `CREATE UNIQUE INDEX IF NOT EXISTS "Organization_stripeCustomerId_key" ON "Organization"("stripeCustomerId")`,
+            `ALTER TABLE "Organization" ADD COLUMN IF NOT EXISTS "stripeSubscriptionId" TEXT`,
+            `CREATE UNIQUE INDEX IF NOT EXISTS "Organization_stripeSubscriptionId_key" ON "Organization"("stripeSubscriptionId")`,
+            `ALTER TABLE "Organization" ADD COLUMN IF NOT EXISTS "subscriptionCancelAtPeriodEnd" BOOLEAN NOT NULL DEFAULT false`,
+            // 20260313120000_org_credits_sharing — OrgCreditTransaction table
+            `CREATE TABLE IF NOT EXISTS "OrgCreditTransaction" (
+                "id" TEXT NOT NULL,
+                "organizationId" TEXT NOT NULL,
+                "userId" TEXT,
+                "amount" INTEGER NOT NULL,
+                "type" TEXT NOT NULL,
+                "description" TEXT,
+                "stripeSessionId" TEXT,
+                "campaignId" TEXT,
+                "balanceAfter" INTEGER NOT NULL,
+                "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT "OrgCreditTransaction_pkey" PRIMARY KEY ("id")
+            )`,
+            `CREATE INDEX IF NOT EXISTS "OrgCreditTransaction_organizationId_createdAt_idx" ON "OrgCreditTransaction"("organizationId", "createdAt")`,
+            `CREATE INDEX IF NOT EXISTS "OrgCreditTransaction_stripeSessionId_idx" ON "OrgCreditTransaction"("stripeSessionId")`,
+            // 20260313120000_org_credits_sharing — UserSharingPreference table
+            `CREATE TABLE IF NOT EXISTS "UserSharingPreference" (
+                "id" TEXT NOT NULL,
+                "fromUserId" TEXT NOT NULL,
+                "toUserId" TEXT NOT NULL,
+                "enabled" BOOLEAN NOT NULL DEFAULT false,
+                "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                "updatedAt" TIMESTAMP(3) NOT NULL,
+                CONSTRAINT "UserSharingPreference_pkey" PRIMARY KEY ("id")
+            )`,
+            `CREATE INDEX IF NOT EXISTS "UserSharingPreference_fromUserId_idx" ON "UserSharingPreference"("fromUserId")`,
+            `CREATE INDEX IF NOT EXISTS "UserSharingPreference_toUserId_idx" ON "UserSharingPreference"("toUserId")`,
+            `CREATE UNIQUE INDEX IF NOT EXISTS "UserSharingPreference_fromUserId_toUserId_key" ON "UserSharingPreference"("fromUserId", "toUserId")`,
         ];
 
         let applied = 0;
