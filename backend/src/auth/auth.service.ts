@@ -138,7 +138,7 @@ export class AuthService {
 
             if (existingOrg) {
                 // 2nd+ user from same domain — join existing org
-                user = await this.prisma.user.create({
+                const newUser = await this.prisma.user.create({
                     data: {
                         email,
                         name: name || email.split('@')[0],
@@ -150,6 +150,7 @@ export class AuthService {
                         onboardingCompleted: false,
                     },
                 });
+                user = newUser;
 
                 // Add +3 credits to org shared pool
                 await this.prisma.$transaction(async (tx) => {
@@ -164,7 +165,7 @@ export class AuthService {
                     await tx.orgCreditTransaction.create({
                         data: {
                             organizationId: existingOrg.id,
-                            userId: user.id,
+                            userId: newUser.id,
                             amount: 3,
                             type: 'MEMBER_BONUS',
                             description: `New team member: ${email}`,
@@ -174,11 +175,11 @@ export class AuthService {
                 });
 
                 // Create sharing preferences (disabled) for every existing member <-> new user
-                const existingMembers = existingOrg.users.filter(u => u.id !== user.id);
+                const existingMembers = existingOrg.users.filter(u => u.id !== newUser.id);
                 if (existingMembers.length > 0) {
                     const sharingPrefs = existingMembers.flatMap(member => [
-                        { fromUserId: user.id, toUserId: member.id, enabled: false, updatedAt: new Date() },
-                        { fromUserId: member.id, toUserId: user.id, enabled: false, updatedAt: new Date() },
+                        { fromUserId: newUser.id, toUserId: member.id, enabled: false, updatedAt: new Date() },
+                        { fromUserId: member.id, toUserId: newUser.id, enabled: false, updatedAt: new Date() },
                     ]);
                     await this.prisma.userSharingPreference.createMany({ data: sharingPrefs });
                 }
