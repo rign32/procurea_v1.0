@@ -13,10 +13,11 @@ import { Switch } from '@/components/ui/switch';
 import { t } from '@/i18n';
 import organizationService from '@/services/organization.service';
 import type { TeamMember } from '@/services/organization.service';
+import type { User } from '@/types/campaign.types';
 import { toast } from 'sonner';
 
 interface TeamTabProps {
-    user: Record<string, unknown>;
+    user: User;
 }
 
 export function TeamTab({ user }: TeamTabProps) {

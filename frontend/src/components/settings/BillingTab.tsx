@@ -11,6 +11,7 @@ import { billingService } from '@/services/billing.service';
 import type { BillingInfo } from '@/services/billing.service';
 import apiClient from '@/services/api.client';
 import { useAuthStore } from '@/stores/auth.store';
+import type { User } from '@/types/campaign.types';
 
 const bt = t.settings.billing;
 
@@ -49,7 +50,7 @@ const cardHover = {
 };
 
 interface BillingTabProps {
-    user: Record<string, unknown>;
+    user: User;
 }
 
 export function BillingTab({ user }: BillingTabProps) {
