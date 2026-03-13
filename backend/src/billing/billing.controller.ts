@@ -31,6 +31,14 @@ export class BillingController {
         return this.billingService.createSubscriptionCheckout(userId);
     }
 
+    @Post('cancel-subscription')
+    @UseGuards(AuthGuard('jwt'))
+    @Throttle({ default: { ttl: 60000, limit: 3 } })
+    async cancelSubscription(@Req() req) {
+        const userId = req.user.userId || req.user.sub;
+        return this.billingService.cancelSubscription(userId);
+    }
+
     @Post('portal')
     @UseGuards(AuthGuard('jwt'))
     async createPortalSession(@Req() req) {
@@ -44,6 +52,15 @@ export class BillingController {
         const userId = req.user.userId || req.user.sub;
         if (!body.sessionId) throw new BadRequestException('sessionId is required');
         return this.billingService.verifyAndFulfillSession(userId, body.sessionId);
+    }
+
+    @Post('contribute')
+    @UseGuards(AuthGuard('jwt'))
+    @Throttle({ default: { ttl: 60000, limit: 10 } })
+    async contributeCredits(@Req() req, @Body() body: { amount: number }) {
+        const userId = req.user.userId || req.user.sub;
+        if (!body.amount || body.amount <= 0) throw new BadRequestException('amount must be a positive number');
+        return this.billingService.contributeCredits(userId, body.amount);
     }
 
     @Post('webhook')

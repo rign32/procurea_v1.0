@@ -133,6 +133,10 @@ export const api = onRequest(
             'SCRAPING_API_KEY',
             'STRIPE_SECRET_KEY',
             'STRIPE_WEBHOOK_SECRET',
+            'STRIPE_LIVE_SECRET_KEY',
+            'STRIPE_LIVE_WEBHOOK_SECRET',
+            'STRIPE_LIVE_PRICE_ID',
+            'STRIPE_LIVE_PRICE_ID_USD',
         ],
     },
     expressApp

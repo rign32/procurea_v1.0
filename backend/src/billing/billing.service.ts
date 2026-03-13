@@ -4,9 +4,9 @@ import { PrismaService } from '../prisma/prisma.service';
 import Stripe from 'stripe';
 
 const CREDIT_PACKS: Record<string, { credits: number; priceNet: number; label: string; priceNetUsd: number; labelEn: string }> = {
-    pack_1:  { credits: 1,  priceNet: 7000,  label: '1 wyszukiwanie', priceNetUsd: 4900,  labelEn: '1 search' },
-    pack_5:  { credits: 5,  priceNet: 24000, label: '5 wyszukiwań',   priceNetUsd: 19000, labelEn: '5 searches' },
-    pack_20: { credits: 20, priceNet: 60000, label: '20 wyszukiwań',  priceNetUsd: 56000, labelEn: '20 searches' },
+    pack_10: { credits: 10, priceNet: 14900, label: '10 wyszukiwań', priceNetUsd: 8900,  labelEn: '10 searches' },
+    pack_25: { credits: 25, priceNet: 29900, label: '25 wyszukiwań', priceNetUsd: 19900, labelEn: '25 searches' },
+    pack_50: { credits: 50, priceNet: 49900, label: '50 wyszukiwań', priceNetUsd: 29900, labelEn: '50 searches' },
 };
 
 @Injectable()
@@ -19,10 +19,15 @@ export class BillingService {
         private prisma: PrismaService,
         private configService: ConfigService,
     ) {
-        const apiKey = this.configService.get<string>('STRIPE_SECRET_KEY');
+        // Production uses STRIPE_LIVE_SECRET_KEY, staging falls back to STRIPE_SECRET_KEY (sandbox)
+        const isStaging = !!this.configService.get('DATABASE_URL_STAGING');
+        const apiKey = isStaging
+            ? this.configService.get<string>('STRIPE_SECRET_KEY')
+            : (this.configService.get<string>('STRIPE_LIVE_SECRET_KEY') || this.configService.get<string>('STRIPE_SECRET_KEY'));
+
         if (apiKey) {
             this.stripe = new Stripe(apiKey);
-            this.logger.log('Stripe initialized');
+            this.logger.log(`Stripe initialized (${isStaging ? 'sandbox' : 'live'})`);
         } else {
             this.logger.warn('STRIPE_SECRET_KEY not configured — billing disabled');
         }
@@ -174,9 +179,30 @@ export class BillingService {
         const lang = await this.getUserLanguage(userId);
         const isEn = lang === 'en';
 
+        // Check if org already has an active subscription
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { organizationId: true },
+        });
+        if (user?.organizationId) {
+            const org = await this.prisma.organization.findUnique({
+                where: { id: user.organizationId },
+                select: { stripeSubscriptionId: true, plan: true },
+            });
+            if (org?.plan === 'unlimited' && org.stripeSubscriptionId) {
+                throw new BadRequestException(isEn ? 'Your organization already has an active subscription' : 'Twoja organizacja ma już aktywną subskrypcję');
+            }
+        }
+
+        // Production uses STRIPE_LIVE_PRICE_ID*, staging uses STRIPE_UNLIMITED_PRICE_ID*
+        const isStaging = !!this.configService.get('DATABASE_URL_STAGING');
         const priceId = isEn
-            ? (this.configService.get<string>('STRIPE_UNLIMITED_PRICE_ID_USD') || this.configService.get<string>('STRIPE_UNLIMITED_PRICE_ID'))
-            : this.configService.get<string>('STRIPE_UNLIMITED_PRICE_ID');
+            ? (isStaging
+                ? this.configService.get<string>('STRIPE_UNLIMITED_PRICE_ID_USD')
+                : (this.configService.get<string>('STRIPE_LIVE_PRICE_ID_USD') || this.configService.get<string>('STRIPE_UNLIMITED_PRICE_ID_USD')))
+            : (isStaging
+                ? this.configService.get<string>('STRIPE_UNLIMITED_PRICE_ID')
+                : (this.configService.get<string>('STRIPE_LIVE_PRICE_ID') || this.configService.get<string>('STRIPE_UNLIMITED_PRICE_ID')));
         if (!priceId) throw new BadRequestException(isEn ? 'Subscription not configured' : 'Subskrypcja nie jest skonfigurowana');
 
         const frontendUrl = this.getFrontendUrl(lang);
@@ -199,10 +225,11 @@ export class BillingService {
             ...(isEn && { automatic_tax: { enabled: true } }),
             metadata: {
                 userId,
+                organizationId: user?.organizationId || '',
                 type: 'unlimited_subscription',
             },
             subscription_data: {
-                metadata: { userId },
+                metadata: { userId, organizationId: user?.organizationId || '' },
             },
             success_url: `${frontendUrl}/settings?billing=success&session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${frontendUrl}/settings?billing=canceled`,
@@ -263,7 +290,10 @@ export class BillingService {
 
     async handleWebhook(rawBody: Buffer, signature: string): Promise<void> {
         const stripe = this.ensureStripe();
-        const webhookSecret = this.configService.get<string>('STRIPE_WEBHOOK_SECRET');
+        const isStaging = !!this.configService.get('DATABASE_URL_STAGING');
+        const webhookSecret = isStaging
+            ? this.configService.get<string>('STRIPE_WEBHOOK_SECRET')
+            : (this.configService.get<string>('STRIPE_LIVE_WEBHOOK_SECRET') || this.configService.get<string>('STRIPE_WEBHOOK_SECRET'));
         if (!webhookSecret) throw new BadRequestException('Webhook secret not configured');
 
         let event: Stripe.Event;
@@ -279,6 +309,9 @@ export class BillingService {
         switch (event.type) {
             case 'checkout.session.completed':
                 await this.handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
+                break;
+            case 'customer.subscription.updated':
+                await this.handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
                 break;
             case 'customer.subscription.deleted':
                 await this.handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
@@ -340,44 +373,138 @@ export class BillingService {
 
         } else if (type === 'unlimited_subscription') {
             const subscriptionId = session.subscription as string;
+            const organizationId = session.metadata?.organizationId;
 
-            await this.prisma.$transaction(async (tx) => {
-                const user = await tx.user.update({
-                    where: { id: userId },
-                    data: {
-                        plan: 'unlimited',
-                    },
+            // Subscription is org-wide
+            if (organizationId) {
+                await this.prisma.$transaction(async (tx) => {
+                    await tx.organization.update({
+                        where: { id: organizationId },
+                        data: {
+                            plan: 'unlimited',
+                            stripeSubscriptionId: subscriptionId,
+                            subscriptionCancelAtPeriodEnd: false,
+                        },
+                    });
+
+                    // Also keep user-level plan in sync (backward compat)
+                    await tx.user.update({
+                        where: { id: userId },
+                        data: {
+                            plan: 'unlimited',
+                            stripeSubscriptionId: subscriptionId,
+                            subscriptionCancelAtPeriodEnd: false,
+                        },
+                    });
+
+                    const org = await tx.organization.findUnique({
+                        where: { id: organizationId },
+                        select: { searchCredits: true },
+                    });
+
+                    await tx.orgCreditTransaction.create({
+                        data: {
+                            organizationId,
+                            userId,
+                            amount: 0,
+                            type: 'SUBSCRIPTION_GRANT',
+                            description: 'Subskrypcja: Bez limitu (org-wide)',
+                            stripeSessionId: session.id,
+                            balanceAfter: org?.searchCredits ?? 0,
+                        },
+                    });
                 });
 
-                await tx.creditTransaction.create({
-                    data: {
-                        userId,
-                        amount: 0,
-                        type: 'SUBSCRIPTION_GRANT',
-                        description: 'Subskrypcja: Bez limitu',
-                        stripeSessionId: session.id,
-                        balanceAfter: user.searchCredits,
-                    },
+                this.logger.log(`Org ${organizationId} upgraded to unlimited plan by user ${userId}`);
+            } else {
+                // Fallback: user without org (shouldn't happen, but safe)
+                await this.prisma.$transaction(async (tx) => {
+                    const user = await tx.user.update({
+                        where: { id: userId },
+                        data: {
+                            plan: 'unlimited',
+                            stripeSubscriptionId: subscriptionId,
+                            subscriptionCancelAtPeriodEnd: false,
+                        },
+                    });
+
+                    await tx.creditTransaction.create({
+                        data: {
+                            userId,
+                            amount: 0,
+                            type: 'SUBSCRIPTION_GRANT',
+                            description: 'Subskrypcja: Bez limitu',
+                            stripeSessionId: session.id,
+                            balanceAfter: user.searchCredits,
+                        },
+                    });
                 });
+
+                this.logger.log(`User ${userId} upgraded to unlimited plan (no org)`);
+            }
+        }
+    }
+
+    private async handleSubscriptionUpdated(subscription: Stripe.Subscription): Promise<void> {
+        const userId = subscription.metadata?.userId;
+        const organizationId = subscription.metadata?.organizationId;
+        if (!userId) {
+            this.logger.warn('Subscription updated without userId in metadata');
+            return;
+        }
+
+        const cancelAtPeriodEnd = subscription.cancel_at_period_end;
+        const status = subscription.status;
+
+        if (status === 'active') {
+            // Update org-level if available
+            if (organizationId) {
+                await this.prisma.organization.update({
+                    where: { id: organizationId },
+                    data: { subscriptionCancelAtPeriodEnd: cancelAtPeriodEnd },
+                });
+            }
+            await this.prisma.user.update({
+                where: { id: userId },
+                data: { subscriptionCancelAtPeriodEnd: cancelAtPeriodEnd },
             });
-
-            this.logger.log(`User ${userId} upgraded to unlimited plan (subscription: ${subscriptionId})`);
+            this.logger.log(`Subscription updated: cancel_at_period_end=${cancelAtPeriodEnd} (user: ${userId}, org: ${organizationId})`);
+        } else if (status === 'past_due' || status === 'unpaid') {
+            this.logger.warn(`Subscription status: ${status} (user: ${userId}, org: ${organizationId})`);
         }
     }
 
     private async handleSubscriptionDeleted(subscription: Stripe.Subscription): Promise<void> {
         const userId = subscription.metadata?.userId;
+        const organizationId = subscription.metadata?.organizationId;
         if (!userId) {
             this.logger.warn('Subscription deleted without userId in metadata');
             return;
         }
 
+        // Revert org-level
+        if (organizationId) {
+            await this.prisma.organization.update({
+                where: { id: organizationId },
+                data: {
+                    plan: 'research',
+                    stripeSubscriptionId: null,
+                    subscriptionCancelAtPeriodEnd: false,
+                },
+            });
+        }
+
+        // Revert user-level (backward compat)
         await this.prisma.user.update({
             where: { id: userId },
-            data: { plan: 'research' },
+            data: {
+                plan: 'research',
+                stripeSubscriptionId: null,
+                subscriptionCancelAtPeriodEnd: false,
+            },
         });
 
-        this.logger.log(`User ${userId} subscription canceled, reverted to research plan`);
+        this.logger.log(`Subscription canceled, reverted to research plan (user: ${userId}, org: ${organizationId})`);
     }
 
     // --- Billing Info ---
@@ -385,32 +512,226 @@ export class BillingService {
     async getUserBillingInfo(userId: string) {
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
-            select: { searchCredits: true, plan: true, stripeCustomerId: true, trialCreditsUsed: true },
+            select: {
+                searchCredits: true,
+                plan: true,
+                stripeCustomerId: true,
+                stripeSubscriptionId: true,
+                subscriptionCancelAtPeriodEnd: true,
+                trialCreditsUsed: true,
+                organizationId: true,
+            },
         });
 
         if (!user) throw new BadRequestException('Użytkownik nie znaleziony');
 
-        const recentTransactions = await this.prisma.creditTransaction.findMany({
+        // Fetch org data
+        let org: { searchCredits: number; plan: string; stripeSubscriptionId: string | null; subscriptionCancelAtPeriodEnd: boolean; trialCreditsUsed: boolean } | null = null;
+        if (user.organizationId) {
+            org = await this.prisma.organization.findUnique({
+                where: { id: user.organizationId },
+                select: {
+                    searchCredits: true,
+                    plan: true,
+                    stripeSubscriptionId: true,
+                    subscriptionCancelAtPeriodEnd: true,
+                    trialCreditsUsed: true,
+                },
+            });
+        }
+
+        // Effective plan and subscription (org takes precedence)
+        const effectivePlan = org?.plan ?? user.plan;
+        const effectiveSubId = org?.stripeSubscriptionId ?? user.stripeSubscriptionId;
+        let cancelAtPeriodEnd = org?.subscriptionCancelAtPeriodEnd ?? user.subscriptionCancelAtPeriodEnd;
+        let currentPeriodEnd: string | null = null;
+
+        // Sync subscription status with Stripe on-demand
+        if (effectiveSubId && this.stripe) {
+            try {
+                const sub = await this.stripe.subscriptions.retrieve(effectiveSubId) as Stripe.Subscription;
+                const periodEndTs = sub.items?.data?.[0]?.current_period_end;
+                if (periodEndTs) {
+                    currentPeriodEnd = new Date(periodEndTs * 1000).toISOString();
+                }
+                cancelAtPeriodEnd = sub.cancel_at_period_end;
+
+                if (sub.status === 'canceled' && effectivePlan === 'unlimited') {
+                    // Sync: subscription canceled but local state still unlimited
+                    if (user.organizationId && org) {
+                        await this.prisma.organization.update({
+                            where: { id: user.organizationId },
+                            data: { plan: 'research', stripeSubscriptionId: null, subscriptionCancelAtPeriodEnd: false },
+                        });
+                    }
+                    await this.prisma.user.update({
+                        where: { id: userId },
+                        data: { plan: 'research', stripeSubscriptionId: null, subscriptionCancelAtPeriodEnd: false },
+                    });
+                    this.logger.warn(`Synced user ${userId}: Stripe sub canceled but local was still unlimited`);
+                } else if (cancelAtPeriodEnd !== (org?.subscriptionCancelAtPeriodEnd ?? user.subscriptionCancelAtPeriodEnd)) {
+                    if (user.organizationId) {
+                        await this.prisma.organization.update({
+                            where: { id: user.organizationId },
+                            data: { subscriptionCancelAtPeriodEnd: cancelAtPeriodEnd },
+                        });
+                    }
+                    await this.prisma.user.update({
+                        where: { id: userId },
+                        data: { subscriptionCancelAtPeriodEnd: cancelAtPeriodEnd },
+                    });
+                }
+            } catch (err) {
+                this.logger.warn(`Failed to verify subscription for user ${userId}: ${err.message}`);
+            }
+        }
+
+        // Fetch both personal and org transactions
+        const personalTransactions = await this.prisma.creditTransaction.findMany({
             where: { userId },
             orderBy: { createdAt: 'desc' },
             take: 20,
             select: {
-                id: true,
-                amount: true,
-                type: true,
-                description: true,
-                createdAt: true,
-                balanceAfter: true,
+                id: true, amount: true, type: true, description: true, createdAt: true, balanceAfter: true,
             },
         });
 
+        let orgTransactions: any[] = [];
+        if (user.organizationId) {
+            orgTransactions = await this.prisma.orgCreditTransaction.findMany({
+                where: { organizationId: user.organizationId },
+                orderBy: { createdAt: 'desc' },
+                take: 20,
+                select: {
+                    id: true, amount: true, type: true, description: true, createdAt: true, balanceAfter: true,
+                },
+            });
+        }
+
+        // Merge and sort all transactions
+        const allTransactions = [...personalTransactions.map(t => ({ ...t, source: 'personal' })), ...orgTransactions.map(t => ({ ...t, source: 'org' }))]
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            .slice(0, 30);
+
         return {
-            searchCredits: user.searchCredits,
-            plan: user.plan,
+            // Two wallets
+            personalCredits: user.searchCredits,
+            orgCredits: org?.searchCredits ?? 0,
+            // Legacy compat
+            searchCredits: (user.searchCredits ?? 0) + (org?.searchCredits ?? 0),
+            plan: effectivePlan,
+            orgPlan: org?.plan ?? 'research',
             hasStripeCustomer: !!user.stripeCustomerId,
-            trialCreditsUsed: user.trialCreditsUsed,
-            recentTransactions,
+            trialCreditsUsed: org?.trialCreditsUsed ?? user.trialCreditsUsed,
+            cancelAtPeriodEnd,
+            currentPeriodEnd,
+            recentTransactions: allTransactions,
         };
+    }
+
+    // --- Cancel Subscription ---
+
+    async cancelSubscription(userId: string): Promise<{ canceledAt: string; cancelAtPeriodEnd: boolean }> {
+        const stripe = this.ensureStripe();
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { stripeSubscriptionId: true, plan: true, organizationId: true },
+        });
+
+        // Check org-level subscription first
+        let subscriptionId = user?.stripeSubscriptionId;
+        let orgId: string | null = null;
+
+        if (user?.organizationId) {
+            const org = await this.prisma.organization.findUnique({
+                where: { id: user.organizationId },
+                select: { stripeSubscriptionId: true, plan: true },
+            });
+            if (org?.stripeSubscriptionId && org.plan === 'unlimited') {
+                subscriptionId = org.stripeSubscriptionId;
+                orgId = user.organizationId;
+            }
+        }
+
+        if (!subscriptionId) {
+            throw new BadRequestException('No active subscription found');
+        }
+
+        await stripe.subscriptions.update(subscriptionId, {
+            cancel_at_period_end: true,
+        });
+
+        if (orgId) {
+            await this.prisma.organization.update({
+                where: { id: orgId },
+                data: { subscriptionCancelAtPeriodEnd: true },
+            });
+        }
+        await this.prisma.user.update({
+            where: { id: userId },
+            data: { subscriptionCancelAtPeriodEnd: true },
+        });
+
+        this.logger.log(`Subscription cancellation requested (user: ${userId}, org: ${orgId})`);
+
+        return {
+            canceledAt: new Date().toISOString(),
+            cancelAtPeriodEnd: true,
+        };
+    }
+
+    // --- Contribute personal credits to org pool ---
+
+    async contributeCredits(userId: string, amount: number): Promise<{ personalCredits: number; orgCredits: number }> {
+        if (amount <= 0) throw new BadRequestException('Amount must be positive');
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { searchCredits: true, organizationId: true },
+        });
+
+        if (!user) throw new BadRequestException('User not found');
+        if (!user.organizationId) throw new BadRequestException('You must be in an organization');
+        if ((user.searchCredits ?? 0) < amount) throw new BadRequestException('Insufficient personal credits');
+
+        const result = await this.prisma.$transaction(async (tx) => {
+            const updatedUser = await tx.user.update({
+                where: { id: userId },
+                data: { searchCredits: { decrement: amount } },
+            });
+
+            const updatedOrg = await tx.organization.update({
+                where: { id: user.organizationId! },
+                data: { searchCredits: { increment: amount } },
+            });
+
+            await tx.creditTransaction.create({
+                data: {
+                    userId,
+                    amount: -amount,
+                    type: 'CONTRIBUTION',
+                    description: `Contributed ${amount} credits to team pool`,
+                    balanceAfter: updatedUser.searchCredits,
+                },
+            });
+
+            await tx.orgCreditTransaction.create({
+                data: {
+                    organizationId: user.organizationId!,
+                    userId,
+                    amount,
+                    type: 'CONTRIBUTION',
+                    description: `Contribution from team member`,
+                    balanceAfter: updatedOrg.searchCredits,
+                },
+            });
+
+            return { personalCredits: updatedUser.searchCredits, orgCredits: updatedOrg.searchCredits };
+        });
+
+        this.logger.log(`User ${userId} contributed ${amount} credits to org pool`);
+        return result;
     }
 
     // --- Customer Portal ---

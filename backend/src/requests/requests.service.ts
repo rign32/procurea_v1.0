@@ -24,14 +24,19 @@ export class RequestsService {
             status: { not: 'DRAFT' },
         };
 
-        // Organization isolation
+        // Organization isolation + sharing-aware filtering
         if (userId) {
             const user = await this.prisma.user.findUnique({
                 where: { id: userId },
                 select: { organizationId: true },
             });
             if (user?.organizationId) {
-                where.owner = { organizationId: user.organizationId };
+                const sharingWith = await this.prisma.userSharingPreference.findMany({
+                    where: { toUserId: userId, enabled: true },
+                    select: { fromUserId: true },
+                });
+                const visibleOwnerIds = [userId, ...sharingWith.map(s => s.fromUserId)];
+                where.ownerId = { in: visibleOwnerIds };
             } else {
                 where.ownerId = userId;
             }

@@ -49,18 +49,19 @@ export class SuppliersService {
             }
         }
 
-        // Organization isolation + campaign access permissions
+        // Organization isolation + sharing-aware filtering
         if (userId) {
             const user = await this.prisma.user.findUnique({
                 where: { id: userId },
-                select: { organizationId: true, campaignAccess: true, role: true },
+                select: { organizationId: true },
             });
             if (user?.organizationId) {
-                if (user.campaignAccess === 'own' && user.role !== 'ADMIN') {
-                    where.campaign = { rfqRequest: { ownerId: userId } };
-                } else {
-                    where.campaign = { rfqRequest: { owner: { organizationId: user.organizationId } } };
-                }
+                const sharingWith = await this.prisma.userSharingPreference.findMany({
+                    where: { toUserId: userId, enabled: true },
+                    select: { fromUserId: true },
+                });
+                const visibleOwnerIds = [userId, ...sharingWith.map(s => s.fromUserId)];
+                where.campaign = { rfqRequest: { ownerId: { in: visibleOwnerIds } } };
             } else {
                 where.campaign = { rfqRequest: { ownerId: userId } };
             }

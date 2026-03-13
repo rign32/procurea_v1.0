@@ -213,4 +213,64 @@ export class OrganizationService {
             },
         });
     }
+
+    // --- Democratic Team: Sharing Preferences ---
+
+    async getSharingPreferences(userId: string, organizationId: string) {
+        // Get all org members except current user
+        const orgUsers = await this.prisma.user.findMany({
+            where: { organizationId, id: { not: userId } },
+            select: { id: true, email: true, name: true, jobTitle: true },
+        });
+
+        // Get current user's preferences
+        const myPreferences = await this.prisma.userSharingPreference.findMany({
+            where: { fromUserId: userId },
+        });
+
+        // Get others' preferences towards current user
+        const othersPreferences = await this.prisma.userSharingPreference.findMany({
+            where: { toUserId: userId },
+        });
+
+        return orgUsers.map(member => ({
+            ...member,
+            iShareWithThem: myPreferences.find(p => p.toUserId === member.id)?.enabled ?? false,
+            theyShareWithMe: othersPreferences.find(p => p.fromUserId === member.id)?.enabled ?? false,
+        }));
+    }
+
+    async updateSharingPreference(fromUserId: string, toUserId: string, enabled: boolean) {
+        return this.prisma.userSharingPreference.upsert({
+            where: { fromUserId_toUserId: { fromUserId, toUserId } },
+            update: { enabled },
+            create: { fromUserId, toUserId, enabled },
+        });
+    }
+
+    async leaveOrganization(userId: string, organizationId: string) {
+        const user = await this.prisma.user.findFirst({
+            where: { id: userId, organizationId },
+        });
+        if (!user) throw new NotFoundException('User not found in this organization');
+
+        // Remove user from org
+        await this.prisma.user.update({
+            where: { id: userId },
+            data: { organizationId: null },
+        });
+
+        // Delete all sharing preferences involving this user
+        await this.prisma.userSharingPreference.deleteMany({
+            where: {
+                OR: [
+                    { fromUserId: userId },
+                    { toUserId: userId },
+                ],
+            },
+        });
+
+        this.logger.log(`User ${userId} left organization ${organizationId}`);
+        return { success: true };
+    }
 }

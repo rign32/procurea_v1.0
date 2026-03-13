@@ -96,6 +96,7 @@ export const EN: Translations = {
       locationAddress: 'Address',
       locationAddressPlaceholder: 'e.g. 123 Industrial Ave, New York, NY 10001',
       skipLocation: 'Skip (I\'ll add later)',
+      joiningOrg: 'You\'re joining {name}',
       complete: 'Get started',
       completing: 'Saving...',
       nameRequired: 'First and last name are required',
@@ -748,6 +749,15 @@ export const EN: Translations = {
       accessOwnDesc: 'View and create only own campaigns',
       accessReadonly: 'Read only',
       accessReadonlyDesc: 'View campaigns, cannot create',
+      // Democratic sharing model
+      autoDiscovery: 'Your team is built automatically — everyone with {domain} is visible',
+      shareWith: 'Share my campaigns',
+      sharesWithYou: 'Shares campaigns with you',
+      sharingEnabled: 'Sharing enabled',
+      sharingDisabled: 'Sharing disabled',
+      leaveOrg: 'Leave organization',
+      leaveConfirm: 'Are you sure you want to leave the organization? You will keep your personal credits but lose access to the team pool.',
+      leftOrg: 'You have left the organization',
     },
 
     notifications: {
@@ -784,14 +794,16 @@ export const EN: Translations = {
 
       packs: {
         title: 'Search packs',
-        pack1: '1 search',
-        pack5: '5 searches',
-        pack20: '20 searches',
+        pack10: '10 searches',
+        pack25: '25 searches',
+        pack50: '50 searches',
         popular: 'Popular',
         bestValue: 'Best value',
         buy: 'Buy',
         perSearch: '/ search',
         noExpiry: 'Purchased searches never expire \u2014 use them anytime.',
+        savings25: 'Save 20%',
+        savings50: 'Save 33%',
       },
 
       payAsYouGo: {
@@ -799,6 +811,17 @@ export const EN: Translations = {
         description: 'Buy search packs and use them anytime.',
       },
       or: 'or',
+
+      hero: {
+        title: 'Less than a coffee. More than hours of research.',
+        subtitle: 'Get 100-250 verified suppliers in 15-20 minutes',
+      },
+
+      valueProps: {
+        time: 'Instead of hours of manual research',
+        results: '100-250 companies per search',
+        speed: 'Results in 15-20 minutes',
+      },
 
       subscription: {
         title: 'Unlimited subscription',
@@ -809,7 +832,17 @@ export const EN: Translations = {
         benefit1: 'Unlimited supplier searches',
         benefit2: 'No per-search fees',
         benefit3: 'Monthly billing',
+        cancelButton: 'Cancel subscription',
+        cancelConfirm: 'Are you sure you want to cancel your subscription? You will retain access until the end of the current billing period.',
+        cancelSuccess: 'Subscription will be canceled at the end of the billing period.',
+        cancelPending: 'Subscription active until:',
       },
+
+      personalCredits: 'My credits',
+      orgCredits: 'Team credits',
+      orgUnlimited: 'Your team has the Unlimited plan',
+      sourcePersonal: 'Personal',
+      sourceOrg: 'Team',
 
       vat: 'net (+ applicable tax)',
       gross: 'gross',

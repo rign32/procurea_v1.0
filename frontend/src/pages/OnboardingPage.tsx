@@ -22,6 +22,10 @@ export default function OnboardingPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
+    // Auto-discovered users (already have org) skip company + location steps
+    const hasOrg = user?.hasOrganization ?? !!user?.organizationId;
+    const totalSteps = hasOrg ? 1 : 3;
+
     useEffect(() => {
         analytics.onboardingStepView(1);
         return startHesitationTracker('onboarding', 45000);
@@ -60,7 +64,7 @@ export default function OnboardingPage() {
         }
         setError('');
         analytics.onboardingStepComplete(step);
-        const nextStep = Math.min(3, step + 1);
+        const nextStep = Math.min(totalSteps, step + 1);
         analytics.onboardingStepView(nextStep);
         setStep(nextStep);
     };
@@ -74,7 +78,7 @@ export default function OnboardingPage() {
         e.preventDefault();
 
         // If we are not on the last step, just go next (which handles validation)
-        if (step < 3) {
+        if (step < totalSteps) {
             handleNext();
             return;
         }
@@ -108,14 +112,15 @@ export default function OnboardingPage() {
             const data = await res.json();
             if (!res.ok) throw new Error(data.message || t.errors.generic);
 
-            analytics.onboardingStepComplete(3);
+            analytics.onboardingStepComplete(totalSteps);
             analytics.onboardingCompleted();
             // Update local user state
             setUser(data);
             navigate('/');
-        } catch (err: any) {
-            analytics.onboardingFailed(err.message);
-            setError(err.message);
+        } catch (err: unknown) {
+            const message = (err as { message?: string })?.message || 'Unknown error';
+            analytics.onboardingFailed(message);
+            setError(message);
         } finally {
             setLoading(false);
         }
@@ -124,7 +129,7 @@ export default function OnboardingPage() {
     // Rendering helpers
     const StepIndicator = () => (
         <div className="flex justify-center gap-2 mb-8">
-            {[1, 2, 3].map((s) => (
+            {Array.from({ length: totalSteps }, (_, i) => i + 1).map((s) => (
                 <div
                     key={s}
                     className={`h-2.5 w-10 rounded-full transition-colors ${step >= s ? 'bg-primary' : 'bg-muted'
@@ -152,13 +157,16 @@ export default function OnboardingPage() {
                         <StepIndicator />
                         <CardTitle className="text-xl">
                             {step === 1 && t.auth.onboarding.step1Title}
-                            {step === 2 && t.auth.onboarding.step2Title}
-                            {step === 3 && t.auth.onboarding.step3Title}
+                            {!hasOrg && step === 2 && t.auth.onboarding.step2Title}
+                            {!hasOrg && step === 3 && t.auth.onboarding.step3Title}
                         </CardTitle>
                         <CardDescription>
-                            {step === 1 && t.auth.onboarding.step1Subtitle}
-                            {step === 2 && t.auth.onboarding.step2Subtitle}
-                            {step === 3 && t.auth.onboarding.step3Subtitle}
+                            {step === 1 && (hasOrg
+                                ? t.auth.onboarding.joiningOrg.replace('{name}', user?.organization?.name || '')
+                                : t.auth.onboarding.step1Subtitle
+                            )}
+                            {!hasOrg && step === 2 && t.auth.onboarding.step2Subtitle}
+                            {!hasOrg && step === 3 && t.auth.onboarding.step3Subtitle}
                         </CardDescription>
                     </CardHeader>
 
@@ -318,7 +326,7 @@ export default function OnboardingPage() {
                                     </Button>
                                 )}
 
-                                {step < 3 ? (
+                                {step < totalSteps ? (
                                     <Button type="submit" className="flex-1">
                                         {t.common.next} <ArrowRight className="ml-2 h-4 w-4" />
                                     </Button>

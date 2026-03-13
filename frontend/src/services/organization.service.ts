@@ -1,5 +1,5 @@
 import apiClient from './api.client';
-import type { OrganizationLocation } from '../types/campaign.types';
+import type { OrganizationLocation, TeamMember } from '../types/campaign.types';
 
 export interface Organization {
   id: string;
@@ -42,6 +42,8 @@ export interface OrgMember {
   isEmailVerified?: boolean;
   createdAt: string;
 }
+
+export type { TeamMember };
 
 export const organizationService = {
   // Team members
@@ -99,6 +101,21 @@ export const organizationService = {
 
   removeLocation: async (orgId: string, locId: string): Promise<void> => {
     await apiClient.delete(`/organization/${orgId}/locations/${locId}`);
+  },
+
+  // --- Democratic Sharing ---
+
+  getSharingPreferences: async (orgId: string): Promise<TeamMember[]> => {
+    const { data } = await apiClient.get<TeamMember[]>(`/organization/${orgId}/sharing`);
+    return data;
+  },
+
+  updateSharing: async (orgId: string, targetUserId: string, enabled: boolean): Promise<void> => {
+    await apiClient.patch(`/organization/${orgId}/sharing/${targetUserId}`, { enabled });
+  },
+
+  leaveOrganization: async (orgId: string): Promise<void> => {
+    await apiClient.post(`/organization/${orgId}/leave`);
   },
 };
 

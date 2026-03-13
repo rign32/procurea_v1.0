@@ -296,44 +296,91 @@ export class SourcingService {
         // Fetch user language for translated pipeline output
         let userLanguage = 'pl';
         if (userId) {
-            const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { language: true, plan: true, searchCredits: true } });
+            const user = await this.prisma.user.findUnique({
+                where: { id: userId },
+                select: { language: true, plan: true, searchCredits: true, organizationId: true },
+            });
             userLanguage = user?.language || 'pl';
 
+            // Fetch org data for credit check
+            let org: { searchCredits: number; plan: string; trialCreditsUsed: boolean } | null = null;
+            if (user?.organizationId) {
+                org = await this.prisma.organization.findUnique({
+                    where: { id: user.organizationId },
+                    select: { searchCredits: true, plan: true, trialCreditsUsed: true },
+                });
+            }
+
+            const effectivePlan = org?.plan ?? user?.plan;
+
             // Credit check — unlimited plan bypasses
-            if (user?.plan !== 'unlimited') {
-                if ((user?.searchCredits ?? 0) <= 0) {
+            if (effectivePlan !== 'unlimited') {
+                const orgCredits = org?.searchCredits ?? 0;
+                const personalCredits = user?.searchCredits ?? 0;
+
+                if (orgCredits <= 0 && personalCredits <= 0) {
                     await this.prisma.rfqRequest.deleteMany({ where: { campaignId: campaign.id } });
                     await this.prisma.campaign.delete({ where: { id: campaign.id } });
                     throw new BadRequestException('Brak kredytów wyszukiwania. Kup pakiet w ustawieniach.');
                 }
-                // Atomically deduct 1 credit
-                let trialJustEnded = false;
-                await this.prisma.$transaction(async (tx) => {
-                    await tx.user.update({ where: { id: userId }, data: { searchCredits: { decrement: 1 } } });
-                    const updated = await tx.user.findUnique({
-                        where: { id: userId },
-                        select: { searchCredits: true, trialCreditsUsed: true },
-                    });
-                    await tx.creditTransaction.create({
-                        data: {
-                            userId,
-                            amount: -1,
-                            type: 'CONSUMPTION',
-                            description: `Kampania: ${dto.name || 'New Campaign'}`,
-                            campaignId: campaign.id,
-                            balanceAfter: updated?.searchCredits ?? 0,
-                        },
-                    });
 
-                    // Check if trial just ended (last free credit consumed)
-                    if ((updated?.searchCredits ?? 0) <= 0 && !updated?.trialCreditsUsed) {
-                        await tx.user.update({
-                            where: { id: userId },
-                            data: { trialCreditsUsed: true },
+                // Deduct: org pool first, then personal
+                let trialJustEnded = false;
+                if (orgCredits > 0 && user?.organizationId) {
+                    // Deduct from org shared pool
+                    await this.prisma.$transaction(async (tx) => {
+                        const updatedOrg = await tx.organization.update({
+                            where: { id: user.organizationId! },
+                            data: { searchCredits: { decrement: 1 } },
                         });
-                        trialJustEnded = true;
-                    }
-                });
+                        await tx.orgCreditTransaction.create({
+                            data: {
+                                organizationId: user.organizationId!,
+                                userId,
+                                amount: -1,
+                                type: 'CONSUMPTION',
+                                description: `Kampania: ${dto.name || 'New Campaign'}`,
+                                campaignId: campaign.id,
+                                balanceAfter: updatedOrg.searchCredits,
+                            },
+                        });
+
+                        if (updatedOrg.searchCredits <= 0 && !updatedOrg.trialCreditsUsed) {
+                            await tx.organization.update({
+                                where: { id: user.organizationId! },
+                                data: { trialCreditsUsed: true },
+                            });
+                            trialJustEnded = true;
+                        }
+                    });
+                } else {
+                    // Fallback: deduct from personal credits
+                    await this.prisma.$transaction(async (tx) => {
+                        await tx.user.update({ where: { id: userId }, data: { searchCredits: { decrement: 1 } } });
+                        const updated = await tx.user.findUnique({
+                            where: { id: userId },
+                            select: { searchCredits: true, trialCreditsUsed: true },
+                        });
+                        await tx.creditTransaction.create({
+                            data: {
+                                userId,
+                                amount: -1,
+                                type: 'CONSUMPTION',
+                                description: `Kampania: ${dto.name || 'New Campaign'}`,
+                                campaignId: campaign.id,
+                                balanceAfter: updated?.searchCredits ?? 0,
+                            },
+                        });
+
+                        if ((updated?.searchCredits ?? 0) <= 0 && !updated?.trialCreditsUsed) {
+                            await tx.user.update({
+                                where: { id: userId },
+                                data: { trialCreditsUsed: true },
+                            });
+                            trialJustEnded = true;
+                        }
+                    });
+                }
 
                 // Send trial ended email (outside transaction, non-blocking)
                 if (trialJustEnded) {
@@ -373,21 +420,21 @@ export class SourcingService {
             where.name = { contains: filters.search, mode: 'insensitive' };
         }
 
-        // Organization isolation + campaign access permissions
+        // Organization isolation + sharing-aware filtering
         if (userId) {
             const user = await this.prisma.user.findUnique({
                 where: { id: userId },
-                select: { organizationId: true, campaignAccess: true, role: true },
+                select: { organizationId: true },
             });
             if (user?.organizationId) {
-                // "own" access: only user's own campaigns; "all"/"readonly": all org campaigns
-                if (user.campaignAccess === 'own' && user.role !== 'ADMIN') {
-                    where.rfqRequest = { ownerId: userId };
-                } else {
-                    where.rfqRequest = { owner: { organizationId: user.organizationId } };
-                }
+                // Get users who share with current user
+                const sharingWith = await this.prisma.userSharingPreference.findMany({
+                    where: { toUserId: userId, enabled: true },
+                    select: { fromUserId: true },
+                });
+                const visibleOwnerIds = [userId, ...sharingWith.map(s => s.fromUserId)];
+                where.rfqRequest = { ownerId: { in: visibleOwnerIds } };
             } else {
-                // User without org: only show their own campaigns
                 where.rfqRequest = { ownerId: userId };
             }
         }

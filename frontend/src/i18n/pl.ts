@@ -94,6 +94,7 @@ export const PL = {
       locationAddress: 'Adres',
       locationAddressPlaceholder: 'np. ul. Przemysłowa 10, 00-001 Warszawa',
       skipLocation: 'Pomiń (dodam później)',
+      joiningOrg: 'Dołączasz do organizacji {name}',
       complete: 'Rozpocznij',
       completing: 'Zapisywanie...',
       nameRequired: 'Imię i nazwisko są wymagane',
@@ -746,6 +747,15 @@ export const PL = {
       accessOwnDesc: 'Widzi i tworzy tylko swoje',
       accessReadonly: 'Tylko odczyt',
       accessReadonlyDesc: 'Widzi kampanie, nie tworzy',
+      // Democratic sharing model
+      autoDiscovery: 'Twój zespół tworzy się automatycznie — każdy z {domain} jest widoczny',
+      shareWith: 'Udostępnij moje kampanie',
+      sharesWithYou: 'Udostępnia Ci kampanie',
+      sharingEnabled: 'Udostępnianie włączone',
+      sharingDisabled: 'Udostępnianie wyłączone',
+      leaveOrg: 'Opuść organizację',
+      leaveConfirm: 'Czy na pewno chcesz opuścić organizację? Zachowasz swoje osobiste kredyty, ale stracisz dostęp do puli zespołu.',
+      leftOrg: 'Opuściłeś organizację',
     },
 
     notifications: {
@@ -782,14 +792,16 @@ export const PL = {
 
       packs: {
         title: 'Pakiety wyszukiwań',
-        pack1: '1 wyszukiwanie',
-        pack5: '5 wyszukiwań',
-        pack20: '20 wyszukiwań',
+        pack10: '10 wyszukiwań',
+        pack25: '25 wyszukiwań',
+        pack50: '50 wyszukiwań',
         popular: 'Popularne',
         bestValue: 'Najlepsza cena',
         buy: 'Kup',
         perSearch: '/ wyszukiwanie',
         noExpiry: 'Zakupione wyszukiwania nie wygasają — korzystaj w dowolnym momencie.',
+        savings25: 'Oszczędzasz 20%',
+        savings50: 'Oszczędzasz 33%',
       },
 
       payAsYouGo: {
@@ -797,6 +809,17 @@ export const PL = {
         description: 'Kupuj pakiety wyszukiwań i korzystaj bez limitu czasu.',
       },
       or: 'lub',
+
+      hero: {
+        title: 'Mniej niż kawa. Więcej niż godziny researchu.',
+        subtitle: 'Otrzymaj od 100 do 250 zweryfikowanych dostawców w 15-20 minut',
+      },
+
+      valueProps: {
+        time: 'Zamiast godzin ręcznego researchu',
+        results: '100-250 firm na wyszukiwanie',
+        speed: 'Wyniki w 15-20 minut',
+      },
 
       subscription: {
         title: 'Subskrypcja bez limitu',
@@ -807,7 +830,17 @@ export const PL = {
         benefit1: 'Bez limitu wyszukiwań dostawców',
         benefit2: 'Bez opłat za pojedyncze wyszukiwanie',
         benefit3: 'Rozliczenie miesięczne',
+        cancelButton: 'Anuluj subskrypcję',
+        cancelConfirm: 'Czy na pewno chcesz anulować subskrypcję? Będziesz mieć dostęp do końca bieżącego okresu rozliczeniowego.',
+        cancelSuccess: 'Subskrypcja zostanie anulowana na koniec okresu rozliczeniowego.',
+        cancelPending: 'Subskrypcja aktywna do:',
       },
+
+      personalCredits: 'Moje kredyty',
+      orgCredits: 'Kredyty zespołu',
+      orgUnlimited: 'Twój zespół ma plan Bez limitu',
+      sourcePersonal: 'Osobiste',
+      sourceOrg: 'Zespołowe',
 
       vat: 'netto (+ 23% VAT)',
       gross: 'brutto',

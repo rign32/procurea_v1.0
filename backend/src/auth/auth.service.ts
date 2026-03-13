@@ -128,28 +128,86 @@ export class AuthService {
             }
 
             isNewUser = true;
-            // Create new user (searchCredits: 10 via schema default)
-            user = await this.prisma.user.create({
-                data: {
-                    email,
-                    name: name || email.split('@')[0],
-                    ssoProvider: provider,
-                    ssoId: ssoId,
-                    role: 'ADMIN', // First user (self-registered) is always admin; invited users get role from invite
-                    onboardingCompleted: false, // Explicitly false for new users
-                },
+
+            // Auto-discovery: check if an org with this domain already exists
+            const domain = email.split('@')[1];
+            const existingOrg = await this.prisma.organization.findFirst({
+                where: { domain },
+                include: { users: { select: { id: true } } },
             });
 
-            // Audit trail for trial credit grant
-            await this.prisma.creditTransaction.create({
-                data: {
-                    userId: user.id,
-                    amount: 10,
-                    type: 'TRIAL_GRANT',
-                    description: 'Trial — 10 free searches',
-                    balanceAfter: 10,
-                },
-            });
+            if (existingOrg) {
+                // 2nd+ user from same domain — join existing org
+                user = await this.prisma.user.create({
+                    data: {
+                        email,
+                        name: name || email.split('@')[0],
+                        ssoProvider: provider,
+                        ssoId: ssoId,
+                        role: 'USER',
+                        organizationId: existingOrg.id,
+                        searchCredits: 0, // No personal trial credits
+                        onboardingCompleted: false,
+                    },
+                });
+
+                // Add +3 credits to org shared pool
+                await this.prisma.$transaction(async (tx) => {
+                    await tx.organization.update({
+                        where: { id: existingOrg.id },
+                        data: { searchCredits: { increment: 3 } },
+                    });
+                    const updatedOrg = await tx.organization.findUnique({
+                        where: { id: existingOrg.id },
+                        select: { searchCredits: true },
+                    });
+                    await tx.orgCreditTransaction.create({
+                        data: {
+                            organizationId: existingOrg.id,
+                            userId: user.id,
+                            amount: 3,
+                            type: 'MEMBER_BONUS',
+                            description: `New team member: ${email}`,
+                            balanceAfter: updatedOrg?.searchCredits ?? 0,
+                        },
+                    });
+                });
+
+                // Create sharing preferences (disabled) for every existing member <-> new user
+                const existingMembers = existingOrg.users.filter(u => u.id !== user.id);
+                if (existingMembers.length > 0) {
+                    const sharingPrefs = existingMembers.flatMap(member => [
+                        { fromUserId: user.id, toUserId: member.id, enabled: false, updatedAt: new Date() },
+                        { fromUserId: member.id, toUserId: user.id, enabled: false, updatedAt: new Date() },
+                    ]);
+                    await this.prisma.userSharingPreference.createMany({ data: sharingPrefs });
+                }
+
+                console.log(`[AUTH] Auto-discovered org ${existingOrg.name} for ${email}, +3 credits to pool`);
+            } else {
+                // First user from this domain — no org yet (created during onboarding)
+                user = await this.prisma.user.create({
+                    data: {
+                        email,
+                        name: name || email.split('@')[0],
+                        ssoProvider: provider,
+                        ssoId: ssoId,
+                        role: 'USER',
+                        onboardingCompleted: false,
+                    },
+                });
+
+                // Audit trail for trial credit grant (user-level, transferred to org during onboarding)
+                await this.prisma.creditTransaction.create({
+                    data: {
+                        userId: user.id,
+                        amount: 10,
+                        type: 'TRIAL_GRANT',
+                        description: 'Trial — 10 free searches',
+                        balanceAfter: 10,
+                    },
+                });
+            }
         } else {
             // Update existing user with SSO info if missing
             if (!user.ssoProvider) {
@@ -312,44 +370,69 @@ export class AuthService {
         if (!user) throw new BadRequestException('User not found');
         if (!user.isPhoneVerified) throw new BadRequestException('Phone not verified');
 
-        // Create Organization — first location is always default (HQ)
-        const locationsToCreate = (data.locations || []).map((loc, i) => ({
-            ...loc,
-            isDefault: i === 0,
-        }));
-        const org = await this.prisma.organization.create({
-            data: {
-                name: data.companyName,
-                users: { connect: { id: userId } },
-                locations: {
-                    create: locationsToCreate
+        let orgId = user.organizationId;
+
+        if (orgId) {
+            // User already has an org (auto-discovered by domain) — shortened onboarding
+            // Skip org creation, just update user profile
+            console.log(`[ONBOARDING] User ${user.email} already in org ${orgId}, shortened flow`);
+        } else {
+            // First user from this domain — create org with locations
+            const locationsToCreate = (data.locations || []).map((loc, i) => ({
+                ...loc,
+                isDefault: i === 0,
+            }));
+            const domain = user.email.split('@')[1];
+            const org = await this.prisma.organization.create({
+                data: {
+                    name: data.companyName,
+                    domain,
+                    users: { connect: { id: userId } },
+                    locations: {
+                        create: locationsToCreate
+                    }
                 }
-            }
-        });
+            });
+            orgId = org.id;
+
+            // Transfer trial credits from user to org pool
+            await this.prisma.$transaction(async (tx) => {
+                const userCredits = user.searchCredits || 10;
+                await tx.organization.update({
+                    where: { id: org.id },
+                    data: { searchCredits: userCredits },
+                });
+                await tx.user.update({
+                    where: { id: userId },
+                    data: { searchCredits: 0 },
+                });
+                await tx.orgCreditTransaction.create({
+                    data: {
+                        organizationId: org.id,
+                        userId,
+                        amount: userCredits,
+                        type: 'TRIAL_GRANT',
+                        description: 'Trial — initial org credit pool',
+                        balanceAfter: userCredits,
+                    },
+                });
+            });
+
+            console.log(`[ONBOARDING] Created org ${org.name} (domain: ${domain}) for ${user.email}`);
+        }
 
         // Update User Profile
         const updatedUser = await this.prisma.user.update({
             where: { id: userId },
             data: {
-                name: `${data.firstName || ''} ${data.lastName || ''}`.trim() || user.name, // Use existing name if not provided
+                name: `${data.firstName || ''} ${data.lastName || ''}`.trim() || user.name,
                 jobTitle: data.jobTitle,
                 language: data.language || 'pl',
                 companyName: data.companyName,
-                organizationId: org.id,
+                organizationId: orgId,
                 onboardingCompleted: true,
             },
         });
-
-        // Handle Invites (Send emails via EmailService)
-        if (data.invites && data.invites.length > 0) {
-            for (const invite of data.invites) {
-                // Determine name from email if needed, or leave it to the user upon joining
-                // For now, we'll just send the email via emailService
-                // Ensure emailService has sendInvitation method or similar generic mock
-                // await this.emailService.sendInvitation(invite.email, user.name, org.name);
-                console.log(`[MOCK INVITE] Sending invite to ${invite.email} for organization ${org.name}`);
-            }
-        }
 
         // Ensure default sequence template exists
         const existingSequence = await this.prisma.sequenceTemplate.findFirst({
@@ -553,6 +636,10 @@ export class AuthService {
         await this.prisma.organization.create({
             data: {
                 name: orgName,
+                domain: 'procurea.dev',
+                searchCredits: 50,
+                trialCreditsUsed: true,
+                plan: 'research',
                 users: { connect: { id: created.id } },
                 locations: {
                     create: [{

@@ -27,14 +27,14 @@ async function setup() {
         console.log('VAT tax rate already exists:', vatRate.id);
     }
 
-    // 2. Create subscription product + price (1000 PLN/month net)
+    // 2. Create subscription product + prices (599 PLN/month + $399 USD/month)
     const products = await stripe.products.list({ limit: 100 });
     let subProduct = products.data.find(p => p.metadata?.type === 'unlimited_subscription' && p.active);
 
     if (!subProduct) {
         subProduct = await stripe.products.create({
             name: 'Procurea — Bez limitu',
-            description: 'Nieograniczone wyszukiwania dostawców co miesiąc',
+            description: 'Nieograniczone wyszukiwania dostawców co miesiąc / Unlimited supplier searches every month',
             metadata: { type: 'unlimited_subscription' },
         });
         console.log('Created subscription product:', subProduct.id);
@@ -42,25 +42,45 @@ async function setup() {
         console.log('Subscription product already exists:', subProduct.id);
     }
 
-    // Check if monthly price exists
-    const prices = await stripe.prices.list({ product: subProduct.id, limit: 10 });
-    let subPrice = prices.data.find(p =>
-        p.unit_amount === 100000 &&
+    // Check if PLN monthly price exists (599 PLN)
+    const prices = await stripe.prices.list({ product: subProduct.id, limit: 20 });
+    let subPricePln = prices.data.find(p =>
+        p.unit_amount === 59900 &&
         p.currency === 'pln' &&
         p.recurring?.interval === 'month' &&
         p.active
     );
 
-    if (!subPrice) {
-        subPrice = await stripe.prices.create({
+    if (!subPricePln) {
+        subPricePln = await stripe.prices.create({
             product: subProduct.id,
-            unit_amount: 100000, // 1000 PLN in grosze
+            unit_amount: 59900, // 599 PLN in grosze
             currency: 'pln',
             recurring: { interval: 'month' },
         });
-        console.log('Created subscription price:', subPrice.id);
+        console.log('Created PLN subscription price:', subPricePln.id);
     } else {
-        console.log('Subscription price already exists:', subPrice.id);
+        console.log('PLN subscription price already exists:', subPricePln.id);
+    }
+
+    // Check if USD monthly price exists ($399)
+    let subPriceUsd = prices.data.find(p =>
+        p.unit_amount === 39900 &&
+        p.currency === 'usd' &&
+        p.recurring?.interval === 'month' &&
+        p.active
+    );
+
+    if (!subPriceUsd) {
+        subPriceUsd = await stripe.prices.create({
+            product: subProduct.id,
+            unit_amount: 39900, // $399 in cents
+            currency: 'usd',
+            recurring: { interval: 'month' },
+        });
+        console.log('Created USD subscription price:', subPriceUsd.id);
+    } else {
+        console.log('USD subscription price already exists:', subPriceUsd.id);
     }
 
     // 3. Configure Stripe account settings for Polish invoices
@@ -81,7 +101,8 @@ async function setup() {
     console.log('  ADD THESE TO .env.local:');
     console.log('========================================');
     console.log(`STRIPE_VAT_TAX_RATE_ID=${vatRate.id}`);
-    console.log(`STRIPE_UNLIMITED_PRICE_ID=${subPrice.id}`);
+    console.log(`STRIPE_UNLIMITED_PRICE_ID=${subPricePln.id}`);
+    console.log(`STRIPE_UNLIMITED_PRICE_ID_USD=${subPriceUsd.id}`);
     console.log('========================================\n');
     console.log('Next steps:');
     console.log('1. Copy the values above to backend/.env.local');

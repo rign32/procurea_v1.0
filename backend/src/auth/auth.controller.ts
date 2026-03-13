@@ -66,6 +66,40 @@ export class AuthController {
         private readonly tokensService: TokensService,
     ) { }
 
+    /** Build safe user response object with org-level credits */
+    private buildUserResponse(user: any) {
+        const org = user.organization;
+        return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            companyName: user.companyName,
+            jobTitle: user.jobTitle,
+            phone: user.phone,
+            organizationId: user.organizationId,
+            onboardingCompleted: user.onboardingCompleted,
+            isPhoneVerified: user.isPhoneVerified,
+            // Personal credits (purchased)
+            personalCredits: user.searchCredits ?? 0,
+            // Org shared pool
+            orgCredits: org?.searchCredits ?? 0,
+            orgPlan: org?.plan ?? 'research',
+            orgTrialCreditsUsed: org?.trialCreditsUsed ?? user.trialCreditsUsed ?? true,
+            // Legacy fields (for backward compat)
+            plan: org?.plan ?? user.plan ?? 'research',
+            searchCredits: (user.searchCredits ?? 0) + (org?.searchCredits ?? 0),
+            trialCreditsUsed: org?.trialCreditsUsed ?? user.trialCreditsUsed ?? true,
+            hasOrganization: !!user.organizationId,
+            organization: org ? {
+                id: org.id,
+                name: org.name,
+                domain: org.domain,
+                locations: org.locations,
+            } : undefined,
+        };
+    }
+
     // ========== GOOGLE OAUTH ==========
     @Get('google')
     @UseGuards(GoogleAuthGuard)
@@ -336,21 +370,7 @@ export class AuthController {
             message: 'Authentication successful',
             accessToken,
             refreshToken,
-            user: {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-                role: user.role,
-                companyName: user.companyName,
-                jobTitle: user.jobTitle,
-                phone: user.phone,
-                organizationId: user.organizationId,
-                onboardingCompleted: user.onboardingCompleted,
-                isPhoneVerified: user.isPhoneVerified,
-                plan: user.plan,
-                searchCredits: user.searchCredits ?? 0,
-                trialCreditsUsed: user.trialCreditsUsed ?? true,
-            }
+            user: this.buildUserResponse(user),
         };
     }
 
@@ -525,22 +545,8 @@ export class AuthController {
                 }
             });
 
-            // Return safe user object
-            return {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-                role: user.role,
-                companyName: user.companyName,
-                jobTitle: user.jobTitle,
-                isPhoneVerified: user.isPhoneVerified,
-                phone: user.phone,
-                onboardingCompleted: user.onboardingCompleted,
-                organizationId: user.organizationId,
-                plan: user.plan,
-                searchCredits: user.searchCredits ?? 0,
-                trialCreditsUsed: user.trialCreditsUsed ?? true,
-            };
+            // Return safe user object with org-level credits
+            return this.buildUserResponse(user);
         } catch (error) {
             await this.authLogsService.logAuthEvent({
                 requestId,
@@ -844,21 +850,7 @@ export class AuthController {
             success: true,
             accessToken,
             refreshToken,
-            user: {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-                role: user.role,
-                companyName: user.companyName,
-                jobTitle: user.jobTitle,
-                phone: user.phone,
-                organizationId: user.organizationId,
-                onboardingCompleted: user.onboardingCompleted,
-                isPhoneVerified: user.isPhoneVerified,
-                plan: user.plan,
-                searchCredits: user.searchCredits ?? 0,
-                trialCreditsUsed: user.trialCreditsUsed ?? true,
-            }
+            user: this.buildUserResponse(user),
         };
     }
 
@@ -1019,22 +1011,7 @@ export class AuthController {
             success: true,
             accessToken,
             refreshToken,
-            user: {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-                role: user.role,
-                companyName: user.companyName,
-                jobTitle: user.jobTitle,
-                phone: user.phone,
-                organizationId: user.organizationId,
-                onboardingCompleted: user.onboardingCompleted,
-                isPhoneVerified: user.isPhoneVerified,
-                plan: user.plan,
-                searchCredits: user.searchCredits ?? 0,
-                trialCreditsUsed: user.trialCreditsUsed ?? true,
-                organization: user.organization,
-            }
+            user: this.buildUserResponse(user),
         };
     }
 }

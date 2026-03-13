@@ -11,9 +11,15 @@ export interface CreditTransaction {
 
 export interface BillingInfo {
     searchCredits: number;
+    personalCredits: number;
+    orgCredits: number;
     plan: string;
+    orgPlan: string;
     hasStripeCustomer: boolean;
-    recentTransactions: CreditTransaction[];
+    trialCreditsUsed?: boolean;
+    cancelAtPeriodEnd?: boolean;
+    currentPeriodEnd?: string | null;
+    recentTransactions: (CreditTransaction & { source?: 'personal' | 'org' })[];
 }
 
 export const billingService = {
@@ -39,6 +45,16 @@ export const billingService = {
 
     verifySession: async (sessionId: string): Promise<{ fulfilled: boolean; credits?: number; plan?: string }> => {
         const { data } = await apiClient.post('/billing/verify-session', { sessionId });
+        return data;
+    },
+
+    cancelSubscription: async (): Promise<{ canceledAt: string; cancelAtPeriodEnd: boolean }> => {
+        const { data } = await apiClient.post('/billing/cancel-subscription');
+        return data;
+    },
+
+    contributeCredits: async (amount: number): Promise<{ personalCredits: number; orgCredits: number }> => {
+        const { data } = await apiClient.post('/billing/contribute', { amount });
         return data;
     },
 };

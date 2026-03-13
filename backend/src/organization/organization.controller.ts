@@ -63,6 +63,31 @@ export class OrganizationController {
         return this.organizationService.removeUserFromOrganization(id, userId, requestingUserId);
     }
 
+    // --- Democratic Sharing Endpoints ---
+
+    @Get(':id/sharing')
+    async getSharingPreferences(@Param('id') orgId: string, @Req() req: any) {
+        const userId = req.user?.userId || req.user?.sub;
+        return this.organizationService.getSharingPreferences(userId, orgId);
+    }
+
+    @Patch(':id/sharing/:targetUserId')
+    async updateSharingPreference(
+        @Param('id') orgId: string,
+        @Param('targetUserId') targetUserId: string,
+        @Body() body: { enabled: boolean },
+        @Req() req: any,
+    ) {
+        const userId = req.user?.userId || req.user?.sub;
+        return this.organizationService.updateSharingPreference(userId, targetUserId, body.enabled);
+    }
+
+    @Post(':id/leave')
+    async leaveOrganization(@Param('id') orgId: string, @Req() req: any) {
+        const userId = req.user?.userId || req.user?.sub;
+        return this.organizationService.leaveOrganization(userId, orgId);
+    }
+
     @Post(':id/locations')
     async addLocation(
         @Param('id') id: string,

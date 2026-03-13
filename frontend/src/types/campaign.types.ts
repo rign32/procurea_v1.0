@@ -171,6 +171,27 @@ export interface User {
   plan?: 'research' | 'full' | 'pay_as_you_go' | 'unlimited';
   searchCredits?: number;
   trialCreditsUsed?: boolean;
+  // Org-level credits (new)
+  personalCredits?: number;
+  orgCredits?: number;
+  orgPlan?: string;
+  orgTrialCreditsUsed?: boolean;
+  hasOrganization?: boolean;
+  organization?: {
+    id: string;
+    name: string;
+    domain?: string;
+    locations?: OrganizationLocation[];
+  };
+}
+
+export interface TeamMember {
+  id: string;
+  email: string;
+  name?: string;
+  jobTitle?: string;
+  iShareWithThem: boolean;
+  theyShareWithMe: boolean;
 }
 
 // DTOs for API calls

@@ -65,6 +65,8 @@ model User {
   // Billing & Credits
   searchCredits     Int     @default(10)
   stripeCustomerId  String? @unique
+  stripeSubscriptionId          String?  @unique
+  subscriptionCancelAtPeriodEnd Boolean  @default(false)
   creditTransactions CreditTransaction[]
 
   // Trial
@@ -77,6 +79,10 @@ model User {
 
   // Refresh Tokens
   refreshTokens RefreshToken[]
+
+  // Sharing Preferences (democratic team model)
+  sharingFrom UserSharingPreference[] @relation("SharingFrom") // Preferences I set for others
+  sharingTo   UserSharingPreference[] @relation("SharingTo")   // Preferences others set for me
 }
 
 // Refresh Token Model for secure session management
@@ -116,8 +122,19 @@ model Organization {
   // Currency Settings
   baseCurrency String @default("PLN") // ISO 4217 currency code
 
+  // Shared Credit Pool
+  searchCredits     Int     @default(10)
+  trialCreditsUsed  Boolean @default(false)
+
+  // Billing (org-level)
+  plan                          String  @default("research") // "research" | "pay_as_you_go" | "unlimited"
+  stripeCustomerId              String? @unique
+  stripeSubscriptionId          String? @unique
+  subscriptionCancelAtPeriodEnd Boolean @default(false)
+
   users       User[]
   locations   OrganizationLocation[]
+  orgCreditTransactions OrgCreditTransaction[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -621,7 +638,7 @@ model CreditTransaction {
   userId           String
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   amount           Int      // +N for purchase, -1 for consumption
-  type             String   // "PURCHASE" | "CONSUMPTION" | "SUBSCRIPTION_GRANT"
+  type             String   // "PURCHASE" | "CONSUMPTION" | "SUBSCRIPTION_GRANT" | "CONTRIBUTION"
   description      String?
   stripeSessionId  String?
   campaignId       String?
@@ -630,4 +647,40 @@ model CreditTransaction {
 
   @@index([userId, createdAt])
   @@index([stripeSessionId])
+}
+
+// Organization-level credit transactions (shared pool)
+model OrgCreditTransaction {
+  id               String       @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId           String?      // Which user triggered this transaction
+  amount           Int          // +N for purchase/grant, -1 for consumption
+  type             String       // "TRIAL_GRANT" | "MEMBER_BONUS" | "CONSUMPTION" | "CONTRIBUTION" | "SUBSCRIPTION_GRANT"
+  description      String?
+  stripeSessionId  String?
+  campaignId       String?
+  balanceAfter     Int
+  createdAt        DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([stripeSessionId])
+}
+
+// Per-pair sharing preference (democratic team model)
+model UserSharingPreference {
+  id          String  @id @default(uuid())
+  fromUserId  String  // The user who owns the data
+  toUserId    String  // The user who can see the data
+  enabled     Boolean @default(false)
+
+  fromUser    User @relation("SharingFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser      User @relation("SharingTo", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([fromUserId, toUserId])
+  @@index([fromUserId])
+  @@index([toUserId])
 }

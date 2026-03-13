@@ -5,81 +5,30 @@ const itemVariants = {
     hidden: { opacity: 0, y: 15 },
     show: { opacity: 1, y: 0, transition: { duration: 0.3 } }
 };
-import { useForm } from 'react-hook-form';
-import { Users, Plus, Trash2, Loader2, Shield, User as UserIcon, Mail, Eye, FolderOpen, Globe } from 'lucide-react';
+import { Users, Loader2, User as UserIcon, Share2, LogOut, Info } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
 import { t } from '@/i18n';
 import organizationService from '@/services/organization.service';
-import type { OrgMember } from '@/services/organization.service';
+import type { TeamMember } from '@/services/organization.service';
 import { toast } from 'sonner';
 
 interface TeamTabProps {
-    user: any;
-}
-
-interface InviteFormData {
-    email: string;
-    role: string;
-    campaignAccess: string;
-}
-
-const ACCESS_OPTIONS = [
-    {
-        value: 'all',
-        label: t.settings.team.accessFull,
-        description: t.settings.team.accessFullDesc,
-        icon: Globe,
-    },
-    {
-        value: 'own',
-        label: t.settings.team.accessOwn,
-        description: t.settings.team.accessOwnDesc,
-        icon: FolderOpen,
-    },
-    {
-        value: 'readonly',
-        label: t.settings.team.accessReadonly,
-        description: t.settings.team.accessReadonlyDesc,
-        icon: Eye,
-    },
-];
-
-function getAccessLabel(access: string): string {
-    const opt = ACCESS_OPTIONS.find(o => o.value === access);
-    return opt?.label || access;
+    user: Record<string, unknown>;
 }
 
 export function TeamTab({ user }: TeamTabProps) {
-    const [members, setMembers] = useState<OrgMember[]>([]);
+    const [members, setMembers] = useState<TeamMember[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
-    const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
-
-    const { register, handleSubmit, reset, setValue, watch } = useForm<InviteFormData>({
-        defaultValues: { email: '', role: 'USER', campaignAccess: 'own' },
-    });
-
-    const selectedRole = watch('role');
-    const selectedAccess = watch('campaignAccess');
+    const [togglingId, setTogglingId] = useState<string | null>(null);
 
     const loadMembers = async () => {
         if (!user?.organizationId) return;
         try {
             setIsLoading(true);
-            const data = await organizationService.getMembers(user.organizationId);
+            const data = await organizationService.getSharingPreferences(user.organizationId);
             setMembers(data);
         } catch (error) {
             console.error('Failed to load members:', error);
@@ -91,56 +40,39 @@ export function TeamTab({ user }: TeamTabProps) {
 
     useEffect(() => {
         loadMembers();
-    }, [user?.organizationId]);
+    }, [user?.organizationId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const onSubmit = async (data: InviteFormData) => {
+    const handleToggleSharing = async (memberId: string, enabled: boolean) => {
         if (!user?.organizationId) return;
-        setIsSaving(true);
+        setTogglingId(memberId);
         try {
-            await organizationService.inviteMember(user.organizationId, {
-                email: data.email,
-                role: data.role,
-                campaignAccess: data.role === 'ADMIN' ? 'all' : data.campaignAccess,
-            });
-            toast.success(t.settings.team.inviteSent);
-            await loadMembers();
-            setIsDialogOpen(false);
-            reset({ email: '', role: 'USER', campaignAccess: 'own' });
-        } catch (error: any) {
-            console.error('Failed to invite member:', error);
-            toast.error(error?.message || t.common.error);
+            await organizationService.updateSharing(user.organizationId, memberId, enabled);
+            setMembers(prev => prev.map(m =>
+                m.id === memberId ? { ...m, iShareWithThem: enabled } : m
+            ));
+            toast.success(enabled ? t.settings.team.sharingEnabled : t.settings.team.sharingDisabled);
+        } catch (error: unknown) {
+            toast.error((error as { message?: string })?.message || t.common.error);
         } finally {
-            setIsSaving(false);
+            setTogglingId(null);
         }
     };
 
-    const handleRemove = async (memberId: string, memberEmail: string) => {
-        if (!confirm(`${t.settings.team.removeConfirm} ${memberEmail}?`)) return;
+    const handleLeaveOrg = async () => {
         if (!user?.organizationId) return;
+        if (!confirm(t.settings.team.leaveConfirm)) return;
 
         try {
-            await organizationService.removeMember(user.organizationId, memberId);
-            toast.success(t.common.deleted);
-            loadMembers();
-        } catch (error: any) {
-            console.error('Failed to remove member:', error);
-            toast.error(error?.message || t.common.error);
+            await organizationService.leaveOrganization(user.organizationId);
+            toast.success(t.settings.team.leftOrg);
+            window.location.reload();
+        } catch (error: unknown) {
+            toast.error((error as { message?: string })?.message || t.common.error);
         }
     };
 
-    const handleUpdateAccess = async (memberId: string, campaignAccess: string) => {
-        if (!user?.organizationId) return;
-        try {
-            await organizationService.updateUserAccess(user.organizationId, memberId, { campaignAccess });
-            toast.success(t.settings.team.accessUpdated);
-            setEditingMemberId(null);
-            loadMembers();
-        } catch (error: any) {
-            toast.error(error?.message || t.common.error);
-        }
-    };
-
-    const isAdmin = user?.role === 'ADMIN';
+    // Extract domain from user email
+    const domain = user?.email?.split('@')[1] || '';
 
     if (!user?.organizationId) {
         return (
@@ -155,19 +87,19 @@ export function TeamTab({ user }: TeamTabProps) {
     return (
         <motion.div variants={itemVariants} initial="hidden" animate="show">
             <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                        <CardTitle>{t.settings.team.title}</CardTitle>
-                        <CardDescription>{t.settings.team.subtitle}</CardDescription>
-                    </div>
-                    {isAdmin && (
-                        <Button onClick={() => setIsDialogOpen(true)} size="sm">
-                            <Plus className="mr-2 h-4 w-4" />
-                            {t.settings.team.invite}
-                        </Button>
-                    )}
+                <CardHeader>
+                    <CardTitle>{t.settings.team.title}</CardTitle>
+                    <CardDescription>{t.settings.team.subtitle}</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-6">
+                    {/* Auto-discovery info banner */}
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+                        <Info className="h-4 w-4 mt-0.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                        <p className="text-sm text-blue-700 dark:text-blue-300">
+                            {t.settings.team.autoDiscovery.replace('{domain}', `@${domain}`)}
+                        </p>
+                    </div>
+
                     {isLoading ? (
                         <div className="flex justify-center p-8">
                             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -186,176 +118,57 @@ export function TeamTab({ user }: TeamTabProps) {
                                 >
                                     <div className="flex items-center gap-4">
                                         <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                                            {member.role === 'ADMIN' ? (
-                                                <Shield className="h-4 w-4" />
-                                            ) : (
-                                                <UserIcon className="h-4 w-4" />
-                                            )}
+                                            <UserIcon className="h-4 w-4" />
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-2">
                                                 <span className="font-medium">
                                                     {member.name || member.email}
                                                 </span>
-                                                <Badge variant={member.role === 'ADMIN' ? 'default' : 'secondary'} className="text-[10px]">
-                                                    {member.role === 'ADMIN' ? t.settings.team.roleAdmin : t.settings.team.roleMember}
-                                                </Badge>
-                                                {member.id === user?.id && (
-                                                    <Badge variant="outline" className="text-[10px]">
-                                                        {t.settings.team.you}
+                                                {member.theyShareWithMe && (
+                                                    <Badge variant="default" className="text-[10px] bg-green-600">
+                                                        <Share2 className="h-3 w-3 mr-1" />
+                                                        {t.settings.team.sharesWithYou}
                                                     </Badge>
                                                 )}
                                             </div>
                                             <p className="text-sm text-muted-foreground">{member.email}</p>
-                                            <div className="flex items-center gap-2 mt-0.5">
-                                                {member.jobTitle && (
-                                                    <span className="text-xs text-muted-foreground">{member.jobTitle}</span>
-                                                )}
-                                                {member.role !== 'ADMIN' && (
-                                                    <>
-                                                        {editingMemberId === member.id ? (
-                                                            <div className="flex gap-1 mt-1">
-                                                                {ACCESS_OPTIONS.map((opt) => (
-                                                                    <button
-                                                                        key={opt.value}
-                                                                        onClick={() => handleUpdateAccess(member.id, opt.value)}
-                                                                        className={`text-[10px] px-2 py-0.5 rounded border transition-colors ${
-                                                                            member.campaignAccess === opt.value
-                                                                                ? 'border-primary bg-primary/10 text-primary'
-                                                                                : 'border-muted hover:border-primary/50'
-                                                                        }`}
-                                                                    >
-                                                                        {opt.label}
-                                                                    </button>
-                                                                ))}
-                                                            </div>
-                                                        ) : (
-                                                            <button
-                                                                onClick={() => isAdmin && member.id !== user?.id && setEditingMemberId(member.id)}
-                                                                className={`inline-flex items-center gap-1 text-xs text-muted-foreground ${isAdmin && member.id !== user?.id ? 'hover:text-foreground cursor-pointer' : ''}`}
-                                                            >
-                                                                <span>{getAccessLabel(member.campaignAccess)}</span>
-                                                            </button>
-                                                        )}
-                                                    </>
-                                                )}
-                                            </div>
+                                            {member.jobTitle && (
+                                                <span className="text-xs text-muted-foreground">{member.jobTitle}</span>
+                                            )}
                                         </div>
                                     </div>
 
-                                    {isAdmin && member.id !== user?.id && (
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                            onClick={() => handleRemove(member.id, member.email)}
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    )}
+                                    <div className="flex items-center gap-3">
+                                        <label className="flex items-center gap-2 cursor-pointer text-sm">
+                                            <span className="text-muted-foreground hidden sm:inline">
+                                                {t.settings.team.shareWith}
+                                            </span>
+                                            <Switch
+                                                checked={member.iShareWithThem}
+                                                onCheckedChange={(checked) => handleToggleSharing(member.id, checked)}
+                                                disabled={togglingId === member.id}
+                                            />
+                                        </label>
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     )}
+
+                    {/* Leave organization */}
+                    <div className="pt-4 border-t">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={handleLeaveOrg}
+                        >
+                            <LogOut className="mr-2 h-4 w-4" />
+                            {t.settings.team.leaveOrg}
+                        </Button>
+                    </div>
                 </CardContent>
-
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>{t.settings.team.inviteTitle}</DialogTitle>
-                            <DialogDescription>{t.settings.team.inviteSubtitle}</DialogDescription>
-                        </DialogHeader>
-
-                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="invite-email">Email</Label>
-                                <div className="relative">
-                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        id="invite-email"
-                                        type="email"
-                                        {...register('email', { required: true })}
-                                        placeholder={t.settings.team.invitePlaceholder}
-                                        className="pl-10"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>{t.settings.team.role}</Label>
-                                <div className="flex gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => setValue('role', 'USER')}
-                                        className={`flex-1 flex items-center gap-2 p-3 rounded-lg border-2 transition-colors text-sm ${selectedRole === 'USER'
-                                            ? 'border-primary bg-primary/5'
-                                            : 'border-muted hover:border-muted-foreground/30'
-                                            }`}
-                                    >
-                                        <UserIcon className="h-4 w-4" />
-                                        <div className="text-left">
-                                            <div className="font-medium">{t.settings.team.roleMember}</div>
-                                            <div className="text-xs text-muted-foreground">{t.settings.team.roleMemberDesc}</div>
-                                        </div>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setValue('role', 'ADMIN')}
-                                        className={`flex-1 flex items-center gap-2 p-3 rounded-lg border-2 transition-colors text-sm ${selectedRole === 'ADMIN'
-                                            ? 'border-primary bg-primary/5'
-                                            : 'border-muted hover:border-muted-foreground/30'
-                                            }`}
-                                    >
-                                        <Shield className="h-4 w-4" />
-                                        <div className="text-left">
-                                            <div className="font-medium">{t.settings.team.roleAdmin}</div>
-                                            <div className="text-xs text-muted-foreground">{t.settings.team.roleAdminDesc}</div>
-                                        </div>
-                                    </button>
-                                </div>
-                            </div>
-
-                            {selectedRole !== 'ADMIN' && (
-                                <div className="space-y-2">
-                                    <Label>{t.settings.team.campaignAccess}</Label>
-                                    <div className="space-y-2">
-                                        {ACCESS_OPTIONS.map((opt) => {
-                                            const Icon = opt.icon;
-                                            return (
-                                                <button
-                                                    key={opt.value}
-                                                    type="button"
-                                                    onClick={() => setValue('campaignAccess', opt.value)}
-                                                    className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-colors text-sm text-left ${
-                                                        selectedAccess === opt.value
-                                                            ? 'border-primary bg-primary/5'
-                                                            : 'border-muted hover:border-muted-foreground/30'
-                                                    }`}
-                                                >
-                                                    <Icon className="h-4 w-4 shrink-0" />
-                                                    <div>
-                                                        <div className="font-medium">{opt.label}</div>
-                                                        <div className="text-xs text-muted-foreground">{opt.description}</div>
-                                                    </div>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-
-                            <DialogFooter>
-                                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                                    {t.common.cancel}
-                                </Button>
-                                <Button type="submit" disabled={isSaving}>
-                                    {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    {t.settings.team.sendInvite}
-                                </Button>
-                            </DialogFooter>
-                        </form>
-                    </DialogContent>
-                </Dialog>
             </Card>
         </motion.div>
     );
