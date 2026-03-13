@@ -39,6 +39,8 @@ export const getUsers = (params?: Record<string, string>) =>
 
 export const getUserById = (id: string) => api.get(`/admin/users/${id}`);
 
+export const getUserBilling = (id: string) => api.get(`/admin/users/${id}/billing`);
+
 export const impersonateUser = (id: string) =>
     api.post(`/admin/users/${id}/impersonate`);
 

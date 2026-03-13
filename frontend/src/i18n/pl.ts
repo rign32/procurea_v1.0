@@ -793,6 +793,9 @@ export const PL = {
 
       packs: {
         title: 'Pakiety wyszukiwań',
+        header: 'Za cenę kawy \u2014 100 \u2014 250 dostawców w 15 minut',
+        headerSubtitle: 'Jedno wyszukiwanie zastępuje 10 godzin ręcznego researchu.',
+        coffeePrice: '\u2248 cena kawy',
         pack10: '10 wyszukiwań',
         pack25: '25 wyszukiwań',
         pack50: '50 wyszukiwań',
@@ -800,7 +803,7 @@ export const PL = {
         bestValue: 'Najlepsza cena',
         buy: 'Kup',
         perSearch: '/ wyszukiwanie',
-        noExpiry: 'Zakupione wyszukiwania nie wygasają — korzystaj w dowolnym momencie.',
+        noExpiry: 'Zakupione wyszukiwania nie wygasają \u2014 korzystaj w dowolnym momencie.',
         savings25: 'Oszczędzasz 20%',
         savings50: 'Oszczędzasz 33%',
       },
@@ -811,12 +814,7 @@ export const PL = {
       },
       or: 'lub',
 
-      hero: {
-        title: 'Za cenę kawy — 100-250 dostawców w 15 minut',
-        subtitle: 'Jedno wyszukiwanie zastępuje 10 godzin ręcznego researchu. Zweryfikowani dostawcy z danymi kontaktowymi.',
-      },
       orBuyPack: 'lub kup pojedynczy pakiet',
-      creditsAvailable: 'dostępnych wyszukiwań',
       showHistory: 'Pokaż historię transakcji',
       hideHistory: 'Ukryj historię transakcji',
 
@@ -829,6 +827,8 @@ export const PL = {
       subscription: {
         title: 'Subskrypcja bez limitu',
         description: 'Nieograniczone wyszukiwania dostawców co miesiąc',
+        header: 'Nieograniczone wyszukiwania dostawców co miesiąc',
+        headerSubtitle: 'Profesjonalny sourcing bez limitów \u2014 korzystaj ile chcesz.',
         subscribe: 'Subskrybuj',
         manage: 'Zarządzaj subskrypcją',
         perMonth: '/mies.',

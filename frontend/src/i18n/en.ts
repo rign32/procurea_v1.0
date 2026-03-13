@@ -795,6 +795,9 @@ export const EN: Translations = {
 
       packs: {
         title: 'Search packs',
+        header: 'For the price of a coffee \u2014 100 \u2014 250 suppliers in 15 minutes',
+        headerSubtitle: 'One search replaces 10 hours of manual research.',
+        coffeePrice: '\u2248 price of a coffee',
         pack10: '10 searches',
         pack25: '25 searches',
         pack50: '50 searches',
@@ -813,12 +816,7 @@ export const EN: Translations = {
       },
       or: 'or',
 
-      hero: {
-        title: 'For the price of a coffee — 100-250 suppliers in 15 minutes',
-        subtitle: 'One search replaces 10 hours of manual research. Verified suppliers with contact data.',
-      },
       orBuyPack: 'or buy a single pack',
-      creditsAvailable: 'searches available',
       showHistory: 'Show transaction history',
       hideHistory: 'Hide transaction history',
 
@@ -831,6 +829,8 @@ export const EN: Translations = {
       subscription: {
         title: 'Unlimited subscription',
         description: 'Unlimited supplier searches every month',
+        header: 'Unlimited supplier searches every month',
+        headerSubtitle: 'Professional sourcing without limits \u2014 use as much as you need.',
         subscribe: 'Subscribe',
         manage: 'Manage subscription',
         perMonth: '/mo',

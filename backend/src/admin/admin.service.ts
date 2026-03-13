@@ -178,8 +178,16 @@ export class AdminService {
                     lastLoginAt: true,
                     onboardingCompleted: true,
                     ssoProvider: true,
+                    plan: true,
+                    searchCredits: true,
+                    stripeSubscriptionId: true,
+                    subscriptionCancelAtPeriodEnd: true,
+                    trialCreditsUsed: true,
                     organization: {
-                        select: { id: true, name: true, domain: true },
+                        select: { id: true, name: true, domain: true, plan: true, searchCredits: true },
+                    },
+                    _count: {
+                        select: { ownedRfqs: true },
                     },
                 },
             }),
@@ -217,6 +225,97 @@ export class AdminService {
         return {
             ...user,
             apiUsageStats: apiStats,
+        };
+    }
+
+    async getUserBilling(userId: string) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                plan: true,
+                searchCredits: true,
+                stripeCustomerId: true,
+                stripeSubscriptionId: true,
+                subscriptionCancelAtPeriodEnd: true,
+                trialCreditsUsed: true,
+                organization: {
+                    select: { id: true, name: true, plan: true, searchCredits: true, stripeSubscriptionId: true },
+                },
+            },
+        });
+
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        const now = new Date();
+        const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+        // Get user's campaigns via RfqRequest.ownerId
+        const rfqs = await this.prisma.rfqRequest.findMany({
+            where: { ownerId: userId },
+            orderBy: { createdAt: 'desc' },
+            take: 30,
+            select: {
+                id: true,
+                createdAt: true,
+                campaign: {
+                    select: {
+                        id: true,
+                        name: true,
+                        status: true,
+                        createdAt: true,
+                        _count: { select: { suppliers: true } },
+                    },
+                },
+            },
+        });
+
+        const campaigns = rfqs
+            .filter(r => r.campaign)
+            .map(r => ({
+                id: r.campaign!.id,
+                name: r.campaign!.name,
+                status: r.campaign!.status,
+                createdAt: r.campaign!.createdAt,
+                suppliersCount: r.campaign!._count.suppliers,
+            }));
+
+        const totalSearches = await this.prisma.rfqRequest.count({
+            where: { ownerId: userId },
+        });
+
+        const monthlySearches = await this.prisma.rfqRequest.count({
+            where: { ownerId: userId, createdAt: { gte: firstDayOfMonth } },
+        });
+
+        const totalSuppliersFound = campaigns.reduce((sum, c) => sum + c.suppliersCount, 0);
+
+        // Credit transactions (personal)
+        const creditTransactions = await this.prisma.creditTransaction.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
+            take: 50,
+        });
+
+        return {
+            user: {
+                plan: user.plan,
+                searchCredits: user.searchCredits,
+                stripeCustomerId: user.stripeCustomerId,
+                stripeSubscriptionId: user.stripeSubscriptionId,
+                subscriptionCancelAtPeriodEnd: user.subscriptionCancelAtPeriodEnd,
+                trialCreditsUsed: user.trialCreditsUsed,
+            },
+            orgCredits: user.organization?.searchCredits ?? null,
+            orgPlan: user.organization?.plan ?? null,
+            orgName: user.organization?.name ?? null,
+            totalSearches,
+            monthlySearches,
+            totalSuppliersFound,
+            creditTransactions,
+            campaigns,
         };
     }
 

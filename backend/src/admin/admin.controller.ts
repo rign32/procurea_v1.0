@@ -71,6 +71,12 @@ export class AdminController {
         return this.adminService.getUserById(id);
     }
 
+    @Get('users/:id/billing')
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    async getUserBilling(@Param('id') id: string) {
+        return this.adminService.getUserBilling(id);
+    }
+
     @Post('users/:id/block')
     @UseGuards(AuthGuard('jwt'), AdminGuard)
     async blockUser(
