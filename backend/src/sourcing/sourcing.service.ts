@@ -1038,7 +1038,16 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                             negatives,
                         });
                     }
-                } else if (region === 'PL' || region === 'EU') {
+                } else if (region === 'PL') {
+                    // PL fallback — only Polish, no Global/EN worker
+                    const plQueries = fallbackQueries.map(q => q.replace(/manufacturer/g, 'producent').replace(/producer/g, 'producent'));
+                    languageStrategies.push({
+                        country: 'Polska',
+                        language: 'pl',
+                        queries: plQueries,
+                        negatives: [...negatives, '-olx', '-ceneo'],
+                    });
+                } else if (region === 'EU') {
                     const plQueries = fallbackQueries.map(q => q.replace(/manufacturer/g, 'producent').replace(/producer/g, 'producent'));
                     languageStrategies.push({
                         country: 'Polska',
@@ -1189,6 +1198,17 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                         .filter(([_, v]) => v.count < 3)
                         .map(([country, v]) => ({ country, language: v.language, count: v.count }));
 
+                    // Build allowed countries list for expansion agent
+                    const expRegion = dto.searchCriteria?.region || 'EU';
+                    let expAllowedCountries: string[] | undefined;
+                    if (expRegion === 'CUSTOM' && dto.searchCriteria?.targetCountries?.length) {
+                        expAllowedCountries = dto.searchCriteria.targetCountries
+                            .map((code: string) => StrategyAgentService.COUNTRY_LANGUAGES[code]?.countryName)
+                            .filter(Boolean);
+                    } else if (REGION_LANGUAGE_CONFIG[expRegion]) {
+                        expAllowedCountries = REGION_LANGUAGE_CONFIG[expRegion].countries;
+                    }
+
                     const expansionResult = await this.expansionAgent.execute({
                         productContext: productContext || null,
                         topSuppliers: topSuppliers.map(s => ({
@@ -1200,15 +1220,41 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                         })),
                         lowCoverageCountries,
                         discoveredDirectories: [],
-                        region: dto.searchCriteria?.region || 'EU',
+                        region: expRegion,
+                        allowedCountries: expAllowedCountries,
                     });
 
                     await this.log(id, `[EXPANSION] Generated ${expansionResult.expansion_queries.length} expansion queries`);
 
+                    // Filter expansion queries to only allowed countries for this region
+                    let filteredExpansionQueries = expansionResult.expansion_queries;
+                    const expansionRegionKey = dto.searchCriteria?.region;
+                    let expansionAllowedCountries: string[] | undefined;
+
+                    if (expansionRegionKey === 'CUSTOM' && dto.searchCriteria?.targetCountries?.length) {
+                        expansionAllowedCountries = dto.searchCriteria.targetCountries
+                            .map((code: string) => StrategyAgentService.COUNTRY_LANGUAGES[code]?.countryName)
+                            .filter(Boolean);
+                    } else if (expansionRegionKey && REGION_LANGUAGE_CONFIG[expansionRegionKey]) {
+                        expansionAllowedCountries = REGION_LANGUAGE_CONFIG[expansionRegionKey].countries;
+                    }
+
+                    if (expansionAllowedCountries?.length) {
+                        const allowedSet = new Set(expansionAllowedCountries.map(c => c.toLowerCase()));
+                        const beforeExp = filteredExpansionQueries.length;
+                        filteredExpansionQueries = filteredExpansionQueries.filter(eq =>
+                            allowedSet.has((eq.country || '').toLowerCase())
+                        );
+                        const removedExp = beforeExp - filteredExpansionQueries.length;
+                        if (removedExp > 0) {
+                            await this.log(id, `[EXPANSION] Filtered out ${removedExp} queries for unauthorized countries (allowed: [${expansionAllowedCountries.join(', ')}])`);
+                        }
+                    }
+
                     // Group expansion queries by language/country
                     const expansionStrategies = new Map<string, { country: string; language: string; queries: string[]; negatives: string[] }>();
 
-                    for (const eq of expansionResult.expansion_queries) {
+                    for (const eq of filteredExpansionQueries) {
                         const key = `${eq.country}/${eq.language}`;
                         if (!expansionStrategies.has(key)) {
                             expansionStrategies.set(key, {

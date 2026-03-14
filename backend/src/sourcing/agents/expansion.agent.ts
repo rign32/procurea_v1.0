@@ -8,6 +8,7 @@ export interface ExpansionInput {
     lowCoverageCountries: { country: string; language: string; count: number }[];
     discoveredDirectories: { url: string; companiesFound: number }[];
     region: string;
+    allowedCountries?: string[];
 }
 
 export interface ExpansionQuery {
@@ -77,6 +78,13 @@ ${associationsBlock}
 
 === ZNANE TARGI BRANŻOWE ===
 ${tradeShowsBlock}
+
+=== OGRANICZENIE REGIONALNE ===
+Region: ${input.region}
+${input.allowedCountries?.length ? `DOZWOLONE KRAJE: ${input.allowedCountries.join(', ')}` : ''}
+KRYTYCZNE: Generuj zapytania WYŁĄCZNIE dla krajów w tym regionie.
+${input.region === 'PL' ? 'Szukaj TYLKO w Polsce, używaj TYLKO języka polskiego.' : ''}
+NIE generuj zapytań dla krajów spoza tego regionu, nawet jeśli konkurenci tam działają.
 
 === TWOJE ZADANIE ===
 Wygeneruj 15-25 NOWYCH zapytań wyszukiwania, które znajdą dostawców POMINIĘTYCH w pierwszym przebiegu.

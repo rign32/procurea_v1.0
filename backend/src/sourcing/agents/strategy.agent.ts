@@ -132,7 +132,7 @@ export class StrategyAgentService {
   private readonly logger = new Logger(StrategyAgentService.name);
 
   // Country code → language mappings for CUSTOM region
-  private static readonly COUNTRY_LANGUAGES: Record<string, { languages: string[]; countryName: string; countryNamePL: string }> = {
+  static readonly COUNTRY_LANGUAGES: Record<string, { languages: string[]; countryName: string; countryNamePL: string }> = {
     'PL': { languages: ['pl'], countryName: 'Poland', countryNamePL: 'Polska' },
     'DE': { languages: ['de'], countryName: 'Germany', countryNamePL: 'Niemcy' },
     'CZ': { languages: ['cs'], countryName: 'Czech Republic', countryNamePL: 'Czechy' },
@@ -530,6 +530,30 @@ Output Format (JSON Only):
           this.logger.warn(
             `[STRATEGY] Filtered out ${filtered} strategies with unauthorized languages ` +
             `(allowed: [${Array.from(allowedLanguages).join(', ')}])`
+          );
+        }
+      }
+
+      // POST-PROCESSING: Filter strategies to only allowed countries from region config
+      if (result.strategies?.length > 0 && regionConfig.countries?.length > 0) {
+        const normalizeForMatch = (name: string) => {
+          const lower = name.toLowerCase().trim();
+          const aliases: Record<string, string> = {
+            'czechia': 'czech republic', 'the netherlands': 'netherlands',
+            'holland': 'netherlands', 'united states': 'usa',
+          };
+          return aliases[lower] || lower;
+        };
+        const allowedCountrySet = new Set(regionConfig.countries.map((c: string) => normalizeForMatch(c)));
+        const beforeCountry = result.strategies.length;
+        result.strategies = result.strategies.filter((s: any) =>
+          allowedCountrySet.has(normalizeForMatch(s.country || ''))
+        );
+        const filteredCountry = beforeCountry - result.strategies.length;
+        if (filteredCountry > 0) {
+          this.logger.warn(
+            `[STRATEGY] Filtered out ${filteredCountry} strategies for unauthorized countries ` +
+            `(allowed: [${regionConfig.countries.join(', ')}])`
           );
         }
       }
