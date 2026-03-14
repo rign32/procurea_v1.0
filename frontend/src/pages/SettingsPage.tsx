@@ -1,19 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Loader2, User as UserIcon, Building, MapPin, Bell, Users, CreditCard, ArrowUpRight } from 'lucide-react';
+import { Loader2, User as UserIcon, Building, MapPin, Bell, Users, CreditCard, ArrowUpRight, Receipt } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import { useUIStore } from '@/stores/ui.store';
-import { t } from '@/i18n';
+import { t, isEN } from '@/i18n';
 import { ProfileTab } from '@/components/settings/ProfileTab';
 import { OrganizationTab } from '@/components/settings/OrganizationTab';
 import { LocationsTab } from '@/components/settings/LocationsTab';
 import { TeamTab } from '@/components/settings/TeamTab';
 import { NotificationsTab } from '@/components/settings/NotificationsTab';
+import { TransactionHistoryTab } from '@/components/settings/TransactionHistoryTab';
 import { analytics } from '@/lib/analytics';
 
-type TabKey = 'profile' | 'organization' | 'locations' | 'team' | 'notifications';
+type TabKey = 'profile' | 'organization' | 'locations' | 'team' | 'notifications' | 'history';
 
-const VALID_TABS: TabKey[] = ['profile', 'organization', 'locations', 'team', 'notifications'];
+const VALID_TABS: TabKey[] = ['profile', 'organization', 'locations', 'team', 'notifications', 'history'];
 
 export function SettingsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -41,6 +42,7 @@ export function SettingsPage() {
     ...(isFullPlan ? [{ key: 'locations' as TabKey, label: t.settings.tabs.locations, icon: <MapPin className="h-4 w-4" /> }] : []),
     { key: 'team', label: t.settings.tabs.team, icon: <Users className="h-4 w-4" /> },
     { key: 'notifications', label: t.settings.tabs.notifications, icon: <Bell className="h-4 w-4" /> },
+    { key: 'history', label: isEN ? 'History' : 'Historia', icon: <Receipt className="h-4 w-4" /> },
   ];
 
   if (isLoading) {
@@ -94,6 +96,7 @@ export function SettingsPage() {
         {activeTab === 'locations' && <LocationsTab user={user} />}
         {activeTab === 'team' && <TeamTab user={user} />}
         {activeTab === 'notifications' && <NotificationsTab user={user} isFullPlan={isFullPlan} />}
+        {activeTab === 'history' && <TransactionHistoryTab user={user} />}
       </div>
     </div>
   );

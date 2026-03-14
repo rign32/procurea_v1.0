@@ -14,6 +14,7 @@ import {
     ShieldAlert,
     HelpCircle,
     Phone,
+    Infinity as InfinityIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { t, isEN } from "@/i18n"
@@ -42,6 +43,7 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     const isFullPlan = user?.plan === 'full';
+    const isUnlimited = user?.plan === 'unlimited' || (user as unknown as Record<string, unknown>)?.orgPlan === 'unlimited';
 
     const navigation = [
         { name: t.nav.dashboard, href: "/", icon: LayoutDashboard },
@@ -127,11 +129,26 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
 
                 <div className="border-t p-4">
                     <div className="flex items-center gap-3">
-                        <Avatar className="h-9 w-9 border-2 border-background shadow-soft">
-                            <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
-                                {user?.name?.substring(0, 2).toUpperCase() || user?.email?.substring(0, 2).toUpperCase() || 'U'}
-                            </AvatarFallback>
-                        </Avatar>
+                        <div className="relative">
+                            <Avatar className={cn(
+                                "h-9 w-9 shadow-soft",
+                                isUnlimited
+                                    ? "border-2 border-primary/60 ring-2 ring-primary/20 ring-offset-1 ring-offset-background"
+                                    : "border-2 border-background"
+                            )}>
+                                <AvatarFallback className={cn(
+                                    "text-xs font-semibold",
+                                    isUnlimited ? "bg-primary/15 text-primary" : "bg-primary/10 text-primary"
+                                )}>
+                                    {user?.name?.substring(0, 2).toUpperCase() || user?.email?.substring(0, 2).toUpperCase() || 'U'}
+                                </AvatarFallback>
+                            </Avatar>
+                            {isUnlimited && (
+                                <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-primary flex items-center justify-center ring-2 ring-background">
+                                    <InfinityIcon className="h-2.5 w-2.5 text-primary-foreground" />
+                                </div>
+                            )}
+                        </div>
                         <div className="flex flex-1 flex-col">
                             <span className="text-sm font-medium">{user?.name || 'User'}</span>
                             <span className="text-xs text-muted-foreground truncate">{user?.email || ''}</span>

@@ -1,16 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, Infinity as InfinityIcon, Loader2, ExternalLink, Check, XCircle, Zap, ChevronDown } from 'lucide-react';
+import { Search, Infinity as InfinityIcon, Loader2, ExternalLink, Check, XCircle, Zap } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { t, isEN } from '@/i18n';
 import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { billingService } from '@/services/billing.service';
 import type { BillingInfo } from '@/services/billing.service';
 import apiClient from '@/services/api.client';
 import { useAuthStore } from '@/stores/auth.store';
+import { ThankYouOverlay } from '@/components/billing/ThankYouOverlay';
 import type { User } from '@/types/campaign.types';
 
 const bt = t.settings.billing;
@@ -213,7 +214,7 @@ export function BillingTab({ user }: BillingTabProps) {
     const [loading, setLoading] = useState(true);
     const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
     const [cancelLoading, setCancelLoading] = useState(false);
-    const [historyOpen, setHistoryOpen] = useState(false);
+    const [showThankYou, setShowThankYou] = useState(false);
     const { setUser } = useAuthStore();
 
     const displayPrice = useCountUp(SUBSCRIPTION_PRICE_NET);
@@ -240,7 +241,7 @@ export function BillingTab({ user }: BillingTabProps) {
                 }
                 loadBillingInfo();
                 apiClient.get('/auth/me').then(res => { if (res.data?.id) setUser(res.data); }).catch(() => {});
-                toast.success(bt.checkout.success);
+                setShowThankYou(true);
             };
             fulfill();
         } else if (billingStatus === 'canceled') {
@@ -673,75 +674,38 @@ export function BillingTab({ user }: BillingTabProps) {
                 </>
             )}
 
-            {/* ===== 4. TRANSACTION HISTORY (collapsible) ===== */}
+            {/* ===== 4. RECENT TRANSACTIONS (last 3 + link to full history) ===== */}
             {transactions.length > 0 && (
-                <motion.div variants={itemVariants}>
-                    <button
-                        onClick={() => setHistoryOpen(!historyOpen)}
-                        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-2"
-                    >
-                        <motion.div
-                            animate={{ rotate: historyOpen ? 180 : 0 }}
-                            transition={{ duration: 0.2 }}
+                <motion.div variants={itemVariants} className="space-y-3">
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium text-muted-foreground">{bt.history.title}</h3>
+                        <a
+                            href="/settings?tab=history"
+                            className="text-xs text-primary hover:underline"
                         >
-                            <ChevronDown className="h-4 w-4" />
-                        </motion.div>
-                        {historyOpen ? bt.hideHistory : bt.showHistory}
-                    </button>
-
-                    <AnimatePresence>
-                        {historyOpen && (
-                            <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                transition={{ duration: 0.3 }}
-                                className="overflow-hidden mt-3"
-                            >
-                                <Card className="shadow-sm">
-                                    <CardContent className="p-0">
-                                        <div className="overflow-x-auto">
-                                            <table className="w-full">
-                                                <thead>
-                                                    <tr className="border-b bg-muted/40">
-                                                        <th className="text-left p-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{bt.history.date}</th>
-                                                        <th className="text-left p-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{bt.history.description}</th>
-                                                        <th className="text-right p-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{bt.history.amount}</th>
-                                                        <th className="text-right p-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{bt.history.balance}</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {transactions.map((tx) => (
-                                                        <tr key={tx.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                                                            <td className="p-4 py-4 text-sm text-muted-foreground whitespace-nowrap">
-                                                                {new Date(tx.createdAt).toLocaleDateString(isEN ? 'en-US' : 'pl-PL')}
-                                                            </td>
-                                                            <td className="p-4 py-4 text-sm">
-                                                                <div className="flex items-center gap-2">
-                                                                    <span>{tx.description || tx.type}</span>
-                                                                    {hasOrg && tx.source && (
-                                                                        <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                                                                            {tx.source === 'org' ? bt.sourceOrg : bt.sourcePersonal}
-                                                                        </Badge>
-                                                                    )}
-                                                                </div>
-                                                            </td>
-                                                            <td className={`p-4 py-4 text-right text-base font-semibold ${tx.amount > 0 ? 'text-green-600' : 'text-red-500'}`}>
-                                                                {tx.amount > 0 ? '+' : ''}{tx.amount}
-                                                            </td>
-                                                            <td className="p-4 py-4 text-right text-sm text-muted-foreground">{tx.balanceAfter}</td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                            {isEN ? 'View all' : 'Zobacz wszystko'} →
+                        </a>
+                    </div>
+                    <div className="space-y-2">
+                        {transactions.slice(0, 3).map((tx) => (
+                            <div key={tx.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/30 text-sm">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-muted-foreground text-xs whitespace-nowrap">
+                                        {new Date(tx.createdAt).toLocaleDateString(isEN ? 'en-US' : 'pl-PL')}
+                                    </span>
+                                    <span>{tx.description || tx.type}</span>
+                                </div>
+                                <span className={`font-semibold ${tx.amount > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                                    {tx.amount > 0 ? '+' : ''}{tx.amount}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
                 </motion.div>
             )}
+
+            {/* Thank You celebration overlay */}
+            <ThankYouOverlay open={showThankYou} onClose={() => setShowThankYou(false)} />
         </motion.div>
     );
 }

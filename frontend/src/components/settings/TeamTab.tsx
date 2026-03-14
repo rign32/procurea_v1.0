@@ -5,13 +5,15 @@ const itemVariants = {
     hidden: { opacity: 0, y: 15 },
     show: { opacity: 1, y: 0, transition: { duration: 0.3 } }
 };
-import { Users, Loader2, User as UserIcon, Share2, LogOut, Info } from 'lucide-react';
+import { Users, Loader2, User as UserIcon, Share2, LogOut, Info, ArrowRight, Coins } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { t } from '@/i18n';
+import { Input } from '@/components/ui/input';
+import { t, isEN } from '@/i18n';
 import organizationService from '@/services/organization.service';
+import { billingService } from '@/services/billing.service';
 import type { TeamMember } from '@/services/organization.service';
 import type { User } from '@/types/campaign.types';
 import { toast } from 'sonner';
@@ -24,6 +26,8 @@ export function TeamTab({ user }: TeamTabProps) {
     const [members, setMembers] = useState<TeamMember[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [togglingId, setTogglingId] = useState<string | null>(null);
+    const [contributeAmount, setContributeAmount] = useState('');
+    const [contributing, setContributing] = useState(false);
 
     const loadMembers = async () => {
         if (!user?.organizationId) return;
@@ -72,8 +76,32 @@ export function TeamTab({ user }: TeamTabProps) {
         }
     };
 
+    const handleContribute = async () => {
+        const amount = parseInt(contributeAmount, 10);
+        if (!amount || amount <= 0) return;
+        if (amount > (user?.personalCredits ?? 0)) {
+            toast.error(isEN ? 'Not enough personal credits' : 'Za mało osobistych kredytów');
+            return;
+        }
+        setContributing(true);
+        try {
+            await billingService.contributeCredits(amount);
+            toast.success(isEN
+                ? `Contributed ${amount} credits to team pool`
+                : `Przekazano ${amount} kredytów do puli zespołu`);
+            setContributeAmount('');
+            window.location.reload();
+        } catch (error: unknown) {
+            toast.error((error as { message?: string })?.message || t.common.error);
+        } finally {
+            setContributing(false);
+        }
+    };
+
     // Extract domain from user email
     const domain = user?.email?.split('@')[1] || '';
+    const personalCredits = user?.personalCredits ?? user?.searchCredits ?? 0;
+    const orgCredits = (user as unknown as Record<string, unknown>)?.orgCredits as number ?? 0;
 
     if (!user?.organizationId) {
         return (
@@ -93,6 +121,54 @@ export function TeamTab({ user }: TeamTabProps) {
                     <CardDescription>{t.settings.team.subtitle}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                    {/* Team credit pool */}
+                    <div className="p-4 rounded-lg border bg-muted/30 space-y-4">
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                            <Coins className="h-4 w-4 text-primary" />
+                            {isEN ? 'Team credit pool' : 'Pula kredytów zespołu'}
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="text-center p-3 rounded-lg bg-background border">
+                                <div className="text-2xl font-bold">{personalCredits}</div>
+                                <div className="text-xs text-muted-foreground">
+                                    {isEN ? 'My credits' : 'Moje kredyty'}
+                                </div>
+                            </div>
+                            <div className="text-center p-3 rounded-lg bg-background border">
+                                <div className="text-2xl font-bold">{orgCredits}</div>
+                                <div className="text-xs text-muted-foreground">
+                                    {isEN ? 'Team pool' : 'Pula zespołu'}
+                                </div>
+                            </div>
+                        </div>
+                        {personalCredits > 0 && (
+                            <div className="flex items-center gap-2">
+                                <Input
+                                    type="number"
+                                    min={1}
+                                    max={personalCredits}
+                                    value={contributeAmount}
+                                    onChange={(e) => setContributeAmount(e.target.value)}
+                                    placeholder={isEN ? 'Amount' : 'Ilość'}
+                                    className="w-24 h-9"
+                                />
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={handleContribute}
+                                    disabled={contributing || !contributeAmount || parseInt(contributeAmount) <= 0}
+                                >
+                                    {contributing ? (
+                                        <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                    ) : (
+                                        <ArrowRight className="h-3 w-3 mr-1" />
+                                    )}
+                                    {isEN ? 'Share with team' : 'Przekaż zespołowi'}
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+
                     {/* Auto-discovery info banner */}
                     <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
                         <Info className="h-4 w-4 mt-0.5 text-blue-600 dark:text-blue-400 shrink-0" />
