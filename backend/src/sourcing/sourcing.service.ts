@@ -2424,11 +2424,20 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
      */
     private async translateSpecialization(spec: string, targetLang: string = 'pl'): Promise<string> {
         if (!spec || spec.length < 3) return spec;
+
         const polishIndicators = /[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]|produkcj|dostaw|handl|przetw|wyrob|czujnik|sensor/i;
-        if (targetLang === 'pl' && polishIndicators.test(spec)) return spec;
+        const isPolish = polishIndicators.test(spec);
+
+        // Already in target language — skip translation
+        if (targetLang === 'pl' && isPolish) return spec;
+        if (targetLang === 'en' && !isPolish) return spec;
+
+        const langNames: Record<string, string> = { pl: 'polski', en: 'English', de: 'Deutsch' };
+        const langName = langNames[targetLang] || targetLang;
+
         try {
             const result = await this.geminiService.generateContent(
-                `Przetłumacz na polski. Zwróć TYLKO przetłumaczony tekst, max 5 słów.\n\nTekst: "${spec}"`
+                `Translate to ${langName}. Return ONLY the translated text, max 5 words.\n\nText: "${spec}"`
             );
             const translated = result.trim().replace(/^["']|["']$/g, '');
             return translated.length > 0 && translated.length < 100 ? translated : spec;
