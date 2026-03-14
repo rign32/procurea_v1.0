@@ -105,8 +105,9 @@ export function useRealTimeMonitor(
       },
 
       // Backend doesn't emit these, but keep as safety net
-      onCompleted: () => {
-        updateActiveCampaign({ status: 'COMPLETED', stage: 'COMPLETED' });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      onCompleted: (data: any) => {
+        updateActiveCampaign({ status: data?.status || 'COMPLETED', stage: 'COMPLETED' });
         progressRef.current.COMPLETED = 100;
       },
       onError: (error: any) => {

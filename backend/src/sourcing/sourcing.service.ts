@@ -605,7 +605,7 @@ export class SourcingService {
             where: { id },
             data: { status: 'STOPPED' },
         });
-        this.sourcingGateway?.emitCompleted(id);
+        this.sourcingGateway?.emitCompleted(id, 'STOPPED');
         return { success: true, message: 'Campaign stop signal sent' };
     }
 
@@ -2016,7 +2016,16 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
 
             // 3.1. COUNTRY VALIDATION — hard filters based on region config
             const regionKey = dto.searchCriteria?.region;
-            const regionConfig = regionKey ? REGION_LANGUAGE_CONFIG[regionKey] : undefined;
+            let regionConfig = regionKey ? REGION_LANGUAGE_CONFIG[regionKey] : undefined;
+
+            // CUSTOM region — build allowedCountries from user-selected targetCountries
+            if (regionKey === 'CUSTOM' && dto.searchCriteria?.targetCountries?.length) {
+                regionConfig = {
+                    allowedCountries: dto.searchCriteria.targetCountries.map(
+                        (code: string) => normalizeCountry(code)
+                    ),
+                } as any;
+            }
             let supplierCountryNorm = normalizeCountry(
                 enrichmentResult?.enriched_data?.country || screenerResult.extracted_data?.country || ''
             );

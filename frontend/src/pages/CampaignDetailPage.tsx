@@ -97,7 +97,8 @@ export function CampaignDetailPage() {
       await apiClient.post(`/campaigns/${id}/stop`);
       analytics.campaignStopped();
       toast.success(t.campaigns.detail.stoppedSuccess);
-      refetchCampaign();
+      queryClient.invalidateQueries({ queryKey: ['campaigns', id] });
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
     } catch (err: any) {
       toast.error(`${t.campaigns.detail.errorTitle}: ${err.response?.data?.message || err.message}`);
     }
