@@ -170,7 +170,7 @@ export function AgentAnimation({
                   <div
                     className={`h-full rounded-full bg-gradient-to-r ${area.gradient} transition-all duration-500`}
                     style={{
-                      width: isActive ? '100%' : `${30 + (areaIdx * 10)}%`,
+                      width: isActive ? '100%' : `${30 + (idx * 10)}%`,
                       opacity: isActive ? 1 : 0.4,
                     }}
                   />
