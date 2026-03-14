@@ -4,31 +4,21 @@ import { Injectable, UnauthorizedException, ForbiddenException } from '@nestjs/c
 import { Request } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
 
-// Custom extractor: try cookie first, then Authorization header
+// Custom extractor: try Authorization header first, then cookie
+// Bearer header takes priority because it's an explicit client intent,
+// while cookies may be sent automatically across subdomains (.procurea.pl)
 const cookieOrBearerExtractor = (req: Request): string | null => {
-    // DIAGNOSTICS: Log token extraction process
-    console.log('[JWT Strategy] Extracting token...');
-    console.log('[JWT Strategy] Request URL:', req.url);
-    console.log('[JWT Strategy] Cookies object present:', !!req.cookies);
-    console.log('[JWT Strategy] Cookie names:', req.cookies ? Object.keys(req.cookies).join(', ') : 'none');
-    console.log('[JWT Strategy] Has procurea_token cookie:', !!(req.cookies && req.cookies.procurea_token));
-
-    // Try to get token from httpOnly cookie
-    if (req.cookies && req.cookies.procurea_token) {
-        const tokenPreview = req.cookies.procurea_token.substring(0, 20) + '...';
-        console.log('[JWT Strategy] ✅ Found token in cookie:', tokenPreview);
-        return req.cookies.procurea_token;
-    }
-
-    // Fallback to Authorization header (for backwards compatibility and mobile apps)
+    // 1. Try Authorization header first (admin panel, mobile apps)
     const bearerToken = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
     if (bearerToken) {
-        const tokenPreview = bearerToken.substring(0, 20) + '...';
-        console.log('[JWT Strategy] ✅ Found token in Authorization header:', tokenPreview);
         return bearerToken;
     }
 
-    console.log('[JWT Strategy] ❌ No token found in cookies or Authorization header');
+    // 2. Fallback to httpOnly cookie (main app at app.procurea.pl)
+    if (req.cookies && req.cookies.procurea_token) {
+        return req.cookies.procurea_token;
+    }
+
     return null;
 };
 
