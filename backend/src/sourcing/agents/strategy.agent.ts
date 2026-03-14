@@ -281,8 +281,11 @@ export class StrategyAgentService {
       }
     }
 
-    // Always add English for international coverage
-    langSet.add('en');
+    // CUSTOM region: use only languages of selected countries
+    // EN added only as safety net if no languages found (shouldn't happen)
+    if (langSet.size === 0) {
+      langSet.add('en');
+    }
 
     const languages = Array.from(langSet).map(code => ({
       code,
@@ -470,6 +473,22 @@ Output Format (JSON Only):
 
       if (!result.strategies || result.strategies.length === 0) {
         this.logger.error(`[STRATEGY] No strategies generated! Full response: ${JSON.stringify(result).substring(0, 500)}`);
+      }
+
+      // POST-PROCESSING: Filter strategies to only allowed languages from region config
+      const allowedLanguages = new Set(regionConfig.languages.map(l => l.code));
+      if (result.strategies && result.strategies.length > 0) {
+        const before = result.strategies.length;
+        result.strategies = result.strategies.filter((s: any) =>
+          allowedLanguages.has(s.language)
+        );
+        const filtered = before - result.strategies.length;
+        if (filtered > 0) {
+          this.logger.warn(
+            `[STRATEGY] Filtered out ${filtered} strategies with unauthorized languages ` +
+            `(allowed: [${Array.from(allowedLanguages).join(', ')}])`
+          );
+        }
       }
 
       // POST-PROCESSING: Augment each strategy with specialized query templates
