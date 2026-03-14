@@ -28,6 +28,63 @@ export const REGION_LANGUAGE_CONFIG: Record<string, {
     negatives: ['-allegro', '-olx', '-sklep', '-hurtownia', '-ceneo', '-empik']
   },
 
+  // United States - English only
+  US: {
+    countries: ['USA'],
+    allowedCountries: ['USA', 'Stany Zjednoczone'],
+    languages: [
+      { code: 'en', name: 'English', queryPrefix: '' }
+    ],
+    searchSuffix: ['manufacturer', 'factory', 'producer', 'supplier'],
+    negatives: ['-amazon', '-ebay', '-walmart', '-shop', '-store']
+  },
+
+  // United Kingdom - English only
+  GB: {
+    countries: ['UK'],
+    allowedCountries: ['Wielka Brytania'],
+    languages: [
+      { code: 'en', name: 'English', queryPrefix: '' }
+    ],
+    searchSuffix: ['manufacturer', 'factory', 'producer', 'supplier'],
+    negatives: ['-amazon', '-ebay', '-argos', '-shop', '-store']
+  },
+
+  // Canada - English + French
+  CA: {
+    countries: ['Canada'],
+    allowedCountries: ['Kanada'],
+    languages: [
+      { code: 'en', name: 'English', queryPrefix: '' },
+      { code: 'fr', name: 'French', queryPrefix: '' }
+    ],
+    searchSuffix: ['manufacturer', 'factory', 'producer', 'fabricant'],
+    negatives: ['-amazon', '-ebay', '-shop', '-store']
+  },
+
+  // Australia - English only
+  AU: {
+    countries: ['Australia'],
+    allowedCountries: ['Australia'],
+    languages: [
+      { code: 'en', name: 'English', queryPrefix: '' }
+    ],
+    searchSuffix: ['manufacturer', 'factory', 'producer', 'supplier'],
+    negatives: ['-amazon', '-ebay', '-shop', '-store']
+  },
+
+  // China - Chinese + English
+  CN: {
+    countries: ['China'],
+    allowedCountries: ['Chiny'],
+    languages: [
+      { code: 'zh', name: 'Chinese (Simplified)', queryPrefix: '' },
+      { code: 'en', name: 'English', queryPrefix: '' }
+    ],
+    searchSuffix: ['manufacturer', 'factory', '\u5DE5\u5382', '\u5236\u9020\u5546', 'producer'],
+    negatives: ['-amazon', '-ebay', '-shop', '-store']
+  },
+
   // Europe - 12 major EU languages (economically weighted)
   EU: {
     countries: ['Germany', 'Poland', 'Czech Republic', 'France', 'Italy', 'Spain', 'Portugal', 'Netherlands', 'Belgium', 'Austria', 'Sweden', 'Romania', 'Denmark', 'Finland', 'Hungary', 'Ireland', 'Greece', 'Croatia'],

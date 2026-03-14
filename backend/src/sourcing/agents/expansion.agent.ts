@@ -84,6 +84,9 @@ Region: ${input.region}
 ${input.allowedCountries?.length ? `DOZWOLONE KRAJE: ${input.allowedCountries.join(', ')}` : ''}
 KRYTYCZNE: Generuj zapytania WYŁĄCZNIE dla krajów w tym regionie.
 ${input.region === 'PL' ? 'Szukaj TYLKO w Polsce, używaj TYLKO języka polskiego.' : ''}
+${['US', 'GB', 'AU'].includes(input.region) ? `Search ONLY in ${input.region === 'US' ? 'the United States' : input.region === 'GB' ? 'the United Kingdom' : 'Australia'}, use ONLY English.` : ''}
+${input.region === 'CA' ? 'Search ONLY in Canada, use English and French.' : ''}
+${input.region === 'CN' ? 'Search ONLY in China, use Chinese and English.' : ''}
 NIE generuj zapytań dla krajów spoza tego regionu, nawet jeśli konkurenci tam działają.
 
 === TWOJE ZADANIE ===

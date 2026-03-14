@@ -15,7 +15,7 @@ export type CampaignStage =
   | 'AUDIT'
   | 'COMPLETED';
 
-export type Region = 'PL' | 'EU' | 'GLOBAL' | 'GLOBAL_NO_CN' | 'CUSTOM';
+export type Region = 'PL' | 'US' | 'GB' | 'CA' | 'AU' | 'CN' | 'EU' | 'GLOBAL' | 'GLOBAL_NO_CN' | 'CUSTOM';
 
 export interface Campaign {
   id: string;

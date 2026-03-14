@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { useCreateCampaign } from '@/hooks/useCampaigns';
-import { t } from '@/i18n';
+import { t, isEN } from '@/i18n';
 import { toast } from 'sonner';
 import { EmailPreview } from '@/components/email/EmailPreview';
 import { sequencesService, type SequenceTemplate } from '@/services/sequences.service';
@@ -52,7 +52,7 @@ const step1Schema = z.object({
 });
 
 const step2Schema = z.object({
-  targetRegion: z.enum(['PL', 'EU', 'GLOBAL', 'GLOBAL_NO_CN', 'CUSTOM'], { error: t.campaigns.wizard.validation.selectRegion }),
+  targetRegion: z.enum(['PL', 'US', 'GB', 'CA', 'AU', 'CN', 'EU', 'GLOBAL', 'GLOBAL_NO_CN', 'CUSTOM'], { error: t.campaigns.wizard.validation.selectRegion }),
   incoterms: z.string().optional(),
   desiredDeliveryDate: z.string().optional(),
   deliveryLocationId: z.string().optional(),
@@ -75,13 +75,29 @@ const INCOTERMS_OPTIONS: { value: string; label: string; desc: string }[] = [
   { value: 'CIF', label: 'CIF', desc: t.campaigns.wizard.incotermsOptions.CIF },
 ];
 
-const REGION_OPTIONS: { value: Region; label: string; icon: string; desc: string }[] = [
+const SINGLE_COUNTRY_REGIONS = new Set(['PL', 'US', 'GB', 'CA', 'AU', 'CN']);
+
+const REGION_OPTIONS_PL: { value: Region; label: string; icon: string; desc: string }[] = [
   { value: 'PL', label: t.campaigns.wizard.search.regionPL, icon: '\u{1F1F5}\u{1F1F1}', desc: t.campaigns.wizard.search.regionDescPL },
   { value: 'EU', label: t.campaigns.wizard.search.regionEU, icon: '\u{1F1EA}\u{1F1FA}', desc: t.campaigns.wizard.search.regionDescEU },
   { value: 'GLOBAL', label: t.campaigns.wizard.search.regionGLOBAL, icon: '\u{1F30D}', desc: t.campaigns.wizard.search.regionDescGLOBAL },
   { value: 'GLOBAL_NO_CN', label: t.campaigns.wizard.search.regionGLOBAL_NO_CN, icon: '\u{1F30E}', desc: t.campaigns.wizard.search.regionDescGLOBAL_NO_CN },
   { value: 'CUSTOM', label: t.campaigns.wizard.search.regionCustom, icon: '\u{1F4CD}', desc: t.campaigns.wizard.search.regionDescCUSTOM },
 ];
+
+const REGION_OPTIONS_EN: { value: Region; label: string; icon: string; desc: string }[] = [
+  { value: 'US', label: t.campaigns.wizard.search.regionUS, icon: '\u{1F1FA}\u{1F1F8}', desc: t.campaigns.wizard.search.regionDescUS },
+  { value: 'GB', label: t.campaigns.wizard.search.regionGB, icon: '\u{1F1EC}\u{1F1E7}', desc: t.campaigns.wizard.search.regionDescGB },
+  { value: 'CA', label: t.campaigns.wizard.search.regionCA, icon: '\u{1F1E8}\u{1F1E6}', desc: t.campaigns.wizard.search.regionDescCA },
+  { value: 'AU', label: t.campaigns.wizard.search.regionAU, icon: '\u{1F1E6}\u{1F1FA}', desc: t.campaigns.wizard.search.regionDescAU },
+  { value: 'CN', label: t.campaigns.wizard.search.regionCN, icon: '\u{1F1E8}\u{1F1F3}', desc: t.campaigns.wizard.search.regionDescCN },
+  { value: 'EU', label: t.campaigns.wizard.search.regionEU, icon: '\u{1F1EA}\u{1F1FA}', desc: t.campaigns.wizard.search.regionDescEU },
+  { value: 'GLOBAL', label: t.campaigns.wizard.search.regionGLOBAL, icon: '\u{1F30D}', desc: t.campaigns.wizard.search.regionDescGLOBAL },
+  { value: 'GLOBAL_NO_CN', label: t.campaigns.wizard.search.regionGLOBAL_NO_CN, icon: '\u{1F30E}', desc: t.campaigns.wizard.search.regionDescGLOBAL_NO_CN },
+  { value: 'CUSTOM', label: t.campaigns.wizard.search.regionCustom, icon: '\u{1F4CD}', desc: t.campaigns.wizard.search.regionDescCUSTOM },
+];
+
+const REGION_OPTIONS = isEN ? REGION_OPTIONS_EN : REGION_OPTIONS_PL;
 
 interface RfqWizardProps {
   onComplete?: (campaignId: string) => void;
@@ -172,7 +188,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
       if (parsed.targetRegion === 'CUSTOM') {
         parsed.targetCountries = selectedCountries;
       }
-      if (excludedCountries.length > 0 && parsed.targetRegion !== 'CUSTOM' && parsed.targetRegion !== 'PL') {
+      if (excludedCountries.length > 0 && parsed.targetRegion !== 'CUSTOM' && !SINGLE_COUNTRY_REGIONS.has(parsed.targetRegion as string)) {
         parsed.excludedCountries = excludedCountries;
       }
     }
@@ -188,7 +204,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
         requiredCertificates: certificates,
         incoterms: selectedIncoterms.join(','),
         targetCountries: newFormData.targetRegion === 'CUSTOM' ? selectedCountries : undefined,
-        excludedCountries: (excludedCountries.length > 0 && newFormData.targetRegion !== 'CUSTOM' && newFormData.targetRegion !== 'PL') ? excludedCountries : undefined,
+        excludedCountries: (excludedCountries.length > 0 && newFormData.targetRegion !== 'CUSTOM' && !SINGLE_COUNTRY_REGIONS.has(newFormData.targetRegion as string)) ? excludedCountries : undefined,
         ...(attachments.length > 0 ? { attachments: JSON.stringify(attachments) } : {}),
       };
 
@@ -416,7 +432,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                 )}
 
                 {/* Exclude countries — shown for EU/GLOBAL/GLOBAL_NO_CN */}
-                {regionCodes.length > 0 && currentRegion !== 'CUSTOM' && currentRegion !== 'PL' && (
+                {regionCodes.length > 0 && currentRegion !== 'CUSTOM' && !SINGLE_COUNTRY_REGIONS.has(currentRegion) && (
                   <div>
                     <button
                       type="button"
