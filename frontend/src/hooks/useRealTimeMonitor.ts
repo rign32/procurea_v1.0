@@ -38,6 +38,7 @@ export function useRealTimeMonitor(
   const [wsConnected, setWsConnected] = useState(false);
   const lastLogTimestamp = useRef<string | undefined>(undefined);
   const previousCampaignId = useRef<string | undefined>(undefined);
+  const recentLogHashes = useRef<Set<string>>(new Set());
 
   const progressRef = useRef<Record<CampaignStage, number>>({
     STRATEGY: 0,
@@ -75,6 +76,12 @@ export function useRealTimeMonitor(
     const cleanup = websocketService.subscribeToCampaignEvents({
       onLog: (event: any) => {
         const message = event.message || '';
+        // Deduplicate: skip identical messages received within 2s window
+        const hash = message;
+        if (recentLogHashes.current.has(hash)) return;
+        recentLogHashes.current.add(hash);
+        setTimeout(() => recentLogHashes.current.delete(hash), 2000);
+
         const log: CampaignLog = {
           id: Date.now().toString() + Math.random().toString(36).slice(2, 6),
           campaignId: campaignId,

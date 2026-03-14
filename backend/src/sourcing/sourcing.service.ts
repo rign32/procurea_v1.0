@@ -614,7 +614,7 @@ export class SourcingService {
     private shouldStop(campaignId: string, qualifiedCount: number): string | null {
         if (this.cancelledCampaigns.has(campaignId)) return 'USER_STOPPED';
         const startTime = this.campaignStartTimes.get(campaignId);
-        if (startTime && Date.now() - startTime > this.PIPELINE_TIMEOUT_MS) return 'TIMEOUT_20MIN';
+        if (startTime && Date.now() - startTime > this.PIPELINE_TIMEOUT_MS) return 'TIMEOUT';
         if (qualifiedCount >= this.PIPELINE_SUPPLIER_LIMIT) return 'SUPPLIER_LIMIT_250';
         return null;
     }
@@ -822,15 +822,17 @@ OUTPUT FORMAT (JSON only):
         const MAX_TOTAL_QUALIFIED = parseInt(process.env.MAX_TOTAL_QUALIFIED || '300', 10);
         const MAX_PER_LANGUAGE = parseInt(process.env.MAX_PER_LANGUAGE || '80', 10);
 
-        // Auto-cancel timer: guarantees campaign completes even if pipeline is stuck
+        // Auto-timeout: shouldStop() checks elapsed time and returns 'TIMEOUT'
+        // This timer is a safety net — if pipeline is truly stuck, force completion
         const autoStopTimer = setTimeout(async () => {
-            if (!this.cancelledCampaigns.has(id)) {
-                this.cancelledCampaigns.add(id);
-                this.logger.warn(`[${id}] AUTO-TIMEOUT: Pipeline force-cancelled after ${this.PIPELINE_TIMEOUT_MS / 1000}s`);
-                await this.log(id, `[TIMEOUT] Pipeline auto-cancelled after ${this.PIPELINE_TIMEOUT_MS / 1000}s`).catch(() => {});
+            this.logger.warn(`[${id}] TIMEOUT: Pipeline exceeded ${this.PIPELINE_TIMEOUT_MS / 1000}s`);
+            await this.log(id, `[TIMEOUT] Pipeline exceeded ${this.PIPELINE_TIMEOUT_MS / 1000}s — finishing current work`).catch(() => {});
+            // Safety net: if still RUNNING after extra 60s, force-complete
+            setTimeout(async () => {
                 try {
                     const current = await this.prisma.campaign.findUnique({ where: { id }, select: { status: true } });
                     if (current && current.status === 'RUNNING') {
+                        this.logger.warn(`[${id}] SAFETY-NET: Force-completing stuck campaign`);
                         await this.prisma.campaign.update({
                             where: { id },
                             data: { stage: 'COMPLETED', status: 'COMPLETED' },
@@ -839,9 +841,9 @@ OUTPUT FORMAT (JSON only):
                         this.sourcingGateway?.emitCompleted(id);
                     }
                 } catch (e: any) {
-                    this.logger.error(`[${id}] AUTO-TIMEOUT DB update failed: ${e.message}`);
+                    this.logger.error(`[${id}] SAFETY-NET DB update failed: ${e.message}`);
                 }
-            }
+            }, 60000);
         }, this.PIPELINE_TIMEOUT_MS);
         this.campaignTimers.set(id, autoStopTimer);
 
@@ -1313,7 +1315,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                         })
                     );
 
-                    await this.allSettledWithTimeout(expansionProcessPromises, 300000, id);
+                    await this.allSettledWithTimeout(expansionProcessPromises, 120000, id);
 
                     await this.log(id, `[EXPANSION] Expansion pass found ${expansionFound} additional suppliers. Total: ${globalQualifiedCount}`);
                     this.sourcingGateway?.emitProgress(id, 'EXPANSION', 100);
@@ -1433,14 +1435,21 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             await this.log(id, `[RESULTS] Per-country: ${languageStats.join(' | ')}`);
             await this.log(id, `[ANALYSIS] Total suppliers found: ${finalSupplierCount} | URLs processed: ${processedCount}/${globalSeenDomains.size} | Time: ${elapsed}s`);
 
-            if (finalStopReason) {
-                await this.log(id, `[STOPPED] Pipeline stopped: ${finalStopReason} (${elapsed}s, ${finalSupplierCount} suppliers)`);
+            if (finalStopReason === 'USER_STOPPED') {
+                await this.log(id, `[STOPPED] Pipeline stopped by user (${elapsed}s, ${finalSupplierCount} suppliers)`);
+            } else if (finalStopReason === 'TIMEOUT') {
+                await this.log(id, `[COMPLETED] Pipeline completed (time limit reached: ${elapsed}s, ${finalSupplierCount} suppliers)`);
+            } else if (finalStopReason) {
+                await this.log(id, `[COMPLETED] Pipeline completed: ${finalStopReason} (${elapsed}s, ${finalSupplierCount} suppliers)`);
             } else {
-                await this.log(id, `[COMPLETED] Pipeline finished successfully!`);
+                await this.log(id, `[COMPLETED] Pipeline finished successfully! (${elapsed}s, ${finalSupplierCount} suppliers)`);
             }
 
-            // Use STOPPED status only if manually cancelled, otherwise COMPLETED
-            const finalStatus = this.cancelledCampaigns.has(id) ? 'STOPPED' : 'COMPLETED';
+            // STOPPED only for manual user cancellation, NOT for timeout
+            // Timeout = pipeline finished naturally (ran out of time) → COMPLETED
+            const wasManualStop = this.cancelledCampaigns.has(id) &&
+                !(this.campaignStartTimes.get(id) && Date.now() - this.campaignStartTimes.get(id)! > this.PIPELINE_TIMEOUT_MS);
+            const finalStatus = wasManualStop ? 'STOPPED' : 'COMPLETED';
             await this.prisma.campaign.update({
                 where: { id },
                 data: { stage: 'COMPLETED', status: finalStatus }
