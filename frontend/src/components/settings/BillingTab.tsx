@@ -651,10 +651,24 @@ export function BillingTab({ user }: BillingTabProps) {
                             })}
                         </div>
 
-                        {/* No-expiry note under packs */}
-                        <p className="text-xs text-muted-foreground text-center">
-                            {bt.packs.noExpiry}
-                        </p>
+                        {/* No-expiry banner — important info for non-subscription users */}
+                        <motion.div
+                            className="flex items-center justify-center gap-3 py-3 px-5 rounded-xl bg-gradient-to-r from-amber-50 via-amber-50/80 to-amber-50 border border-amber-200/60 shadow-sm"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.6, type: 'spring', stiffness: 300, damping: 20 }}
+                        >
+                            <motion.div
+                                className="flex items-center justify-center h-7 w-7 rounded-full bg-amber-400/20 shrink-0"
+                                animate={{ scale: [1, 1.15, 1] }}
+                                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                            >
+                                <span className="text-amber-600 font-bold text-sm">!</span>
+                            </motion.div>
+                            <p className="text-sm font-medium text-amber-900/80">
+                                {bt.packs.noExpiry}
+                            </p>
+                        </motion.div>
                     </motion.div>
                 </>
             )}
