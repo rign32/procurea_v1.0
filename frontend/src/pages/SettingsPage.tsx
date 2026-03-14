@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Loader2, User as UserIcon, Building, MapPin, Bell, Users } from 'lucide-react';
+import { Loader2, User as UserIcon, Building, MapPin, Bell, Users, CreditCard, ArrowUpRight } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
+import { useUIStore } from '@/stores/ui.store';
 import { t } from '@/i18n';
 import { ProfileTab } from '@/components/settings/ProfileTab';
 import { OrganizationTab } from '@/components/settings/OrganizationTab';
@@ -75,6 +76,15 @@ export function SettingsPage() {
             {tab.label}
           </button>
         ))}
+        {/* Plan button — opens popup */}
+        <button
+          onClick={() => useUIStore.getState().openBillingModal()}
+          className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors text-muted-foreground hover:text-foreground"
+        >
+          <CreditCard className="h-4 w-4" />
+          {t.settings.tabs.billing}
+          <ArrowUpRight className="h-3 w-3 opacity-50" />
+        </button>
       </div>
 
       {/* Tab Content */}
