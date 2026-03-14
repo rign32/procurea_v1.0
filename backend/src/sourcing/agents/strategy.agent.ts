@@ -314,6 +314,7 @@ export class StrategyAgentService {
     eau: number;
     productContext?: ProductContext;
     targetCountries?: string[];
+    excludedCountries?: string[];
     requiredCertificates?: string[];
   }): Promise<any> {
     this.logger.log(`Executing Strategy Agent for "${params.productName}" in region: ${params.region}`);
@@ -325,6 +326,48 @@ export class StrategyAgentService {
     } else {
       regionConfig = REGION_LANGUAGE_CONFIG[params.region as keyof typeof REGION_LANGUAGE_CONFIG]
         || REGION_LANGUAGE_CONFIG.EU;
+    }
+
+    // Apply user-selected country exclusions to preset regions
+    if (params.excludedCountries?.length && params.region !== 'CUSTOM') {
+      const excludedNames = new Set<string>();
+      const excludedNamesPL = new Set<string>();
+      for (const code of params.excludedCountries) {
+        const info = StrategyAgentService.COUNTRY_LANGUAGES[code];
+        if (info) {
+          excludedNames.add(info.countryName);
+          excludedNamesPL.add(info.countryNamePL);
+        }
+      }
+
+      // Filter countries and allowedCountries
+      const filteredCountries = regionConfig.countries.filter((c: string) => !excludedNames.has(c));
+      const filteredAllowed = (regionConfig.allowedCountries || []).filter((c: string) => !excludedNamesPL.has(c));
+
+      // Recalculate languages — only keep languages needed for remaining countries
+      const excludedSet = new Set(params.excludedCountries);
+      const remainingLangCodes = new Set<string>();
+      for (const [code, info] of Object.entries(StrategyAgentService.COUNTRY_LANGUAGES)) {
+        if (!excludedSet.has(code)) {
+          // Check if this country is in the region's allowed list
+          if (filteredAllowed.length === 0 || filteredAllowed.includes(info.countryNamePL) || filteredCountries.includes(info.countryName)) {
+            info.languages.forEach((l: string) => remainingLangCodes.add(l));
+          }
+        }
+      }
+      // Always keep EN if it was in original config (for international searches within remaining countries)
+      if (regionConfig.languages.some((l: { code: string }) => l.code === 'en')) {
+        remainingLangCodes.add('en');
+      }
+
+      regionConfig = {
+        ...regionConfig,
+        countries: filteredCountries,
+        allowedCountries: filteredAllowed,
+        languages: regionConfig.languages.filter((l: { code: string }) => remainingLangCodes.has(l.code)),
+      };
+
+      this.logger.log(`[STRATEGY] Applied exclusions: removed ${params.excludedCountries.join(', ')} → ${filteredCountries.length} countries, ${regionConfig.languages.length} languages remaining`);
     }
 
     const languageInstructions = regionConfig.languages

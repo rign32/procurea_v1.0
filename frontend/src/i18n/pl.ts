@@ -269,6 +269,9 @@ export const PL = {
         regionDescGLOBAL: 'Dostawcy z całego świata',
         regionDescGLOBAL_NO_CN: 'Globalnie z wyłączeniem Chin',
         regionDescCUSTOM: 'Wybierz konkretne kraje',
+        excludeCountries: 'Wyklucz kraje z regionu',
+        excludeCountriesSearch: 'Szukaj kraju do wykluczenia...',
+        excludedCountriesBadge: 'wykluczone',
         multiSelect: 'wielokrotny wybór',
       },
 

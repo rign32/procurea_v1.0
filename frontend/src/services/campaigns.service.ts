@@ -120,6 +120,7 @@ export const campaignsService = {
       searchCriteria: {
         region: dto.targetRegion || 'EU',
         targetCountries: dto.targetCountries,
+        excludedCountries: dto.excludedCountries,
         material: dto.material,
         eau: dto.eau,
         quantity: dto.quantity,

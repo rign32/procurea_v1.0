@@ -25,6 +25,13 @@ import { analytics } from '@/lib/analytics';
 import type { CreateCampaignDto, OrganizationLocation, Region } from '@/types/campaign.types';
 import { AVAILABLE_COUNTRIES } from '@/constants/countries';
 
+// Country codes per predefined region (for exclusion UI)
+const REGION_COUNTRY_CODES: Record<string, string[]> = {
+  EU: ['DE', 'PL', 'CZ', 'SK', 'HU', 'AT', 'FR', 'IT', 'ES', 'PT', 'NL', 'BE', 'CH', 'SE', 'RO', 'DK', 'FI', 'NO', 'GB', 'IE', 'HR', 'SI', 'BG', 'LT', 'LV', 'EE', 'LU', 'GR'],
+  GLOBAL: ['US', 'DE', 'JP', 'CN', 'KR', 'IN', 'MX', 'BR', 'GB', 'FR', 'IT', 'PL', 'TW', 'VN', 'TH', 'MY', 'TR', 'CZ', 'NL', 'SE', 'CH', 'AT', 'ID', 'ES', 'PT', 'CA', 'AU', 'HU', 'RO', 'DK', 'FI'],
+  GLOBAL_NO_CN: ['US', 'DE', 'JP', 'KR', 'IN', 'MX', 'BR', 'GB', 'FR', 'IT', 'PL', 'TW', 'VN', 'TH', 'MY', 'TR', 'CZ', 'NL', 'SE', 'CH', 'AT', 'ID', 'ES', 'PT', 'CA', 'AU', 'HU', 'RO', 'DK', 'FI'],
+};
+
 // Zod schemas — 4 steps
 const optionalNumber = z.preprocess(
   (val) => (val === '' || val === undefined || val === null || Number.isNaN(val) ? undefined : Number(val)),
@@ -91,6 +98,9 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
   const [attachments, setAttachments] = useState<{ id: string; filename: string; url: string; size: number }[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [countrySearch, setCountrySearch] = useState('');
+  const [excludedCountries, setExcludedCountries] = useState<string[]>([]);
+  const [excludeSearch, setExcludeSearch] = useState('');
+  const [showExcludePanel, setShowExcludePanel] = useState(false);
   const { user } = useAuthStore();
   const isFullPlan = user?.plan === 'full';
 
@@ -162,6 +172,9 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
       if (parsed.targetRegion === 'CUSTOM') {
         parsed.targetCountries = selectedCountries;
       }
+      if (excludedCountries.length > 0 && parsed.targetRegion !== 'CUSTOM' && parsed.targetRegion !== 'PL') {
+        parsed.excludedCountries = excludedCountries;
+      }
     }
 
     const newFormData = { ...formData, ...parsed };
@@ -175,6 +188,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
         requiredCertificates: certificates,
         incoterms: selectedIncoterms.join(','),
         targetCountries: newFormData.targetRegion === 'CUSTOM' ? selectedCountries : undefined,
+        excludedCountries: (excludedCountries.length > 0 && newFormData.targetRegion !== 'CUSTOM' && newFormData.targetRegion !== 'PL') ? excludedCountries : undefined,
         ...(attachments.length > 0 ? { attachments: JSON.stringify(attachments) } : {}),
       };
 
@@ -222,6 +236,14 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
   const filteredCountries = countrySearch
     ? AVAILABLE_COUNTRIES.filter(c => c.name.toLowerCase().includes(countrySearch.toLowerCase()))
     : AVAILABLE_COUNTRIES;
+
+  // Countries available for exclusion (based on selected region)
+  const currentRegion = form.watch('targetRegion') as string;
+  const regionCodes = REGION_COUNTRY_CODES[currentRegion] || [];
+  const excludeableCountries = AVAILABLE_COUNTRIES.filter(c => regionCodes.includes(c.code));
+  const filteredExcludeCountries = excludeSearch
+    ? excludeableCountries.filter(c => c.name.toLowerCase().includes(excludeSearch.toLowerCase()))
+    : excludeableCountries;
 
   const progressPercentage = ((currentStep + 1) / steps.length) * 100;
   const displayCertificates = certificates.join(', ');
@@ -302,7 +324,11 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                         <button
                           key={opt.value}
                           type="button"
-                          onClick={() => form.setValue('targetRegion', opt.value, { shouldValidate: true, shouldDirty: true })}
+                          onClick={() => {
+                            form.setValue('targetRegion', opt.value, { shouldValidate: true, shouldDirty: true });
+                            setExcludedCountries([]);
+                            setShowExcludePanel(false);
+                          }}
                           className={cn(
                             'flex items-center gap-3 p-4 rounded-lg border-2 transition-all text-left',
                             isSelected
@@ -385,6 +411,109 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                     </div>
                     {selectedCountries.length === 0 && (
                       <p className="text-xs text-destructive">{t.campaigns.wizard.validation.selectCountry}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Exclude countries — shown for EU/GLOBAL/GLOBAL_NO_CN */}
+                {regionCodes.length > 0 && currentRegion !== 'CUSTOM' && currentRegion !== 'PL' && (
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowExcludePanel(!showExcludePanel);
+                        if (!showExcludePanel) setExcludeSearch('');
+                      }}
+                      className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <Globe2 className="h-4 w-4" />
+                      <span>{t.campaigns.wizard.search.excludeCountries}</span>
+                      {excludedCountries.length > 0 && (
+                        <Badge variant="secondary" className="text-xs">{excludedCountries.length}</Badge>
+                      )}
+                      <span className="text-xs">{showExcludePanel ? '\u25B2' : '\u25BC'}</span>
+                    </button>
+
+                    {/* Excluded countries badges */}
+                    {excludedCountries.length > 0 && !showExcludePanel && (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {excludedCountries.map(code => {
+                          const c = AVAILABLE_COUNTRIES.find(ac => ac.code === code);
+                          return c ? (
+                            <Badge key={code} variant="destructive" className="flex items-center gap-1 pr-1 text-xs">
+                              {c.flag} {c.name}
+                              <button
+                                type="button"
+                                onClick={() => setExcludedCountries(prev => prev.filter(p => p !== code))}
+                                className="ml-0.5 rounded-full hover:bg-destructive/80 p-0.5"
+                              >
+                                <X className="h-2.5 w-2.5" />
+                              </button>
+                            </Badge>
+                          ) : null;
+                        })}
+                      </div>
+                    )}
+
+                    {showExcludePanel && (
+                      <div className="border rounded-lg p-3 mt-2 space-y-2">
+                        {/* Excluded badges inside panel */}
+                        {excludedCountries.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {excludedCountries.map(code => {
+                              const c = AVAILABLE_COUNTRIES.find(ac => ac.code === code);
+                              return c ? (
+                                <Badge key={code} variant="destructive" className="flex items-center gap-1 pr-1 text-xs">
+                                  {c.flag} {c.name}
+                                  <button
+                                    type="button"
+                                    onClick={() => setExcludedCountries(prev => prev.filter(p => p !== code))}
+                                    className="ml-0.5 rounded-full hover:bg-destructive/80 p-0.5"
+                                  >
+                                    <X className="h-2.5 w-2.5" />
+                                  </button>
+                                </Badge>
+                              ) : null;
+                            })}
+                          </div>
+                        )}
+                        {/* Search */}
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <input
+                            type="text"
+                            value={excludeSearch}
+                            onChange={(e) => setExcludeSearch(e.target.value)}
+                            placeholder={t.campaigns.wizard.search.excludeCountriesSearch}
+                            className="w-full pl-9 pr-3 py-2 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                          />
+                        </div>
+                        {/* Country list */}
+                        <div className="max-h-48 overflow-y-auto space-y-1">
+                          {filteredExcludeCountries.map(c => {
+                            const isExcluded = excludedCountries.includes(c.code);
+                            return (
+                              <label
+                                key={c.code}
+                                className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 cursor-pointer text-sm"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isExcluded}
+                                  onChange={() => {
+                                    setExcludedCountries(prev =>
+                                      isExcluded ? prev.filter(p => p !== c.code) : [...prev, c.code]
+                                    );
+                                  }}
+                                  className="h-3.5 w-3.5 rounded border-input"
+                                />
+                                <span>{c.flag}</span>
+                                <span>{c.name}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
                     )}
                   </div>
                 )}

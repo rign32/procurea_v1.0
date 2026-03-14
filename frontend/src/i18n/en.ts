@@ -271,6 +271,9 @@ export const EN: Translations = {
         regionDescGLOBAL: 'Suppliers worldwide',
         regionDescGLOBAL_NO_CN: 'Global excluding China',
         regionDescCUSTOM: 'Choose specific countries',
+        excludeCountries: 'Exclude countries from region',
+        excludeCountriesSearch: 'Search country to exclude...',
+        excludedCountriesBadge: 'excluded',
         multiSelect: 'multiple selection',
       },
 

@@ -862,6 +862,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 eau: dto.searchCriteria.eau || 1000,
                 productContext: productContext || undefined,
                 targetCountries: dto.searchCriteria.targetCountries,
+                excludedCountries: dto.searchCriteria.excludedCountries,
                 requiredCertificates: dto.searchCriteria.requiredCertificates,
             };
 
@@ -2093,6 +2094,19 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                     ),
                 } as any;
             }
+            // Merge user-excluded countries into regionConfig
+            if (dto.searchCriteria?.excludedCountries?.length && regionConfig) {
+                const userExcluded = dto.searchCriteria.excludedCountries
+                    .map((code: string) => normalizeCountry(code))
+                    .filter(Boolean);
+                regionConfig = {
+                    ...regionConfig,
+                    excludedCountries: [
+                        ...(regionConfig.excludedCountries || []),
+                        ...userExcluded,
+                    ],
+                };
+            }
             let supplierCountryNorm = normalizeCountry(
                 enrichmentResult?.enriched_data?.country || screenerResult.extracted_data?.country || ''
             );
@@ -2316,6 +2330,19 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                         (code: string) => normalizeCountry(code)
                     ),
                 } as any;
+            }
+            // Merge user-excluded countries into regionConfig
+            if (dto?.searchCriteria?.excludedCountries?.length && regionConfig) {
+                const userExcluded = dto.searchCriteria.excludedCountries
+                    .map((code: string) => normalizeCountry(code))
+                    .filter(Boolean);
+                regionConfig = {
+                    ...regionConfig,
+                    excludedCountries: [
+                        ...(regionConfig.excludedCountries || []),
+                        ...userExcluded,
+                    ],
+                };
             }
 
             // COUNTRY INFERENCE — when enrichment couldn't determine country, infer from context

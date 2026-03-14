@@ -226,6 +226,7 @@ export interface CreateCampaignDto {
   // Search Parameters
   targetRegion?: Region;
   targetCountries?: string[];
+  excludedCountries?: string[];
   requiredCertificates?: string[];
   additionalKeywords?: string[];
   supplierTypes?: string[];

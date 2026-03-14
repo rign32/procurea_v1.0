@@ -40,6 +40,11 @@ class SearchCriteriaDto {
     @IsOptional()
     @IsArray()
     @IsString({ each: true })
+    excludedCountries?: string[];
+
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
     requiredCertificates?: string[];
 
     @IsOptional()
