@@ -160,6 +160,14 @@ export class BillingService {
             invoice_creation: { enabled: true },
             billing_address_collection: 'required',
             customer_update: { address: 'auto', name: 'auto' },
+            ...(!isEn && {
+                custom_fields: [{
+                    key: 'nip',
+                    label: { type: 'custom' as const, custom: 'NIP' },
+                    type: 'text' as const,
+                    optional: true,
+                }],
+            }),
             ...(isEn && { automatic_tax: { enabled: true } }),
             metadata: {
                 userId,
@@ -226,6 +234,14 @@ export class BillingService {
             line_items: [lineItem],
             billing_address_collection: 'required',
             customer_update: { address: 'auto', name: 'auto' },
+            ...(!isEn && {
+                custom_fields: [{
+                    key: 'nip',
+                    label: { type: 'custom' as const, custom: 'NIP' },
+                    type: 'text' as const,
+                    optional: true,
+                }],
+            }),
             ...(isEn && { automatic_tax: { enabled: true } }),
             metadata: {
                 userId,
@@ -759,5 +775,43 @@ export class BillingService {
         });
 
         return { url: portalSession.url };
+    }
+
+    // --- Invoices ---
+
+    async getInvoices(userId: string): Promise<{ invoices: Array<{
+        id: string;
+        number: string;
+        date: string;
+        amount: number;
+        currency: string;
+        status: string;
+        pdfUrl: string | null;
+        hostedUrl: string | null;
+    }> }> {
+        const stripe = this.ensureStripe();
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { stripeCustomerId: true },
+        });
+        if (!user?.stripeCustomerId) return { invoices: [] };
+
+        const invoices = await stripe.invoices.list({
+            customer: user.stripeCustomerId,
+            limit: 50,
+        });
+
+        return {
+            invoices: invoices.data.map(inv => ({
+                id: inv.id,
+                number: inv.number || inv.id,
+                date: new Date((inv.created || 0) * 1000).toISOString(),
+                amount: inv.total || 0,
+                currency: inv.currency || 'pln',
+                status: inv.status || 'unknown',
+                pdfUrl: inv.invoice_pdf || null,
+                hostedUrl: inv.hosted_invoice_url || null,
+            })),
+        };
     }
 }

@@ -63,6 +63,13 @@ export class BillingController {
         return this.billingService.contributeCredits(userId, body.amount);
     }
 
+    @Get('invoices')
+    @UseGuards(AuthGuard('jwt'))
+    async getInvoices(@Req() req) {
+        const userId = req.user.userId || req.user.sub;
+        return this.billingService.getInvoices(userId);
+    }
+
     @Post('webhook')
     @SkipThrottle()
     async handleWebhook(@Req() req, @Headers('stripe-signature') signature: string) {

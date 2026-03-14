@@ -22,6 +22,17 @@ export interface BillingInfo {
     recentTransactions: (CreditTransaction & { source?: 'personal' | 'org' })[];
 }
 
+export interface StripeInvoice {
+    id: string;
+    number: string;
+    date: string;
+    amount: number;
+    currency: string;
+    status: string;
+    pdfUrl: string | null;
+    hostedUrl: string | null;
+}
+
 export const billingService = {
     getInfo: async (): Promise<BillingInfo> => {
         const { data } = await apiClient.get('/billing/info');
@@ -55,6 +66,11 @@ export const billingService = {
 
     contributeCredits: async (amount: number): Promise<{ personalCredits: number; orgCredits: number }> => {
         const { data } = await apiClient.post('/billing/contribute', { amount });
+        return data;
+    },
+
+    getInvoices: async (): Promise<{ invoices: StripeInvoice[] }> => {
+        const { data } = await apiClient.get('/billing/invoices');
         return data;
     },
 };
