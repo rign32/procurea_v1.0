@@ -519,6 +519,9 @@ export const PL = {
       unknownSupplier: 'Nieznany dostawca',
       exclude: 'Wyklucz',
       addToBlacklist: 'Dodaj do Blacklisty',
+      excludeConfirm: 'Czy na pewno chcesz wykluczyć tego dostawcę? Ta operacja jest nieodwracalna.',
+      excludeSuccess: 'Dostawca został wykluczony',
+      excludeError: 'Nie udało się wykluczyć dostawcy',
     },
 
     page: {

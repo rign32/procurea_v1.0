@@ -12,6 +12,7 @@ import { useCampaign, useExportCampaign } from '@/hooks/useCampaigns';
 import { useRealTimeMonitor } from '@/hooks/useRealTimeMonitor';
 import useCampaignsStore from '@/stores/campaigns.store';
 import campaignsService from '@/services/campaigns.service';
+import { suppliersService } from '@/services/suppliers.service';
 import apiClient from '@/services/api.client';
 import { useAuthStore } from '@/stores/auth.store';
 import { t, isEN } from '@/i18n';
@@ -48,6 +49,7 @@ export function CampaignDetailPage() {
   const queryClient = useQueryClient();
   const [showDelete, setShowDelete] = useState(false);
   const [excludedIds, setExcludedIds] = useState<string[]>([]);
+  const [excludingId, setExcludingId] = useState<string | null>(null);
   const [accepting, setAccepting] = useState(false);
   const { user } = useAuthStore();
   const isFullPlan = user?.plan === 'full';
@@ -173,10 +175,20 @@ export function CampaignDetailPage() {
     }
   };
 
-  const handleExclude = (supplierId: string) => {
-    setExcludedIds(prev =>
-      prev.includes(supplierId) ? prev.filter(id => id !== supplierId) : [...prev, supplierId],
-    );
+  const handleExclude = async (supplierId: string) => {
+    if (excludingId) return;
+    if (!window.confirm(t.suppliers.card.excludeConfirm)) return;
+
+    setExcludingId(supplierId);
+    try {
+      await suppliersService.exclude(supplierId);
+      setExcludedIds(prev => [...prev, supplierId]);
+      toast.success(t.suppliers.card.excludeSuccess);
+    } catch {
+      toast.error(t.suppliers.card.excludeError);
+    } finally {
+      setExcludingId(null);
+    }
   };
 
   if (campaignLoading) {

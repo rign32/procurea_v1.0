@@ -521,6 +521,9 @@ export const EN: Translations = {
       unknownSupplier: 'Unknown supplier',
       exclude: 'Exclude',
       addToBlacklist: 'Add to Blacklist',
+      excludeConfirm: 'Are you sure you want to exclude this supplier? This action cannot be undone.',
+      excludeSuccess: 'Supplier has been excluded',
+      excludeError: 'Failed to exclude supplier',
     },
 
     page: {

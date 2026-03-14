@@ -518,6 +518,7 @@ export class SourcingService {
             where: { id },
             include: {
                 suppliers: {
+                    where: { deletedAt: null },
                     include: { contacts: true },
                     orderBy: { analysisScore: 'desc' },
                 },
