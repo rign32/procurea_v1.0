@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Loader2, Search, Building2, Mail, ShieldCheck, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useSuppliers } from '@/hooks/useSuppliers';
 import { t } from '@/i18n';
@@ -63,7 +63,7 @@ export function RegistryPage() {
     return { total, withEmails, avgScore };
   }, [companies]);
 
-  if (isLoading) {
+  if (!data && isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

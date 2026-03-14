@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import campaignsService from '../services/campaigns.service';
 import useCampaignsStore from '../stores/campaigns.store';
-import type { CreateCampaignDto, UpdateCampaignDto, Campaign } from '../types/campaign.types';
+import type { CreateCampaignDto, UpdateCampaignDto } from '../types/campaign.types';
 
 /**
  * React Query hook - Pobierz wszystkie kampanie
@@ -17,7 +17,6 @@ export function useCampaigns() {
       return campaigns;
     },
     staleTime: 30000, // 30 seconds
-    refetchOnWindowFocus: true,
   });
 }
 

@@ -90,7 +90,7 @@ export default function Dashboard() {
 
       {/* Stats Cards */}
       <div className={`grid gap-4 md:grid-cols-2 ${isFullPlan ? 'lg:grid-cols-3' : 'lg:grid-cols-2'}`}>
-        {isLoading ? (
+        {!campaigns && isLoading ? (
           Array.from({ length: isFullPlan ? 3 : 2 }).map((_, i) => (
             <Card key={i}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -158,7 +158,7 @@ export default function Dashboard() {
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {!campaigns && isLoading ? (
             <div className="space-y-2 pt-2">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="flex items-center gap-4 p-3 rounded-lg bg-muted/20">

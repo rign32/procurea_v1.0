@@ -181,7 +181,7 @@ export function SuppliersPage() {
       ? (campaigns.find(c => c.id === selectedCampaigns[0])?.name?.replace(/^Kampania:\s*/i, '') || t.nav.campaigns)
       : `${selectedCampaigns.length} ${selectedCampaigns.length < 5 ? t.suppliers.page.campaigns : t.suppliers.page.campaignsMany}`;
 
-  if (isLoading) {
+  if (!data && isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

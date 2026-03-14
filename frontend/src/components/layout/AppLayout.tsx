@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react"
 import { Link, Outlet, useLocation, useSearchParams } from "react-router-dom"
-import { motion, AnimatePresence } from "framer-motion"
 import {
     LayoutDashboard,
     Target,
@@ -178,18 +177,9 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
                 </header>
 
                 <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-muted/10">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={location.pathname}
-                            initial={{ opacity: 0, y: 15 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -15 }}
-                            transition={{ duration: 0.25, ease: "easeOut" }}
-                            className="h-full"
-                        >
-                            <Outlet />
-                        </motion.div>
-                    </AnimatePresence>
+                    <div className="h-full">
+                        <Outlet />
+                    </div>
                 </main>
             </div>
 
