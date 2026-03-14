@@ -1017,17 +1017,21 @@ export class AuthController {
         if (!userId) userId = body.userId;
         if (!userId) throw new BadRequestException('Missing userId');
 
-        const user = await this.authService.completeOnboarding(userId, body);
+        await this.authService.completeOnboarding(userId, body);
+
+        // Re-fetch user with organization included (credits were transferred to org during onboarding)
+        const fullUser = await this.authService.getUserById(userId);
+        if (!fullUser) throw new BadRequestException('User not found after onboarding');
 
         // After completion, return fresh token with potentially updated roles/claims
-        const payload = { sub: user.id, email: user.email, role: user.role };
+        const payload = { sub: fullUser.id, email: fullUser.email, role: fullUser.role };
         const token = this.jwtService.sign(payload);
 
         // Set authentication cookie
         const isProduction = isProductionEnvironment();
         res.cookie('procurea_token', token, getCookieOptions(isProduction, getCookieDomain(req)));
 
-        return user;
+        return this.buildUserResponse(fullUser);
     }
 
     @Post('phone/remind')
