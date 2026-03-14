@@ -4,6 +4,7 @@
     <!-- Geo-redirect: PL users → procurea.pl, non-PL → procurea.io -->
     <script>
     (function() {
+      if (location.search.indexOf('noredirect') !== -1) { sessionStorage.setItem('geo-no-redirect', '1'); return; }
       if (sessionStorage.getItem('geo-no-redirect')) return;
 
       var host = location.hostname;
