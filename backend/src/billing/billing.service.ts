@@ -158,6 +158,8 @@ export class BillingService {
             locale: isEn ? 'en' : 'pl',
             line_items: [lineItem],
             invoice_creation: { enabled: true },
+            billing_address_collection: 'required',
+            customer_update: { address: 'auto', name: 'auto' },
             ...(isEn && { automatic_tax: { enabled: true } }),
             metadata: {
                 userId,
@@ -222,6 +224,8 @@ export class BillingService {
             mode: 'subscription',
             locale: isEn ? 'en' : 'pl',
             line_items: [lineItem],
+            billing_address_collection: 'required',
+            customer_update: { address: 'auto', name: 'auto' },
             ...(isEn && { automatic_tax: { enabled: true } }),
             metadata: {
                 userId,
