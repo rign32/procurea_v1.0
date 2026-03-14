@@ -14,8 +14,8 @@ const FLOW_AREAS = [
     label: 'Strategia',
     description: 'Generowanie zapytań wyszukiwania',
     icon: Brain,
-    gradient: 'from-blue-500 to-blue-600',
-    glowColor: 'rgba(59, 130, 246, 0.3)',
+    gradient: 'from-[#5E8C8F] to-[#2A5C5D]',
+    glowColor: 'rgba(94, 140, 143, 0.3)',
     duration: 4000,
   },
   {
@@ -32,8 +32,8 @@ const FLOW_AREAS = [
     label: 'Analiza',
     description: 'Ocena dostawców',
     icon: BarChart3,
-    gradient: 'from-violet-500 to-purple-600',
-    glowColor: 'rgba(139, 92, 246, 0.3)',
+    gradient: 'from-[#8E8396] to-[#6B5E7A]',
+    glowColor: 'rgba(142, 131, 150, 0.3)',
     duration: 6000,
   },
   {
@@ -49,7 +49,6 @@ const FLOW_AREAS = [
 
 export function AgentAnimation({
   currentStage,
-  progress: _progress,
   suppliersFound,
 }: AgentAnimationProps) {
   const isCompleted = currentStage === 'COMPLETED';
@@ -79,10 +78,7 @@ export function AgentAnimation({
 
   // Animate dots
   useEffect(() => {
-    if (isCompleted) {
-      setDots([]);
-      return;
-    }
+    if (isCompleted) return;
     const interval = setInterval(() => {
       setDots((prev) =>
         prev
@@ -174,7 +170,7 @@ export function AgentAnimation({
                   <div
                     className={`h-full rounded-full bg-gradient-to-r ${area.gradient} transition-all duration-500`}
                     style={{
-                      width: isActive ? '100%' : `${30 + Math.random() * 40}%`,
+                      width: isActive ? '100%' : `${30 + (areaIdx * 10)}%`,
                       opacity: isActive ? 1 : 0.4,
                     }}
                   />

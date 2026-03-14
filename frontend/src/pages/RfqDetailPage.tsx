@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
@@ -375,7 +376,7 @@ export function RfqDetailPage() {
                   <p className="text-muted-foreground">{t.rfqs.detail.linkedCampaign}</p>
                   <button
                     onClick={() => navigate(`/campaigns/${rfq.campaignId}`)}
-                    className="font-medium text-indigo-600 hover:underline"
+                    className="font-medium text-primary hover:underline"
                   >
                     {rfq.campaign?.name || 'Kampania'}
                   </button>
@@ -409,7 +410,7 @@ export function RfqDetailPage() {
       {/* Comparison Result */}
       {comparisonResult && (
         <motion.div variants={itemVariants}>
-          <Card className="border-indigo-200 bg-indigo-50/50">
+          <Card className="border-[#C5E0E2] bg-[#EDF4F4]/50">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Porównanie ofert</CardTitle>
               {comparisonResult.baseCurrency && (
@@ -455,7 +456,7 @@ export function RfqDetailPage() {
                           <td className="py-2 pr-4">
                             <Link
                               to={`/suppliers/${offer.supplier?.id}`}
-                              className="font-medium text-indigo-600 hover:underline"
+                              className="font-medium text-primary hover:underline"
                             >
                               {offer.supplier?.name || '—'}
                             </Link>
@@ -499,7 +500,7 @@ export function RfqDetailPage() {
           {offers.map((offer: Offer) => (
             <motion.div variants={itemVariants} key={offer.id}>
               <Card
-                className={`transition-shadow ${selectedOffers.has(offer.id) ? 'ring-2 ring-indigo-300' : ''}`}
+                className={`transition-shadow ${selectedOffers.has(offer.id) ? 'ring-2 ring-[#A9CDD0]' : ''}`}
               >
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-4">
@@ -519,7 +520,7 @@ export function RfqDetailPage() {
                         <div className="flex items-center gap-2 flex-wrap">
                           <Link
                             to={`/suppliers/${offer.supplier?.id}`}
-                            className="font-semibold text-indigo-600 hover:underline"
+                            className="font-semibold text-primary hover:underline"
                           >
                             {offer.supplier?.name || 'Dostawca'}
                           </Link>

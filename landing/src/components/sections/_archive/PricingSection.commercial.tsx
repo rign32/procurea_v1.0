@@ -34,10 +34,10 @@ const plans = [
     cta: "Kup kredyt",
     note: "1 pełny proces sourcingu AI",
     icon: Zap,
-    iconBg: "bg-gradient-to-br from-blue-500 to-blue-600",
+    iconBg: "bg-gradient-to-br from-brand-500 to-brand-600",
     iconColor: "text-white",
-    lightBg: "bg-gradient-to-br from-blue-50/30 to-indigo-50/20",
-    borderAccent: "border-blue-200/50",
+    lightBg: "bg-gradient-to-br from-brand-50/30 to-brand-50/20",
+    borderAccent: "border-brand-200/50",
   },
   {
     name: "Pakiet 20 kredytów",
@@ -51,7 +51,7 @@ const plans = [
     cta: "Kup pakiet",
     note: "Oszczędzasz 50% na każdym procesie",
     icon: Package,
-    iconBg: "bg-gradient-to-br from-indigo-500 to-violet-500",
+    iconBg: "bg-gradient-to-br from-brand-500 to-brand-700",
     iconColor: "text-white",
     lightBg: "",
     borderAccent: "",
@@ -85,14 +85,14 @@ export function PricingSection() {
   return (
     <section id="cennik" className="py-24 lg:py-32 relative overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-indigo-50/30 to-background pointer-events-none" />
-      <div className="absolute top-20 left-0 w-[500px] h-[500px] rounded-full bg-indigo-500/[0.03] blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-20 right-0 w-[400px] h-[400px] rounded-full bg-violet-500/[0.03] blur-[80px] pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-brand-50/30 to-background pointer-events-none" />
+      <div className="absolute top-20 left-0 w-[500px] h-[500px] rounded-full bg-brand-500/[0.03] blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-20 right-0 w-[400px] h-[400px] rounded-full bg-brand-900/[0.03] blur-[80px] pointer-events-none" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         <RevealOnScroll>
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <p className="text-sm font-semibold text-indigo-600 tracking-wide uppercase mb-3">
+            <p className="text-sm font-semibold text-brand-700 tracking-wide uppercase mb-3">
               Cennik
             </p>
             <h2 className="text-3xl sm:text-4xl lg:text-[2.75rem] font-bold tracking-tight mb-5">
@@ -121,13 +121,13 @@ export function PricingSection() {
             >
               {/* Gradient border for highlighted */}
               {plan.highlight && (
-                <div className="absolute -inset-[1.5px] rounded-2xl bg-gradient-to-b from-indigo-500 via-violet-500 to-blue-500 opacity-100" />
+                <div className="absolute -inset-[1.5px] rounded-2xl bg-gradient-to-b from-brand-700 via-brand-500 to-brand-400 opacity-100" />
               )}
 
               <div
                 className={`relative rounded-2xl bg-card p-7 lg:p-8 h-full flex flex-col transition-all duration-300 ${
                   plan.highlight
-                    ? "border-0 shadow-lg shadow-indigo-500/10"
+                    ? "border-0 shadow-lg shadow-brand-500/10"
                     : `border ${plan.borderAccent} ${plan.lightBg} hover:shadow-lg hover:shadow-black/[0.05]`
                 }`}
               >
@@ -204,13 +204,13 @@ export function PricingSection() {
         {/* What every credit includes */}
         <RevealOnScroll delay={0.2}>
           <div className="mt-16 max-w-3xl mx-auto">
-            <div className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-white to-indigo-50/30 p-8 lg:p-10">
+            <div className="rounded-2xl border border-brand-100 bg-gradient-to-br from-white to-brand-50/30 p-8 lg:p-10">
               <h3 className="text-lg font-bold mb-5 text-center">Każdy kredyt zawiera</h3>
               <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3.5">
                 {creditIncludes.map((item) => (
                   <div key={item} className="flex items-center gap-3 text-sm sm:text-[0.925rem]">
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100">
-                      <Check className="h-3 w-3 text-indigo-600" />
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-100">
+                      <Check className="h-3 w-3 text-brand-700" />
                     </div>
                     <span className="text-muted-foreground">{item}</span>
                   </div>

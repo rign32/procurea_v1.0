@@ -397,14 +397,14 @@ export function BillingTab({ user }: BillingTabProps) {
                             <div
                                 className="absolute inset-0 animate-border-rotate"
                                 style={{
-                                    background: 'conic-gradient(from var(--border-angle, 0deg), hsl(226 100% 55%) 0%, transparent 25%, transparent 75%, hsl(226 100% 55%) 100%)',
+                                    background: 'conic-gradient(from var(--border-angle, 0deg), hsl(183 22% 46%) 0%, transparent 25%, transparent 75%, hsl(183 22% 46%) 100%)',
                                 }}
                             />
                             {/* Glow layer */}
                             <div
                                 className="absolute inset-0 animate-border-rotate blur-md"
                                 style={{
-                                    background: 'conic-gradient(from var(--border-angle, 0deg), hsl(226 100% 55% / 0.3) 0%, transparent 25%, transparent 75%, hsl(226 100% 55% / 0.3) 100%)',
+                                    background: 'conic-gradient(from var(--border-angle, 0deg), hsl(183 22% 46% / 0.3) 0%, transparent 25%, transparent 75%, hsl(183 22% 46% / 0.3) 100%)',
                                 }}
                             />
 
@@ -434,7 +434,7 @@ export function BillingTab({ user }: BillingTabProps) {
                                                     <Zap className="h-5 w-5 text-primary" />
                                                 </motion.div>
                                                 <div>
-                                                    <h3 className="text-xl font-bold bg-gradient-to-r from-primary via-blue-500 to-primary bg-clip-text text-transparent">
+                                                    <h3 className="text-xl font-bold bg-gradient-to-r from-primary via-[#7AADAF] to-primary bg-clip-text text-transparent">
                                                         {bt.subscription.title}
                                                     </h3>
                                                     <p className="text-sm text-muted-foreground">{bt.subscription.description}</p>
@@ -475,7 +475,7 @@ export function BillingTab({ user }: BillingTabProps) {
 
                                             {/* Energy bar */}
                                             <motion.div
-                                                className="h-1 w-24 rounded-full bg-gradient-to-r from-primary via-blue-400 to-primary/50 mt-3"
+                                                className="h-1 w-24 rounded-full bg-gradient-to-r from-primary via-[#A9CDD0] to-primary/50 mt-3"
                                                 initial={{ scaleX: 0, opacity: 0 }}
                                                 animate={{ scaleX: 1, opacity: 1 }}
                                                 transition={{ duration: 0.6, delay: 1.0, ease: 'easeOut' }}

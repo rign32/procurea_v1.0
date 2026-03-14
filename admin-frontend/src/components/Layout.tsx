@@ -6,7 +6,6 @@ import {
     AlertTriangle,
     Plug,
     LogOut,
-    Shield,
 } from 'lucide-react';
 
 const navItems = [
@@ -31,9 +30,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <aside className="w-64 bg-surface-raised border-r border-border flex flex-col shrink-0">
                 {/* Logo */}
                 <div className="h-16 flex items-center gap-3 px-5 border-b border-border">
-                    <div className="h-8 w-8 rounded-lg bg-accent flex items-center justify-center">
-                        <Shield size={18} className="text-white" />
-                    </div>
+                    <img src="/logo-procurea.png" alt="Procurea" className="h-8 w-8 rounded-lg" />
                     <div>
                         <div className="text-sm font-semibold text-text-primary">Procurea</div>
                         <div className="text-[10px] font-mono text-accent uppercase tracking-wider">Admin Panel</div>

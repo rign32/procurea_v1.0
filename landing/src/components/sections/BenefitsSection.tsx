@@ -8,8 +8,8 @@ import { t } from "@/i18n"
 const metricConfigs = [
   { target: 30, suffix: "x", icon: Zap, color: "text-amber-500", bg: "bg-amber-50", ring: "ring-amber-100", gradient: "from-amber-500 to-orange-500" },
   { target: 6, suffix: "%", icon: TrendingDown, color: "text-emerald-500", bg: "bg-emerald-50", ring: "ring-emerald-100", gradient: "from-emerald-500 to-teal-500" },
-  { target: 26, suffix: "", icon: Globe, color: "text-blue-500", bg: "bg-blue-50", ring: "ring-blue-100", gradient: "from-blue-500 to-indigo-500" },
-  { target: 3, suffix: "x", icon: Users, color: "text-violet-500", bg: "bg-violet-50", ring: "ring-violet-100", gradient: "from-violet-500 to-purple-500" },
+  { target: 26, suffix: "", icon: Globe, color: "text-brand-500", bg: "bg-brand-50", ring: "ring-brand-100", gradient: "from-brand-500 to-brand-700" },
+  { target: 3, suffix: "x", icon: Users, color: "text-brand-gray-500", bg: "bg-brand-gray-50", ring: "ring-brand-gray-100", gradient: "from-brand-gray-500 to-brand-900" },
 ]
 
 const cardStyles = [
@@ -51,12 +51,12 @@ export function BenefitsSection() {
   return (
     <section className="py-24 lg:py-32 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-muted/40 via-background to-background pointer-events-none" />
-      <div className="absolute top-0 left-1/3 w-[600px] h-[600px] rounded-full bg-indigo-500/[0.02] blur-[100px] pointer-events-none" />
+      <div className="absolute top-0 left-1/3 w-[600px] h-[600px] rounded-full bg-brand-500/[0.02] blur-[100px] pointer-events-none" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         <RevealOnScroll>
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <p className="text-sm font-semibold text-indigo-600 tracking-wide uppercase mb-3">
+            <p className="text-sm font-semibold text-brand-500 tracking-wide uppercase mb-3">
               {t.benefits.sectionLabel}
             </p>
             <h2 className="text-3xl sm:text-4xl lg:text-[2.75rem] font-bold tracking-tight mb-5">

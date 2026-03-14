@@ -9,12 +9,12 @@ const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 export function CtaSection() {
   return (
     <section className="py-24 lg:py-32 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-900 to-indigo-950" />
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-900 to-brand-800" />
 
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-indigo-500/[0.08] rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-violet-500/[0.06] rounded-full blur-[100px]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-blue-500/[0.04] rounded-full blur-[80px]" />
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-brand-500/[0.08] rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-brand-900/[0.06] rounded-full blur-[100px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-brand-500/[0.04] rounded-full blur-[80px]" />
         <div
           className="absolute inset-0 opacity-[0.04]"
           style={{
@@ -29,7 +29,7 @@ export function CtaSection() {
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white mb-6">
             {t.cta.headingPart1}
             <br />
-            <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-blue-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-brand-400 via-brand-200 to-sage-200 bg-clip-text text-transparent">
               {t.cta.headingHighlight}
             </span>
           </h2>
@@ -47,7 +47,7 @@ export function CtaSection() {
               whileTap={{ scale: 0.98 }}
               className="group relative inline-flex items-center justify-center"
             >
-              <div className="absolute -inset-1.5 rounded-xl bg-gradient-to-r from-indigo-500 via-violet-500 to-blue-500 opacity-60 blur-lg group-hover:opacity-80 transition-opacity" />
+              <div className="absolute -inset-1.5 rounded-xl bg-gradient-to-r from-brand-700 via-brand-500 to-brand-400 opacity-60 blur-lg group-hover:opacity-80 transition-opacity" />
               <span className="relative inline-flex items-center gap-2.5 px-9 py-4 rounded-xl bg-white text-gray-900 text-base font-semibold shadow-xl">
                 {t.cta.ctaPrimary}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />

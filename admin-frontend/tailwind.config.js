@@ -14,10 +14,10 @@ export default {
                     hover: '#222639',
                 },
                 accent: {
-                    DEFAULT: '#6366f1',
-                    hover: '#818cf8',
-                    subtle: '#4338ca',
-                    muted: 'rgba(99, 102, 241, 0.12)',
+                    DEFAULT: '#5E8C8F',
+                    hover: '#7AADAF',
+                    subtle: '#2A5C5D',
+                    muted: 'rgba(94, 140, 143, 0.12)',
                 },
                 success: { DEFAULT: '#10b981', muted: 'rgba(16, 185, 129, 0.12)' },
                 warning: { DEFAULT: '#f59e0b', muted: 'rgba(245, 158, 11, 0.12)' },
@@ -37,7 +37,7 @@ export default {
                 mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
             },
             boxShadow: {
-                glow: '0 0 20px rgba(99, 102, 241, 0.15)',
+                glow: '0 0 20px rgba(94, 140, 143, 0.15)',
                 card: '0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.4)',
             }
         },

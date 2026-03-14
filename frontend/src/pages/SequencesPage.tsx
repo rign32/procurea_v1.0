@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import {
     Mail, Plus, Copy, Trash2, ChevronDown, ChevronRight, Loader2,
-    Clock, MoreVertical, GripVertical,
+    Clock, MoreVertical,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,7 +19,7 @@ import { EmailPreview } from '@/components/email/EmailPreview';
 import { t } from '@/i18n';
 import { useAuthStore } from '@/stores/auth.store';
 import sequencesService from '@/services/sequences.service';
-import type { SequenceTemplate, SequenceStep } from '@/services/sequences.service';
+import type { SequenceTemplate } from '@/services/sequences.service';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
@@ -79,7 +79,7 @@ export function SequencesPage() {
             setCreateDialog(false);
             setNewName('');
             toast.success(t.common.success);
-        } catch (err) {
+        } catch {
             toast.error(t.common.error);
         } finally {
             setIsSaving(false);
@@ -95,7 +95,7 @@ export function SequencesPage() {
             setCloneDialog({ open: false, templateId: null });
             setCloneName('');
             toast.success(t.common.success);
-        } catch (err) {
+        } catch {
             toast.error(t.common.error);
         } finally {
             setIsSaving(false);
@@ -108,8 +108,9 @@ export function SequencesPage() {
             await sequencesService.delete(id);
             await loadTemplates();
             toast.success(t.common.deleted);
-        } catch (err: any) {
-            toast.error(err?.response?.data?.message || t.common.error);
+        } catch (err: unknown) {
+            const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+            toast.error(message || t.common.error);
         }
     };
 
@@ -124,7 +125,7 @@ export function SequencesPage() {
             await loadTemplates();
             setEditingStep(null);
             toast.success(t.common.success);
-        } catch (err) {
+        } catch {
             toast.error(t.common.error);
         } finally {
             setIsSaving(false);
@@ -137,8 +138,9 @@ export function SequencesPage() {
             await sequencesService.deleteStep(stepId);
             await loadTemplates();
             toast.success(t.common.deleted);
-        } catch (err: any) {
-            toast.error(err?.response?.data?.message || t.common.error);
+        } catch (err: unknown) {
+            const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+            toast.error(message || t.common.error);
         }
     };
 
@@ -151,8 +153,9 @@ export function SequencesPage() {
             setAddStepDialog({ open: false, templateId: null });
             setNewStep({ dayOffset: 0, type: 'REMINDER', subject: '', bodySnippet: '' });
             toast.success(t.common.success);
-        } catch (err: any) {
-            toast.error(err?.response?.data?.message || t.common.error);
+        } catch (err: unknown) {
+            const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+            toast.error(message || t.common.error);
         } finally {
             setIsSaving(false);
         }
@@ -169,7 +172,7 @@ export function SequencesPage() {
 
     const stepTypeColor = (type: string) => {
         switch (type) {
-            case 'INITIAL': return 'bg-blue-500/10 text-blue-600 border-blue-500/20';
+            case 'INITIAL': return 'bg-[#5E8C8F]/10 text-[#4A7174] border-[#5E8C8F]/20';
             case 'REMINDER': return 'bg-amber-500/10 text-amber-600 border-amber-500/20';
             case 'FINAL': return 'bg-red-500/10 text-red-600 border-red-500/20';
             default: return 'bg-muted text-muted-foreground';
@@ -282,7 +285,7 @@ export function SequencesPage() {
                                     {isExpanded && (
                                         <div className="border-t animate-in fade-in slide-in-from-top-2 duration-200">
                                             <div className="p-4 space-y-3">
-                                                {template.steps.map((step, idx) => (
+                                                {template.steps.map((step) => (
                                                     <div
                                                         key={step.id}
                                                         className="flex items-start gap-4 p-3 rounded-lg border bg-card hover:bg-accent/30 transition-colors group"

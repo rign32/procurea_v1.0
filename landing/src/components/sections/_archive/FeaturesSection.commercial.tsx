@@ -9,7 +9,7 @@ const features = [
     description:
       "Wieloetapowy agent AI przeszukuje internet w 12+ językach, identyfikuje producentów i weryfikuje ich możliwości produkcyjne.",
     highlight: "5 agentów AI pracujących równolegle",
-    iconBg: "bg-gradient-to-br from-indigo-500 to-violet-500",
+    iconBg: "bg-gradient-to-br from-brand-500 to-brand-700",
     iconColor: "text-white",
     featured: true,
   },
@@ -18,9 +18,9 @@ const features = [
     title: "Zapytania ofertowe",
     description:
       "Tworzenie, wysyłanie i zarządzanie zapytaniami ofertowymi. Porównywanie ofert od wielu dostawców w jednym widoku.",
-    iconBg: "bg-blue-50",
-    iconColor: "text-blue-600",
-    ringColor: "ring-blue-100",
+    iconBg: "bg-brand-50",
+    iconColor: "text-brand-600",
+    ringColor: "ring-brand-100",
   },
   {
     icon: Globe,
@@ -36,9 +36,9 @@ const features = [
     title: "Sekwencje email",
     description:
       "Konfigurowalne sekwencje follow-up z personalizowanymi szablonami i automatycznym harmonogramem wysyłki.",
-    iconBg: "bg-violet-50",
-    iconColor: "text-violet-600",
-    ringColor: "ring-violet-100",
+    iconBg: "bg-brand-gray-50",
+    iconColor: "text-brand-900",
+    ringColor: "ring-brand-gray-100",
   },
   {
     icon: Database,
@@ -79,13 +79,13 @@ export function FeaturesSection() {
   return (
     <section id="funkcje" className="py-24 lg:py-32 relative overflow-hidden">
       {/* Background decorations */}
-      <div className="absolute top-40 left-0 w-[600px] h-[600px] rounded-full bg-indigo-500/[0.02] blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-20 right-0 w-[400px] h-[400px] rounded-full bg-violet-500/[0.03] blur-[80px] pointer-events-none" />
+      <div className="absolute top-40 left-0 w-[600px] h-[600px] rounded-full bg-brand-500/[0.02] blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-20 right-0 w-[400px] h-[400px] rounded-full bg-brand-900/[0.03] blur-[80px] pointer-events-none" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         <RevealOnScroll>
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <p className="text-sm font-semibold text-indigo-600 tracking-wide uppercase mb-3">
+            <p className="text-sm font-semibold text-brand-700 tracking-wide uppercase mb-3">
               Funkcje
             </p>
             <h2 className="text-3xl sm:text-4xl lg:text-[2.75rem] font-bold tracking-tight mb-5">
@@ -117,13 +117,13 @@ export function FeaturesSection() {
               <div
                 className={`relative rounded-2xl border bg-card p-7 lg:p-8 transition-all duration-300 hover:shadow-xl hover:shadow-black/[0.05] h-full flex flex-col ${
                   feature.featured
-                    ? "border-indigo-200/80 ring-1 ring-indigo-100 bg-gradient-to-br from-white to-indigo-50/30"
+                    ? "border-brand-200/80 ring-1 ring-brand-100 bg-gradient-to-br from-white to-brand-50/30"
                     : "border-border hover:border-transparent"
                 }`}
               >
                 {/* Featured label */}
                 {feature.featured && (
-                  <div className="absolute -top-3 left-6 inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 text-white text-[0.65rem] font-bold uppercase tracking-wider shadow-sm">
+                  <div className="absolute -top-3 left-6 inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-brand-500 to-brand-700 text-white text-[0.65rem] font-bold uppercase tracking-wider shadow-sm">
                     <Sparkles className="h-3 w-3" />
                     Kluczowa funkcja
                   </div>
@@ -142,8 +142,8 @@ export function FeaturesSection() {
                 </p>
 
                 {feature.highlight && (
-                  <div className="mt-5 pt-4 border-t border-indigo-100">
-                    <span className="text-sm font-semibold text-indigo-600">
+                  <div className="mt-5 pt-4 border-t border-brand-100">
+                    <span className="text-sm font-semibold text-brand-700">
                       {feature.highlight}
                     </span>
                   </div>

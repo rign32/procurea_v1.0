@@ -6,9 +6,9 @@ import { t } from "@/i18n"
 const stepIcons = [FileText, Brain, Search, UserCheck, ListChecks]
 
 const stepStyles = [
-  { gradient: "from-blue-500 to-blue-600", iconBg: "bg-blue-50", iconColor: "text-blue-600", ringColor: "ring-blue-100" },
-  { gradient: "from-violet-500 to-violet-600", iconBg: "bg-violet-50", iconColor: "text-violet-600", ringColor: "ring-violet-100" },
-  { gradient: "from-indigo-500 to-indigo-600", iconBg: "bg-indigo-50", iconColor: "text-indigo-600", ringColor: "ring-indigo-100" },
+  { gradient: "from-brand-500 to-brand-600", iconBg: "bg-brand-50", iconColor: "text-brand-600", ringColor: "ring-brand-100" },
+  { gradient: "from-brand-900 to-brand-800", iconBg: "bg-brand-gray-50", iconColor: "text-brand-900", ringColor: "ring-brand-gray-100" },
+  { gradient: "from-brand-700 to-brand-800", iconBg: "bg-brand-100", iconColor: "text-brand-700", ringColor: "ring-brand-200" },
   { gradient: "from-cyan-500 to-cyan-600", iconBg: "bg-cyan-50", iconColor: "text-cyan-600", ringColor: "ring-cyan-100" },
   { gradient: "from-emerald-500 to-emerald-600", iconBg: "bg-emerald-50", iconColor: "text-emerald-600", ringColor: "ring-emerald-100" },
 ]
@@ -33,13 +33,13 @@ const cardVariants = {
 export function HowItWorksSection() {
   return (
     <section id={t.sectionIds.howItWorks} className="py-24 lg:py-32 bg-muted/30 relative overflow-hidden">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full bg-gradient-to-b from-indigo-500/[0.04] to-transparent blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full bg-gradient-to-b from-violet-500/[0.03] to-transparent blur-3xl pointer-events-none" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full bg-gradient-to-b from-brand-500/[0.04] to-transparent blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full bg-gradient-to-b from-brand-900/[0.03] to-transparent blur-3xl pointer-events-none" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         <RevealOnScroll>
           <div className="text-center max-w-3xl mx-auto mb-16 lg:mb-20">
-            <p className="text-sm font-semibold text-indigo-600 tracking-wide uppercase mb-3">
+            <p className="text-sm font-semibold text-brand-500 tracking-wide uppercase mb-3">
               {t.howItWorks.sectionLabel}
             </p>
             <h2 className="text-3xl sm:text-4xl lg:text-[2.75rem] font-bold tracking-tight mb-5">
@@ -71,7 +71,7 @@ export function HowItWorksSection() {
               >
                 {i < t.howItWorks.steps.length - 1 && (
                   <div className="hidden md:flex absolute -right-3.5 top-1/2 -translate-y-1/2 z-10">
-                    <ChevronRight className="h-5 w-5 text-indigo-300" />
+                    <ChevronRight className="h-5 w-5 text-brand-300" />
                   </div>
                 )}
 

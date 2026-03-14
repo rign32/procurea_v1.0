@@ -24,7 +24,7 @@ import { t } from "@/i18n"
 const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 
 const statIcons = [Users, Zap, TrendingDown]
-const statColors = ["text-indigo-500", "text-amber-500", "text-emerald-500"]
+const statColors = ["text-brand-500", "text-amber-500", "text-emerald-500"]
 
 const sidebarIcons = [LayoutDashboard, Search, Building2, BookOpen, Settings]
 
@@ -74,7 +74,7 @@ export function HeroSection() {
         <div
           className="absolute -top-40 -right-40 w-[700px] h-[700px] rounded-full opacity-[0.08] blur-[100px]"
           style={{
-            background: "radial-gradient(circle, #6366f1, #8b5cf6, transparent 70%)",
+            background: "radial-gradient(circle, #5E8C8F, #2A5C5D, transparent 70%)",
             transform: `translate(${mousePos.x * 8}px, ${mousePos.y * 8}px)`,
             transition: "transform 0.3s ease-out",
           }}
@@ -82,7 +82,7 @@ export function HeroSection() {
         <div
           className="absolute -bottom-20 -left-40 w-[500px] h-[500px] rounded-full opacity-[0.06] blur-[80px]"
           style={{
-            background: "radial-gradient(circle, #3b82f6, #06b6d4, transparent 70%)",
+            background: "radial-gradient(circle, #7AADAF, #C5E0E2, transparent 70%)",
             transform: `translate(${mousePos.x * -4}px, ${mousePos.y * -4}px)`,
             transition: "transform 0.3s ease-out",
           }}
@@ -115,7 +115,7 @@ export function HeroSection() {
           >
             {t.hero.headlinePart1}
             <br />
-            <span className="bg-gradient-to-r from-indigo-600 via-violet-600 to-blue-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-brand-700 via-brand-500 to-brand-400 bg-clip-text text-transparent">
               {t.hero.headlineHighlight}
             </span>
             {t.hero.headlinePart2}
@@ -180,10 +180,10 @@ export function HeroSection() {
           transition={{ duration: 0.9, delay: 0.8, ease: [0.21, 0.47, 0.32, 0.98] }}
           className="relative max-w-5xl mx-auto pb-20 lg:pb-28"
         >
-          <div className="absolute -inset-6 bg-gradient-to-b from-indigo-500/[0.08] via-violet-500/[0.06] to-blue-500/[0.03] rounded-3xl blur-3xl pointer-events-none" />
-          <div className="absolute -inset-8 bg-gradient-to-tr from-indigo-400/[0.04] via-transparent to-violet-400/[0.04] rounded-3xl blur-2xl pointer-events-none" />
+          <div className="absolute -inset-6 bg-gradient-to-b from-brand-500/[0.08] via-brand-900/[0.06] to-brand-500/[0.03] rounded-3xl blur-3xl pointer-events-none" />
+          <div className="absolute -inset-8 bg-gradient-to-tr from-brand-400/[0.04] via-transparent to-brand-400/[0.04] rounded-3xl blur-2xl pointer-events-none" />
 
-          <div className="relative rounded-2xl border border-border/60 bg-white shadow-2xl shadow-indigo-500/[0.06] overflow-hidden ring-1 ring-black/[0.03]">
+          <div className="relative rounded-2xl border border-border/60 bg-white shadow-2xl shadow-brand-500/[0.06] overflow-hidden ring-1 ring-black/[0.03]">
             {/* Browser chrome */}
             <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border-b border-border/60">
               <div className="flex gap-1.5">
@@ -205,9 +205,7 @@ export function HeroSection() {
               {/* Sidebar */}
               <div className="hidden lg:flex flex-col w-48 border-r border-border/50 bg-gray-50/50 py-4 px-3 shrink-0">
                 <div className="flex items-center gap-2 px-2 mb-5">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white">
-                    <span className="text-xs font-bold">P</span>
-                  </div>
+                  <img src="/logo-procurea.png" alt="P" className="h-7 w-7 rounded-lg" />
                   <span className="text-sm font-semibold text-foreground">Procurea</span>
                 </div>
 
@@ -217,7 +215,7 @@ export function HeroSection() {
                       key={key}
                       className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs ${
                         sidebarActive[i]
-                          ? "bg-indigo-50 text-indigo-700 font-medium"
+                          ? "bg-brand-50 text-brand-700 font-medium"
                           : "text-muted-foreground"
                       }`}
                     >
@@ -272,9 +270,9 @@ export function HeroSection() {
                         transition={{ duration: 0.5, delay: 1.4 }}
                         className="flex items-center gap-3 rounded-xl border border-border/60 bg-gray-50 px-4 py-2.5"
                       >
-                        <Loader2 className="h-4 w-4 text-indigo-500 animate-spin" />
+                        <Loader2 className="h-4 w-4 text-brand-500 animate-spin" />
                         <span className="text-xs text-muted-foreground flex-1">{t.hero.mockup.progressLabel}</span>
-                        <span className="text-lg font-bold text-indigo-600">3</span>
+                        <span className="text-lg font-bold text-brand-600">3</span>
                       </motion.div>
                     </div>
 
@@ -289,7 +287,7 @@ export function HeroSection() {
                         <span className="text-xs font-semibold text-foreground">{t.hero.mockup.statsLabel}</span>
                       </div>
                       <div className="text-[11px] text-muted-foreground mb-1">{t.hero.mockup.suppliersFound}</div>
-                      <div className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">3</div>
+                      <div className="text-3xl font-bold bg-gradient-to-r from-brand-700 to-brand-500 bg-clip-text text-transparent">3</div>
                       <div className="mt-3 pt-3 border-t border-border/50">
                         <div className="text-[11px] text-muted-foreground mb-1">{t.hero.mockup.duration}</div>
                         <div className="text-sm font-semibold text-foreground">2m 34s</div>

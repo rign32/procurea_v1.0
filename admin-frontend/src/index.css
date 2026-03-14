@@ -50,11 +50,11 @@ body {
 
     0%,
     100% {
-        box-shadow: 0 0 8px rgba(99, 102, 241, 0.2);
+        box-shadow: 0 0 8px rgba(94, 140, 143, 0.2);
     }
 
     50% {
-        box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+        box-shadow: 0 0 20px rgba(94, 140, 143, 0.4);
     }
 }
 

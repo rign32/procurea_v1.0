@@ -72,9 +72,7 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
             )}>
                 <div className="flex h-14 items-center border-b px-4">
                     <Link to="/" className="flex items-center gap-2 font-semibold">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                            <span className="text-lg font-bold">P</span>
-                        </div>
+                        <img src="/logo-procurea.png" alt="Procurea" className="h-8 w-8 rounded-lg" />
                         <span>Procurea</span>
                     </Link>
                     <Button

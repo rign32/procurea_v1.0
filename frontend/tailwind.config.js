@@ -60,8 +60,8 @@ export default {
             boxShadow: {
                 'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
                 'soft-xl': '0 10px 40px -4px rgba(0, 0, 0, 0.08)',
-                'glow': '0 0 20px rgba(79, 70, 229, 0.15)',
-                'glow-primary': '0 4px 14px 0 rgba(0, 85, 255, 0.39)',
+                'glow': '0 0 20px rgba(94, 140, 143, 0.15)',
+                'glow-primary': '0 4px 14px 0 rgba(94, 140, 143, 0.39)',
             },
             fontFamily: {
                 sans: ['Inter', 'sans-serif'],
@@ -84,8 +84,8 @@ export default {
                     '50%': { transform: 'translateY(-8px) scaleY(1.3) translateX(-2px)', opacity: '0' },
                 },
                 'pulse-ring': {
-                    '0%, 100%': { boxShadow: '0 0 0 0 hsl(226 100% 55% / 0.3)' },
-                    '50%': { boxShadow: '0 0 0 8px hsl(226 100% 55% / 0)' },
+                    '0%, 100%': { boxShadow: '0 0 0 0 hsl(183 22% 46% / 0.3)' },
+                    '50%': { boxShadow: '0 0 0 8px hsl(183 22% 46% / 0)' },
                 },
                 'border-rotate': {
                     '0%': { '--border-angle': '0deg' },

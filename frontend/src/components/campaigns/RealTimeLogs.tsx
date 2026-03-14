@@ -31,7 +31,7 @@ export function RealTimeLogs({ logs, isConnected = false, isPolling = false, max
       case 'WARNING':
         return <AlertCircle className="h-4 w-4 text-yellow-500" />;
       default:
-        return <Info className="h-4 w-4 text-blue-500" />;
+        return <Info className="h-4 w-4 text-[#5E8C8F]" />;
     }
   };
 

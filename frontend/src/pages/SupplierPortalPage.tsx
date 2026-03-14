@@ -60,9 +60,9 @@ function StepIndicator({ current, steps, t }: { current: number; steps: string[]
           <div key={i} className="flex items-center gap-1 sm:gap-2">
             <div
               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors ${isActive
-                ? 'bg-indigo-600 text-white'
+                ? 'bg-primary text-white'
                 : isDone
-                  ? 'bg-indigo-100 text-indigo-700'
+                  ? 'bg-[#D4E6E7] text-[#2A5C5D]'
                   : 'bg-slate-100 text-slate-400'
                 }`}
             >
@@ -341,7 +341,7 @@ export function SupplierPortalPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -382,7 +382,7 @@ export function SupplierPortalPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         <header className="bg-white border-b shadow-sm">
           <div className="max-w-3xl mx-auto px-4 py-4 flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-indigo-600">Procurea</h1>
+            <h1 className="text-2xl font-bold text-primary">Procurea</h1>
           </div>
         </header>
         <main className="max-w-3xl mx-auto px-4 py-12">
@@ -427,7 +427,7 @@ export function SupplierPortalPage() {
       <header className="bg-white border-b shadow-sm sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h1 className="text-xl sm:text-2xl font-bold text-indigo-600">Procurea</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-primary">Procurea</h1>
             {organization && (
               <span className="text-muted-foreground text-sm hidden sm:inline">
                 &middot; {organization.name}
@@ -546,7 +546,7 @@ export function SupplierPortalPage() {
                             href={`${API_BASE}/uploads/${att.storedFilename}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md px-2 py-1.5 transition-colors"
+                            className="flex items-center gap-2 text-sm text-primary hover:text-[#2A5C5D] hover:bg-[#EDF4F4] rounded-md px-2 py-1.5 transition-colors"
                           >
                             <FileText className="h-4 w-4 shrink-0" />
                             <span className="truncate">{att.filename}</span>
@@ -686,7 +686,7 @@ export function SupplierPortalPage() {
                   {/* Toggle */}
                   <label className="flex items-center gap-3 cursor-pointer select-none">
                     <div
-                      className={`relative w-11 h-6 rounded-full transition-colors ${alt.enabled ? 'bg-indigo-600' : 'bg-slate-200'
+                      className={`relative w-11 h-6 rounded-full transition-colors ${alt.enabled ? 'bg-primary' : 'bg-slate-200'
                         }`}
                       onClick={() => setAlt((a) => ({ ...a, enabled: !a.enabled }))}
                     >

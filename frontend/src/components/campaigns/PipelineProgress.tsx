@@ -4,20 +4,13 @@ import { Progress } from '@/components/ui/progress';
 import type { CampaignStage } from '@/types/campaign.types';
 import { t } from '@/i18n';
 
-interface StageInfo {
-  stage: CampaignStage;
-  label: string;
-  progress: number;
-  color: string;
-}
-
 interface PipelineProgressProps {
   currentStage: CampaignStage;
   progress: Record<CampaignStage, number>;
 }
 
 const STAGES: Array<{ stage: CampaignStage; label: string; color: string }> = [
-  { stage: 'STRATEGY', label: t.campaigns.stage.strategy, color: 'bg-blue-500' },
+  { stage: 'STRATEGY', label: t.campaigns.stage.strategy, color: 'bg-[#5E8C8F]' },
   { stage: 'SCANNING', label: t.campaigns.stage.scanning, color: 'bg-yellow-500' },
   { stage: 'ANALYSIS', label: t.campaigns.stage.analysis, color: 'bg-purple-500' },
   { stage: 'ENRICHMENT', label: t.campaigns.stage.enrichment, color: 'bg-green-500' },
@@ -41,7 +34,7 @@ export function PipelineProgress({ currentStage, progress }: PipelineProgressPro
       return <CheckCircle2 className="h-5 w-5 text-green-500" />;
     }
     if (status === 'active') {
-      return <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />;
+      return <Loader2 className="h-5 w-5 text-[#5E8C8F] animate-spin" />;
     }
     return <Circle className="h-5 w-5 text-gray-400" />;
   };
@@ -74,7 +67,7 @@ export function PipelineProgress({ currentStage, progress }: PipelineProgressPro
                     status === 'completed'
                       ? 'text-green-600'
                       : status === 'active'
-                      ? 'text-blue-600'
+                      ? 'text-[#4A7174]'
                       : 'text-muted-foreground'
                   }`}
                 >

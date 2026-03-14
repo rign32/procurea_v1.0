@@ -27,7 +27,7 @@ const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 const heroStats = [
   { value: "30x", label: "szybciej", icon: Zap, color: "text-amber-500" },
   { value: "6%", label: "tańsze oferty", icon: TrendingDown, color: "text-emerald-500" },
-  { value: "5", label: "agentów AI", icon: Users, color: "text-indigo-500" },
+  { value: "5", label: "agentów AI", icon: Users, color: "text-brand-500" },
 ]
 
 const sidebarItems = [
@@ -130,7 +130,7 @@ export function HeroSection() {
         <div
           className="absolute -top-40 -right-40 w-[700px] h-[700px] rounded-full opacity-[0.08] blur-[100px]"
           style={{
-            background: "radial-gradient(circle, #6366f1, #8b5cf6, transparent 70%)",
+            background: "radial-gradient(circle, #5E8C8F, #2A5C5D, transparent 70%)",
             transform: `translate(${mousePos.x * 8}px, ${mousePos.y * 8}px)`,
             transition: "transform 0.3s ease-out",
           }}
@@ -138,7 +138,7 @@ export function HeroSection() {
         <div
           className="absolute -bottom-20 -left-40 w-[500px] h-[500px] rounded-full opacity-[0.06] blur-[80px]"
           style={{
-            background: "radial-gradient(circle, #3b82f6, #06b6d4, transparent 70%)",
+            background: "radial-gradient(circle, #7AADAF, #C5E0E2, transparent 70%)",
             transform: `translate(${mousePos.x * -4}px, ${mousePos.y * -4}px)`,
             transition: "transform 0.3s ease-out",
           }}
@@ -153,11 +153,11 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 16, filter: "blur(8px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-indigo-50 border border-indigo-100 text-sm font-medium text-indigo-700 mb-8"
+            className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-brand-50 border border-brand-100 text-sm font-medium text-brand-700 mb-8"
           >
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500" />
             </span>
             Platforma AI dla zakupów w przemyśle
           </motion.div>
@@ -171,7 +171,7 @@ export function HeroSection() {
           >
             Znajdź najlepszych dostawców
             <br />
-            <span className="bg-gradient-to-r from-indigo-600 via-violet-600 to-blue-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-brand-700 via-brand-500 to-brand-400 bg-clip-text text-transparent">
               30x szybciej niż ręcznie
             </span>
           </motion.h1>
@@ -238,11 +238,11 @@ export function HeroSection() {
           className="relative max-w-5xl mx-auto pb-20 lg:pb-28"
         >
           {/* Glow behind the mockup */}
-          <div className="absolute -inset-6 bg-gradient-to-b from-indigo-500/[0.08] via-violet-500/[0.06] to-blue-500/[0.03] rounded-3xl blur-3xl pointer-events-none" />
-          <div className="absolute -inset-8 bg-gradient-to-tr from-indigo-400/[0.04] via-transparent to-violet-400/[0.04] rounded-3xl blur-2xl pointer-events-none" />
+          <div className="absolute -inset-6 bg-gradient-to-b from-brand-500/[0.08] via-brand-900/[0.06] to-brand-500/[0.03] rounded-3xl blur-3xl pointer-events-none" />
+          <div className="absolute -inset-8 bg-gradient-to-tr from-brand-400/[0.04] via-transparent to-brand-gray-200/[0.04] rounded-3xl blur-2xl pointer-events-none" />
 
           {/* Browser frame */}
-          <div className="relative rounded-2xl border border-border/60 bg-white shadow-2xl shadow-indigo-500/[0.06] overflow-hidden ring-1 ring-black/[0.03]">
+          <div className="relative rounded-2xl border border-border/60 bg-white shadow-2xl shadow-brand-500/[0.06] overflow-hidden ring-1 ring-black/[0.03]">
             {/* Browser chrome */}
             <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border-b border-border/60">
               <div className="flex gap-1.5">
@@ -265,7 +265,7 @@ export function HeroSection() {
               <div className="hidden lg:flex flex-col w-48 border-r border-border/50 bg-gray-50/50 py-4 px-3 shrink-0">
                 {/* Logo */}
                 <div className="flex items-center gap-2 px-2 mb-5">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-brand-700 to-brand-500 text-white">
                     <span className="text-xs font-bold">P</span>
                   </div>
                   <span className="text-sm font-semibold text-foreground">Procurea</span>
@@ -278,7 +278,7 @@ export function HeroSection() {
                       key={item.label}
                       className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs ${
                         item.active
-                          ? "bg-indigo-50 text-indigo-700 font-medium"
+                          ? "bg-brand-50 text-brand-700 font-medium"
                           : "text-muted-foreground"
                       }`}
                     >
@@ -337,9 +337,9 @@ export function HeroSection() {
                         transition={{ duration: 0.5, delay: 1.4 }}
                         className="flex items-center gap-3 rounded-xl border border-border/60 bg-gray-50 px-4 py-2.5"
                       >
-                        <Loader2 className="h-4 w-4 text-indigo-500 animate-spin" />
+                        <Loader2 className="h-4 w-4 text-brand-500 animate-spin" />
                         <span className="text-xs text-muted-foreground flex-1">Zbieranie danych w toku</span>
-                        <span className="text-lg font-bold text-indigo-600">3</span>
+                        <span className="text-lg font-bold text-brand-700">3</span>
                       </motion.div>
                     </div>
 
@@ -355,7 +355,7 @@ export function HeroSection() {
                         <span className="text-xs font-semibold text-foreground">Statystyki</span>
                       </div>
                       <div className="text-[11px] text-muted-foreground mb-1">Znalezionych dostawców:</div>
-                      <div className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">3</div>
+                      <div className="text-3xl font-bold bg-gradient-to-r from-brand-700 to-brand-500 bg-clip-text text-transparent">3</div>
                       <div className="mt-3 pt-3 border-t border-border/50">
                         <div className="text-[11px] text-muted-foreground mb-1">Czas trwania:</div>
                         <div className="text-sm font-semibold text-foreground">2m 34s</div>

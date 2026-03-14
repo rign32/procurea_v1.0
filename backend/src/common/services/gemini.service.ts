@@ -24,6 +24,7 @@ export class GeminiService {
     private location = process.env.GOOGLE_CLOUD_LOCATION || 'europe-west1';
     private apiKey = process.env.GEMINI_API_KEY;
     private readonly modelName = 'gemini-2.0-flash'; // Confirmed available via API Key listing
+    private readonly GEMINI_TIMEOUT_MS = parseInt(process.env.GEMINI_TIMEOUT_MS || '45000', 10); // 45s per call
     private mockRequestCounter = 0;
     // Cloud Functions have read-only filesystem except /tmp
     private readonly cacheDir = path.join(
@@ -136,7 +137,12 @@ export class GeminiService {
 
         // Executing Generation...
         try {
-            resultText = await this.executeGeneration(prompt);
+            resultText = await Promise.race([
+                this.executeGeneration(prompt),
+                new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error(`Gemini API timeout after ${this.GEMINI_TIMEOUT_MS}ms`)), this.GEMINI_TIMEOUT_MS)
+                ),
+            ]);
             // Save to cache on success
             if (resultText && !resultText.startsWith('{ "error":')) {
                 this.saveToCache(cacheKey, resultText);
@@ -245,7 +251,7 @@ export class GeminiService {
                 this.logger.log(`[GEMINI] Trying Vertex REST with URL: ${url.substring(0, 100)}...`);
                 const { data } = await axios.post(url, {
                     contents: [{ role: 'user', parts: [{ text: prompt }] }]
-                });
+                }, { timeout: 40000 });
                 if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
                     const text = data.candidates[0].content.parts[0].text;
                     this.logger.log(`[GEMINI] Vertex REST SUCCESS - response length: ${text.length} chars`);

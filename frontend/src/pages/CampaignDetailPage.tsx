@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronRight, Download, Loader2, AlertTriangle, Trash2, BarChart3, CheckCircle2, Mail, Clock, Send, FileDown, StopCircle, Monitor } from 'lucide-react';
@@ -151,6 +152,7 @@ export function CampaignDetailPage() {
         .catch(() => { })
         .finally(() => setAiSummaryLoading(false));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, campaign?.status]);
 
   const handleAcceptAll = async () => {
@@ -218,12 +220,12 @@ export function CampaignDetailPage() {
 
   const getStatusBadge = () => {
     if (isError) return <Badge variant="destructive">{t.campaigns.status.error}</Badge>;
-    if (campaign.status === 'SENDING') return <Badge className="bg-blue-600">{t.campaigns.status.sending}</Badge>;
+    if (campaign.status === 'SENDING') return <Badge className="bg-[#4A7174]">{t.campaigns.status.sending}</Badge>;
     if (campaign.status === 'ACCEPTED') return <Badge className="bg-green-600">{t.campaigns.status.accepted}</Badge>;
     if (campaign.status === 'DONE') return <Badge className="bg-emerald-700">{t.campaigns.status.done}</Badge>;
     if (isCompleted) return <Badge variant="default">{t.campaigns.status.completed}</Badge>;
     return (
-      <Badge variant="secondary" className="animate-pulse bg-blue-100 text-blue-700 border-blue-200">
+      <Badge variant="secondary" className="animate-pulse bg-[#D4E6E7] text-[#2A5C5D] border-[#C5E0E2]">
         <Loader2 className="mr-1 h-3 w-3 animate-spin" />
         {t.campaigns.status.running}
       </Badge>
@@ -518,7 +520,7 @@ export function CampaignDetailPage() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                   {isDone && <CheckCircle2 className="h-4 w-4 text-green-500" />}
-                                  {isActive && <Clock className="h-4 w-4 text-blue-500 animate-pulse" />}
+                                  {isActive && <Clock className="h-4 w-4 text-[#5E8C8F] animate-pulse" />}
                                   <span className="text-xs font-medium">
                                     {step.sent}/{step.total}
                                     {step.failed > 0 && (
@@ -529,7 +531,7 @@ export function CampaignDetailPage() {
                               </div>
                               <div className="h-3 bg-muted rounded-full overflow-hidden">
                                 <div
-                                  className={`h-full rounded-full transition-all duration-500 ${isDone ? 'bg-green-500' : isActive ? 'bg-blue-500' : 'bg-muted-foreground/20'
+                                  className={`h-full rounded-full transition-all duration-500 ${isDone ? 'bg-green-500' : isActive ? 'bg-[#5E8C8F]' : 'bg-muted-foreground/20'
                                     }`}
                                   style={{ width: `${Math.max(pct, step.sent > 0 ? 5 : 0)}%` }}
                                 />
@@ -705,7 +707,7 @@ export function CampaignDetailPage() {
                               {idx === 0 ? (
                                 <td className="py-2" rowSpan={executions.length}>
                                   {detail.nextScheduled ? (
-                                    <span className="inline-flex items-center gap-1 text-blue-600">
+                                    <span className="inline-flex items-center gap-1 text-[#4A7174]">
                                       <Clock className="h-3.5 w-3.5" />
                                       {stepLabel(detail.nextScheduled.stepType)} — {new Date(detail.nextScheduled.dueAt).toLocaleString(isEN ? 'en-US' : 'pl-PL')}
                                     </span>

@@ -34,9 +34,7 @@ export function Navbar() {
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2.5 group">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-transform duration-200 group-hover:scale-105">
-                <span className="text-sm font-bold">P</span>
-              </div>
+              <img src="/logo-procurea.png" alt="Procurea" className="h-8 w-8 rounded-lg transition-transform duration-200 group-hover:scale-105" />
               <span className="text-lg font-bold tracking-tight">Procurea</span>
               <span className="ml-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
                 Beta

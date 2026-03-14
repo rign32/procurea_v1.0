@@ -13,7 +13,7 @@ export function GradientBlob({ className, colors }: GradientBlobProps) {
         className
       )}
       style={{
-        background: colors || "linear-gradient(135deg, #6366f1, #8b5cf6, #3b82f6)",
+        background: colors || "linear-gradient(135deg, #5E8C8F, #2A5C5D, #7AADAF)",
         backgroundSize: "200% 200%",
       }}
     />

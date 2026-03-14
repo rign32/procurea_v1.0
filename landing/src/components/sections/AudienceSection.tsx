@@ -6,23 +6,23 @@ import { t } from "@/i18n"
 const personaStyles = [
   {
     icon: Briefcase,
-    iconBg: "bg-gradient-to-br from-blue-500 to-blue-600",
+    iconBg: "bg-gradient-to-br from-brand-500 to-brand-600",
     iconColor: "text-white",
-    tagBg: "bg-blue-50",
-    tagText: "text-blue-700",
-    tagRing: "ring-blue-100",
-    borderAccent: "border-blue-200/60",
-    lightBg: "bg-gradient-to-br from-blue-50/40 to-indigo-50/20",
+    tagBg: "bg-brand-50",
+    tagText: "text-brand-700",
+    tagRing: "ring-brand-100",
+    borderAccent: "border-brand-200/60",
+    lightBg: "bg-gradient-to-br from-brand-50/40 to-brand-50/20",
   },
   {
     icon: Target,
-    iconBg: "bg-gradient-to-br from-violet-500 to-violet-600",
+    iconBg: "bg-gradient-to-br from-brand-900 to-brand-800",
     iconColor: "text-white",
-    tagBg: "bg-violet-50",
-    tagText: "text-violet-700",
-    tagRing: "ring-violet-100",
-    borderAccent: "border-violet-200/60",
-    lightBg: "bg-gradient-to-br from-violet-50/40 to-purple-50/20",
+    tagBg: "bg-brand-gray-50",
+    tagText: "text-brand-900",
+    tagRing: "ring-brand-gray-100",
+    borderAccent: "border-brand-gray-200/60",
+    lightBg: "bg-gradient-to-br from-brand-gray-50/40 to-brand-gray-50/20",
   },
   {
     icon: Search,
@@ -37,12 +37,12 @@ const personaStyles = [
 ]
 
 const industryColors = [
-  "bg-blue-50 text-blue-700 border-blue-200/60 hover:bg-blue-100/70",
-  "bg-violet-50 text-violet-700 border-violet-200/60 hover:bg-violet-100/70",
+  "bg-brand-50 text-brand-700 border-brand-200/60 hover:bg-brand-100/70",
+  "bg-brand-gray-50 text-brand-900 border-brand-gray-200/60 hover:bg-brand-gray-100/70",
   "bg-slate-50 text-slate-700 border-slate-200/60 hover:bg-slate-100/70",
   "bg-emerald-50 text-emerald-700 border-emerald-200/60 hover:bg-emerald-100/70",
   "bg-amber-50 text-amber-700 border-amber-200/60 hover:bg-amber-100/70",
-  "bg-indigo-50 text-indigo-700 border-indigo-200/60 hover:bg-indigo-100/70",
+  "bg-brand-50 text-brand-700 border-brand-200/60 hover:bg-brand-100/70",
   "bg-rose-50 text-rose-700 border-rose-200/60 hover:bg-rose-100/70",
   "bg-cyan-50 text-cyan-700 border-cyan-200/60 hover:bg-cyan-100/70",
 ]
@@ -64,13 +64,13 @@ const cardVariants = {
 export function AudienceSection() {
   return (
     <section id={t.sectionIds.audience} className="py-24 lg:py-32 bg-muted/30 relative overflow-hidden">
-      <div className="absolute top-20 right-0 w-[500px] h-[500px] rounded-full bg-violet-500/[0.03] blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-10 left-0 w-[400px] h-[400px] rounded-full bg-blue-500/[0.03] blur-[80px] pointer-events-none" />
+      <div className="absolute top-20 right-0 w-[500px] h-[500px] rounded-full bg-brand-900/[0.03] blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-10 left-0 w-[400px] h-[400px] rounded-full bg-brand-500/[0.03] blur-[80px] pointer-events-none" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         <RevealOnScroll>
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <p className="text-sm font-semibold text-indigo-600 tracking-wide uppercase mb-3">
+            <p className="text-sm font-semibold text-brand-500 tracking-wide uppercase mb-3">
               {t.audience.sectionLabel}
             </p>
             <h2 className="text-3xl sm:text-4xl lg:text-[2.75rem] font-bold tracking-tight mb-5">

@@ -208,6 +208,7 @@ export class SourcingService {
     // Campaign cancellation flags (in-memory, per-instance)
     private readonly cancelledCampaigns = new Set<string>();
     private readonly campaignStartTimes = new Map<string, number>();
+    private readonly campaignTimers = new Map<string, ReturnType<typeof setTimeout>>();
     private readonly PIPELINE_TIMEOUT_MS = parseInt(process.env.PIPELINE_TIMEOUT_MS || '1200000', 10); // 20 min
     private readonly PIPELINE_SUPPLIER_LIMIT = parseInt(process.env.PIPELINE_SUPPLIER_LIMIT || '250', 10);
 
@@ -618,6 +619,47 @@ export class SourcingService {
         return null;
     }
 
+    /**
+     * Promise.allSettled with a campaign-aware timeout.
+     * Returns early if timeout expires — remaining promises treated as rejected.
+     */
+    private allSettledWithTimeout<T>(
+        promises: Promise<T>[],
+        maxMs: number,
+        campaignId: string,
+    ): Promise<PromiseSettledResult<T>[]> {
+        if (promises.length === 0) return Promise.resolve([]);
+
+        const startTime = this.campaignStartTimes.get(campaignId);
+        const elapsed = startTime ? Date.now() - startTime : 0;
+        const remaining = Math.max(0, this.PIPELINE_TIMEOUT_MS - elapsed);
+        const effectiveTimeout = Math.min(maxMs, remaining);
+
+        if (effectiveTimeout <= 0) {
+            return Promise.resolve(
+                promises.map(() => ({
+                    status: 'rejected' as const,
+                    reason: new Error('Pipeline timeout exceeded'),
+                }))
+            );
+        }
+
+        return Promise.race([
+            Promise.allSettled(promises),
+            new Promise<PromiseSettledResult<T>[]>((resolve) =>
+                setTimeout(() => {
+                    this.logger.warn(`[${campaignId}] allSettledWithTimeout: ${effectiveTimeout}ms elapsed, resolving early`);
+                    resolve(
+                        promises.map(() => ({
+                            status: 'rejected' as const,
+                            reason: new Error('Timeout waiting for promise'),
+                        }))
+                    );
+                }, effectiveTimeout)
+            ),
+        ]);
+    }
+
     async getLogs(campaignId: string, since?: string) {
         const whereClause: any = { campaignId };
 
@@ -780,6 +822,29 @@ OUTPUT FORMAT (JSON only):
         const MAX_TOTAL_QUALIFIED = parseInt(process.env.MAX_TOTAL_QUALIFIED || '300', 10);
         const MAX_PER_LANGUAGE = parseInt(process.env.MAX_PER_LANGUAGE || '80', 10);
 
+        // Auto-cancel timer: guarantees campaign completes even if pipeline is stuck
+        const autoStopTimer = setTimeout(async () => {
+            if (!this.cancelledCampaigns.has(id)) {
+                this.cancelledCampaigns.add(id);
+                this.logger.warn(`[${id}] AUTO-TIMEOUT: Pipeline force-cancelled after ${this.PIPELINE_TIMEOUT_MS / 1000}s`);
+                await this.log(id, `[TIMEOUT] Pipeline auto-cancelled after ${this.PIPELINE_TIMEOUT_MS / 1000}s`).catch(() => {});
+                try {
+                    const current = await this.prisma.campaign.findUnique({ where: { id }, select: { status: true } });
+                    if (current && current.status === 'RUNNING') {
+                        await this.prisma.campaign.update({
+                            where: { id },
+                            data: { stage: 'COMPLETED', status: 'COMPLETED' },
+                        });
+                        this.sourcingGateway?.emitProgress(id, 'COMPLETED', 100);
+                        this.sourcingGateway?.emitCompleted(id);
+                    }
+                } catch (e: any) {
+                    this.logger.error(`[${id}] AUTO-TIMEOUT DB update failed: ${e.message}`);
+                }
+            }
+        }, this.PIPELINE_TIMEOUT_MS);
+        this.campaignTimers.set(id, autoStopTimer);
+
         try {
             // Extract clean product name — strip "Kampania: ..." prefix from ANY source
             const rawProductName = dto.searchCriteria?.keywords?.[0] || dto.name || '';
@@ -871,6 +936,17 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             const strategyResult = await this.strategyAgent.execute(strategyParams);
             await this.log(id, `✅ [STRATEGY] Generated ${strategyResult.strategies?.length || 0} language-specific strategies`);
             this.sourcingGateway?.emitProgress(id, 'STRATEGY', 100);
+
+            // Check timeout after strategy generation
+            const stopAfterStrategy = this.shouldStop(id, globalQualifiedCount);
+            if (stopAfterStrategy) {
+                const elapsed = Math.round((Date.now() - (this.campaignStartTimes.get(id) || Date.now())) / 1000);
+                await this.log(id, `[STOP] Pipeline stopped after Strategy: ${stopAfterStrategy} (${elapsed}s elapsed)`);
+                await this.prisma.campaign.update({ where: { id }, data: { stage: 'COMPLETED', status: 'COMPLETED' } });
+                this.sourcingGateway?.emitProgress(id, 'COMPLETED', 100);
+                this.sourcingGateway?.emitCompleted(id);
+                return;
+            }
 
             // Extract language strategies
             const languageStrategies = strategyResult.strategies || [];
@@ -1056,13 +1132,13 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 })
             );
 
-            // Wait for all search workers to finish collecting
-            await Promise.allSettled(searchPromises);
+            // Wait for all search workers to finish collecting (5 min max)
+            await this.allSettledWithTimeout(searchPromises, 300000, id);
             this.sourcingGateway?.emitProgress(id, 'SEARCH', 100);
             await this.log(id, `✅ [PHASE 2] Search complete: ${totalCollected} URLs collected, ${globalSeenDomains.size} unique. Waiting for processing to finish...`);
 
-            // Wait for all URL processing to complete
-            await Promise.allSettled(processingPromises);
+            // Wait for all URL processing to complete (10 min max)
+            await this.allSettledWithTimeout(processingPromises, 600000, id);
 
             await this.log(id, `✅ [PHASE 2] Streaming pipeline complete. Processed: ${processedCount}, Qualified: ${globalQualifiedCount}/${MAX_TOTAL_QUALIFIED}`);
 
@@ -1156,7 +1232,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                         )
                     );
 
-                    const expansionCollectResults = await Promise.allSettled(expansionCollectPromises);
+                    const expansionCollectResults = await this.allSettledWithTimeout(expansionCollectPromises, 120000, id);
                     const expansionUrlsRaw: CollectedUrl[] = [];
                     for (const result of expansionCollectResults) {
                         if (result.status === 'fulfilled') expansionUrlsRaw.push(...result.value);
@@ -1191,7 +1267,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                         })
                     );
 
-                    await Promise.allSettled(expansionProcessPromises);
+                    await this.allSettledWithTimeout(expansionProcessPromises, 300000, id);
 
                     await this.log(id, `[EXPANSION] Expansion pass found ${expansionFound} additional suppliers. Total: ${globalQualifiedCount}`);
                     this.sourcingGateway?.emitProgress(id, 'EXPANSION', 100);
@@ -1227,7 +1303,11 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                         await this.log(id, `[COVERAGE] Missing leaders: ${missingLeaders.map(m => m.name).join(', ')}`);
 
                         for (const leader of missingLeaders.slice(0, 10)) {
-                            if (globalQualifiedCount >= MAX_TOTAL_QUALIFIED) break;
+                            const leaderStop = this.shouldStop(id, globalQualifiedCount);
+                            if (leaderStop || globalQualifiedCount >= MAX_TOTAL_QUALIFIED) {
+                                if (leaderStop) await this.log(id, `[COVERAGE] Stopping leader processing: ${leaderStop}`);
+                                break;
+                            }
 
                             if (leader.website) {
                                 // Direct URL — try processSupplierUrl
@@ -1329,20 +1409,25 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 );
             }
 
-            // Cleanup
-            this.cancelledCampaigns.delete(id);
-            this.campaignStartTimes.delete(id);
-            this.deepResearchCounts.delete(id);
-
         } catch (e: any) {
             this.logger.error(`Pipeline error: ${e.message}`);
-            await this.prisma.campaign.update({
-                where: { id },
-                data: { status: 'ERROR' }
-            });
+            // Only update to ERROR if not already COMPLETED by auto-timeout
+            try {
+                const current = await this.prisma.campaign.findUnique({ where: { id }, select: { status: true } });
+                if (current && current.status === 'RUNNING') {
+                    await this.prisma.campaign.update({
+                        where: { id },
+                        data: { status: 'ERROR' }
+                    });
+                }
+            } catch { /* ignore DB errors during cleanup */ }
             await this.log(id, `Error: ${e.message}`);
             this.sourcingGateway?.emitError(id, e.message);
-            // Cleanup on error
+        } finally {
+            // ALWAYS cleanup, regardless of how we exit
+            const timer = this.campaignTimers.get(id);
+            if (timer) clearTimeout(timer);
+            this.campaignTimers.delete(id);
             this.cancelledCampaigns.delete(id);
             this.campaignStartTimes.delete(id);
             this.deepResearchCounts.delete(id);
@@ -1665,6 +1750,9 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
         try {
             const domain = this.extractDomain(url);
 
+            // TIMEOUT CHECK — don't start expensive processing if pipeline timed out
+            if (this.shouldStop(campaignId, 0)) return 0;
+
             // BLACKLIST CHECK — must happen before ANY processing
             if (await this.companyRegistry.isBlacklisted(domain)) {
                 await this.log(campaignId, `${workerTag} [BLACKLISTED] ${domain} — skipping`);
@@ -1868,8 +1956,8 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                         if (globalProcessedDomains?.has(companyDomain)) continue;
                         globalProcessedDomains?.add(companyDomain);
                         borderlineFollowed++;
-                        // Fire-and-forget directory mining (don't block borderline processing)
-                        this.processSupplierUrl(
+                        // Await directory mining (depth=1 prevents further recursion)
+                        await this.processSupplierUrl(
                             campaignId, dto, company.url, workerTag,
                             processedCompanyNames, originLanguage, originCountry,
                             productContext, globalProcessedDomains, 1,
@@ -1987,6 +2075,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 };
                 await this.log(campaignId, `${workerTag} FAST TRACK (${capScore}%): ${domain} [${currentCompanyType}] — skipping enrichment`);
             } else {
+                if (this.shouldStop(campaignId, 0)) return 0;
                 this.sourcingGateway?.emitSupplierUpdate(campaignId, { url, status: 'ENRICHING' });
                 enrichmentResult = await this.enrichmentAgent.execute(screenerResult.extracted_data || {}, url, userLanguage, productContext || undefined);
             }
@@ -2022,6 +2111,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             }
 
             // 3. AUDITOR - STRICT VALIDATION
+            if (this.shouldStop(campaignId, 0)) return 0;
             this.sourcingGateway?.emitSupplierUpdate(campaignId, { url, status: 'VERIFYING' });
             const enrichedData = enrichmentResult.enriched_data || screenerResult.extracted_data;
             const registryData = {
