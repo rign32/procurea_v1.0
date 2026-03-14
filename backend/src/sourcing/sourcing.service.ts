@@ -796,6 +796,9 @@ OUTPUT FORMAT (JSON only):
                 // Phase 0.5: Market Intelligence (doesn't require productContext)
                 (async () => {
                     try {
+                        const regionDisplay = rawRegion === 'CUSTOM' && dto.searchCriteria?.targetCountries?.length
+                            ? `Selected countries: ${dto.searchCriteria.targetCountries.join(', ')}`
+                            : rawRegion;
                         const intelligencePrompt = `
 You are a Market Intelligence Analyst specializing in industrial supply chains.
 
@@ -803,19 +806,21 @@ TASK: Identify the TOP known manufacturers/producers of this product in the give
 
 PRODUCT: ${cleanProductName}
 CATEGORY: ${rawCategory || 'N/A'}
-REGION: ${rawRegion}
+REGION: ${regionDisplay}
 
 Return a JSON array of known manufacturers. Include:
-- Global leaders that operate in this region
-- Regional champions
-- Niche specialists
+- Regional champions from the specified countries
+- Niche specialists operating in those countries
+- Global leaders that have production facilities in the specified countries
+
+IMPORTANT: Only include manufacturers that are headquartered in or have production facilities in the specified region/countries. Do NOT include companies from countries not listed above.
 
 Focus on PRODUCERS (companies that MAKE the product), NOT distributors or traders.
 
 Return JSON:
 {
   "known_manufacturers": [
-    {"name": "Company Name", "country": "PL", "website": "https://example.com", "size": "large|medium|small"},
+    {"name": "Company Name", "country": "ISO-2 code", "website": "https://example.com", "size": "large|medium|small"},
   ]
 }
 
@@ -902,7 +907,61 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 }
 
                 // Add region-specific strategies
-                if (region === 'PL' || region === 'EU') {
+                if (region === 'CUSTOM' && dto.searchCriteria?.targetCountries?.length) {
+                    // Build fallback from selected countries' languages
+                    const countryLangMap: Record<string, { langs: string[]; country: string }> = {
+                        'PL': { langs: ['pl'], country: 'Polska' },
+                        'DE': { langs: ['de'], country: 'Niemcy' },
+                        'CZ': { langs: ['cs'], country: 'Czechy' },
+                        'SK': { langs: ['cs'], country: 'Słowacja' },
+                        'AT': { langs: ['de'], country: 'Austria' },
+                        'FR': { langs: ['fr'], country: 'Francja' },
+                        'IT': { langs: ['it'], country: 'Włochy' },
+                        'ES': { langs: ['es'], country: 'Hiszpania' },
+                        'PT': { langs: ['pt'], country: 'Portugalia' },
+                        'NL': { langs: ['nl'], country: 'Holandia' },
+                        'BE': { langs: ['nl', 'fr'], country: 'Belgia' },
+                        'SE': { langs: ['sv'], country: 'Szwecja' },
+                        'RO': { langs: ['ro'], country: 'Rumunia' },
+                        'DK': { langs: ['da'], country: 'Dania' },
+                        'FI': { langs: ['fi'], country: 'Finlandia' },
+                        'HU': { langs: ['hu'], country: 'Węgry' },
+                        'BG': { langs: ['bg'], country: 'Bułgaria' },
+                        'HR': { langs: ['hr'], country: 'Chorwacja' },
+                        'SI': { langs: ['sl'], country: 'Słowenia' },
+                        'LT': { langs: ['lt'], country: 'Litwa' },
+                        'LV': { langs: ['lv'], country: 'Łotwa' },
+                        'EE': { langs: ['et'], country: 'Estonia' },
+                        'GR': { langs: ['el'], country: 'Grecja' },
+                        'IE': { langs: ['en'], country: 'Irlandia' },
+                    };
+                    const addedLangs = new Set<string>();
+                    for (const code of dto.searchCriteria.targetCountries) {
+                        const info = countryLangMap[code];
+                        if (info) {
+                            for (const lang of info.langs) {
+                                if (!addedLangs.has(lang)) {
+                                    addedLangs.add(lang);
+                                    languageStrategies.push({
+                                        country: info.country,
+                                        language: lang,
+                                        queries: fallbackQueries,
+                                        negatives: lang === 'pl' ? [...negatives, '-olx', '-ceneo'] : negatives,
+                                    });
+                                }
+                            }
+                        }
+                    }
+                    // Add English fallback only if no languages resolved
+                    if (addedLangs.size === 0) {
+                        languageStrategies.push({
+                            country: 'Global',
+                            language: 'en',
+                            queries: fallbackQueries,
+                            negatives,
+                        });
+                    }
+                } else if (region === 'PL' || region === 'EU') {
                     const plQueries = fallbackQueries.map(q => q.replace(/manufacturer/g, 'producent').replace(/producer/g, 'producent'));
                     languageStrategies.push({
                         country: 'Polska',
@@ -910,14 +969,21 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                         queries: plQueries,
                         negatives: [...negatives, '-olx', '-ceneo'],
                     });
+                    languageStrategies.push({
+                        country: 'Global',
+                        language: 'en',
+                        queries: fallbackQueries,
+                        negatives,
+                    });
+                } else {
+                    // GLOBAL, GLOBAL_NO_CN or unknown — English fallback
+                    languageStrategies.push({
+                        country: 'Global',
+                        language: 'en',
+                        queries: fallbackQueries,
+                        negatives,
+                    });
                 }
-
-                languageStrategies.push({
-                    country: 'Global',
-                    language: 'en',
-                    queries: fallbackQueries,
-                    negatives,
-                });
 
                 await this.log(id, `[FALLBACK] Generated ${languageStrategies.length} fallback strategies with ${fallbackQueries.length} queries each`);
             }
@@ -2241,7 +2307,16 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             // COUNTRY VALIDATION — same filter as fresh pipeline
             let supplierCountry = normalizeCountry(enrichedData.country || '');
             const regionKey = dto?.searchCriteria?.region;
-            const regionConfig = regionKey ? REGION_LANGUAGE_CONFIG[regionKey] : undefined;
+            let regionConfig = regionKey ? REGION_LANGUAGE_CONFIG[regionKey] : undefined;
+
+            // CUSTOM region — build allowedCountries from user-selected targetCountries
+            if (regionKey === 'CUSTOM' && dto.searchCriteria?.targetCountries?.length) {
+                regionConfig = {
+                    allowedCountries: dto.searchCriteria.targetCountries.map(
+                        (code: string) => normalizeCountry(code)
+                    ),
+                } as any;
+            }
 
             // COUNTRY INFERENCE — when enrichment couldn't determine country, infer from context
             if (supplierCountry === 'Nieznany') {
