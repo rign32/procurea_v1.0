@@ -44,8 +44,13 @@ export function FileUpload({ value, onChange, className, maxFiles = 5 }: FileUpl
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             return data as UploadedFile;
-        } catch {
-            setError(`Błąd przesyłania "${file.name}"`);
+        } catch (err: unknown) {
+            const e = err as { message?: string; response?: { data?: { message?: string } } };
+            const msg = e?.message || e?.response?.data?.message || '';
+            console.error(`[FileUpload] Upload failed for "${file.name}":`, msg, err);
+            setError(msg && msg !== 'Network error'
+                ? `Błąd przesyłania "${file.name}": ${msg}`
+                : `Błąd przesyłania "${file.name}"`);
             return null;
         }
     }, []);

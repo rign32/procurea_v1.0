@@ -224,11 +224,13 @@ export function SupplierPortalPage() {
 
     const rfqCurrency = data.rfq?.currency;
     if (rfqCurrency && rfqCurrency !== 'EUR') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCurrency(rfqCurrency);
     }
 
     const rfqQty = data.rfq?.quantity;
     if (rfqQty) {
+       
       setTiers([{ minQty: '1', maxQty: String(rfqQty), unitPrice: '' }]);
     }
   }, [data]);
@@ -322,8 +324,9 @@ export function SupplierPortalPage() {
         },
       });
       setSubmitted(true);
-    } catch (err: any) {
-      setFormError(err?.response?.data?.message || err.message || t.errors.submitFailed);
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      setFormError(e?.response?.data?.message || e?.message || t.errors.submitFailed);
     }
   };
 
@@ -540,7 +543,7 @@ export function SupplierPortalPage() {
                         {rfq.attachments.map((att, i) => (
                           <a
                             key={i}
-                            href={`${API_BASE}/portal/attachments/${att.storedFilename}`}
+                            href={`${API_BASE}/uploads/${att.storedFilename}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md px-2 py-1.5 transition-colors"

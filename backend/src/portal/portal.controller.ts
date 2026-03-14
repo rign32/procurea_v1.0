@@ -1,11 +1,8 @@
-import { Controller, Get, Post, Param, Body, Res, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, NotFoundException } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import type { Response } from 'express';
 import { PortalService } from './portal.service';
 import { TranslationService } from '../common/services/translation.service';
 import { SubmitOfferDto } from '../common/dto/submit-offer.dto';
-import * as path from 'path';
-import * as fs from 'fs';
 
 @Throttle({ default: { ttl: 60000, limit: 15 } }) // 15 per minute for entire portal
 @Controller('portal')
@@ -36,18 +33,5 @@ export class PortalController {
         }
 
         return this.translationService.translatePortalUI(langCode);
-    }
-
-    @Get('attachments/:filename')
-    getAttachment(@Param('filename') filename: string, @Res() res: Response) {
-        // Sanitize filename to prevent path traversal
-        const sanitized = path.basename(filename);
-        const filepath = path.join(process.cwd(), 'uploads', sanitized);
-
-        if (!fs.existsSync(filepath)) {
-            throw new NotFoundException('File not found');
-        }
-
-        res.sendFile(filepath);
     }
 }

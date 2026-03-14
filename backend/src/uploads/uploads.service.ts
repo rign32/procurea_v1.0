@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import * as admin from 'firebase-admin';
 import * as path from 'path';
@@ -51,17 +51,11 @@ export class UploadsService {
 
                 this.logger.log(`Uploaded ${filename} to Firebase Storage (${file.size} bytes)`);
 
-                // Generate a read-only presigned URL valid for 7 days
-                const [signedUrl] = await fileRef.getSignedUrl({
-                    action: 'read',
-                    expires: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
-                });
-
                 return {
                     id,
                     filename: file.originalname,
                     storedFilename: filename,
-                    url: signedUrl,
+                    url: `/api/uploads/${filename}`,
                     size: file.size,
                     mimeType: file.mimetype,
                 };
@@ -75,10 +69,37 @@ export class UploadsService {
                 id,
                 filename: file.originalname,
                 storedFilename: filename,
-                url: `/mock-uploads/${filename}`,
+                url: `/api/uploads/${filename}`,
                 size: file.size,
                 mimeType: file.mimetype,
             };
+        }
+    }
+
+    async downloadFile(storedFilename: string): Promise<{ buffer: Buffer; contentType: string }> {
+        const sanitized = path.basename(storedFilename);
+        const objectKey = `uploads/${sanitized}`;
+
+        if (!this.isCloudStorageEnabled) {
+            throw new NotFoundException('Cloud Storage not configured');
+        }
+
+        try {
+            const fileRef = this.bucket.file(objectKey);
+            const [exists] = await fileRef.exists();
+            if (!exists) {
+                throw new NotFoundException('File not found in storage');
+            }
+
+            const [buffer] = await fileRef.download();
+            const [metadata] = await fileRef.getMetadata();
+            const contentType = metadata.contentType || 'application/octet-stream';
+
+            return { buffer, contentType };
+        } catch (error: any) {
+            if (error instanceof NotFoundException) throw error;
+            this.logger.error(`Failed to download from Firebase Storage: ${error.message}`);
+            throw new NotFoundException('File not found');
         }
     }
 }
