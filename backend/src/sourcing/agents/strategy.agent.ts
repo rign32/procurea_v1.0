@@ -30,13 +30,13 @@ export const REGION_LANGUAGE_CONFIG: Record<string, {
 
   // Europe - 12 major EU languages (economically weighted)
   EU: {
-    countries: ['Germany', 'Poland', 'Czech Republic', 'France', 'Italy', 'Spain', 'Portugal', 'Netherlands', 'Belgium', 'Austria', 'Switzerland', 'Sweden', 'Romania', 'Denmark', 'Finland', 'Hungary'],
+    countries: ['Germany', 'Poland', 'Czech Republic', 'France', 'Italy', 'Spain', 'Portugal', 'Netherlands', 'Belgium', 'Austria', 'Sweden', 'Romania', 'Denmark', 'Finland', 'Hungary', 'Ireland', 'Greece', 'Croatia'],
     allowedCountries: [
       'Niemcy', 'Polska', 'Czechy', 'Słowacja', 'Węgry', 'Austria', 'Francja',
-      'Włochy', 'Hiszpania', 'Portugalia', 'Holandia', 'Belgia', 'Szwajcaria',
-      'Szwecja', 'Rumunia', 'Dania', 'Finlandia', 'Norwegia', 'Wielka Brytania',
+      'Włochy', 'Hiszpania', 'Portugalia', 'Holandia', 'Belgia',
+      'Szwecja', 'Rumunia', 'Dania', 'Finlandia',
       'Irlandia', 'Chorwacja', 'Słowenia', 'Bułgaria', 'Litwa', 'Łotwa',
-      'Estonia', 'Luksemburg', 'Grecja',
+      'Estonia', 'Luksemburg', 'Grecja', 'Cypr', 'Malta',
     ],
     languages: [
       { code: 'de', name: 'German', queryPrefix: '' },

@@ -27,7 +27,7 @@ import { AVAILABLE_COUNTRIES } from '@/constants/countries';
 
 // Country codes per predefined region (for exclusion UI)
 const REGION_COUNTRY_CODES: Record<string, string[]> = {
-  EU: ['DE', 'PL', 'CZ', 'SK', 'HU', 'AT', 'FR', 'IT', 'ES', 'PT', 'NL', 'BE', 'CH', 'SE', 'RO', 'DK', 'FI', 'NO', 'GB', 'IE', 'HR', 'SI', 'BG', 'LT', 'LV', 'EE', 'LU', 'GR'],
+  EU: ['DE', 'PL', 'CZ', 'SK', 'HU', 'AT', 'FR', 'IT', 'ES', 'PT', 'NL', 'BE', 'SE', 'RO', 'DK', 'FI', 'IE', 'HR', 'SI', 'BG', 'LT', 'LV', 'EE', 'LU', 'GR', 'CY', 'MT'],
   GLOBAL: ['US', 'DE', 'JP', 'CN', 'KR', 'IN', 'MX', 'BR', 'GB', 'FR', 'IT', 'PL', 'TW', 'VN', 'TH', 'MY', 'TR', 'CZ', 'NL', 'SE', 'CH', 'AT', 'ID', 'ES', 'PT', 'CA', 'AU', 'HU', 'RO', 'DK', 'FI'],
   GLOBAL_NO_CN: ['US', 'DE', 'JP', 'KR', 'IN', 'MX', 'BR', 'GB', 'FR', 'IT', 'PL', 'TW', 'VN', 'TH', 'MY', 'TR', 'CZ', 'NL', 'SE', 'CH', 'AT', 'ID', 'ES', 'PT', 'CA', 'AU', 'HU', 'RO', 'DK', 'FI'],
 };
