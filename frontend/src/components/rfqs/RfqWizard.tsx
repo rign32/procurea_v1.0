@@ -120,7 +120,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
   const form = useForm({
     resolver: zodResolver(currentSchema),
     defaultValues: formData as Record<string, unknown>,
-    mode: 'onChange',
+    mode: 'onSubmit',
   });
 
   // Load sequences and locations
@@ -245,7 +245,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
           <CardTitle>{steps[currentStep].label}</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={form.handleSubmit(handleNext)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(handleNext)} autoComplete="off" className="space-y-6">
 
             {/* ===== STEP 1: Produkt i specyfikacja ===== */}
             {steps[currentStep]?.id === 'product' && (
@@ -389,40 +389,34 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                   </div>
                 )}
 
-                {/* Supplier Types — checkboxes */}
+                {/* Supplier Types — radio cards */}
                 <div>
-                  <label className="block text-sm font-medium mb-2">{t.campaigns.wizard.supplierTypes.title} <span className="text-muted-foreground font-normal">({t.campaigns.wizard.search.multiSelect})</span></label>
-                  <div className="space-y-2">
+                  <label className="block text-sm font-medium mb-3">{t.campaigns.wizard.supplierTypes.title}</label>
+                  <div className="grid grid-cols-2 gap-3">
                     {[
-                      { value: 'PRODUCENT', label: t.campaigns.wizard.supplierTypes.manufacturer, desc: t.campaigns.wizard.supplierTypes.manufacturerDesc },
-                      { value: 'HANDLOWIEC', label: t.campaigns.wizard.supplierTypes.trader, desc: t.campaigns.wizard.supplierTypes.traderDesc },
+                      { value: ['PRODUCENT'], label: t.campaigns.wizard.supplierTypes.onlyManufacturers, desc: t.campaigns.wizard.supplierTypes.onlyManufacturersDesc, icon: '\u{1F3ED}' },
+                      { value: ['PRODUCENT', 'HANDLOWIEC'], label: t.campaigns.wizard.supplierTypes.manufacturersAndTraders, desc: t.campaigns.wizard.supplierTypes.manufacturersAndTradersDesc, icon: '\u{1F310}' },
                     ].map((opt) => {
                       const currentTypes = form.watch('supplierTypes') || ['PRODUCENT'];
-                      const isSelected = currentTypes.includes(opt.value);
+                      const isSelected = JSON.stringify(currentTypes.slice().sort()) === JSON.stringify(opt.value.slice().sort());
                       return (
-                        <label
-                          key={opt.value}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg border cursor-pointer hover:bg-muted/30 transition-colors"
+                        <button
+                          key={opt.label}
+                          type="button"
+                          onClick={() => form.setValue('supplierTypes', opt.value, { shouldValidate: true, shouldDirty: true })}
+                          className={cn(
+                            'flex items-center gap-3 p-4 rounded-lg border-2 transition-all text-left',
+                            isSelected
+                              ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                              : 'border-input hover:border-primary/40 hover:bg-muted/30'
+                          )}
                         >
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => {
-                              const current = form.getValues('supplierTypes') || ['PRODUCENT'];
-                              const updated = isSelected
-                                ? current.filter((t: string) => t !== opt.value)
-                                : [...current, opt.value];
-                              if (updated.length > 0) {
-                                form.setValue('supplierTypes', updated, { shouldValidate: true });
-                              }
-                            }}
-                            className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
-                          />
+                          <span className="text-2xl">{opt.icon}</span>
                           <div>
                             <p className="font-medium text-sm">{opt.label}</p>
                             <p className="text-xs text-muted-foreground">{opt.desc}</p>
                           </div>
-                        </label>
+                        </button>
                       );
                     })}
                   </div>
@@ -439,7 +433,8 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                   />
                 </div>
 
-                {/* Incoterms — multi-select with tooltips */}
+                {/* Incoterms — multi-select with tooltips (full plan only) */}
+                {isFullPlan && (
                 <div>
                   <label className="block text-sm font-medium mb-3">
                     {t.campaigns.wizard.logistics.incoterms}
@@ -482,12 +477,15 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                     </div>
                   </TooltipProvider>
                 </div>
+                )}
 
-                {/* Delivery date */}
+                {/* Delivery date (full plan only) */}
+                {isFullPlan && (
                 <div>
                   <label className="block text-sm font-medium mb-2">{t.campaigns.wizard.logistics.deliveryDateLabel}</label>
                   <input type="date" {...form.register('desiredDeliveryDate')} className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                 </div>
+                )}
 
                 {/* Delivery location */}
                 {isFullPlan && (
@@ -600,6 +598,9 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                     <div className="flex justify-between"><span className="text-muted-foreground">{t.campaigns.wizard.summary.product}:</span><span className="font-medium">{formData.productName}</span></div>
                     {formData.material && <div className="flex justify-between"><span className="text-muted-foreground">{t.campaigns.wizard.summary.material}:</span><span className="font-medium">{formData.material}</span></div>}
                     {formData.quantity && <div className="flex justify-between"><span className="text-muted-foreground">{t.campaigns.wizard.summary.quantity}:</span><span className="font-medium">{formData.quantity} {formData.unit || t.campaigns.wizard.specs.unitDefault}</span></div>}
+                    {formData.eau && <div className="flex justify-between"><span className="text-muted-foreground">{t.campaigns.wizard.summary.eau}:</span><span className="font-medium">{formData.eau}</span></div>}
+                    {formData.partNumber && <div className="flex justify-between"><span className="text-muted-foreground">{t.campaigns.wizard.summary.partNumber}:</span><span className="font-medium">{formData.partNumber}</span></div>}
+                    {formData.description && <div className="flex justify-between"><span className="text-muted-foreground">{t.campaigns.wizard.summary.description}:</span><span className="font-medium line-clamp-2">{formData.description}</span></div>}
                     {formData.targetRegion && (
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">{t.campaigns.wizard.summary.region}:</span>
@@ -607,6 +608,17 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                           {formData.targetRegion === 'CUSTOM'
                             ? `\u{1F4CD} ${selectedCountries.map(c => AVAILABLE_COUNTRIES.find(ac => ac.code === c)?.name).filter(Boolean).join(', ')}`
                             : `${REGION_OPTIONS.find(r => r.value === formData.targetRegion)?.icon} ${REGION_OPTIONS.find(r => r.value === formData.targetRegion)?.label}`
+                          }
+                        </span>
+                      </div>
+                    )}
+                    {formData.supplierTypes && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">{t.campaigns.wizard.summary.supplierTypes}:</span>
+                        <span className="font-medium">
+                          {(formData.supplierTypes as string[]).includes('HANDLOWIEC')
+                            ? t.campaigns.wizard.supplierTypes.manufacturersAndTraders
+                            : t.campaigns.wizard.supplierTypes.onlyManufacturers
                           }
                         </span>
                       </div>
@@ -623,7 +635,6 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                       </div>
                     )}
                     {formData.desiredDeliveryDate && <div className="flex justify-between"><span className="text-muted-foreground">{t.campaigns.wizard.summary.deliveryDate}:</span><span className="font-medium">{formData.desiredDeliveryDate}</span></div>}
-                    {formData.description && <div className="flex justify-between"><span className="text-muted-foreground">{t.campaigns.wizard.summary.description}:</span><span className="font-medium line-clamp-2">{formData.description}</span></div>}
                   </div>
 
                   {/* Attachments summary */}
@@ -632,7 +643,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                       <h4 className="text-sm font-medium mb-2">{t.campaigns.wizard.summary.attachments} ({attachments.length})</h4>
                       <div className="space-y-1">
                         {attachments.map((file) => (
-                          <p key={file.id} className="text-xs text-muted-foreground">📎 {file.filename}</p>
+                          <p key={file.id} className="text-xs text-muted-foreground font-sans">{'\u{1F4CE}'} {file.filename}</p>
                         ))}
                       </div>
                     </div>

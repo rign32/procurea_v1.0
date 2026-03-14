@@ -292,6 +292,10 @@ export const PL = {
         manufacturerDesc: 'Firmy które same wytwarzają produkty',
         trader: 'Handlowcy / Dystrybutorzy',
         traderDesc: 'Sklepy, hurtownie, pośrednicy',
+        onlyManufacturers: 'Tylko producenci',
+        onlyManufacturersDesc: 'Szukaj wyłącznie firm wytwarzających produkty',
+        manufacturersAndTraders: 'Producenci i dystrybutorzy',
+        manufacturersAndTradersDesc: 'Szukaj wśród producentów, hurtowni i pośredników',
       },
 
       incotermsOptions: {
@@ -312,6 +316,9 @@ export const PL = {
         product: 'Produkt',
         material: 'Materiał',
         quantity: 'Ilość',
+        eau: 'Roczne zużycie (EAU)',
+        partNumber: 'Numer katalogowy',
+        supplierTypes: 'Typy dostawców',
         region: 'Region',
         certificates: 'Certyfikaty',
         deliveryDate: 'Data dostawy',

@@ -294,6 +294,10 @@ export const EN: Translations = {
         manufacturerDesc: 'Companies that produce goods themselves',
         trader: 'Traders / Distributors',
         traderDesc: 'Shops, wholesalers, intermediaries',
+        onlyManufacturers: 'Manufacturers only',
+        onlyManufacturersDesc: 'Search only for companies that produce goods',
+        manufacturersAndTraders: 'Manufacturers & distributors',
+        manufacturersAndTradersDesc: 'Search among manufacturers, wholesalers and intermediaries',
       },
 
       incotermsOptions: {
@@ -314,6 +318,9 @@ export const EN: Translations = {
         product: 'Product',
         material: 'Material',
         quantity: 'Quantity',
+        eau: 'Annual usage (EAU)',
+        partNumber: 'Part number',
+        supplierTypes: 'Supplier types',
         region: 'Region',
         certificates: 'Certificates',
         deliveryDate: 'Delivery date',
