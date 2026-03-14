@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { Upload, X, FileIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import apiClient from '@/services/api.client';
+import { t } from '@/i18n';
 
 interface UploadedFile {
     id: string;
@@ -102,7 +103,7 @@ export function FileUpload({ value, onChange, className, maxFiles = 5 }: FileUpl
                     <Upload className="h-8 w-8 text-muted-foreground" />
                 )}
                 <p className="text-sm text-muted-foreground mt-2">
-                    {uploading ? 'Przesyłanie...' : 'Przeciągnij pliki lub kliknij aby wybrać'}
+                    {uploading ? t.campaigns.upload.uploading : t.campaigns.upload.dropzone}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                     PDF, DXF, STEP, JPG, PNG — max 10MB

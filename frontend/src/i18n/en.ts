@@ -358,6 +358,7 @@ export const EN: Translations = {
       upload: {
         title: 'Attachments (specs, drawings)',
         dropzone: 'Drag files or click to select',
+        uploading: 'Uploading...',
         formats: 'PDF, DXF, STEP, JPG, PNG \u2014 max 10MB',
       },
     },

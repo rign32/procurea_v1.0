@@ -356,6 +356,7 @@ export const PL = {
       upload: {
         title: 'Załączniki (specyfikacje, rysunki)',
         dropzone: 'Przeciągnij pliki lub kliknij aby wybrać',
+        uploading: 'Przesyłanie...',
         formats: 'PDF, DXF, STEP, JPG, PNG — max 10MB',
       },
     },
