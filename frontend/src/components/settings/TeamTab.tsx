@@ -121,53 +121,55 @@ export function TeamTab({ user }: TeamTabProps) {
                     <CardDescription>{t.settings.team.subtitle}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    {/* Team credit pool */}
-                    <div className="p-4 rounded-lg border bg-muted/30 space-y-4">
-                        <div className="flex items-center gap-2 text-sm font-medium">
-                            <Coins className="h-4 w-4 text-primary" />
-                            {isEN ? 'Team credit pool' : 'Pula kredytów zespołu'}
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="text-center p-3 rounded-lg bg-background border">
-                                <div className="text-2xl font-bold">{personalCredits}</div>
-                                <div className="text-xs text-muted-foreground">
-                                    {isEN ? 'My credits' : 'Moje kredyty'}
+                    {/* Team credit pool — only visible for paid plans, hidden on trial */}
+                    {user.orgPlan && user.orgPlan !== 'research' && (
+                        <div className="p-4 rounded-lg border bg-muted/30 space-y-4">
+                            <div className="flex items-center gap-2 text-sm font-medium">
+                                <Coins className="h-4 w-4 text-primary" />
+                                {isEN ? 'Team credit pool' : 'Pula kredytów zespołu'}
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="text-center p-3 rounded-lg bg-background border">
+                                    <div className="text-2xl font-bold">{personalCredits}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                        {isEN ? 'My credits' : 'Moje kredyty'}
+                                    </div>
+                                </div>
+                                <div className="text-center p-3 rounded-lg bg-background border">
+                                    <div className="text-2xl font-bold">{orgCredits}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                        {isEN ? 'Team pool' : 'Pula zespołu'}
+                                    </div>
                                 </div>
                             </div>
-                            <div className="text-center p-3 rounded-lg bg-background border">
-                                <div className="text-2xl font-bold">{orgCredits}</div>
-                                <div className="text-xs text-muted-foreground">
-                                    {isEN ? 'Team pool' : 'Pula zespołu'}
+                            {personalCredits > 0 && (
+                                <div className="flex items-center gap-2">
+                                    <Input
+                                        type="number"
+                                        min={1}
+                                        max={personalCredits}
+                                        value={contributeAmount}
+                                        onChange={(e) => setContributeAmount(e.target.value)}
+                                        placeholder={isEN ? 'Amount' : 'Ilość'}
+                                        className="w-24 h-9"
+                                    />
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={handleContribute}
+                                        disabled={contributing || !contributeAmount || parseInt(contributeAmount) <= 0}
+                                    >
+                                        {contributing ? (
+                                            <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                        ) : (
+                                            <ArrowRight className="h-3 w-3 mr-1" />
+                                        )}
+                                        {isEN ? 'Share with team' : 'Przekaż zespołowi'}
+                                    </Button>
                                 </div>
-                            </div>
+                            )}
                         </div>
-                        {personalCredits > 0 && (
-                            <div className="flex items-center gap-2">
-                                <Input
-                                    type="number"
-                                    min={1}
-                                    max={personalCredits}
-                                    value={contributeAmount}
-                                    onChange={(e) => setContributeAmount(e.target.value)}
-                                    placeholder={isEN ? 'Amount' : 'Ilość'}
-                                    className="w-24 h-9"
-                                />
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={handleContribute}
-                                    disabled={contributing || !contributeAmount || parseInt(contributeAmount) <= 0}
-                                >
-                                    {contributing ? (
-                                        <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                                    ) : (
-                                        <ArrowRight className="h-3 w-3 mr-1" />
-                                    )}
-                                    {isEN ? 'Share with team' : 'Przekaż zespołowi'}
-                                </Button>
-                            </div>
-                        )}
-                    </div>
+                    )}
 
                     {/* Auto-discovery info banner */}
                     <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">

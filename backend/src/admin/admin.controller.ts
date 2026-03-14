@@ -147,6 +147,24 @@ export class AdminController {
         return this.adminService.getOrganizationById(id);
     }
 
+    @Patch('organizations/:id')
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    async updateOrganization(
+        @Param('id') id: string,
+        @Body() body: { domain?: string; name?: string },
+    ) {
+        return this.adminService.updateOrganization(id, body);
+    }
+
+    @Patch('users/:id/organization')
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    async moveUserToOrganization(
+        @Param('id') userId: string,
+        @Body() body: { organizationId: string },
+    ) {
+        return this.adminService.moveUserToOrganization(userId, body.organizationId);
+    }
+
     // =====================
     // Error Logs
     // =====================

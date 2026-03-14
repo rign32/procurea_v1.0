@@ -102,6 +102,40 @@ export class AdminService {
     }
 
     // =====================
+    // Organization & User Data Fixes
+    // =====================
+
+    async updateOrganization(orgId: string, data: { domain?: string; name?: string }) {
+        const org = await this.prisma.organization.findUnique({ where: { id: orgId } });
+        if (!org) throw new NotFoundException('Organization not found');
+
+        const updated = await this.prisma.organization.update({
+            where: { id: orgId },
+            data: {
+                ...(data.domain !== undefined && { domain: data.domain }),
+                ...(data.name !== undefined && { name: data.name }),
+            },
+        });
+        this.logger.log(`Admin updated org ${orgId}: ${JSON.stringify(data)}`);
+        return updated;
+    }
+
+    async moveUserToOrganization(userId: string, organizationId: string) {
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user) throw new NotFoundException('User not found');
+
+        const org = await this.prisma.organization.findUnique({ where: { id: organizationId } });
+        if (!org) throw new NotFoundException('Organization not found');
+
+        const updated = await this.prisma.user.update({
+            where: { id: userId },
+            data: { organizationId },
+        });
+        this.logger.log(`Admin moved user ${user.email} to org ${org.name} (${organizationId})`);
+        return { id: updated.id, email: updated.email, organizationId: updated.organizationId };
+    }
+
+    // =====================
     // Dashboard
     // =====================
 
