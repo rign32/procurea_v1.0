@@ -63,6 +63,15 @@ export class BillingController {
         return this.billingService.contributeCredits(userId, body.amount);
     }
 
+    @Post('invoices/correct')
+    @UseGuards(AuthGuard('jwt'))
+    @Throttle({ default: { ttl: 60000, limit: 3 } })
+    async correctInvoice(@Req() req, @Body() body: { invoiceId: string }) {
+        const userId = req.user.userId || req.user.sub;
+        if (!body.invoiceId) throw new BadRequestException('invoiceId is required');
+        return this.billingService.correctInvoice(userId, body.invoiceId);
+    }
+
     @Get('invoices')
     @UseGuards(AuthGuard('jwt'))
     async getInvoices(@Req() req) {

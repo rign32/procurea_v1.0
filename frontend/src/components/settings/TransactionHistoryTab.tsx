@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Receipt, Loader2, AlertCircle, Mail, FileText, ExternalLink, Download, Settings2 } from 'lucide-react';
+import { Receipt, Loader2, AlertCircle, Mail, FileText, ExternalLink, Download, Settings2, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -35,6 +35,7 @@ export function TransactionHistoryTab({ user }: TransactionHistoryTabProps) {
     const [invoicesLoading, setInvoicesLoading] = useState(true);
     const [filter, setFilter] = useState<FilterType>('all');
     const [portalLoading, setPortalLoading] = useState(false);
+    const [correctingId, setCorrectingId] = useState<string | null>(null);
 
     const hasOrg = !!user?.organizationId;
 
@@ -67,6 +68,23 @@ export function TransactionHistoryTab({ user }: TransactionHistoryTabProps) {
             : `Dzień dobry,\n\nChciałbym zgłosić reklamację dotyczącą transakcji:\n\nID transakcji: ${txId}\nData: ${txDate}\nOpis: ${txDescription || 'Brak'}\n\nPowód reklamacji:\n\n`;
         const email = isEN ? 'hello@procurea.io' : 'kontakt@procurea.pl';
         window.open(`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_self');
+    };
+
+    const handleCorrection = async (invoiceId: string) => {
+        setCorrectingId(invoiceId);
+        try {
+            await billingService.correctInvoice(invoiceId);
+            toast.success(isEN
+                ? 'Invoice corrected — new invoice with updated data has been created'
+                : 'Faktura skorygowana — nowa faktura z aktualnymi danymi została wystawiona');
+            const data = await billingService.getInvoices();
+            setInvoices(data.invoices);
+        } catch (err: unknown) {
+            const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+            toast.error(msg || (isEN ? 'Could not correct invoice' : 'Nie udało się skorygować faktury'));
+        } finally {
+            setCorrectingId(null);
+        }
     };
 
     const handleManageBilling = async () => {
@@ -212,6 +230,22 @@ export function TransactionHistoryTab({ user }: TransactionHistoryTabProps) {
                                                         >
                                                             <ExternalLink className="h-3 w-3 mr-1" />
                                                             {isEN ? 'View' : 'Otwórz'}
+                                                        </Button>
+                                                    )}
+                                                    {inv.status === 'paid' && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-7 text-xs text-muted-foreground hover:text-foreground"
+                                                            onClick={() => handleCorrection(inv.id)}
+                                                            disabled={correctingId === inv.id}
+                                                        >
+                                                            {correctingId === inv.id ? (
+                                                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                                            ) : (
+                                                                <RefreshCw className="h-3 w-3 mr-1" />
+                                                            )}
+                                                            {isEN ? 'Correction' : 'Korekta'}
                                                         </Button>
                                                     )}
                                                 </div>

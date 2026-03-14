@@ -73,4 +73,9 @@ export const billingService = {
         const { data } = await apiClient.get('/billing/invoices');
         return data;
     },
+
+    correctInvoice: async (invoiceId: string): Promise<{ success: boolean; creditNoteId: string; newInvoiceId: string }> => {
+        const { data } = await apiClient.post('/billing/invoices/correct', { invoiceId });
+        return data;
+    },
 };

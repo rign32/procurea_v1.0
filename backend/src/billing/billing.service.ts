@@ -14,6 +14,7 @@ export class BillingService {
     private readonly logger = new Logger(BillingService.name);
     private stripe: Stripe | null = null;
     private vatTaxRateId: string | null = null;
+    private portalConfigId: string | null = null;
 
     constructor(
         private prisma: PrismaService,
@@ -767,11 +768,30 @@ export class BillingService {
             throw new BadRequestException('Brak konta Stripe. Dokonaj najpierw zakupu.');
         }
 
+        const isEn = user.language === 'en';
         const frontendUrl = this.getFrontendUrl(user.language || 'pl');
+
+        // Create portal config with name + address + tax_id editing (cached per instance)
+        if (!this.portalConfigId) {
+            const config = await stripe.billingPortal.configurations.create({
+                features: {
+                    customer_update: {
+                        enabled: true,
+                        allowed_updates: ['name', 'address', 'tax_id'],
+                    },
+                    invoice_history: { enabled: true },
+                },
+                business_profile: {
+                    headline: isEn ? 'Manage billing data' : 'Zarządzaj danymi rozliczeniowymi',
+                },
+            });
+            this.portalConfigId = config.id;
+        }
 
         const portalSession = await stripe.billingPortal.sessions.create({
             customer: user.stripeCustomerId,
             return_url: `${frontendUrl}/settings`,
+            configuration: this.portalConfigId,
         });
 
         return { url: portalSession.url };
@@ -812,6 +832,80 @@ export class BillingService {
                 pdfUrl: inv.invoice_pdf || null,
                 hostedUrl: inv.hosted_invoice_url || null,
             })),
+        };
+    }
+
+    async correctInvoice(userId: string, invoiceId: string): Promise<{
+        success: boolean;
+        creditNoteId: string;
+        newInvoiceId: string;
+    }> {
+        const stripe = this.ensureStripe();
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { stripeCustomerId: true },
+        });
+        if (!user?.stripeCustomerId) {
+            throw new BadRequestException('Brak konta Stripe');
+        }
+
+        // 1. Retrieve original invoice with line items
+        const invoice = await stripe.invoices.retrieve(invoiceId, {
+            expand: ['lines'],
+        });
+
+        // 2. Verify ownership
+        if (invoice.customer !== user.stripeCustomerId) {
+            throw new BadRequestException('Ta faktura nie należy do Twojego konta');
+        }
+
+        // 3. Only paid invoices can be corrected
+        if (invoice.status !== 'paid') {
+            throw new BadRequestException('Tylko opłacone faktury mogą być korygowane');
+        }
+
+        // 4. Check if already corrected (credit note exists)
+        const existingNotes = await stripe.creditNotes.list({ invoice: invoiceId, limit: 1 });
+        if (existingNotes.data.length > 0) {
+            throw new BadRequestException('Ta faktura została już skorygowana');
+        }
+
+        // 5. Create credit note (credits amount to customer balance)
+        const creditNote = await stripe.creditNotes.create({
+            invoice: invoiceId,
+            reason: 'order_change',
+            credit_amount: invoice.amount_paid,
+        });
+
+        // 6. Create new invoice with current customer data
+        const newInvoice = await stripe.invoices.create({
+            customer: user.stripeCustomerId,
+            auto_advance: false,
+        });
+
+        // 7. Copy line items from original invoice
+        for (const line of invoice.lines?.data || []) {
+            await stripe.invoiceItems.create({
+                customer: user.stripeCustomerId,
+                invoice: newInvoice.id,
+                amount: line.amount,
+                currency: line.currency,
+                description: line.description || undefined,
+            });
+        }
+
+        // 8. Finalize the new invoice
+        await stripe.invoices.finalizeInvoice(newInvoice.id);
+
+        // 9. Pay from customer balance (funded by credit note)
+        await stripe.invoices.pay(newInvoice.id);
+
+        this.logger.log(`Invoice corrected: ${invoiceId} → credit note ${creditNote.id} + new invoice ${newInvoice.id}`);
+
+        return {
+            success: true,
+            creditNoteId: creditNote.id,
+            newInvoiceId: newInvoice.id,
         };
     }
 }
