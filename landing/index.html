@@ -1,6 +1,49 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
+    <!-- Geo-redirect: PL users → procurea.pl, non-PL → procurea.io -->
+    <script>
+    (function() {
+      if (sessionStorage.getItem('geo-no-redirect')) return;
+
+      var host = location.hostname;
+      var isPL = host === 'procurea.pl' || host === 'www.procurea.pl';
+      var isIO = host === 'procurea.io' || host === 'www.procurea.io';
+      if (!isPL && !isIO) return;
+
+      if (/bot|crawl|spider|slurp|googlebot|bingbot|yandex|baidu/i.test(navigator.userAgent)) return;
+
+      var pathMap = {
+        '/regulamin': '/terms',
+        '/polityka-prywatnosci': '/privacy',
+        '/rodo': '/gdpr',
+        '/terms': '/regulamin',
+        '/privacy': '/polityka-prywatnosci',
+        '/gdpr': '/rodo'
+      };
+
+      fetch('https://get.geojs.io/v1/ip/country.json')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var country = (data.country || '').toUpperCase();
+          var target = null;
+
+          if (isIO && country === 'PL') {
+            target = 'https://procurea.pl';
+          } else if (isPL && country !== 'PL') {
+            target = 'https://procurea.io';
+          }
+
+          if (target) {
+            sessionStorage.setItem('geo-no-redirect', '1');
+            var path = pathMap[location.pathname] || location.pathname;
+            location.replace(target + path + location.search + location.hash);
+          }
+        })
+        .catch(function() {});
+    })();
+    </script>
+
     <!-- Google Consent Mode v2 — default denied until user accepts -->
     <script>
       window.dataLayer = window.dataLayer || [];
