@@ -103,7 +103,7 @@ export function FileUpload({ value, onChange, className, maxFiles = 5 }: FileUpl
                     <Upload className="h-8 w-8 text-muted-foreground" />
                 )}
                 <p className="text-sm text-muted-foreground mt-2">
-                    {uploading ? t.campaigns.upload.uploading : t.campaigns.upload.dropzone}
+                    {uploading ? t.campaigns.create.upload.uploading : t.campaigns.create.upload.dropzone}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                     PDF, DXF, STEP, JPG, PNG — max 10MB
