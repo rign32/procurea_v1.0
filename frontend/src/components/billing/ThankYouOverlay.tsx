@@ -148,7 +148,7 @@ export function ThankYouOverlay({ open, onClose }: ThankYouOverlayProps) {
                             animate={{ opacity: 1 }}
                             transition={{ delay: 1.5 }}
                         >
-                            {isEN ? 'Click anywhere to close' : 'Kliknij aby zamknąć'}
+                            {t.settings.billing.clickToClose}
                         </motion.p>
                     </motion.div>
                 </motion.div>

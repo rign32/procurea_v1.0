@@ -149,8 +149,8 @@ export function RegistryPage() {
             title={t.common.noData}
             description={
               searchQuery
-                ? 'Brak wyników dla podanego zapytania'
-                : 'Rejestr firm jest pusty'
+                ? t.registry.empty.noResults
+                : t.registry.empty.isEmpty
             }
           />
         ) : (
@@ -173,7 +173,7 @@ export function RegistryPage() {
                         {t.registry.table.verified}
                       </th>
                       <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                        Specjalizacja
+                        {t.registry.specialization}
                       </th>
                     </tr>
                   </thead>

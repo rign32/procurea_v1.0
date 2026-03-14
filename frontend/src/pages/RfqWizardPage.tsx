@@ -27,7 +27,7 @@ export function RfqWizardPage() {
         <div>
           <h1 className="text-3xl font-bold">{t.campaigns.wizard.title}</h1>
           <p className="text-muted-foreground mt-1">
-            Wypełnij formularz aby uruchomić wyszukiwanie AI
+            {t.campaigns.wizard.description}
           </p>
         </div>
       </div>

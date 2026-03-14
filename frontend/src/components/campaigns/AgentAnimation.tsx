@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { Brain, Search, BarChart3, Sparkles, CheckCircle2, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { t } from '@/i18n';
 
 interface AgentAnimationProps {
   currentStage: string;
@@ -11,8 +12,8 @@ interface AgentAnimationProps {
 const FLOW_AREAS = [
   {
     id: 'strategy',
-    label: 'Strategia',
-    description: 'Generowanie zapytań wyszukiwania',
+    label: t.campaigns.stage.strategy,
+    description: t.campaigns.stage.strategyDesc,
     icon: Brain,
     gradient: 'from-[#5E8C8F] to-[#2A5C5D]',
     glowColor: 'rgba(94, 140, 143, 0.3)',
@@ -20,8 +21,8 @@ const FLOW_AREAS = [
   },
   {
     id: 'scanning',
-    label: 'Skanowanie',
-    description: 'Przeszukiwanie internetu',
+    label: t.campaigns.stage.scanning,
+    description: t.campaigns.stage.scanningDesc,
     icon: Search,
     gradient: 'from-amber-500 to-orange-500',
     glowColor: 'rgba(245, 158, 11, 0.3)',
@@ -29,8 +30,8 @@ const FLOW_AREAS = [
   },
   {
     id: 'analysis',
-    label: 'Analiza',
-    description: 'Ocena dostawców',
+    label: t.campaigns.stage.analysis,
+    description: t.campaigns.stage.analysisDesc,
     icon: BarChart3,
     gradient: 'from-[#8E8396] to-[#6B5E7A]',
     glowColor: 'rgba(142, 131, 150, 0.3)',
@@ -38,8 +39,8 @@ const FLOW_AREAS = [
   },
   {
     id: 'enrichment',
-    label: 'Wzbogacanie',
-    description: 'Dane kontaktowe',
+    label: t.campaigns.stage.enrichment,
+    description: t.campaigns.stage.enrichmentDesc,
     icon: Sparkles,
     gradient: 'from-emerald-500 to-green-600',
     glowColor: 'rgba(16, 185, 129, 0.3)',
@@ -101,9 +102,9 @@ export function AgentAnimation({
               <div className="absolute inset-0 rounded-full bg-green-400/20 animate-ping" style={{ animationDuration: '2s' }} />
             </div>
             <div className="text-center">
-              <h3 className="text-xl font-bold text-green-700">Dane zostały zebrane</h3>
+              <h3 className="text-xl font-bold text-green-700">{t.campaigns.stage.completed}</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                Znaleziono <span className="font-bold text-foreground">{suppliersFound}</span> dostawców
+                {t.campaigns.detail.suppliersFound}: <span className="font-bold text-foreground">{suppliersFound}</span>
               </p>
             </div>
           </div>
@@ -185,7 +186,7 @@ export function AgentAnimation({
           <div className="flex items-center gap-3">
             <Loader2 className="h-4 w-4 animate-spin text-primary" />
             <span className="text-sm font-medium text-muted-foreground">
-              Zbieranie danych w toku
+              {t.campaigns.detail.searchInProgress}
             </span>
           </div>
           <span className="text-2xl font-bold text-primary tabular-nums">

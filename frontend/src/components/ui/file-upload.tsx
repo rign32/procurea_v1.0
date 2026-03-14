@@ -35,7 +35,7 @@ export function FileUpload({ value, onChange, className, maxFiles = 5 }: FileUpl
 
     const uploadFile = useCallback(async (file: File) => {
         if (file.size > MAX_SIZE) {
-            setError(`Plik "${file.name}" jest za duży (max 10MB)`);
+            setError(t.campaigns.wizard.upload.fileTooLarge.replace('{name}', file.name));
             return null;
         }
         const formData = new FormData();
@@ -50,8 +50,8 @@ export function FileUpload({ value, onChange, className, maxFiles = 5 }: FileUpl
             const msg = e?.message || e?.response?.data?.message || '';
             console.error(`[FileUpload] Upload failed for "${file.name}":`, msg, err);
             setError(msg && msg !== 'Network error'
-                ? `Błąd przesyłania "${file.name}": ${msg}`
-                : `Błąd przesyłania "${file.name}"`);
+                ? t.campaigns.wizard.upload.uploadErrorDetail.replace('{name}', file.name).replace('{msg}', msg)
+                : t.campaigns.wizard.upload.uploadError.replace('{name}', file.name));
             return null;
         }
     }, []);
@@ -61,7 +61,7 @@ export function FileUpload({ value, onChange, className, maxFiles = 5 }: FileUpl
         const arr = Array.from(files);
         const remaining = maxFiles - value.length;
         if (arr.length > remaining) {
-            setError(`Można dodać max ${remaining} plików`);
+            setError(t.campaigns.wizard.upload.maxFilesError.replace('{remaining}', String(remaining)));
             return;
         }
         setUploading(true);

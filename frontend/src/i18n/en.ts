@@ -184,9 +184,13 @@ export const EN: Translations = {
 
     stage: {
       strategy: 'Strategy',
+      strategyDesc: 'Generating search queries',
       scanning: 'Scanning',
+      scanningDesc: 'Searching the internet',
       analysis: 'Analysis',
+      analysisDesc: 'Evaluating suppliers',
       enrichment: 'Enrichment',
+      enrichmentDesc: 'Contact data',
       audit: 'Verification',
       completed: 'Completed',
     },
@@ -203,6 +207,7 @@ export const EN: Translations = {
 
     wizard: {
       title: 'Campaign wizard',
+      description: 'Fill out the form to launch AI search',
       step1: 'Basic information',
       step2: 'Technical specification',
       step3: 'Search parameters',
@@ -360,6 +365,10 @@ export const EN: Translations = {
         dropzone: 'Drag files or click to select',
         uploading: 'Uploading...',
         formats: 'PDF, DXF, STEP, JPG, PNG \u2014 max 10MB',
+        fileTooLarge: 'File "{name}" is too large (max 10MB)',
+        uploadError: 'Upload error for "{name}"',
+        uploadErrorDetail: 'Upload error for "{name}": {msg}',
+        maxFilesError: 'Maximum {remaining} files can be added',
       },
     },
 
@@ -450,7 +459,9 @@ export const EN: Translations = {
 
   rfqs: {
     title: 'Requests for Quotation',
+    subtitle: 'Manage requests for quotation',
     createNew: 'Create new RFQ',
+    emptyCategory: 'No RFQs in category',
     tabs: {
       draft: 'Drafts',
       active: 'Active',
@@ -487,6 +498,20 @@ export const EN: Translations = {
       description: 'Description',
       created: 'Created',
       weeks: 'wks',
+      linkCopied: 'Link copied to clipboard',
+      linkCopyFailed: 'Failed to copy link',
+      emailResent: 'Email resent to',
+      emailResendFailed: 'Failed to resend email',
+      comparison: 'Offer comparison',
+      comparisonCurrency: 'Prices converted to {currency} for comparison',
+      closeComparison: 'Close comparison',
+      copyPortalLink: 'Copy portal link',
+      resendEmail: 'Resend email',
+      viewed: 'Viewed',
+      submitted: 'Submitted',
+      specConfirmed: 'Spec',
+      campaign: 'Campaign',
+      perYear: '/ year',
     },
 
     offer: {
@@ -629,10 +654,43 @@ export const EN: Translations = {
       bulkVerify: 'Bulk verification',
       analytics: 'Analytics dashboard',
     },
+    empty: {
+      noResults: 'No results matching your query',
+      isEmpty: 'Company registry is empty',
+    },
+    specialization: 'Specialization',
+  },
+
+  blacklist: {
+    title: 'Blacklist Management',
+    subtitle: 'Suppliers on this list will not be included in future campaigns.',
+    searchPlaceholder: 'Search by company name or domain...',
+    downloadTemplate: 'Download template',
+    importExcel: 'Import Excel',
+    table: {
+      companyDomain: 'Company / Domain',
+      country: 'Country',
+      reason: 'Reason',
+      actions: 'Actions',
+    },
+    empty: 'No companies on the Blacklist matching the search criteria.',
+    unknownCompany: 'Unknown company',
+    defaultReason: 'Blocked by user',
+    editReasonHint: 'Click to edit reason',
+    remove: 'Remove',
+    reasonUpdated: 'Reason updated',
+    reasonUpdateFailed: 'Failed to update reason',
+    removed: 'Removed {name} from Blacklist',
+    removeFailed: 'Failed to remove from Blacklist',
+    imported: 'Imported {imported} companies. Skipped: {skipped}.',
+    importErrors: 'Errors: {count}. Check console.',
+    importFailed: 'Import file error',
+    templateFailed: 'Template download error',
   },
 
   sequences: {
     title: 'Email sequence templates',
+    subtitle: 'Manage email sequence templates sent to suppliers',
     create: 'New sequence',
     clone: 'Clone',
     system: 'System',
@@ -653,6 +711,19 @@ export const EN: Translations = {
     deleteConfirm: 'Are you sure you want to delete this template?',
     deleteStepConfirm: 'Are you sure you want to delete this step?',
     cloneName: 'Copy name',
+    copySuffix: '(copy)',
+    emptyTitle: 'No sequence templates',
+    emptyAction: 'Create first template',
+    systemReadonly: 'System templates are read-only. Clone to edit.',
+    created: 'Created',
+    createDescription: 'New template with default steps',
+    templateName: 'Template name',
+    templateNamePlaceholder: 'e.g. Sequence for automotive',
+    cloneDescription: 'Create a copy of the template with a new name',
+    editStep: 'Edit step',
+    type: 'Type',
+    subjectPlaceholder: 'Email subject...',
+    bodyPlaceholder: 'Email body...',
     emailConfig: 'Email configuration',
     selectTemplate: 'Select sequence template',
     defaultTemplate: 'Default template',
@@ -887,6 +958,8 @@ export const EN: Translations = {
         balance: 'Balance',
         noTransactions: 'No transactions',
       },
+
+      clickToClose: 'Click anywhere to close',
 
       checkout: {
         redirecting: 'Redirecting to payment...',

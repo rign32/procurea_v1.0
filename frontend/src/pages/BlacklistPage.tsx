@@ -34,9 +34,9 @@ export function BlacklistPage() {
 
     const saveReason = () => {
         if (editingId) {
-            updateReason({ id: editingId, reason: editValue.trim() || 'Zablokowany przez użytkownika' }, {
-                onSuccess: () => toast.success('Powód zaktualizowany'),
-                onError: () => toast.error('Nie udało się zaktualizować powodu'),
+            updateReason({ id: editingId, reason: editValue.trim() || t.blacklist.defaultReason }, {
+                onSuccess: () => toast.success(t.blacklist.reasonUpdated),
+                onError: () => toast.error(t.blacklist.reasonUpdateFailed),
             });
             setEditingId(null);
         }
@@ -61,10 +61,10 @@ export function BlacklistPage() {
     const handleRemove = (id: string, name: string) => {
         removeFromBlacklist(id, {
             onSuccess: () => {
-                toast.success(`Usunięto ${name} z Blacklisty`);
+                toast.success(t.blacklist.removed.replace('{name}', name));
             },
             onError: () => {
-                toast.error('Nie udało się usunąć z Blacklisty');
+                toast.error(t.blacklist.removeFailed);
             }
         });
     };
@@ -75,13 +75,13 @@ export function BlacklistPage() {
 
         try {
             const result = await importBlacklist(file);
-            toast.success(`Zaimportowano ${result.imported} firm. Pominięto: ${result.skipped}.`);
+            toast.success(t.blacklist.imported.replace('{imported}', String(result.imported)).replace('{skipped}', String(result.skipped)));
             if (result.errors.length > 0) {
-                toast.warning(`Błędy: ${result.errors.length}. Sprawdź konsolę.`);
+                toast.warning(t.blacklist.importErrors.replace('{count}', String(result.errors.length)));
                 console.warn('[Blacklist Import] Errors:', result.errors);
             }
         } catch {
-            toast.error('Błąd importu pliku');
+            toast.error(t.blacklist.importFailed);
         }
 
         if (fileInputRef.current) fileInputRef.current.value = '';
@@ -91,7 +91,7 @@ export function BlacklistPage() {
         try {
             await downloadBlacklistTemplate();
         } catch {
-            toast.error('Błąd pobierania szablonu');
+            toast.error(t.blacklist.templateFailed);
         }
     };
 
@@ -122,10 +122,10 @@ export function BlacklistPage() {
             <motion.div variants={itemVariants}>
                 <h1 className="text-3xl font-bold flex items-center gap-2">
                     <ShieldAlert className="h-8 w-8 text-destructive" />
-                    Zarządzanie Blacklistą
+                    {t.blacklist.title}
                 </h1>
                 <p className="text-muted-foreground mt-1">
-                    Dostawcy na rzeczonej liście nie będą uwzględniani w przyszłych kampaniach.
+                    {t.blacklist.subtitle}
                 </p>
             </motion.div>
 
@@ -136,14 +136,14 @@ export function BlacklistPage() {
                     <SearchInput
                         value={searchQuery}
                         onChange={setSearchQuery}
-                        placeholder="Szukaj po nazwie firmy lub domenie..."
+                        placeholder={t.blacklist.searchPlaceholder}
                         className="pl-10"
                     />
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline" size="sm" onClick={handleTemplateDownload}>
                         <Download className="h-4 w-4 mr-1.5" />
-                        Pobierz szablon
+                        {t.blacklist.downloadTemplate}
                     </Button>
                     <Button size="sm" onClick={() => fileInputRef.current?.click()} disabled={isImporting}>
                         {isImporting ? (
@@ -151,7 +151,7 @@ export function BlacklistPage() {
                         ) : (
                             <Upload className="h-4 w-4 mr-1.5" />
                         )}
-                        Importuj Excel
+                        {t.blacklist.importExcel}
                     </Button>
                     <input
                         ref={fileInputRef}
@@ -170,10 +170,10 @@ export function BlacklistPage() {
                         <table className="w-full text-sm text-left">
                             <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
                                 <tr>
-                                    <th className="px-6 py-3 font-medium">Firma / Domena</th>
-                                    <th className="px-6 py-3 font-medium">Kraj</th>
-                                    <th className="px-6 py-3 font-medium">Powód dodania</th>
-                                    <th className="px-6 py-3 font-medium text-right">Akcje</th>
+                                    <th className="px-6 py-3 font-medium">{t.blacklist.table.companyDomain}</th>
+                                    <th className="px-6 py-3 font-medium">{t.blacklist.table.country}</th>
+                                    <th className="px-6 py-3 font-medium">{t.blacklist.table.reason}</th>
+                                    <th className="px-6 py-3 font-medium text-right">{t.blacklist.table.actions}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y relative">
@@ -186,7 +186,7 @@ export function BlacklistPage() {
                                             exit={{ opacity: 0 }}
                                         >
                                             <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">
-                                                Brak firm na Blackliście spełniających kryteria wyszukiwania.
+                                                {t.blacklist.empty}
                                             </td>
                                         </motion.tr>
                                     ) : (
@@ -201,7 +201,7 @@ export function BlacklistPage() {
                                                 className="hover:bg-muted/30 transition-colors"
                                             >
                                                 <td className="px-6 py-4">
-                                                    <div className="font-semibold text-foreground">{item.name || 'Nieznana firma'}</div>
+                                                    <div className="font-semibold text-foreground">{item.name || t.blacklist.unknownCompany}</div>
                                                     <div className="text-muted-foreground">{item.domain}</div>
                                                 </td>
                                                 <td className="px-6 py-4">
@@ -232,9 +232,9 @@ export function BlacklistPage() {
                                                         <button
                                                             onClick={() => startEditing(item.id, item.blacklistReason || '')}
                                                             className="group flex items-center gap-1.5 text-left truncate max-w-full hover:text-foreground transition-colors"
-                                                            title="Kliknij, aby edytować powód"
+                                                            title={t.blacklist.editReasonHint}
                                                         >
-                                                            <span className="truncate">{item.blacklistReason || 'Zablokowany przez użytkownika'}</span>
+                                                            <span className="truncate">{item.blacklistReason || t.blacklist.defaultReason}</span>
                                                             <Pencil className="h-3 w-3 shrink-0 opacity-0 group-hover:opacity-50 transition-opacity" />
                                                         </button>
                                                     )}
@@ -248,7 +248,7 @@ export function BlacklistPage() {
                                                         className="text-muted-foreground hover:text-foreground hover:bg-muted"
                                                     >
                                                         <Trash2 className="h-4 w-4 mr-1.5" />
-                                                        Odrzuć
+                                                        {t.blacklist.remove}
                                                     </Button>
                                                 </td>
                                             </motion.tr>

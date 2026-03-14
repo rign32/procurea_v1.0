@@ -16,7 +16,7 @@ import {
     DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { EmailPreview } from '@/components/email/EmailPreview';
-import { t } from '@/i18n';
+import { t, isEN } from '@/i18n';
 import { useAuthStore } from '@/stores/auth.store';
 import sequencesService from '@/services/sequences.service';
 import type { SequenceTemplate } from '@/services/sequences.service';
@@ -199,7 +199,7 @@ export function SequencesPage() {
                 <div>
                     <h1 className="text-3xl font-bold">{t.sequences.title}</h1>
                     <p className="text-muted-foreground mt-1">
-                        Zarządzaj szablonami sekwencji emailowych wysyłanych do dostawców
+                        {t.sequences.subtitle}
                     </p>
                 </div>
                 <Button onClick={() => setCreateDialog(true)}>
@@ -214,9 +214,9 @@ export function SequencesPage() {
                     <Card>
                         <CardContent className="py-12 text-center">
                             <Mail className="mx-auto h-12 w-12 text-muted-foreground opacity-50 mb-4" />
-                            <p className="text-muted-foreground">Brak szablonów sekwencji</p>
+                            <p className="text-muted-foreground">{t.sequences.emptyTitle}</p>
                             <Button variant="link" onClick={() => setCreateDialog(true)}>
-                                Utwórz pierwszy szablon
+                                {t.sequences.emptyAction}
                             </Button>
                         </CardContent>
                     </Card>
@@ -247,7 +247,7 @@ export function SequencesPage() {
                                                     )}
                                                 </div>
                                                 <p className="text-sm text-muted-foreground">
-                                                    {template.steps.length} {t.sequences.steps.toLowerCase()} · Utworzono {new Date(template.createdAt).toLocaleDateString('pl-PL')}
+                                                    {template.steps.length} {t.sequences.steps.toLowerCase()} · {t.sequences.created} {new Date(template.createdAt).toLocaleDateString(isEN ? 'en-US' : 'pl-PL')}
                                                 </p>
                                             </div>
                                         </div>
@@ -261,7 +261,7 @@ export function SequencesPage() {
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuItem onClick={() => {
-                                                        setCloneName(template.name + ' (kopia)');
+                                                        setCloneName(template.name + ' ' + t.sequences.copySuffix);
                                                         setCloneDialog({ open: true, templateId: template.id });
                                                     }}>
                                                         <Copy className="mr-2 h-4 w-4" />
@@ -377,7 +377,7 @@ export function SequencesPage() {
                                                 )}
                                                 {template.isSystem && (
                                                     <p className="text-xs text-muted-foreground text-center py-2">
-                                                        Szablony systemowe są tylko do odczytu. Sklonuj aby edytować.
+                                                        {t.sequences.systemReadonly}
                                                     </p>
                                                 )}
                                             </div>
@@ -403,15 +403,15 @@ export function SequencesPage() {
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>{t.sequences.create}</DialogTitle>
-                        <DialogDescription>Nowy szablon z domyślnymi krokami</DialogDescription>
+                        <DialogDescription>{t.sequences.createDescription}</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label>Nazwa szablonu</Label>
+                            <Label>{t.sequences.templateName}</Label>
                             <Input
                                 value={newName}
                                 onChange={(e) => setNewName(e.target.value)}
-                                placeholder="np. Sekwencja dla automotive"
+                                placeholder={t.sequences.templateNamePlaceholder}
                             />
                         </div>
                     </div>
@@ -432,7 +432,7 @@ export function SequencesPage() {
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>{t.sequences.clone}</DialogTitle>
-                        <DialogDescription>Utwórz kopię szablonu z nową nazwą</DialogDescription>
+                        <DialogDescription>{t.sequences.cloneDescription}</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                         <div className="space-y-2">
@@ -459,7 +459,7 @@ export function SequencesPage() {
             <Dialog open={!!editingStep} onOpenChange={(open) => !open && setEditingStep(null)}>
                 <DialogContent className="max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>Edytuj krok</DialogTitle>
+                        <DialogTitle>{t.sequences.editStep}</DialogTitle>
                     </DialogHeader>
                     {editingStep && (
                         <div className="space-y-4">
@@ -513,7 +513,7 @@ export function SequencesPage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label>Typ</Label>
+                                <Label>{t.sequences.type}</Label>
                                 <select
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                                     value={newStep.type}
@@ -530,7 +530,7 @@ export function SequencesPage() {
                             <Input
                                 value={newStep.subject}
                                 onChange={(e) => setNewStep(prev => ({ ...prev, subject: e.target.value }))}
-                                placeholder="Temat emaila..."
+                                placeholder={t.sequences.subjectPlaceholder}
                             />
                         </div>
                         <div className="space-y-2">
@@ -539,7 +539,7 @@ export function SequencesPage() {
                                 className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                 value={newStep.bodySnippet}
                                 onChange={(e) => setNewStep(prev => ({ ...prev, bodySnippet: e.target.value }))}
-                                placeholder="Treść emaila..."
+                                placeholder={t.sequences.bodyPlaceholder}
                             />
                         </div>
                     </div>

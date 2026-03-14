@@ -91,7 +91,7 @@ export function RfqsPage() {
         <div>
           <h1 className="text-3xl font-bold">{t.rfqs.title}</h1>
           <p className="text-muted-foreground mt-1">
-            Zarządzaj zapytaniami ofertowymi
+            {t.rfqs.subtitle}
           </p>
         </div>
         {canCreate && (
@@ -126,7 +126,7 @@ export function RfqsPage() {
               <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">{t.common.noData}</h3>
               <p className="text-muted-foreground mb-6">
-                Brak zapytań ofertowych w kategorii &ldquo;{tabs.find((t) => t.key === activeTab)?.label}&rdquo;
+                {t.rfqs.emptyCategory} &ldquo;{tabs.find((tab) => tab.key === activeTab)?.label}&rdquo;
               </p>
               {canCreate && (
                 <Button onClick={() => navigate('/campaigns/new')}>

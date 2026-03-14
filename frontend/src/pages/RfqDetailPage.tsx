@@ -21,7 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useRfq, useOffers, useAcceptOffer, useRejectOffer, useShortlistOffer, useCompareOffers } from '@/hooks/useRfqs';
 import { offersService } from '@/services/rfqs.service';
-import { t } from '@/i18n';
+import { t, isEN } from '@/i18n';
 import type { Offer, OfferPriceTier } from '@/types/campaign.types';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -73,7 +73,7 @@ function PriceTiersDisplay({ tiers, currency, unit }: { tiers: OfferPriceTier[];
   if (!tiers || tiers.length === 0) return null;
 
   const formatPrice = (price: number) =>
-    new Intl.NumberFormat('pl-PL', { style: 'currency', currency: currency || 'EUR' }).format(price);
+    new Intl.NumberFormat(isEN ? 'en-US' : 'pl-PL', { style: 'currency', currency: currency || 'EUR' }).format(price);
 
   return (
     <div className="space-y-1">
@@ -91,7 +91,7 @@ function PriceTiersDisplay({ tiers, currency, unit }: { tiers: OfferPriceTier[];
 function AlternativeOfferCard({ alt, unit }: { alt: Offer; unit: string }) {
   const formatPrice = (price?: number, currency?: string) => {
     if (price == null) return '—';
-    return new Intl.NumberFormat('pl-PL', { style: 'currency', currency: currency || 'EUR' }).format(price);
+    return new Intl.NumberFormat(isEN ? 'en-US' : 'pl-PL', { style: 'currency', currency: currency || 'EUR' }).format(price);
   };
 
   return (
@@ -193,20 +193,20 @@ export function RfqDetailPage() {
     try {
       const { portalUrl } = await offersService.getPortalLink(offerId);
       await navigator.clipboard.writeText(portalUrl);
-      toast.success('Link skopiowany do schowka');
+      toast.success(t.rfqs.detail.linkCopied);
     } catch (error) {
       console.error('Failed to copy link:', error);
-      toast.error('Nie udało się skopiować linku');
+      toast.error(t.rfqs.detail.linkCopyFailed);
     }
   };
 
   const handleResendEmail = async (offerId: string, supplierName: string) => {
     try {
       await offersService.resendEmail(offerId);
-      toast.success(`Email wysłany ponownie do ${supplierName}`);
+      toast.success(`${t.rfqs.detail.emailResent} ${supplierName}`);
     } catch (error) {
       console.error('Failed to resend email:', error);
-      toast.error('Nie udało się wysłać emaila');
+      toast.error(t.rfqs.detail.emailResendFailed);
     }
   };
 
@@ -244,7 +244,7 @@ export function RfqDetailPage() {
     );
   }
 
-  const rfqUnit = rfq.unit || 'szt.';
+  const rfqUnit = rfq.unit || t.campaigns.wizard.specs.unitDefault;
   const rfqQty = rfq.quantity || 0;
 
   const getStatusBadge = (status: string) => {
@@ -356,7 +356,7 @@ export function RfqDetailPage() {
               {rfq.eau && (
                 <div>
                   <p className="text-muted-foreground">{t.rfqs.detail.eau}</p>
-                  <p className="font-medium">{rfq.eau} / rok</p>
+                  <p className="font-medium">{rfq.eau} {t.rfqs.detail.perYear}</p>
                 </div>
               )}
               {rfq.incoterms && (
@@ -368,7 +368,7 @@ export function RfqDetailPage() {
               {rfq.desiredDeliveryDate && (
                 <div>
                   <p className="text-muted-foreground">{t.rfqs.detail.delivery}</p>
-                  <p className="font-medium">{new Date(rfq.desiredDeliveryDate).toLocaleDateString('pl-PL')}</p>
+                  <p className="font-medium">{new Date(rfq.desiredDeliveryDate).toLocaleDateString(isEN ? 'en-US' : 'pl-PL')}</p>
                 </div>
               )}
               {rfq.campaignId && (
@@ -378,7 +378,7 @@ export function RfqDetailPage() {
                     onClick={() => navigate(`/campaigns/${rfq.campaignId}`)}
                     className="font-medium text-primary hover:underline"
                   >
-                    {rfq.campaign?.name || 'Kampania'}
+                    {rfq.campaign?.name || t.rfqs.detail.campaign}
                   </button>
                 </div>
               )}
@@ -412,10 +412,10 @@ export function RfqDetailPage() {
         <motion.div variants={itemVariants}>
           <Card className="border-[#C5E0E2] bg-[#EDF4F4]/50">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Porównanie ofert</CardTitle>
+              <CardTitle className="text-base">{t.rfqs.detail.comparison}</CardTitle>
               {comparisonResult.baseCurrency && (
                 <p className="text-xs text-muted-foreground mt-1">
-                  Ceny przeliczone na {comparisonResult.baseCurrency} dla porównania
+                  {t.rfqs.detail.comparisonCurrency.replace('{currency}', comparisonResult.baseCurrency)}
                 </p>
               )}
             </CardHeader>
@@ -478,7 +478,7 @@ export function RfqDetailPage() {
                 </table>
               </div>
               <Button variant="ghost" size="sm" className="mt-2" onClick={() => setComparisonResult(null)}>
-                Zamknij porównanie
+                {t.rfqs.detail.closeComparison}
               </Button>
             </CardContent>
           </Card>
@@ -522,7 +522,7 @@ export function RfqDetailPage() {
                             to={`/suppliers/${offer.supplier?.id}`}
                             className="font-semibold text-primary hover:underline"
                           >
-                            {offer.supplier?.name || 'Dostawca'}
+                            {offer.supplier?.name || t.rfqs.offer.supplier}
                           </Link>
                           {offer.supplier?.country && (
                             <span className="text-xs text-muted-foreground">({offer.supplier.country})</span>
@@ -536,14 +536,14 @@ export function RfqDetailPage() {
                             <button
                               onClick={() => handleCopyPortalLink(offer.id)}
                               className="p-1 hover:bg-gray-100 rounded transition-colors"
-                              title="Skopiuj link do portalu"
+                              title={t.rfqs.detail.copyPortalLink}
                             >
                               <Link2 className="h-4 w-4 text-gray-600" />
                             </button>
                             <button
-                              onClick={() => handleResendEmail(offer.id, offer.supplier?.name || 'Dostawca')}
+                              onClick={() => handleResendEmail(offer.id, offer.supplier?.name || t.rfqs.offer.supplier)}
                               className="p-1 hover:bg-gray-100 rounded transition-colors"
-                              title="Wyślij ponownie email"
+                              title={t.rfqs.detail.resendEmail}
                             >
                               <Mail className="h-4 w-4 text-gray-600" />
                             </button>
@@ -578,7 +578,7 @@ export function RfqDetailPage() {
                         <div>
                           <p className="text-muted-foreground">{t.rfqs.detail.created}</p>
                           <p className="font-medium text-xs">
-                            {new Date(offer.createdAt).toLocaleDateString('pl-PL')}
+                            {new Date(offer.createdAt).toLocaleDateString(isEN ? 'en-US' : 'pl-PL')}
                           </p>
                         </div>
                       </div>
@@ -594,13 +594,13 @@ export function RfqDetailPage() {
                         {offer.viewedAt && (
                           <span className="flex items-center gap-1">
                             <Eye className="h-3 w-3" />
-                            Obejrzano {new Date(offer.viewedAt).toLocaleDateString('pl-PL')}
+                            {t.rfqs.detail.viewed} {new Date(offer.viewedAt).toLocaleDateString(isEN ? 'en-US' : 'pl-PL')}
                           </span>
                         )}
                         {offer.submittedAt && (
                           <span className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
-                            Złożono {new Date(offer.submittedAt).toLocaleDateString('pl-PL')}
+                            {t.rfqs.detail.submitted} {new Date(offer.submittedAt).toLocaleDateString(isEN ? 'en-US' : 'pl-PL')}
                           </span>
                         )}
                         {offer.specsConfirmed && (

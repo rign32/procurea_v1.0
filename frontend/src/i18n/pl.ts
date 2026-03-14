@@ -182,9 +182,13 @@ export const PL = {
 
     stage: {
       strategy: 'Strategia',
+      strategyDesc: 'Generowanie zapytań wyszukiwania',
       scanning: 'Skanowanie',
+      scanningDesc: 'Przeszukiwanie internetu',
       analysis: 'Analiza',
+      analysisDesc: 'Ocena dostawców',
       enrichment: 'Wzbogacanie',
+      enrichmentDesc: 'Dane kontaktowe',
       audit: 'Weryfikacja',
       completed: 'Ukończona',
     },
@@ -201,6 +205,7 @@ export const PL = {
 
     wizard: {
       title: 'Kreator kampanii',
+      description: 'Wypełnij formularz aby uruchomić wyszukiwanie AI',
       step1: 'Podstawowe informacje',
       step2: 'Specyfikacja techniczna',
       step3: 'Parametry wyszukiwania',
@@ -358,6 +363,10 @@ export const PL = {
         dropzone: 'Przeciągnij pliki lub kliknij aby wybrać',
         uploading: 'Przesyłanie...',
         formats: 'PDF, DXF, STEP, JPG, PNG — max 10MB',
+        fileTooLarge: 'Plik "{name}" jest za duży (max 10MB)',
+        uploadError: 'Błąd przesyłania "{name}"',
+        uploadErrorDetail: 'Błąd przesyłania "{name}": {msg}',
+        maxFilesError: 'Można dodać max {remaining} plików',
       },
     },
 
@@ -448,7 +457,9 @@ export const PL = {
 
   rfqs: {
     title: 'Zapytania ofertowe',
+    subtitle: 'Zarządzaj zapytaniami ofertowymi',
     createNew: 'Utwórz nowe RFQ',
+    emptyCategory: 'Brak zapytań ofertowych w kategorii',
     tabs: {
       draft: 'Szkice',
       active: 'Aktywne',
@@ -485,6 +496,20 @@ export const PL = {
       description: 'Opis',
       created: 'Utworzono',
       weeks: 'tyg.',
+      linkCopied: 'Link skopiowany do schowka',
+      linkCopyFailed: 'Nie udało się skopiować linku',
+      emailResent: 'Email wysłany ponownie do',
+      emailResendFailed: 'Nie udało się wysłać emaila',
+      comparison: 'Porównanie ofert',
+      comparisonCurrency: 'Ceny przeliczone na {currency} dla porównania',
+      closeComparison: 'Zamknij porównanie',
+      copyPortalLink: 'Skopiuj link do portalu',
+      resendEmail: 'Wyślij ponownie email',
+      viewed: 'Obejrzano',
+      submitted: 'Złożono',
+      specConfirmed: 'Spec',
+      campaign: 'Kampania',
+      perYear: '/ rok',
     },
 
     offer: {
@@ -627,10 +652,43 @@ export const PL = {
       bulkVerify: 'Weryfikacja grupowa',
       analytics: 'Dashboard analityczny',
     },
+    empty: {
+      noResults: 'Brak wyników dla podanego zapytania',
+      isEmpty: 'Rejestr firm jest pusty',
+    },
+    specialization: 'Specjalizacja',
+  },
+
+  blacklist: {
+    title: 'Zarządzanie Blacklistą',
+    subtitle: 'Dostawcy na rzeczonej liście nie będą uwzględniani w przyszłych kampaniach.',
+    searchPlaceholder: 'Szukaj po nazwie firmy lub domenie...',
+    downloadTemplate: 'Pobierz szablon',
+    importExcel: 'Importuj Excel',
+    table: {
+      companyDomain: 'Firma / Domena',
+      country: 'Kraj',
+      reason: 'Powód dodania',
+      actions: 'Akcje',
+    },
+    empty: 'Brak firm na Blackliście spełniających kryteria wyszukiwania.',
+    unknownCompany: 'Nieznana firma',
+    defaultReason: 'Zablokowany przez użytkownika',
+    editReasonHint: 'Kliknij, aby edytować powód',
+    remove: 'Odrzuć',
+    reasonUpdated: 'Powód zaktualizowany',
+    reasonUpdateFailed: 'Nie udało się zaktualizować powodu',
+    removed: 'Usunięto {name} z Blacklisty',
+    removeFailed: 'Nie udało się usunąć z Blacklisty',
+    imported: 'Zaimportowano {imported} firm. Pominięto: {skipped}.',
+    importErrors: 'Błędy: {count}. Sprawdź konsolę.',
+    importFailed: 'Błąd importu pliku',
+    templateFailed: 'Błąd pobierania szablonu',
   },
 
   sequences: {
     title: 'Szablony sekwencji email',
+    subtitle: 'Zarządzaj szablonami sekwencji emailowych wysyłanych do dostawców',
     create: 'Nowa sekwencja',
     clone: 'Klonuj',
     system: 'Systemowa',
@@ -651,6 +709,19 @@ export const PL = {
     deleteConfirm: 'Czy na pewno chcesz usunąć ten szablon?',
     deleteStepConfirm: 'Czy na pewno chcesz usunąć ten krok?',
     cloneName: 'Nazwa kopii',
+    copySuffix: '(kopia)',
+    emptyTitle: 'Brak szablonów sekwencji',
+    emptyAction: 'Utwórz pierwszy szablon',
+    systemReadonly: 'Szablony systemowe są tylko do odczytu. Sklonuj aby edytować.',
+    created: 'Utworzono',
+    createDescription: 'Nowy szablon z domyślnymi krokami',
+    templateName: 'Nazwa szablonu',
+    templateNamePlaceholder: 'np. Sekwencja dla automotive',
+    cloneDescription: 'Utwórz kopię szablonu z nową nazwą',
+    editStep: 'Edytuj krok',
+    type: 'Typ',
+    subjectPlaceholder: 'Temat emaila...',
+    bodyPlaceholder: 'Treść emaila...',
     emailConfig: 'Konfiguracja emaili',
     selectTemplate: 'Wybierz szablon sekwencji',
     defaultTemplate: 'Domyślny szablon',
@@ -885,6 +956,8 @@ export const PL = {
         balance: 'Saldo',
         noTransactions: 'Brak transakcji',
       },
+
+      clickToClose: 'Kliknij aby zamknąć',
 
       checkout: {
         redirecting: 'Przekierowanie do płatności...',
