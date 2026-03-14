@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { SupplierCard } from '../suppliers/SupplierCard';
@@ -6,26 +6,24 @@ import { rfqsService } from '@/services/rfqs.service';
 import type { Supplier } from '@/types/supplier.types';
 import { t } from '@/i18n';
 
-const MAX_SECONDS = 5 * 60; // 5 minutes
+const MAX_SECONDS = 2 * 60; // 2 minutes
 
-function WaitingForResults({ isRunning, campaignStartedAt, onStop }: { isRunning?: boolean; campaignStartedAt?: string; onStop?: () => void }) {
-  const calcRemaining = () => {
+function WaitingForResults({ isRunning, campaignStartedAt }: { isRunning?: boolean; campaignStartedAt?: string; onStop?: () => void }) {
+  const calcRemaining = useCallback(() => {
     if (!campaignStartedAt) return MAX_SECONDS;
     const elapsed = Math.floor((Date.now() - new Date(campaignStartedAt).getTime()) / 1000);
     return Math.max(0, MAX_SECONDS - elapsed);
-  };
+  }, [campaignStartedAt]);
 
   const [secondsLeft, setSecondsLeft] = useState(calcRemaining);
 
   useEffect(() => {
     if (!isRunning) return;
-    // Re-sync on mount (handles F5 refresh)
-    setSecondsLeft(calcRemaining());
     const interval = setInterval(() => {
       setSecondsLeft(calcRemaining());
     }, 1000);
     return () => clearInterval(interval);
-  }, [isRunning, campaignStartedAt]);
+  }, [isRunning, calcRemaining]);
 
   const minutes = Math.floor(secondsLeft / 60);
   const seconds = secondsLeft % 60;
@@ -41,15 +39,7 @@ function WaitingForResults({ isRunning, campaignStartedAt, onStop }: { isRunning
 
   return (
     <div className="text-center py-16 space-y-6">
-      <div>
-        <p className="text-lg font-medium">{t.feed.searching}</p>
-        <p className="text-sm text-muted-foreground mt-1">
-          {secondsLeft > 0
-            ? t.feed.firstResults.replace('{time}', `${minutes}:${seconds.toString().padStart(2, '0')}`)
-            : t.feed.waitAMoment
-          }
-        </p>
-      </div>
+      <p className="text-lg font-medium">{t.feed.searching}</p>
       <div className="flex justify-center">
         <svg className="w-24 h-24" viewBox="0 0 100 100">
           <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor"
@@ -87,7 +77,6 @@ interface LiveSupplierFeedProps {
 
 export function LiveSupplierFeed({
   suppliers,
-  campaignId,
   rfqRequestId,
   isAccepted = false,
   isRunning = false,
@@ -97,7 +86,7 @@ export function LiveSupplierFeed({
   onStop,
 }: LiveSupplierFeedProps) {
   const navigate = useNavigate();
-  const [sendingTo, setSendingTo] = useState<string | null>(null);
+  const [, setSendingTo] = useState<string | null>(null);
 
   const handleViewDetails = (supplierId: string) => {
     navigate(`/suppliers/${supplierId}`);
@@ -114,8 +103,8 @@ export function LiveSupplierFeed({
     try {
       const result = await rfqsService.sendToSuppliers(rfqRequestId, [supplierId]);
       toast.success(t.feed.sentResult.replace('{sent}', String(result.sent)).replace('{failed}', String(result.failed)));
-    } catch (err: any) {
-      toast.error(`Błąd: ${err.message}`);
+    } catch (err: unknown) {
+      toast.error(`Błąd: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setSendingTo(null);
     }
