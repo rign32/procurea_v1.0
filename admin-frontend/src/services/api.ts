@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { type InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '../stores/authStore';
 
 const api = axios.create({
@@ -14,14 +14,88 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-// Handle 401 responses
+// ---- Refresh token logic ----
+let isRefreshing = false;
+let failedQueue: Array<{
+    resolve: (value?: unknown) => void;
+    reject: (reason?: unknown) => void;
+}> = [];
+
+const processQueue = (error: unknown = null) => {
+    failedQueue.forEach((prom) => {
+        if (error) {
+            prom.reject(error);
+        } else {
+            prom.resolve();
+        }
+    });
+    failedQueue = [];
+};
+
+// Handle 401/403 responses with refresh logic
 api.interceptors.response.use(
     (response) => response,
-    (error) => {
-        if (error.response?.status === 401 || error.response?.status === 403) {
+    async (error) => {
+        const originalRequest = error.config as InternalAxiosRequestConfig & {
+            _retry?: boolean;
+        };
+
+        // Handle 403 - always logout (admin blocked, etc.)
+        if (error.response?.status === 403) {
             useAuthStore.getState().logout();
             window.location.href = '/';
+            return Promise.reject(error);
         }
+
+        // Handle 401 - try refresh token before logging out
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            if (isRefreshing) {
+                // Another request is already refreshing -- queue this one
+                return new Promise((resolve, reject) => {
+                    failedQueue.push({ resolve, reject });
+                })
+                    .then(() => api(originalRequest))
+                    .catch((err) => Promise.reject(err));
+            }
+
+            originalRequest._retry = true;
+            isRefreshing = true;
+
+            try {
+                const refreshToken = useAuthStore.getState().refreshToken;
+                if (!refreshToken) {
+                    throw new Error('No refresh token available');
+                }
+
+                // Use plain axios (NOT `api`) to avoid the request interceptor
+                // adding the expired access token to the Authorization header
+                const refreshRes = await axios.post('/api/auth/refresh', {}, {
+                    headers: { Authorization: `Bearer ${refreshToken}` },
+                });
+
+                const newAccessToken = refreshRes.data?.accessToken;
+                const newRefreshToken = refreshRes.data?.refreshToken;
+
+                if (newAccessToken && newRefreshToken) {
+                    useAuthStore.getState().setTokens(newAccessToken, newRefreshToken);
+                }
+
+                isRefreshing = false;
+                processQueue();
+
+                // Retry the original request (interceptor will pick up the new token)
+                return api(originalRequest);
+            } catch (refreshError) {
+                isRefreshing = false;
+                processQueue(refreshError);
+
+                // Refresh failed -- logout and redirect to login
+                useAuthStore.getState().logout();
+                window.location.href = '/';
+                return Promise.reject(refreshError);
+            }
+        }
+
         return Promise.reject(error);
     },
 );

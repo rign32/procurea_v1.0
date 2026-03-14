@@ -19,7 +19,7 @@ export default function LoginPage() {
 
         try {
             const { data } = await adminLogin(username, password);
-            login(data.accessToken, data.user);
+            login(data.accessToken, data.refreshToken, data.user);
             navigate('/');
         } catch (err: any) {
             setError(err.response?.data?.message || 'Nieprawidłowe dane logowania');

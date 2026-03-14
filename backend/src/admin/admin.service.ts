@@ -60,9 +60,11 @@ export class AdminService {
             adminUser.email,
             adminUser.role,
         );
+        const refreshToken = await this.tokensService.generateRefreshToken(adminUser.id);
 
         return {
             accessToken,
+            refreshToken,
             user: {
                 id: adminUser.id,
                 email: adminUser.email,
