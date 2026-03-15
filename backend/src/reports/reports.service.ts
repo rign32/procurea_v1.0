@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { GeminiService } from '../common/services/gemini.service';
-import { normalizeCountry } from '../common/normalize-country';
+import { normalizeCountry, normalizeCountryForLang } from '../common/normalize-country';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const PDFDocument = require('pdfkit');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -68,9 +68,10 @@ export class ReportsService {
         const accepted = offers.filter(o => o.status === 'ACCEPTED').length;
 
         // Country breakdown (active suppliers only)
+        const lang = (campaign as any).language || 'pl';
         const countryMap: Record<string, number> = {};
         for (const s of activeSuppliers) {
-            const c = normalizeCountry(s.country);
+            const c = normalizeCountryForLang(s.country, lang);
             countryMap[c] = (countryMap[c] || 0) + 1;
         }
         const countries = Object.entries(countryMap)
@@ -282,7 +283,7 @@ export class ReportsService {
         // Country breakdown
         const countryBreakdown: Record<string, number> = {};
         for (const s of suppliers) {
-            const c = normalizeCountry(s.country);
+            const c = normalizeCountryForLang(s.country, effectiveLang);
             countryBreakdown[c] = (countryBreakdown[c] || 0) + 1;
         }
 
@@ -290,7 +291,7 @@ export class ReportsService {
 
         const supplierData = JSON.stringify(suppliers.map(s => ({
             name: s.name,
-            country: normalizeCountry(s.country),
+            country: normalizeCountryForLang(s.country, effectiveLang),
             city: s.city,
             specialization: s.specialization,
             score: s.analysisScore,

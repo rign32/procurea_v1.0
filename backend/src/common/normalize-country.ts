@@ -145,6 +145,36 @@ const COUNTRY_MAP: Record<string, string> = {
     'unknown': 'Nieznany',
 };
 
+/** Polish → English country name mapping */
+const PL_TO_EN: Record<string, string> = {
+    'Niemcy': 'Germany', 'Polska': 'Poland', 'Czechy': 'Czech Republic',
+    'Słowacja': 'Slovakia', 'Węgry': 'Hungary', 'Austria': 'Austria',
+    'Francja': 'France', 'Włochy': 'Italy', 'Hiszpania': 'Spain',
+    'Holandia': 'Netherlands', 'Belgia': 'Belgium', 'Szwajcaria': 'Switzerland',
+    'Wielka Brytania': 'United Kingdom', 'USA': 'USA', 'Kanada': 'Canada',
+    'Chiny': 'China', 'Tajwan': 'Taiwan', 'Japonia': 'Japan',
+    'Korea Południowa': 'South Korea', 'Indie': 'India', 'Tajlandia': 'Thailand',
+    'Wietnam': 'Vietnam', 'Turcja': 'Turkey', 'Szwecja': 'Sweden',
+    'Dania': 'Denmark', 'Norwegia': 'Norway', 'Finlandia': 'Finland',
+    'Portugalia': 'Portugal', 'Rumunia': 'Romania', 'Bułgaria': 'Bulgaria',
+    'Chorwacja': 'Croatia', 'Słowenia': 'Slovenia', 'Litwa': 'Lithuania',
+    'Łotwa': 'Latvia', 'Estonia': 'Estonia', 'Irlandia': 'Ireland',
+    'Luksemburg': 'Luxembourg', 'Meksyk': 'Mexico', 'Brazylia': 'Brazil',
+    'Argentyna': 'Argentina', 'Australia': 'Australia', 'Nowa Zelandia': 'New Zealand',
+    'RPA': 'South Africa', 'Malezja': 'Malaysia', 'Singapur': 'Singapore',
+    'Indonezja': 'Indonesia', 'Filipiny': 'Philippines', 'Izrael': 'Israel',
+    'ZEA': 'UAE', 'Arabia Saudyjska': 'Saudi Arabia', 'Ukraina': 'Ukraine',
+    'Globalny': 'Global', 'Europa': 'Europe', 'Nieznany': 'Unknown',
+    'Stany Zjednoczone': 'United States',
+};
+
+/** Normalize country name for a specific language */
+export function normalizeCountryForLang(raw?: string | null, lang: string = 'pl'): string {
+    const polishName = normalizeCountry(raw);
+    if (lang === 'en') return PL_TO_EN[polishName] || polishName;
+    return polishName;
+}
+
 /**
  * Maps standardized Polish country names to their official language ISO 639-1 codes.
  * Used for email translation — determines which language to translate outreach emails into.

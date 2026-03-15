@@ -1,8 +1,31 @@
 /**
  * Country name normalization utility (frontend).
  * Converts ISO codes, English names, and common variants
- * to standardized Polish country names.
+ * to standardized country names (Polish or English based on isEN).
  */
+import { isEN } from '@/i18n';
+
+const PL_TO_EN: Record<string, string> = {
+    'Niemcy': 'Germany', 'Polska': 'Poland', 'Czechy': 'Czech Republic',
+    'Słowacja': 'Slovakia', 'Węgry': 'Hungary', 'Austria': 'Austria',
+    'Francja': 'France', 'Włochy': 'Italy', 'Hiszpania': 'Spain',
+    'Holandia': 'Netherlands', 'Belgia': 'Belgium', 'Szwajcaria': 'Switzerland',
+    'Wielka Brytania': 'United Kingdom', 'USA': 'USA', 'Kanada': 'Canada',
+    'Chiny': 'China', 'Tajwan': 'Taiwan', 'Japonia': 'Japan',
+    'Korea Południowa': 'South Korea', 'Indie': 'India', 'Tajlandia': 'Thailand',
+    'Wietnam': 'Vietnam', 'Turcja': 'Turkey', 'Szwecja': 'Sweden',
+    'Dania': 'Denmark', 'Norwegia': 'Norway', 'Finlandia': 'Finland',
+    'Portugalia': 'Portugal', 'Rumunia': 'Romania', 'Bułgaria': 'Bulgaria',
+    'Chorwacja': 'Croatia', 'Słowenia': 'Slovenia', 'Litwa': 'Lithuania',
+    'Łotwa': 'Latvia', 'Estonia': 'Estonia', 'Irlandia': 'Ireland',
+    'Luksemburg': 'Luxembourg', 'Meksyk': 'Mexico', 'Brazylia': 'Brazil',
+    'Argentyna': 'Argentina', 'Australia': 'Australia', 'Nowa Zelandia': 'New Zealand',
+    'RPA': 'South Africa', 'Malezja': 'Malaysia', 'Singapur': 'Singapore',
+    'Indonezja': 'Indonesia', 'Filipiny': 'Philippines', 'Izrael': 'Israel',
+    'ZEA': 'UAE', 'Arabia Saudyjska': 'Saudi Arabia', 'Ukraina': 'Ukraine',
+    'Globalny': 'Global', 'Europa': 'Europe', 'Nieznany': 'Unknown',
+    'Stany Zjednoczone': 'United States',
+};
 
 const COUNTRY_MAP: Record<string, string> = {
     // ISO 2-letter codes
@@ -54,17 +77,15 @@ const COUNTRY_MAP: Record<string, string> = {
 };
 
 export function normalizeCountry(raw?: string | null): string {
-    if (!raw) return 'Nieznany';
+    if (!raw) return isEN ? 'Unknown' : 'Nieznany';
     const trimmed = raw.trim();
-    if (!trimmed) return 'Nieznany';
+    if (!trimmed) return isEN ? 'Unknown' : 'Nieznany';
 
     const lower = trimmed.toLowerCase();
-    if (COUNTRY_MAP[lower]) return COUNTRY_MAP[lower];
+    const polishName = COUNTRY_MAP[lower] || (trimmed.length > 3 && trimmed[0] === trimmed[0].toUpperCase() ? trimmed : trimmed);
 
-    // If already looks like a proper name, return as-is
-    if (trimmed.length > 3 && trimmed[0] === trimmed[0].toUpperCase()) return trimmed;
-
-    return trimmed;
+    if (isEN) return PL_TO_EN[polishName] || polishName;
+    return polishName;
 }
 
 /** Map a country name (Polish or English) to a flag emoji */
@@ -86,6 +107,8 @@ const FLAG_MAP: Record<string, string> = {
 
 export function getCountryFlag(country?: string): string {
     if (!country) return '🌍';
-    const normalized = normalizeCountry(country);
-    return FLAG_MAP[normalized] || '🌍';
+    // Always use Polish canonical name for flag lookup
+    const lower = country.trim().toLowerCase();
+    const polishName = COUNTRY_MAP[lower] || country.trim();
+    return FLAG_MAP[polishName] || '🌍';
 }
