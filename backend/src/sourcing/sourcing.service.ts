@@ -270,6 +270,7 @@ export class SourcingService {
         const campaign = await this.prisma.campaign.create({
             data: {
                 name: dto.name || 'New Campaign',
+                language: dto.language || 'pl',
                 status: 'RUNNING',
                 stage: 'STRATEGY',
                 sequenceTemplateId: dto.sequenceTemplateId || null,

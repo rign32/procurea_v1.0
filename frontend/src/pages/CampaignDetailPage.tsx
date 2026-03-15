@@ -147,7 +147,7 @@ export function CampaignDetailPage() {
       apiClient.get(`/reports/campaign/${id}`).then(({ data }) => setReport(data)).catch(() => { });
       // Fetch AI summary
       setAiSummaryLoading(true);
-      apiClient.get(`/reports/campaign/${id}/ai-summary`)
+      apiClient.get(`/reports/campaign/${id}/ai-summary?lang=${isEN ? 'en' : 'pl'}`)
         .then(({ data }) => { if (!data.error) setAiSummary(data); })
         .catch(() => { })
         .finally(() => setAiSummaryLoading(false));

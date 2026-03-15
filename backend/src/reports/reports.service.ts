@@ -223,13 +223,14 @@ export class ReportsService {
     /**
      * AI-generated campaign summary with market insights
      */
-    async generateAiSummary(campaignId: string) {
+    async generateAiSummary(campaignId: string, requestedLang?: string) {
         // Check cache (24h TTL)
         const campaign = await this.prisma.campaign.findUnique({
             where: { id: campaignId },
             select: {
                 aiSummary: true,
                 aiSummaryGeneratedAt: true,
+                language: true,
                 name: true,
                 status: true,
                 rfqRequest: { select: { productName: true, category: true, material: true } },
@@ -251,11 +252,16 @@ export class ReportsService {
 
         if (!campaign) return null;
 
-        // Return cached summary if fresh (< 24h)
+        // Determine effective language: requestedLang (from frontend query) > campaign.language > 'pl'
+        const effectiveLang = requestedLang || campaign.language || 'pl';
+
+        // Return cached summary if fresh (< 24h) AND in the correct language
         if (campaign.aiSummary && campaign.aiSummaryGeneratedAt) {
             const age = Date.now() - campaign.aiSummaryGeneratedAt.getTime();
-            if (age < 24 * 60 * 60 * 1000) {
-                return JSON.parse(campaign.aiSummary);
+            const cached = JSON.parse(campaign.aiSummary);
+            const cachedLang = cached._lang || 'pl';
+            if (age < 24 * 60 * 60 * 1000 && cachedLang === effectiveLang) {
+                return cached;
             }
         }
 
@@ -280,22 +286,59 @@ export class ReportsService {
             countryBreakdown[c] = (countryBreakdown[c] || 0) + 1;
         }
 
-        const prompt = `Jesteś analitykiem zakupowym. Przeanalizuj wyniki kampanii sourcingowej.
+        const isEN = effectiveLang === 'en';
+
+        const supplierData = JSON.stringify(suppliers.map(s => ({
+            name: s.name,
+            country: normalizeCountry(s.country),
+            city: s.city,
+            specialization: s.specialization,
+            score: s.analysisScore,
+            type: s.companyType,
+            employees: s.employeeCount,
+            certificates: s.certificates,
+        })), null, 2);
+
+        const prompt = isEN
+            ? `You are a procurement analyst. Analyze the results of a sourcing campaign.
+
+PRODUCT: ${productName}
+CATEGORY: ${campaign.rfqRequest?.category || 'N/A'}
+MATERIAL: ${campaign.rfqRequest?.material || 'N/A'}
+SUPPLIERS (${suppliers.length}):
+${supplierData}
+
+TYPE BREAKDOWN: ${JSON.stringify(typeBreakdown)}
+COUNTRY BREAKDOWN: ${JSON.stringify(countryBreakdown)}
+
+Generate a report in JSON format:
+{
+  "marketOverview": "2-3 sentences summarizing the supplier market for this product",
+  "keyPlayers": [{"name": "Company name", "why": "Why they stand out"}],
+  "geographicAnalysis": "Analysis of the geographic distribution of suppliers",
+  "coverageAssessment": "HIGH|MEDIUM|LOW",
+  "coverageNote": "Explanation of market coverage assessment",
+  "recommendations": ["Recommendation 1", "Recommendation 2", "Recommendation 3"],
+  "riskFactors": ["Risk 1", "Risk 2"],
+  "priceInsight": "Estimated price context based on company size and region",
+  "companyTypeBreakdown": ${JSON.stringify(typeBreakdown)},
+  "countryBreakdown": ${JSON.stringify(countryBreakdown)}
+}
+
+RULES:
+- keyPlayers: max 5, sorted by importance
+- recommendations: 3-5 practical recommendations
+- riskFactors: 2-3 key risks
+- coverageAssessment: HIGH (>15 suppliers, good distribution), MEDIUM (8-15), LOW (<8)
+- Write in English
+- Return ONLY JSON, no comments`
+            : `Jesteś analitykiem zakupowym. Przeanalizuj wyniki kampanii sourcingowej.
 
 PRODUKT: ${productName}
 KATEGORIA: ${campaign.rfqRequest?.category || 'N/A'}
 MATERIAŁ: ${campaign.rfqRequest?.material || 'N/A'}
 DOSTAWCY (${suppliers.length}):
-${JSON.stringify(suppliers.map(s => ({
-    name: s.name,
-    country: normalizeCountry(s.country),
-    city: s.city,
-    specialization: s.specialization,
-    score: s.analysisScore,
-    type: s.companyType,
-    employees: s.employeeCount,
-    certificates: s.certificates,
-})), null, 2)}
+${supplierData}
 
 ROZKŁAD TYPÓW: ${JSON.stringify(typeBreakdown)}
 ROZKŁAD KRAJÓW: ${JSON.stringify(countryBreakdown)}
@@ -326,6 +369,7 @@ ZASADY:
             const response = await this.geminiService.generateContent(prompt);
             const jsonString = response.replace(/```json/g, '').replace(/```/g, '').trim();
             const summary = JSON.parse(jsonString);
+            summary._lang = effectiveLang;
 
             // Cache in DB
             await this.prisma.campaign.update({

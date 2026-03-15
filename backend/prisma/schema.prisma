@@ -172,6 +172,7 @@ model VerificationToken {
 model Campaign {
   id        String   @id @default(uuid())
   name      String   @default("My Strategy Campaign")
+  language  String   @default("pl")
   status    String   @default("RUNNING")
   stage     String   @default("STRATEGY")
   createdAt DateTime @default(now())

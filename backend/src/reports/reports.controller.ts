@@ -13,8 +13,8 @@ export class ReportsController {
     }
 
     @Get('campaign/:id/ai-summary')
-    getAiSummary(@Param('id') id: string) {
-        return this.reportsService.generateAiSummary(id);
+    getAiSummary(@Param('id') id: string, @Query('lang') lang?: string) {
+        return this.reportsService.generateAiSummary(id, lang);
     }
 
     @Get('campaign/:id/pdf')
