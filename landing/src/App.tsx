@@ -5,6 +5,7 @@ import { Footer } from "@/components/layout/Footer"
 import { HeroSection } from "@/components/sections/HeroSection"
 import { ProblemSection } from "@/components/sections/ProblemSection"
 import { HowItWorksSection } from "@/components/sections/HowItWorksSection"
+import { DemoSection } from "@/components/sections/DemoSection"
 import { FeaturesSection } from "@/components/sections/FeaturesSection"
 import { BenefitsSection } from "@/components/sections/BenefitsSection"
 import { AudienceSection } from "@/components/sections/AudienceSection"
@@ -39,6 +40,7 @@ function LandingPage() {
         <div data-track-section="hero"><HeroSection /></div>
         <div data-track-section="problem"><ProblemSection /></div>
         <div data-track-section="how-it-works"><HowItWorksSection /></div>
+        <div data-track-section="demo"><DemoSection /></div>
         <div data-track-section="features"><FeaturesSection /></div>
         <div data-track-section="benefits"><BenefitsSection /></div>
         <div data-track-section="audience"><AudienceSection /></div>

@@ -121,6 +121,12 @@ export const PL = {
     summaryPart2: ' trwa średnio ',
     summaryHighlight: '5–10 minut',
   },
+  demo: {
+    sectionLabel: 'Demo',
+    heading: 'Zobacz jak to działa',
+    headingSub: 'w praktyce',
+    description: 'Obejrzyj krótkie demo i przekonaj się, jak Procurea znajduje dostawców w kilka minut.',
+  },
   features: {
     sectionLabel: 'Beta testy',
     heading: 'Co zyskujesz w beta testach',

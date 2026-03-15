@@ -113,6 +113,12 @@ export const EN: LandingTranslations = {
     summaryPart2: ' takes on average ',
     summaryHighlight: '5–10 minutes',
   },
+  demo: {
+    sectionLabel: 'Demo',
+    heading: 'See it in action',
+    headingSub: 'Watch the demo',
+    description: 'Watch a short demo to see how Procurea finds and analyzes suppliers in minutes.',
+  },
   features: {
     sectionLabel: 'Beta program',
     heading: 'What you get in the beta',
