@@ -22,6 +22,7 @@ export const EN: LandingTranslations = {
     audience: 'who-its-for',
     betaSignup: 'join-beta',
     faq: 'faq',
+    demo: 'demo',
   },
   hero: {
     badge: 'AI-Powered Tool · Free Beta Access',
@@ -30,7 +31,7 @@ export const EN: LandingTranslations = {
     headlinePart2: ' and finds suppliers',
     subheadline: 'Procurea is an AI-powered tool that automatically discovers, analyzes, and verifies suppliers across global markets. Try it free during our beta program.',
     ctaPrimary: 'Join the beta',
-    ctaSecondary: 'See how it works',
+    ctaSecondary: 'Watch Demo',
     trustFreeAccess: 'Full access for free',
     trustNoCreditCard: 'No credit card required',
     trustBeta: 'Closed beta program',

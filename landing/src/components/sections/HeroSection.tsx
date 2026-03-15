@@ -144,7 +144,7 @@ export function HeroSection() {
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
             </a>
-            <a href={`#${t.sectionIds.howItWorks}`} onClick={() => trackCtaClick('hero_how_it_works')}>
+            <a href={t.meta.lang === 'en' ? `#${t.sectionIds.demo}` : `#${t.sectionIds.howItWorks}`} onClick={() => trackCtaClick('hero_how_it_works')}>
               <Button variant="secondary" size="lg" className="text-base px-8 py-4">
                 {t.hero.ctaSecondary}
               </Button>

@@ -30,6 +30,7 @@ export const PL = {
     audience: 'dla-kogo',
     betaSignup: 'dolacz',
     faq: 'faq',
+    demo: 'demo',
   },
   hero: {
     badge: 'Polskie narzędzie AI · Darmowe beta testy',
