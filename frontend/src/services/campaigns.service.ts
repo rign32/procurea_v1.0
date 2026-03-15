@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import apiClient from './api.client';
+import { isEN } from '@/i18n';
 import type {
   Campaign,
   CreateCampaignDto,
@@ -116,6 +118,7 @@ export const campaignsService = {
   create: async (dto: CreateCampaignDto): Promise<{ id: string; status: string }> => {
     const backendDto = {
       name: dto.name,
+      language: isEN ? 'en' : 'pl',
       sequenceTemplateId: dto.sequenceTemplateId,
       searchCriteria: {
         region: dto.targetRegion || 'EU',

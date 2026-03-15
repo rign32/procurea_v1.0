@@ -297,13 +297,16 @@ export class SourcingService {
         });
 
         // Fetch user language for translated pipeline output
-        let userLanguage = 'pl';
+        // Priority: dto.language (from frontend) > user.language (from DB) > 'pl' (default)
+        let userLanguage = dto.language || 'pl';
         if (userId) {
             const user = await this.prisma.user.findUnique({
                 where: { id: userId },
                 select: { language: true, plan: true, searchCredits: true, organizationId: true },
             });
-            userLanguage = user?.language || 'pl';
+            if (!dto.language) {
+                userLanguage = user?.language || 'pl';
+            }
 
             // Fetch org data for credit check
             let org: { searchCredits: number; plan: string; trialCreditsUsed: boolean } | null = null;

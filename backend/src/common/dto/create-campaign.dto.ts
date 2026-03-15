@@ -91,6 +91,10 @@ export class CreateCampaignDto {
 
     @IsOptional()
     @IsString()
+    language?: string;
+
+    @IsOptional()
+    @IsString()
     sequenceTemplateId?: string;
 
     @ValidateNested()
