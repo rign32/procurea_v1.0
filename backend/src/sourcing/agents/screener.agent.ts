@@ -144,7 +144,7 @@ Kluczowa różnica: firma musi WYTWARZAĆ lub SPRZEDAWAĆ dokładnie TEN produkt
 
         const systemPrompt = `
 Jesteś Autonomicznym Skautem i Analitykiem Przemysłowym (Industrial Screener & Analyst).
-JĘZYK: Odpowiadaj WYŁĄCZNIE po polsku. Wszystkie pola tekstowe MUSZĄ być w języku ${ScreenerAgentService.LANGUAGE_NAMES[userLanguage] || userLanguage}.
+JĘZYK: Odpowiadaj WYŁĄCZNIE w języku ${ScreenerAgentService.LANGUAGE_NAMES[userLanguage] || userLanguage}. Wszystkie pola tekstowe MUSZĄ być w języku ${ScreenerAgentService.LANGUAGE_NAMES[userLanguage] || userLanguage}.
 
 Masz TRZY zadania w jednym kroku:
 

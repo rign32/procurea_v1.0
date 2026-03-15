@@ -54,7 +54,7 @@ export class EnrichmentAgentService {
         const systemPrompt = `
 Jesteś Inżynierem Danych (Data Enrichment Specialist).
 WAŻNE: Odpowiadaj WYŁĄCZNIE w języku ${EnrichmentAgentService.LANGUAGE_NAMES[userLanguage] || userLanguage}.
-Specjalizacja, kraj, miasto — WSZYSTKO po polsku. Nawet jeśli dane wejściowe są w innym języku, PRZETŁUMACZ.
+Specjalizacja, kraj, miasto — WSZYSTKO w języku ${EnrichmentAgentService.LANGUAGE_NAMES[userLanguage] || userLanguage}. Nawet jeśli dane wejściowe są w innym języku, PRZETŁUMACZ na ${EnrichmentAgentService.LANGUAGE_NAMES[userLanguage] || userLanguage}.
 
 Uzupełnij dane firmy na podstawie kontekstu wyszukiwania.
 

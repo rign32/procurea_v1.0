@@ -1179,7 +1179,8 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             }
 
             // --- PHASE 2.5: EXPANSION PASS (second sweep for missed suppliers) ---
-            if (!stopAfter2B && globalQualifiedCount < MAX_TOTAL_QUALIFIED * 0.8) {
+            const EXPANSION_THRESHOLD = Math.min(10, Math.ceil(MAX_TOTAL_QUALIFIED * 0.3));
+            if (!stopAfter2B && globalQualifiedCount < EXPANSION_THRESHOLD) {
                 await this.log(id, `[EXPANSION] Coverage at ${globalQualifiedCount}/${MAX_TOTAL_QUALIFIED} (${Math.round(globalQualifiedCount / MAX_TOTAL_QUALIFIED * 100)}%) — running expansion pass...`);
                 this.sourcingGateway?.emitProgress(id, 'EXPANSION', 0);
 

@@ -124,15 +124,6 @@ export function LiveSupplierFeed({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">
-          {t.campaigns.detail.liveSuppliers}
-          <span className="ml-2 text-sm font-normal text-muted-foreground">
-            ({visibleSuppliers.length} {visibleSuppliers.length === 1 ? t.feed.supplier : t.feed.suppliers})
-          </span>
-        </h3>
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {visibleSuppliers.map((supplier) => {
           const isExcluded = excludedIds.includes(supplier.id);
