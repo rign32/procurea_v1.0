@@ -300,7 +300,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1.5">{t.campaigns.wizard.specs.quantity}</label>
-                    <input type="number" min={1} {...form.register('quantity', { valueAsNumber: true })} onWheel={(e) => (e.target as HTMLInputElement).blur()} placeholder={t.campaigns.wizard.specs.quantityPlaceholder} className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                    <input type="text" inputMode="numeric" pattern="[0-9]*" {...form.register('quantity', { valueAsNumber: true })} placeholder={t.campaigns.wizard.specs.quantityPlaceholder} className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                     {form.formState.errors.quantity && <p className="text-sm text-destructive mt-1">{form.formState.errors.quantity.message as string}</p>}
                   </div>
                   <div>
@@ -310,7 +310,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1.5">{t.campaigns.wizard.specs.eau} <span className="text-muted-foreground font-normal">({t.common.optional})</span></label>
-                  <input type="number" {...form.register('eau', { valueAsNumber: true })} onWheel={(e) => (e.target as HTMLInputElement).blur()} placeholder={t.campaigns.wizard.specs.eauPlaceholder} className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                  <input type="text" inputMode="numeric" pattern="[0-9]*" {...form.register('eau', { valueAsNumber: true })} placeholder={t.campaigns.wizard.specs.eauPlaceholder} className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1.5">{t.campaigns.wizard.specs.partNumber} <span className="text-muted-foreground font-normal">({t.common.optional})</span></label>
