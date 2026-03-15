@@ -42,7 +42,7 @@ export function FileUpload({ value, onChange, className, maxFiles = 5 }: FileUpl
         formData.append('file', file);
         try {
             const { data } = await apiClient.post('/uploads', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
+                headers: { 'Content-Type': undefined },
             });
             return data as UploadedFile;
         } catch (err: unknown) {
