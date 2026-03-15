@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { ObservabilityService } from '../../observability/observability.service';
 
 export interface ErrorRecord {
     id: string;
@@ -29,7 +30,9 @@ export class ErrorTrackingService {
         'error-logs.json'
     );
 
-    constructor() {
+    constructor(
+        @Optional() private observability?: ObservabilityService,
+    ) {
         this.loadErrors();
     }
 
@@ -66,6 +69,17 @@ export class ErrorTrackingService {
         }
 
         this.saveErrors();
+
+        // Forward critical errors to Slack via observability
+        if (this.observability && (options.type === 'RUNTIME_ERROR' || options.type === 'API_ERROR')) {
+            const severity = options.type === 'API_ERROR' ? 'error' : 'critical';
+            this.observability.recordEvent('error', 'backend_error', severity as any, {
+                title: `Backend error in ${options.service}`,
+                message: errorRecord.message?.substring(0, 500),
+                campaignId: options.context?.campaignId,
+                metadata: { errorId: errorRecord.id, type: options.type, service: options.service },
+            }).catch(() => {}); // Non-blocking
+        }
 
         return errorRecord;
     }

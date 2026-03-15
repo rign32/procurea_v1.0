@@ -684,3 +684,25 @@ model UserSharingPreference {
   @@index([fromUserId])
   @@index([toUserId])
 }
+
+// --- OBSERVABILITY ---
+
+model ObservabilityEvent {
+  id          String   @id @default(uuid())
+  category    String   // auth | conversion | campaign | error
+  type        String   // registration_blocked | trial_exhausted | plan_viewed | low_supplier_count | pipeline_error...
+  severity    String   @default("info") // info | warning | error | critical
+  userId      String?
+  userEmail   String?
+  campaignId  String?
+  title       String
+  message     String?
+  metadata    Json?
+  slackSent   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([category, createdAt])
+  @@index([userId])
+  @@index([severity, createdAt])
+  @@index([type, createdAt])
+}

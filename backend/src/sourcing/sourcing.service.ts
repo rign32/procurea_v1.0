@@ -15,6 +15,7 @@ import { CreateCampaignDto } from './sourcing.controller';
 import { SourcingGateway } from './sourcing.gateway';
 import { EmailService } from '../email/email.service';
 import { GeminiService } from '../common/services/gemini.service';
+import { ObservabilityService } from '../observability/observability.service';
 import { v4 as uuidv4 } from 'uuid';
 import pLimit = require('p-limit');
 import * as XLSX from 'xlsx';
@@ -226,6 +227,7 @@ export class SourcingService {
         private readonly companyRegistry: CompanyRegistryService,
         private readonly emailService: EmailService,
         private readonly geminiService: GeminiService,
+        private readonly observability: ObservabilityService,
     ) { }
 
     /**
@@ -393,6 +395,12 @@ export class SourcingService {
                         this.emailService.sendTrialEndedEmail(
                             freshUser.email, freshUser.name, freshUser.language,
                         ).catch(e => this.logger.error('Trial ended email failed', e));
+
+                        this.observability.recordEvent('conversion', 'trial_exhausted', 'warning', {
+                            title: `Trial wyczerpany: ${freshUser.name || freshUser.email}`,
+                            userId,
+                            userEmail: freshUser.email,
+                        }).catch(() => {});
                     }
                 }
             }
@@ -407,6 +415,11 @@ export class SourcingService {
             });
             await this.log(campaign.id, `Error: ${err.message}`);
             this.sourcingGateway?.emitError(campaign.id, err.message);
+            this.observability.recordEvent('campaign', 'pipeline_crash', 'critical', {
+                title: `Pipeline crash: ${campaign.name || campaign.id}`,
+                campaignId: campaign.id,
+                message: err.message?.substring(0, 500),
+            }).catch(() => {});
         });
 
         return { id: campaign.id, status: 'STARTED' };
@@ -827,6 +840,11 @@ OUTPUT FORMAT (JSON only):
         const autoStopTimer = setTimeout(async () => {
             this.logger.warn(`[${id}] TIMEOUT: Pipeline exceeded ${this.PIPELINE_TIMEOUT_MS / 1000}s`);
             await this.log(id, `[TIMEOUT] Pipeline exceeded ${this.PIPELINE_TIMEOUT_MS / 1000}s — finishing current work`).catch(() => {});
+            this.observability.recordEvent('campaign', 'pipeline_timeout', 'warning', {
+                title: `Kampania przekroczyła timeout (${this.PIPELINE_TIMEOUT_MS / 60000} min)`,
+                campaignId: id,
+                message: `${globalQualifiedCount} dostawców znalezionych przed timeout`,
+            }).catch(() => {});
             // Safety net: if still RUNNING after extra 60s, force-complete
             setTimeout(async () => {
                 try {
@@ -1462,6 +1480,16 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 this.sendFeedbackEmail(id).catch(err =>
                     this.logger.error(`Feedback email error for campaign ${id}:`, err)
                 );
+
+                // Alert if campaign found fewer than 30 suppliers
+                if (finalSupplierCount < 30) {
+                    this.observability.recordEvent('campaign', 'low_supplier_count', 'warning', {
+                        title: `Kampania zakończona z ${finalSupplierCount} dostawcami (< 30)`,
+                        campaignId: id,
+                        message: `Czas: ${elapsed}s | URLs: ${processedCount}/${globalSeenDomains.size}`,
+                        metadata: { supplierCount: finalSupplierCount, elapsed, processedUrls: processedCount },
+                    }).catch(() => {});
+                }
             }
 
         } catch (e: any) {
@@ -1478,6 +1506,11 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             } catch { /* ignore DB errors during cleanup */ }
             await this.log(id, `Error: ${e.message}`);
             this.sourcingGateway?.emitError(id, e.message);
+            this.observability.recordEvent('campaign', 'pipeline_error', 'critical', {
+                title: `Pipeline error: ${e.message?.substring(0, 100)}`,
+                campaignId: id,
+                message: e.stack?.substring(0, 500),
+            }).catch(() => {});
         } finally {
             // ALWAYS cleanup, regardless of how we exit
             const timer = this.campaignTimers.get(id);

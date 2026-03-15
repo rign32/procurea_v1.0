@@ -1,4 +1,4 @@
-import { Module, Global } from '@nestjs/common';
+import { Module, Global, forwardRef } from '@nestjs/common';
 import { NotificationService } from './services/notification.service';
 import { GeminiService } from './services/gemini.service';
 import { GoogleSearchService } from './services/google-search.service';
@@ -13,10 +13,11 @@ import { DatabaseExplorerController } from './controllers/database-explorer.cont
 import { AdminGuard } from '../admin/admin.guard';
 import { EmailModule } from '../email/email.module';
 import { AuthModule } from '../auth/auth.module';
+import { ObservabilityModule } from '../observability/observability.module';
 
 @Global()
 @Module({
-    imports: [EmailModule, AuthModule],
+    imports: [EmailModule, AuthModule, forwardRef(() => ObservabilityModule)],
     controllers: [HealthController, DatabaseExplorerController],
     providers: [
         AdminGuard,

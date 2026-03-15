@@ -79,6 +79,15 @@ export class BillingController {
         return this.billingService.getInvoices(userId);
     }
 
+    @Post('track-view')
+    @UseGuards(AuthGuard('jwt'))
+    @Throttle({ default: { ttl: 60000, limit: 20 } })
+    async trackPlanView(@Req() req, @Body() body: { planId: string; source: string }) {
+        const userId = req.user.userId || req.user.sub;
+        if (!body.planId) return { ok: true };
+        return this.billingService.trackPlanView(userId, body.planId, body.source || 'unknown');
+    }
+
     @Post('webhook')
     @SkipThrottle()
     async handleWebhook(@Req() req, @Headers('stripe-signature') signature: string) {

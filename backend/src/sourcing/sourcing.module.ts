@@ -11,9 +11,10 @@ import { AuditorAgentService } from './agents/auditor.agent';
 import { ExpansionAgentService } from './agents/expansion.agent';
 import { SourcingGateway } from './sourcing.gateway';
 import { EmailModule } from '../email/email.module';
+import { ObservabilityModule } from '../observability/observability.module';
 
 @Module({
-  imports: [EmailModule],
+  imports: [EmailModule, ObservabilityModule],
   controllers: [SourcingController],
   providers: [
     SourcingService,
