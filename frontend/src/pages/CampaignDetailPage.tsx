@@ -19,6 +19,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import { t, isEN } from '@/i18n';
 import { analytics } from '@/lib/analytics';
 import { motion } from 'framer-motion';
+import { normalizeCountry } from '@/utils/normalize-country';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -577,7 +578,7 @@ export function CampaignDetailPage() {
                       <div className="space-y-2">
                         {report.countries.slice(0, 10).map((c: any) => (
                           <div key={c.country} className="flex items-center justify-between text-sm">
-                            <span>{c.country}</span>
+                            <span>{normalizeCountry(c.country)}</span>
                             <div className="flex items-center gap-2">
                               <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
                                 <div
