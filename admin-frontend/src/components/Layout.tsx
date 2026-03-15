@@ -5,12 +5,14 @@ import {
     Users,
     AlertTriangle,
     Plug,
+    Bell,
     LogOut,
 } from 'lucide-react';
 
 const navItems = [
     { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/users', icon: Users, label: 'Użytkownicy' },
+    { to: '/events', icon: Bell, label: 'Events' },
     { to: '/errors', icon: AlertTriangle, label: 'Logi błędów' },
     { to: '/integrations', icon: Plug, label: 'API & Koszty' },
 ];

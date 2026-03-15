@@ -5,9 +5,10 @@ import { AdminService } from './admin.service';
 import { AdminGuard } from './admin.guard';
 import { EmailModule } from '../email/email.module';
 import { AuthModule } from '../auth/auth.module';
+import { ObservabilityModule } from '../observability/observability.module';
 
 @Module({
-    imports: [EmailModule, AuthModule],
+    imports: [EmailModule, AuthModule, ObservabilityModule],
     controllers: [AdminController, SetupController],
     providers: [AdminService, AdminGuard],
     exports: [AdminService],

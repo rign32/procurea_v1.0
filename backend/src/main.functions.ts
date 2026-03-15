@@ -140,6 +140,7 @@ export const api = onRequest(
             'ATTIO_API_KEY',
             'SLACK_BOT_TOKEN',
             'SLACK_CHANNEL_ID',
+            'SLACK_ALERTS_CHANNEL_ID',
         ],
     },
     expressApp
@@ -173,6 +174,7 @@ export const apiStaging = onRequest(
             'ATTIO_API_KEY',
             'SLACK_BOT_TOKEN',
             'SLACK_CHANNEL_ID',
+            'SLACK_ALERTS_CHANNEL_ID',
         ],
     },
     expressApp

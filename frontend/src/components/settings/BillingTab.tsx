@@ -11,6 +11,7 @@ import { billingService } from '@/services/billing.service';
 import type { BillingInfo } from '@/services/billing.service';
 import apiClient from '@/services/api.client';
 import { useAuthStore } from '@/stores/auth.store';
+import { analytics } from '@/lib/analytics';
 import { ThankYouOverlay } from '@/components/billing/ThankYouOverlay';
 import type { User } from '@/types/campaign.types';
 
@@ -221,6 +222,8 @@ export function BillingTab({ user }: BillingTabProps) {
 
     useEffect(() => {
         loadBillingInfo();
+        analytics.billingPageView();
+        apiClient.post('/billing/track-view', { planId: 'billing_page', source: 'settings' }).catch(() => {});
     }, []);
 
     useEffect(() => {
@@ -264,7 +267,9 @@ export function BillingTab({ user }: BillingTabProps) {
 
     async function handleCreditCheckout(packId: string) {
         setCheckoutLoading(packId);
+        analytics.planClicked(packId);
         try {
+            analytics.checkoutStarted(packId);
             const { url } = await billingService.createCreditCheckout(packId);
             window.location.href = url;
         } catch (err: unknown) {
@@ -275,7 +280,9 @@ export function BillingTab({ user }: BillingTabProps) {
 
     async function handleSubscriptionCheckout() {
         setCheckoutLoading('subscription');
+        analytics.planClicked('unlimited');
         try {
+            analytics.checkoutStarted('unlimited');
             const { url } = await billingService.createSubscriptionCheckout();
             window.location.href = url;
         } catch (err: unknown) {

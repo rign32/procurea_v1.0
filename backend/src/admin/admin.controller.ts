@@ -14,10 +14,14 @@ import { AuthGuard } from '@nestjs/passport';
 import { Throttle } from '@nestjs/throttler';
 import { AdminGuard } from './admin.guard';
 import { AdminService } from './admin.service';
+import { ObservabilityService } from '../observability/observability.service';
 
 @Controller('admin')
 export class AdminController {
-    constructor(private readonly adminService: AdminService) { }
+    constructor(
+        private readonly adminService: AdminService,
+        private readonly observability: ObservabilityService,
+    ) { }
 
     // =====================
     // Admin Auth (no JWT guard - entry point)
@@ -232,6 +236,24 @@ export class AdminController {
             endDate: endDate ? new Date(endDate) : undefined,
             service,
             userId,
+        });
+    }
+
+    @Get('events')
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    async getObservabilityEvents(
+        @Query('category') category?: string,
+        @Query('severity') severity?: string,
+        @Query('type') type?: string,
+        @Query('limit') limit?: string,
+        @Query('offset') offset?: string,
+    ) {
+        return this.observability.getEvents({
+            category,
+            severity,
+            type,
+            limit: Math.min(parseInt(limit || '50', 10), 200),
+            offset: parseInt(offset || '0', 10),
         });
     }
 

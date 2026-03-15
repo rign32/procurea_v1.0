@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import UsersPage from './pages/UsersPage';
 import ErrorLogsPage from './pages/ErrorLogsPage';
+import EventsPage from './pages/EventsPage';
 import IntegrationsPage from './pages/IntegrationsPage';
 import Layout from './components/Layout';
 
@@ -26,6 +27,7 @@ export default function App() {
                                 <Routes>
                                     <Route path="/" element={<DashboardPage />} />
                                     <Route path="/users" element={<UsersPage />} />
+                                    <Route path="/events" element={<EventsPage />} />
                                     <Route path="/errors" element={<ErrorLogsPage />} />
                                     <Route path="/integrations" element={<IntegrationsPage />} />
                                     <Route path="*" element={<Navigate to="/" replace />} />

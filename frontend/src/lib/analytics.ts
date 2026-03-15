@@ -1,11 +1,11 @@
 declare global {
   interface Window {
-    gtag: (...args: any[]) => void;
-    dataLayer: any[];
+    gtag: (...args: unknown[]) => void;
+    dataLayer: unknown[];
   }
 }
 
-export function trackEvent(name: string, params?: Record<string, any>) {
+export function trackEvent(name: string, params?: Record<string, unknown>) {
   if (typeof window !== 'undefined' && window.gtag) {
     window.gtag('event', name, params);
   }
@@ -50,6 +50,12 @@ export const analytics = {
   supplierListView: () => trackEvent('supplier_list_view'),
   settingsView: () => trackEvent('settings_view'),
   navClick: (destination: string) => trackEvent('nav_click', { destination }),
+
+  // Billing / conversion
+  billingPageView: () => trackEvent('billing_page_view'),
+  billingModalOpen: () => trackEvent('billing_modal_open'),
+  planClicked: (planId: string) => trackEvent('plan_clicked', { plan_id: planId }),
+  checkoutStarted: (planId: string) => trackEvent('checkout_started', { plan_id: planId }),
 };
 
 // Hesitation tracker — detects idle time on a page

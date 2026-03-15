@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import {
     Dialog,
     DialogContent,
@@ -6,6 +7,8 @@ import {
 import { BillingTab } from '@/components/settings/BillingTab';
 import { useAuthStore } from '@/stores/auth.store';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { analytics } from '@/lib/analytics';
+import { apiClient } from '@/services/api.client';
 
 interface BillingModalProps {
     open: boolean;
@@ -14,6 +17,13 @@ interface BillingModalProps {
 
 export function BillingModal({ open, onOpenChange }: BillingModalProps) {
     const { user } = useAuthStore();
+
+    useEffect(() => {
+        if (open) {
+            analytics.billingModalOpen();
+            apiClient.post('/billing/track-view', { planId: 'billing_modal', source: 'modal' }).catch(() => {});
+        }
+    }, [open]);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

@@ -149,4 +149,7 @@ export const getApiUsageStats = (params?: Record<string, string>) =>
 export const getApiUsageLogs = (params?: Record<string, string>) =>
     api.get('/admin/api-usage/logs', { params });
 
+export const getObservabilityEvents = (params?: Record<string, string>) =>
+    api.get('/admin/events', { params });
+
 export default api;
