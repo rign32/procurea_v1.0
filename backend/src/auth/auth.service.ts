@@ -1,8 +1,10 @@
-import { Injectable, BadRequestException, ConflictException } from '@nestjs/common';
+import { Injectable, BadRequestException, ConflictException, Inject, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { SmsService } from './sms.service';
 import { EmailService } from '../email/email.service';
+import { SalesOpsService } from '../sales-ops/sales-ops.service';
+import { ObservabilityService } from '../observability/observability.service';
 import { RedisService } from './redis.service';
 import { isBlockedEmailDomain } from './email-domain-blocklist';
 import * as crypto from 'crypto';
@@ -19,6 +21,8 @@ export class AuthService {
         private emailService: EmailService,
         private configService: ConfigService,
         private redisService: RedisService,
+        @Inject(forwardRef(() => SalesOpsService)) private salesOps: SalesOpsService,
+        private observability: ObservabilityService,
     ) {
         // Cleanup expired exchange tokens every 10 seconds (in-memory fallback only)
         setInterval(() => this.cleanupExpiredTokens(), 10000);
@@ -122,6 +126,11 @@ export class AuthService {
         if (!user) {
             // Block registration from generic email domains
             if (isBlockedEmailDomain(email)) {
+                this.observability.recordEvent('auth', 'registration_blocked', 'warning', {
+                    title: 'Rejestracja zablokowana — domena generyczna',
+                    userEmail: email,
+                    metadata: { domain: email.split('@')[1] },
+                }).catch(() => {});
                 throw new BadRequestException(
                     'Registration requires a professional email address. Please use your corporate email.'
                 );
@@ -222,6 +231,22 @@ export class AuthService {
             }
         }
 
+        // Sales Ops: notify Attio + Slack about new registration
+        if (isNewUser) {
+            try {
+                const domain = email.split('@')[1];
+                await this.salesOps.handleRegistration({
+                    email,
+                    name: user.name || email.split('@')[0],
+                    firstName: name?.split(' ')[0],
+                    lastName: name?.split(' ').slice(1).join(' '),
+                    companyDomain: domain,
+                });
+            } catch (e) {
+                console.warn(`[AUTH] Sales ops registration notification failed: ${e.message}`);
+            }
+        }
+
         return { user, isNewUser };
     }
 
@@ -249,6 +274,10 @@ export class AuthService {
         const userId = await this.redisService.verifyAndDeleteMagicCode(email, code);
 
         if (!userId) {
+            this.observability.recordEvent('auth', 'login_failed', 'warning', {
+                title: 'Nieudane logowanie — zły kod weryfikacji',
+                userEmail: email,
+            }).catch(() => {});
             throw new BadRequestException('Invalid or expired verification code');
         }
 

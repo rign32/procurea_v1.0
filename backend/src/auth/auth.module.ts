@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -11,6 +11,8 @@ import { FirebaseStrategy } from './strategies/firebase.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { SmsService } from './sms.service';
 import { EmailModule } from '../email/email.module';
+import { SalesOpsModule } from '../sales-ops/sales-ops.module';
+import { ObservabilityModule } from '../observability/observability.module';
 import { RedisService } from './redis.service';
 import { TokensService } from './tokens.service';
 
@@ -33,6 +35,8 @@ import { TokensService } from './tokens.service';
         }),
         ConfigModule,
         EmailModule,
+        forwardRef(() => SalesOpsModule),
+        ObservabilityModule,
     ],
     controllers: [AuthController, AuthDiagnosticsController],
     providers: [

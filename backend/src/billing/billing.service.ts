@@ -1,6 +1,8 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
+import { SalesOpsService } from '../sales-ops/sales-ops.service';
+import { ObservabilityService } from '../observability/observability.service';
 import Stripe from 'stripe';
 
 const CREDIT_PACKS: Record<string, { credits: number; priceNet: number; label: string; priceNetUsd: number; labelEn: string }> = {
@@ -19,6 +21,8 @@ export class BillingService {
     constructor(
         private prisma: PrismaService,
         private configService: ConfigService,
+        @Inject(forwardRef(() => SalesOpsService)) private salesOps: SalesOpsService,
+        private observability: ObservabilityService,
     ) {
         // Production uses STRIPE_LIVE_SECRET_KEY, staging falls back to STRIPE_SECRET_KEY (sandbox)
         const isStaging = !!this.configService.get('DATABASE_URL_STAGING');
@@ -181,6 +185,13 @@ export class BillingService {
         });
 
         if (!session.url) throw new BadRequestException(isEn ? 'Failed to create checkout session' : 'Nie udało się utworzyć sesji płatności');
+
+        this.observability.recordEvent('conversion', 'checkout_started', 'info', {
+            title: `Checkout started: ${packId}`,
+            userId,
+            metadata: { packId, credits: pack.credits },
+        }).catch(() => {});
+
         return { url: session.url };
     }
 
@@ -257,6 +268,13 @@ export class BillingService {
         });
 
         if (!session.url) throw new BadRequestException('Nie udało się utworzyć sesji płatności');
+
+        this.observability.recordEvent('conversion', 'checkout_started', 'info', {
+            title: 'Checkout started: unlimited subscription',
+            userId,
+            metadata: { planId: 'unlimited' },
+        }).catch(() => {});
+
         return { url: session.url };
     }
 
@@ -392,6 +410,20 @@ export class BillingService {
 
             this.logger.log(`Added ${credits} credits to user ${userId} (session: ${session.id})`);
 
+            // Sales Ops: notify Attio + Slack about credit purchase
+            try {
+                const u = await this.prisma.user.findUnique({ where: { id: userId }, select: { email: true, name: true } });
+                if (u) {
+                    await this.salesOps.handleStripeCheckout({
+                        email: u.email,
+                        name: u.name || u.email,
+                        amount: session.amount_total || 0,
+                        currency: session.currency || 'pln',
+                        plan: `${credits} credits`,
+                    });
+                }
+            } catch (e) { this.logger.warn(`Sales ops notification failed: ${e.message}`); }
+
         } else if (type === 'unlimited_subscription') {
             const subscriptionId = session.subscription as string;
             const organizationId = session.metadata?.organizationId;
@@ -437,6 +469,21 @@ export class BillingService {
                 });
 
                 this.logger.log(`Org ${organizationId} upgraded to unlimited plan by user ${userId}`);
+
+                // Sales Ops: notify about subscription
+                try {
+                    const u = await this.prisma.user.findUnique({ where: { id: userId }, select: { email: true, name: true } });
+                    if (u) {
+                        await this.salesOps.handleSubscriptionCreated({
+                            email: u.email,
+                            name: u.name || u.email,
+                            amount: session.amount_total || 0,
+                            currency: session.currency || 'pln',
+                            subscriptionId: subscriptionId,
+                        });
+                    }
+                } catch (e) { this.logger.warn(`Sales ops notification failed: ${e.message}`); }
+
             } else {
                 // Fallback: user without org (shouldn't happen, but safe)
                 await this.prisma.$transaction(async (tx) => {
@@ -462,6 +509,20 @@ export class BillingService {
                 });
 
                 this.logger.log(`User ${userId} upgraded to unlimited plan (no org)`);
+
+                // Sales Ops: notify about subscription (no org)
+                try {
+                    const u = await this.prisma.user.findUnique({ where: { id: userId }, select: { email: true, name: true } });
+                    if (u) {
+                        await this.salesOps.handleSubscriptionCreated({
+                            email: u.email,
+                            name: u.name || u.email,
+                            amount: session.amount_total || 0,
+                            currency: session.currency || 'pln',
+                            subscriptionId: subscriptionId,
+                        });
+                    }
+                } catch (e) { this.logger.warn(`Sales ops notification failed: ${e.message}`); }
             }
         }
     }
@@ -526,6 +587,14 @@ export class BillingService {
         });
 
         this.logger.log(`Subscription canceled, reverted to research plan (user: ${userId}, org: ${organizationId})`);
+
+        // Sales Ops: notify about cancellation
+        try {
+            const u = await this.prisma.user.findUnique({ where: { id: userId }, select: { email: true, name: true } });
+            if (u) {
+                await this.salesOps.handleSubscriptionDeleted({ email: u.email, name: u.name || u.email });
+            }
+        } catch (e) { this.logger.warn(`Sales ops notification failed: ${e.message}`); }
     }
 
     // --- Billing Info ---
@@ -907,5 +976,21 @@ export class BillingService {
             creditNoteId: creditNote.id,
             newInvoiceId: newInvoice.id,
         };
+    }
+
+    async trackPlanView(userId: string, planId: string, source: string): Promise<{ ok: boolean }> {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { email: true, name: true, plan: true },
+        });
+
+        this.observability.recordEvent('conversion', 'plan_viewed', 'info', {
+            title: `Plan viewed: ${planId}`,
+            userId,
+            userEmail: user?.email,
+            metadata: { planId, source, currentPlan: user?.plan },
+        }).catch(() => {});
+
+        return { ok: true };
     }
 }

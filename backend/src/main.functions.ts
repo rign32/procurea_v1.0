@@ -137,6 +137,9 @@ export const api = onRequest(
             'STRIPE_LIVE_WEBHOOK_SECRET',
             'STRIPE_LIVE_PRICE_ID',
             'STRIPE_LIVE_PRICE_ID_USD',
+            'ATTIO_API_KEY',
+            'SLACK_BOT_TOKEN',
+            'SLACK_CHANNEL_ID',
         ],
     },
     expressApp
@@ -167,6 +170,9 @@ export const apiStaging = onRequest(
             'SCRAPING_API_KEY',
             'STRIPE_SECRET_KEY',
             'STRIPE_WEBHOOK_SECRET',
+            'ATTIO_API_KEY',
+            'SLACK_BOT_TOKEN',
+            'SLACK_CHANNEL_ID',
         ],
     },
     expressApp
