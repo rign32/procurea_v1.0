@@ -1,15 +1,23 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { AttioService } from "./attio.service";
 import { SlackNotificationsService } from "./slack-notifications.service";
 
 @Injectable()
-export class SalesOpsService {
+export class SalesOpsService implements OnModuleInit {
   private readonly logger = new Logger(SalesOpsService.name);
 
   constructor(
     private readonly attio: AttioService,
     private readonly slack: SlackNotificationsService,
   ) {}
+
+  onModuleInit() {
+    const status = [
+      `Attio: ${this.attio.isEnabled ? "✓" : "✗ DISABLED"}`,
+      `Slack: ${this.slack.isEnabled ? "✓" : "✗ DISABLED"}`,
+    ];
+    this.logger.log(`SalesOps integrations: ${status.join(" | ")}`);
+  }
 
   /**
    * Apollo reply webhook — lead responded to outreach sequence.
@@ -39,7 +47,7 @@ export class SalesOpsService {
       );
     }
 
-    await this.attio.createDeal({
+    const dealId = await this.attio.createDeal({
       name: `${payload.first_name || ""} ${payload.last_name || ""} — ${payload.company || "Lead"}`.trim(),
       stage: "outreach",
       personRecordId: personId || undefined,
@@ -47,6 +55,7 @@ export class SalesOpsService {
       source: "Apollo Sequence",
       sekwencjaApollo: payload.sequence_name,
     });
+    const attioOk = !!dealId;
 
     const name = [payload.first_name, payload.last_name]
       .filter(Boolean)
@@ -55,6 +64,7 @@ export class SalesOpsService {
       payload.email,
       name,
       payload.sequence_name,
+      attioOk,
     );
   }
 
@@ -101,28 +111,31 @@ export class SalesOpsService {
     }
 
     // Check if deal already exists (e.g., from Apollo outreach)
+    let attioOk = false;
     const existingDeals = await this.attio.findDealsByEmail(payload.email);
     if (existingDeals.length > 0) {
       // Update existing deal to Rejestracja
-      await this.attio.updateDealStage(
+      attioOk = await this.attio.updateDealStage(
         existingDeals[0].recordId,
         "rejestracja",
       );
     } else {
       // Create new deal
-      await this.attio.createDeal({
+      const dealId = await this.attio.createDeal({
         name: `${payload.name} — Registration`,
         stage: "rejestracja",
         personRecordId: personId || undefined,
         companyRecordId: companyId || undefined,
         source: "Organic",
       });
+      attioOk = !!dealId;
     }
 
     await this.slack.notifyRegistration(
       payload.email,
       payload.name,
       payload.company,
+      attioOk,
     );
   }
 
@@ -138,10 +151,11 @@ export class SalesOpsService {
   }): Promise<void> {
     this.logger.log(`Tally feedback from: ${payload.email}`);
 
+    let attioOk = false;
     const deals = await this.attio.findDealsByEmail(payload.email);
     if (deals.length > 0) {
       const dealId = deals[0].recordId;
-      await this.attio.updateDealStage(dealId, "feedback");
+      attioOk = await this.attio.updateDealStage(dealId, "feedback");
 
       // Add note with feedback answers
       if (payload.answers) {
@@ -163,6 +177,7 @@ export class SalesOpsService {
       name,
       payload.npsScore,
       payload.campaignName,
+      attioOk,
     );
   }
 
@@ -182,6 +197,7 @@ export class SalesOpsService {
       `Stripe checkout: ${payload.email} — ${payload.amount} ${payload.currency}`,
     );
 
+    let attioOk = false;
     const deals = await this.attio.findDealsByEmail(payload.email);
     if (deals.length > 0) {
       const dealId = deals[0].recordId;
@@ -199,7 +215,7 @@ export class SalesOpsService {
           { value: payload.subscriptionId },
         ];
       }
-      await this.attio.updateDealStage(dealId, "platnosc", extraValues);
+      attioOk = await this.attio.updateDealStage(dealId, "platnosc", extraValues);
     }
 
     await this.slack.notifyPayment(
@@ -208,6 +224,7 @@ export class SalesOpsService {
       payload.amount,
       payload.currency,
       payload.plan,
+      attioOk,
     );
   }
 
@@ -223,9 +240,10 @@ export class SalesOpsService {
   }): Promise<void> {
     this.logger.log(`Subscription created: ${payload.email}`);
 
+    let attioOk = false;
     const deals = await this.attio.findDealsByEmail(payload.email);
     if (deals.length > 0) {
-      await this.attio.updateDealStage(deals[0].recordId, "won", {
+      attioOk = await this.attio.updateDealStage(deals[0].recordId, "won", {
         stripe_subscription_id: [{ value: payload.subscriptionId }],
         value: [
           {
@@ -241,6 +259,7 @@ export class SalesOpsService {
       payload.name,
       payload.amount,
       payload.currency,
+      attioOk,
     );
   }
 
@@ -253,11 +272,64 @@ export class SalesOpsService {
   }): Promise<void> {
     this.logger.log(`Subscription canceled: ${payload.email}`);
 
+    let attioOk = false;
     const deals = await this.attio.findDealsByEmail(payload.email);
     if (deals.length > 0) {
-      await this.attio.updateDealStage(deals[0].recordId, "lost");
+      attioOk = await this.attio.updateDealStage(deals[0].recordId, "lost");
     }
 
-    await this.slack.notifySubscriptionCanceled(payload.email, payload.name);
+    await this.slack.notifySubscriptionCanceled(payload.email, payload.name, attioOk);
+  }
+
+  /**
+   * AI Sourcing completed — deal moves to AI Sourcing stage.
+   * Called from sourcing.service.ts after campaign finishes.
+   */
+  async handleAiSourcingCompleted(payload: {
+    email: string;
+    name: string;
+    campaignName: string;
+    suppliersFound: number;
+    elapsedSeconds: number;
+    isTrialCredit: boolean;
+  }): Promise<void> {
+    this.logger.log(
+      `AI Sourcing completed: ${payload.email} — ${payload.campaignName}`,
+    );
+
+    let attioOk = false;
+    const deals = await this.attio.findDealsByEmail(payload.email);
+    if (deals.length > 0) {
+      attioOk = await this.attio.updateDealStage(
+        deals[0].recordId,
+        "ai_sourcing",
+      );
+    }
+
+    await this.slack.notifyAiSourcingCompleted(
+      payload.email,
+      payload.name,
+      payload.campaignName,
+      payload.suppliersFound,
+      payload.elapsedSeconds,
+      payload.isTrialCredit,
+      attioOk,
+    );
+  }
+
+  /**
+   * Trial credits exhausted — observability notification only.
+   */
+  async handleTrialCreditsExhausted(payload: {
+    email: string;
+    name: string;
+    campaignName: string;
+  }): Promise<void> {
+    this.logger.log(`Trial credits exhausted: ${payload.email}`);
+    await this.slack.notifyTrialExhausted(
+      payload.email,
+      payload.name,
+      payload.campaignName,
+    );
   }
 }

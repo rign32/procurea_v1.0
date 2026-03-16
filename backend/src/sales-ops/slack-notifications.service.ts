@@ -17,6 +17,10 @@ export class SlackNotificationsService {
   private readonly channelId: string;
   readonly alertsChannelId: string;
 
+  get isEnabled(): boolean {
+    return !!(this.botToken && this.channelId);
+  }
+
   constructor(private configService: ConfigService) {
     this.botToken = this.configService.get<string>("SLACK_BOT_TOKEN") || "";
     this.channelId = this.configService.get<string>("SLACK_CHANNEL_ID") || "";
@@ -104,10 +108,20 @@ export class SlackNotificationsService {
 
   // --- Notification templates ---
 
+  private attioFooter(
+    attioOk: boolean | undefined,
+    successMsg: string,
+  ): string {
+    if (attioOk === true) return `✅ ${successMsg}`;
+    if (attioOk === false) return `⚠️ Attio: FAILED — deal nie zaktualizowany`;
+    return successMsg;
+  }
+
   async notifyApolloReply(
     email: string,
     name: string,
     sequenceName?: string,
+    attioOk?: boolean,
   ): Promise<boolean> {
     return this.send({
       icon: "📤",
@@ -117,7 +131,7 @@ export class SlackNotificationsService {
         { label: "Email", value: email },
         ...(sequenceName ? [{ label: "Sekwencja", value: sequenceName }] : []),
       ],
-      footer: "Attio: deal utworzony w etapie Outreach",
+      footer: this.attioFooter(attioOk, "Attio: deal utworzony w etapie Outreach"),
     });
   }
 
@@ -136,6 +150,7 @@ export class SlackNotificationsService {
     email: string,
     name: string,
     company?: string,
+    attioOk?: boolean,
   ): Promise<boolean> {
     return this.send({
       icon: "🎉",
@@ -145,7 +160,7 @@ export class SlackNotificationsService {
         { label: "Email", value: email },
         ...(company ? [{ label: "Firma", value: company }] : []),
       ],
-      footer: "Attio: deal → etap Rejestracja",
+      footer: this.attioFooter(attioOk, "Attio: deal → etap Rejestracja"),
     });
   }
 
@@ -154,6 +169,7 @@ export class SlackNotificationsService {
     name: string,
     npsScore?: number,
     campaignName?: string,
+    attioOk?: boolean,
   ): Promise<boolean> {
     return this.send({
       icon: "📝",
@@ -166,7 +182,7 @@ export class SlackNotificationsService {
           : []),
         ...(campaignName ? [{ label: "Kampania", value: campaignName }] : []),
       ],
-      footer: "Attio: deal → etap Feedback + notatka z odpowiedziami",
+      footer: this.attioFooter(attioOk, "Attio: deal → etap Feedback + notatka z odpowiedziami"),
     });
   }
 
@@ -176,6 +192,7 @@ export class SlackNotificationsService {
     amount: number,
     currency: string,
     plan?: string,
+    attioOk?: boolean,
   ): Promise<boolean> {
     const formatted = new Intl.NumberFormat("pl-PL", {
       style: "currency",
@@ -190,7 +207,7 @@ export class SlackNotificationsService {
         { label: "Kwota", value: formatted },
         ...(plan ? [{ label: "Plan", value: plan }] : []),
       ],
-      footer: "Attio: deal → etap Płatność",
+      footer: this.attioFooter(attioOk, "Attio: deal → etap Płatność"),
     });
   }
 
@@ -199,6 +216,7 @@ export class SlackNotificationsService {
     name: string,
     amount: number,
     currency: string,
+    attioOk?: boolean,
   ): Promise<boolean> {
     const formatted = new Intl.NumberFormat("pl-PL", {
       style: "currency",
@@ -212,13 +230,14 @@ export class SlackNotificationsService {
         { label: "Email", value: email },
         { label: "MRR", value: formatted },
       ],
-      footer: "Attio: deal → etap Won 🎉",
+      footer: this.attioFooter(attioOk, "Attio: deal → etap Won 🎉"),
     });
   }
 
   async notifySubscriptionCanceled(
     email: string,
     name: string,
+    attioOk?: boolean,
   ): Promise<boolean> {
     return this.send({
       icon: "❌",
@@ -227,7 +246,48 @@ export class SlackNotificationsService {
         { label: "Użytkownik", value: name || email },
         { label: "Email", value: email },
       ],
-      footer: "Attio: deal → etap Lost",
+      footer: this.attioFooter(attioOk, "Attio: deal → etap Lost"),
+    });
+  }
+
+  async notifyAiSourcingCompleted(
+    email: string,
+    name: string,
+    campaignName: string,
+    suppliersFound: number,
+    elapsedSeconds: number,
+    isTrialCredit: boolean,
+    attioOk?: boolean,
+  ): Promise<boolean> {
+    return this.send({
+      icon: "🔍",
+      title: "AI Sourcing zakończony",
+      fields: [
+        { label: "Użytkownik", value: name || email },
+        { label: "Email", value: email },
+        { label: "Kampania", value: campaignName },
+        { label: "Dostawcy", value: `${suppliersFound}` },
+        { label: "Czas", value: `${Math.round(elapsedSeconds / 60)} min` },
+        { label: "Kredyt", value: isTrialCredit ? "🆓 Trial" : "💳 Płatny" },
+      ],
+      footer: this.attioFooter(attioOk, "Attio: deal → etap AI Sourcing"),
+    });
+  }
+
+  async notifyTrialExhausted(
+    email: string,
+    name: string,
+    campaignName: string,
+  ): Promise<boolean> {
+    return this.send({
+      icon: "🏁",
+      title: "Trial credits wyczerpane",
+      fields: [
+        { label: "Użytkownik", value: name || email },
+        { label: "Email", value: email },
+        { label: "Ostatnia kampania", value: campaignName },
+      ],
+      footer: "Następny krok: konwersja na płatny plan",
     });
   }
 

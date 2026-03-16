@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, Optional, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, Optional, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { normalizeCountry, getLanguageForCountry } from '../common/normalize-country';
 import { PrismaService } from '../prisma/prisma.service';
 import { ProductContext } from './agents/screener.agent';
@@ -16,6 +16,7 @@ import { SourcingGateway } from './sourcing.gateway';
 import { EmailService } from '../email/email.service';
 import { GeminiService } from '../common/services/gemini.service';
 import { ObservabilityService } from '../observability/observability.service';
+import { SalesOpsService } from '../sales-ops/sales-ops.service';
 import { v4 as uuidv4 } from 'uuid';
 import pLimit = require('p-limit');
 import * as XLSX from 'xlsx';
@@ -228,6 +229,7 @@ export class SourcingService {
         private readonly emailService: EmailService,
         private readonly geminiService: GeminiService,
         private readonly observability: ObservabilityService,
+        @Inject(forwardRef(() => SalesOpsService)) private readonly salesOps: SalesOpsService,
     ) { }
 
     /**
@@ -405,6 +407,13 @@ export class SourcingService {
                             userId,
                             userEmail: freshUser.email,
                         }).catch(() => {});
+
+                        // SalesOps: notify about trial credits exhausted
+                        this.salesOps.handleTrialCreditsExhausted({
+                            email: freshUser.email,
+                            name: freshUser.name || freshUser.email,
+                            campaignName: dto.name || 'New Campaign',
+                        }).catch(e => this.logger.warn(`Sales ops trial exhausted notification failed: ${e.message}`));
                     }
                 }
             }
@@ -1482,6 +1491,32 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
 
             // Send feedback email immediately after completion
             if (finalStatus === 'COMPLETED') {
+                // Notify SalesOps: deal → AI Sourcing stage
+                try {
+                    const campaignForOps = await this.prisma.campaign.findUnique({
+                        where: { id },
+                        include: {
+                            rfqRequest: {
+                                include: { owner: { select: { email: true, name: true, trialCreditsUsed: true } } },
+                            },
+                        },
+                    });
+                    const ownerEmail = campaignForOps?.rfqRequest?.owner?.email;
+                    const ownerName = campaignForOps?.rfqRequest?.owner?.name;
+                    if (ownerEmail) {
+                        await this.salesOps.handleAiSourcingCompleted({
+                            email: ownerEmail,
+                            name: ownerName || ownerEmail,
+                            campaignName: campaignForOps?.name || 'Unknown',
+                            suppliersFound: finalSupplierCount,
+                            elapsedSeconds: elapsed,
+                            isTrialCredit: !campaignForOps?.rfqRequest?.owner?.trialCreditsUsed,
+                        });
+                    }
+                } catch (e: any) {
+                    this.logger.warn(`Sales ops AI sourcing notification failed: ${e.message}`);
+                }
+
                 this.sendFeedbackEmail(id).catch(err =>
                     this.logger.error(`Feedback email error for campaign ${id}:`, err)
                 );

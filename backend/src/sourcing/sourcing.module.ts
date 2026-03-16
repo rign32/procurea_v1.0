@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { SourcingService } from './sourcing.service';
 import { SourcingController } from './sourcing.controller';
 import { ScrapingService } from '../common/services/scraping.service';
@@ -12,9 +12,10 @@ import { ExpansionAgentService } from './agents/expansion.agent';
 import { SourcingGateway } from './sourcing.gateway';
 import { EmailModule } from '../email/email.module';
 import { ObservabilityModule } from '../observability/observability.module';
+import { SalesOpsModule } from '../sales-ops/sales-ops.module';
 
 @Module({
-  imports: [EmailModule, ObservabilityModule],
+  imports: [EmailModule, ObservabilityModule, forwardRef(() => SalesOpsModule)],
   controllers: [SourcingController],
   providers: [
     SourcingService,

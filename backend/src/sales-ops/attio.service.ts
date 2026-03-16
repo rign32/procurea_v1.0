@@ -40,6 +40,10 @@ export class AttioService {
     lost: "bff46c8a-5671-4b7f-b46a-c7a3247385a8",
   };
 
+  get isEnabled(): boolean {
+    return !!this.apiKey;
+  }
+
   constructor(private configService: ConfigService) {
     this.apiKey = this.configService.get<string>("ATTIO_API_KEY") || "";
     if (!this.apiKey) {
