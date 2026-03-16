@@ -39,7 +39,7 @@ export const PL = {
     headlinePart2: ' i znajdzie dostawców',
     subheadline: 'Procurea to polskie narzędzie AI, które automatycznie wyszukuje, analizuje i weryfikuje dostawców na rynkach całego świata. Testuj za darmo w ramach zamkniętych beta testów.',
     ctaPrimary: 'Dołącz do beta testów',
-    ctaSecondary: 'Zobacz jak to działa',
+    ctaSecondary: 'Obejrzyj demo',
     trustFreeAccess: 'Pełny dostęp za darmo',
     trustNoCreditCard: 'Bez karty kredytowej',
     trustBeta: 'Zamknięte beta testy',
