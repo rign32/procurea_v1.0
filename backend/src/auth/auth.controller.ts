@@ -869,9 +869,9 @@ export class AuthController {
 
     @Post('email/login')
     @Throttle({ default: { ttl: 60000, limit: 5 } }) // 5 per minute
-    async emailLogin(@Body() body: { email: string }) {
+    async emailLogin(@Body() body: { email: string; language?: string }) {
         if (!body.email) throw new BadRequestException('Missing email');
-        return this.authService.startEmailLogin(body.email);
+        return this.authService.startEmailLogin(body.email, body.language);
     }
 
     @Post('email/verify')
@@ -1084,6 +1084,29 @@ export class AuthController {
         const refreshToken = await this.tokensService.generateRefreshToken(user.id);
 
         console.log(`[STAGING] Auto-login successful for ${user.email}`);
+
+        return {
+            success: true,
+            accessToken,
+            refreshToken,
+            user: this.buildUserResponse(user),
+        };
+    }
+
+    // ========== DEV AUTO-LOGIN (local development only) ==========
+    @Post('dev/auto-login')
+    async devAutoLogin(@Req() req, @Res({ passthrough: true }) res: Response) {
+        // Only block in actual Cloud Functions (FUNCTION_TARGET/K_SERVICE are set by Cloud Run)
+        if (process.env.FUNCTION_TARGET || process.env.K_SERVICE) {
+            throw new ForbiddenException('Dev login not available in production');
+        }
+
+        const user = await this.authService.autoLoginDev();
+
+        const accessToken = this.tokensService.generateAccessToken(user.id, user.email, user.role);
+        const refreshToken = await this.tokensService.generateRefreshToken(user.id);
+
+        console.log(`[DEV] Auto-login successful for ${user.email}`);
 
         return {
             success: true,

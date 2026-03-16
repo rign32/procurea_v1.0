@@ -85,7 +85,7 @@ export default function Login({ onLogin }: { onLogin: (user: User) => void }) {
             const res = await fetch('/api/auth/email/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email }),
+                body: JSON.stringify({ email, language: import.meta.env.VITE_LANGUAGE || 'pl' }),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.message || t.errors.generic);

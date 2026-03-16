@@ -250,7 +250,7 @@ export class AuthService {
         return { user, isNewUser };
     }
 
-    async startEmailLogin(email: string) {
+    async startEmailLogin(email: string, language?: string) {
         const { user } = await this.validateUserByProvider(email, 'email');
         const magicCode = crypto.randomInt(100000, 999999).toString();
 
@@ -258,7 +258,9 @@ export class AuthService {
         await this.redisService.setMagicCode(email, magicCode, user.id, 600);
 
         // Send real email via Resend (locale-aware)
-        await this.emailService.sendMagicLink(email, magicCode, user.language || 'pl');
+        // Priority: request language (from frontend domain) > user's saved language > 'pl'
+        const locale = language || user.language || 'pl';
+        await this.emailService.sendMagicLink(email, magicCode, locale);
 
         // For development convenience, still log it
         console.log(`[DEV MAGIC CODE] To: ${email} | Code: ${magicCode}`);
@@ -723,6 +725,119 @@ export class AuthService {
         });
 
         console.log(`[STAGING] Created staging user (${language}): ${stagingEmail}`);
+
+        return this.prisma.user.findUnique({
+            where: { id: created.id },
+            include: {
+                organization: {
+                    include: { locations: true }
+                }
+            }
+        });
+    }
+
+    // --- DEV AUTO-LOGIN (local development only) ---
+    async autoLoginDev(): Promise<any> {
+        const devEmail = 'dev@procurea.local';
+
+        const existing = await this.prisma.user.findUnique({
+            where: { email: devEmail },
+            include: {
+                organization: {
+                    include: { locations: true }
+                }
+            }
+        });
+
+        if (existing) {
+            await this.prisma.user.update({
+                where: { id: existing.id },
+                data: {
+                    searchCredits: 9999,
+                    trialCreditsUsed: true,
+                    onboardingCompleted: true,
+                    isPhoneVerified: true,
+                    plan: 'full',
+                }
+            });
+
+            if (existing.organization) {
+                await this.prisma.organization.update({
+                    where: { id: existing.organization.id },
+                    data: {
+                        searchCredits: 9999,
+                        trialCreditsUsed: true,
+                        plan: 'full',
+                    }
+                });
+            }
+
+            if (!existing.organizationId) {
+                const org = await this.prisma.organization.create({
+                    data: {
+                        name: 'Procurea Dev',
+                        domain: 'procurea.local',
+                        searchCredits: 9999,
+                        trialCreditsUsed: true,
+                        plan: 'full',
+                        locations: {
+                            create: [{
+                                name: 'HQ',
+                                address: 'ul. Developerska 1, 00-001 Warszawa',
+                                isDefault: true,
+                            }]
+                        }
+                    }
+                });
+                await this.prisma.user.update({
+                    where: { id: existing.id },
+                    data: { organizationId: org.id },
+                });
+            }
+
+            return this.prisma.user.findUnique({
+                where: { id: existing.id },
+                include: { organization: { include: { locations: true } } }
+            });
+        }
+
+        const created = await this.prisma.user.create({
+            data: {
+                email: devEmail,
+                name: 'Dev User',
+                role: 'ADMIN',
+                ssoProvider: 'dev',
+                isPhoneVerified: true,
+                phoneVerifiedAt: new Date(),
+                onboardingCompleted: true,
+                companyName: 'Procurea Dev',
+                jobTitle: 'Developer',
+                language: 'pl',
+                searchCredits: 9999,
+                trialCreditsUsed: true,
+                plan: 'full',
+            },
+        });
+
+        await this.prisma.organization.create({
+            data: {
+                name: 'Procurea Dev',
+                domain: 'procurea.local',
+                searchCredits: 9999,
+                trialCreditsUsed: true,
+                plan: 'full',
+                users: { connect: { id: created.id } },
+                locations: {
+                    create: [{
+                        name: 'HQ',
+                        address: 'ul. Developerska 1, 00-001 Warszawa',
+                        isDefault: true,
+                    }]
+                }
+            }
+        });
+
+        console.log(`[DEV] Created dev user: ${devEmail}`);
 
         return this.prisma.user.findUnique({
             where: { id: created.id },
