@@ -117,7 +117,7 @@ export class AuthService {
         });
     }
 
-    async validateUserByProvider(email: string, provider: string, ssoId?: string, name?: string): Promise<{ user: any; isNewUser: boolean }> {
+    async validateUserByProvider(email: string, provider: string, ssoId?: string, name?: string, language?: string): Promise<{ user: any; isNewUser: boolean }> {
         let user = await this.prisma.user.findUnique({
             where: { email },
         });
@@ -157,6 +157,7 @@ export class AuthService {
                         organizationId: existingOrg.id,
                         searchCredits: 0, // No personal trial credits
                         onboardingCompleted: false,
+                        ...(language ? { language } : {}),
                     },
                 });
                 user = newUser;
@@ -207,6 +208,7 @@ export class AuthService {
                         ssoId: ssoId,
                         role: 'USER',
                         onboardingCompleted: false,
+                        ...(language ? { language } : {}),
                     },
                 });
 
@@ -251,8 +253,17 @@ export class AuthService {
     }
 
     async startEmailLogin(email: string, language?: string) {
-        const { user } = await this.validateUserByProvider(email, 'email');
+        const { user, isNewUser } = await this.validateUserByProvider(email, 'email', undefined, undefined, language);
         const magicCode = crypto.randomInt(100000, 999999).toString();
+
+        // Update language for existing users when they log in from a different domain
+        if (!isNewUser && language && user.language !== language) {
+            await this.prisma.user.update({
+                where: { id: user.id },
+                data: { language },
+            });
+            user.language = language;
+        }
 
         // Store magic code in Redis (10 minute TTL)
         await this.redisService.setMagicCode(email, magicCode, user.id, 600);
@@ -487,30 +498,38 @@ export class AuthService {
             where: { isSystem: true },
         });
 
+        const userLang = data.language || 'pl';
         if (!existingSequence) {
+            const isEn = userLang === 'en';
             await this.prisma.sequenceTemplate.create({
                 data: {
-                    name: 'Standardowa Sekwencja RFQ',
+                    name: isEn ? 'Standard RFQ Sequence' : 'Standardowa Sekwencja RFQ',
                     isSystem: true,
                     steps: {
                         create: [
                             {
                                 dayOffset: 0,
                                 type: 'INITIAL',
-                                subject: 'Zapytanie Ofertowe: {{Product_Name}}',
-                                bodySnippet: 'Dzień dobry,\n\nZwracamy się z prośbą o przedstawienie oferty na {{Product_Name}}.\n\nZ poważaniem,\n{{Sender_Name}}\n{{Sender_Company}}',
+                                subject: isEn ? 'Request for Quotation: {{Product_Name}}' : 'Zapytanie Ofertowe: {{Product_Name}}',
+                                bodySnippet: isEn
+                                    ? 'Dear Sir or Madam,\n\nWe would like to request a quotation for {{Product_Name}}.\n\nBest regards,\n{{Sender_Name}}\n{{Sender_Company}}'
+                                    : 'Dzień dobry,\n\nZwracamy się z prośbą o przedstawienie oferty na {{Product_Name}}.\n\nZ poważaniem,\n{{Sender_Name}}\n{{Sender_Company}}',
                             },
                             {
                                 dayOffset: 3,
                                 type: 'REMINDER',
-                                subject: 'Przypomnienie: RFQ {{Product_Name}}',
-                                bodySnippet: 'Dzień dobry,\n\nPrzypominamy o naszym zapytaniu ofertowym dotyczącym {{Product_Name}}.\n\nCzy planują Państwo złożyć ofertę?\n\nZ poważaniem,\n{{Sender_Name}}',
+                                subject: isEn ? 'Reminder: RFQ {{Product_Name}}' : 'Przypomnienie: RFQ {{Product_Name}}',
+                                bodySnippet: isEn
+                                    ? 'Dear Sir or Madam,\n\nThis is a friendly reminder regarding our request for quotation for {{Product_Name}}.\n\nAre you planning to submit a quote?\n\nBest regards,\n{{Sender_Name}}'
+                                    : 'Dzień dobry,\n\nPrzypominamy o naszym zapytaniu ofertowym dotyczącym {{Product_Name}}.\n\nCzy planują Państwo złożyć ofertę?\n\nZ poważaniem,\n{{Sender_Name}}',
                             },
                             {
                                 dayOffset: 7,
                                 type: 'FINAL',
-                                subject: 'Ostatnie przypomnienie: RFQ {{Product_Name}}',
-                                bodySnippet: 'Dzień dobry,\n\nTo nasze ostatnie przypomnienie dotyczące zapytania na {{Product_Name}}.\n\nProsimy o odpowiedź do końca tygodnia.\n\nZ poważaniem,\n{{Sender_Name}}',
+                                subject: isEn ? 'Final Reminder: RFQ {{Product_Name}}' : 'Ostatnie przypomnienie: RFQ {{Product_Name}}',
+                                bodySnippet: isEn
+                                    ? 'Dear Sir or Madam,\n\nThis is our final reminder regarding the request for quotation for {{Product_Name}}.\n\nPlease respond by the end of the week.\n\nBest regards,\n{{Sender_Name}}'
+                                    : 'Dzień dobry,\n\nTo nasze ostatnie przypomnienie dotyczące zapytania na {{Product_Name}}.\n\nProsimy o odpowiedź do końca tygodnia.\n\nZ poważaniem,\n{{Sender_Name}}',
                             },
                         ],
                     },
@@ -528,8 +547,13 @@ export class AuthService {
         });
 
         if (user) {
-            const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'https://app.procurea.pl';
-            const message = `Konto Procurea powiązane z tym numerem: ${user.email}. Jeśli to nie Ty próbujesz się rejestrować, zmień hasło lub zabezpiecz konto: ${frontendUrl}/auth/settings`;
+            const isEn = user.language === 'en';
+            const frontendUrl = isEn
+                ? (this.configService.get<string>('FRONTEND_URL_EN') || 'https://app.procurea.io')
+                : (this.configService.get<string>('FRONTEND_URL') || 'https://app.procurea.pl');
+            const message = isEn
+                ? `A Procurea account is linked to this number: ${user.email}. If this wasn't you, please change your password or secure your account: ${frontendUrl}/auth/settings`
+                : `Konto Procurea powiązane z tym numerem: ${user.email}. Jeśli to nie Ty próbujesz się rejestrować, zmień hasło lub zabezpiecz konto: ${frontendUrl}/auth/settings`;
             await this.smsService.sendCustomSms(phone, message);
             return { message: 'Reminder sent' };
         }
