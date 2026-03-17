@@ -3,8 +3,8 @@ import type { LandingTranslations } from './pl';
 export const EN: LandingTranslations = {
   meta: {
     lang: 'en',
-    title: 'Procurea — AI-Powered Supplier Discovery',
-    description: 'An AI tool that automatically finds, analyzes, and verifies suppliers across global markets.',
+    title: 'Procurea — AI Sourcing Automation for Procurement Teams',
+    description: 'AI-powered sourcing tool that automatically discovers, qualifies, and enriches suppliers across 26 languages. Built for procurement teams in manufacturing.',
   },
   nav: {
     howItWorks: 'How it works',
@@ -25,20 +25,20 @@ export const EN: LandingTranslations = {
     demo: 'demo',
   },
   hero: {
-    badge: 'AI-Powered Tool · Free Beta Access',
-    headlinePart1: 'AI scans the internet',
-    headlineHighlight: 'for you',
-    headlinePart2: ' and finds suppliers',
-    subheadline: 'Procurea is an AI-powered tool that automatically discovers, analyzes, and verifies suppliers across global markets. Try it free during our beta program.',
+    badge: 'AI Sourcing Tool · Free Beta Access',
+    headlinePart1: 'AI-powered sourcing',
+    headlineHighlight: 'automation',
+    headlinePart2: ' for procurement teams',
+    subheadline: 'Procurea deploys AI agents that scout, qualify, and enrich suppliers across 26 languages — turning weeks of manual sourcing into minutes. Try it free during our beta program.',
     ctaPrimary: 'Join the beta',
     ctaSecondary: 'Watch Demo',
     trustFreeAccess: 'Full access for free',
     trustNoCreditCard: 'No credit card required',
-    trustBeta: 'Closed beta program',
+    trustBeta: 'Early access program',
     stats: [
-      { value: '5', label: 'AI agents' },
-      { value: '26', label: 'languages' },
-      { value: '5-10', label: 'min per sourcing' },
+      { value: '5', label: 'AI sourcing agents' },
+      { value: '26', label: 'search languages' },
+      { value: '5-10', label: 'min per sourcing run' },
     ],
     sidebar: {
       dashboard: 'Dashboard',
@@ -73,25 +73,25 @@ export const EN: LandingTranslations = {
     browserUrl: 'app.procurea.io',
   },
   problem: {
-    heading: 'Manual supplier sourcing',
-    headingSub: 'costs you time and money',
-    description: 'Traditional sourcing in manufacturing companies means weeks of internet searching, hundreds of emails, and spreadsheets full of outdated data.',
+    heading: 'Traditional supplier scouting',
+    headingSub: 'drains your procurement team',
+    description: 'Manual sourcing in manufacturing still means weeks of Googling, hundreds of cold emails, and spreadsheets full of outdated contacts — while better suppliers go undiscovered.',
     painPoints: [
       {
-        title: '30 hours per single sourcing',
-        description: 'The average sourcing process takes 30 hours of work. Manually searching the internet, verifying companies, collecting contacts, and sending inquiries eats up your team\'s valuable time.',
+        title: '30 hours per sourcing project',
+        description: 'The average sourcing project takes 30 hours of work. Manually searching the internet, verifying companies, collecting contacts, and sending inquiries eats up your procurement team\'s valuable time.',
         stat: '30h',
-        statLabel: 'average time per single sourcing',
+        statLabel: 'average time per sourcing project',
       },
       {
-        title: 'Outdated data',
-        description: 'Contact data quickly becomes outdated. Incorrect emails, old phone numbers, and stale information generate frustration and wasted effort.',
+        title: 'Decaying supplier data',
+        description: 'Supplier contact data decays fast. Incorrect emails, old phone numbers, and stale information generate frustration and wasted effort.',
         stat: '40%',
         statLabel: 'of data becomes outdated annually',
       },
       {
         title: 'Language barrier',
-        description: 'Searching for suppliers in foreign markets requires local languages. Without this, you miss the best manufacturers from Europe and beyond.',
+        description: 'Searching for suppliers in foreign markets requires local languages. Without this, you miss qualified manufacturers across Europe and global markets.',
         stat: '26',
         statLabel: 'languages of supplier markets',
       },
@@ -99,16 +99,16 @@ export const EN: LandingTranslations = {
   },
   howItWorks: {
     sectionLabel: 'How it works',
-    heading: 'From inquiry to supplier list',
-    headingSub: 'in 5 simple steps',
-    description: 'The entire process is fully automated. You define your needs — AI does the rest.',
+    heading: 'From sourcing brief to qualified suppliers',
+    headingSub: 'in 5 automated steps',
+    description: 'Define your requirements once — five AI agents handle strategy, scouting, qualification, and contact enrichment.',
     stepPrefix: 'STEP',
     steps: [
-      { title: 'Describe what you need', description: 'Enter the product name, technical specifications, and requirements. An intuitive wizard guides you step by step.' },
+      { title: 'Define your sourcing brief', description: 'Enter the product name, technical specifications, and requirements. An intuitive wizard guides you step by step.' },
       { title: 'AI creates a strategy', description: 'The Strategy Agent analyzes your requirements and generates queries in multiple languages, tailored to market specifics.' },
-      { title: 'Internet scanning', description: 'The Exploration Agent searches the internet, identifies manufacturers, and evaluates their capabilities.' },
-      { title: 'Data enrichment', description: 'The system automatically finds emails, phone numbers, and decision-maker data for each supplier.' },
-      { title: 'Ready-made list', description: 'A verified supplier list with AI scores, contact data, and certifications. Ready to use.' },
+      { title: 'Global supplier scouting', description: 'The Exploration Agent searches the internet, identifies manufacturers, and evaluates their production capabilities.' },
+      { title: 'Contact enrichment', description: 'The system automatically finds emails, phone numbers, and key decision-maker contacts for each supplier.' },
+      { title: 'Qualified supplier shortlist', description: 'A qualified supplier shortlist with AI relevance scores, verified contacts, and certifications — ready for RFQ.' },
     ],
     summaryPart1: 'The entire process',
     summaryPart2: ' takes on average ',
@@ -116,25 +116,25 @@ export const EN: LandingTranslations = {
   },
   demo: {
     sectionLabel: 'Demo',
-    heading: 'See it in action',
+    heading: 'See AI sourcing in action',
     headingSub: 'Watch the demo',
-    description: 'Watch a short demo to see how Procurea finds and analyzes suppliers in minutes.',
+    description: 'Watch a 3-minute demo to see how Procurea scouts and qualifies suppliers across global markets.',
   },
   features: {
     sectionLabel: 'Beta program',
     heading: 'What you get in the beta',
-    headingSub: 'Full access to AI-powered search — for free',
-    description: 'As a beta tester, you get full access to an AI tool that replaces weeks of manual supplier searching.',
+    headingSub: 'Full AI sourcing platform — free during early access',
+    description: 'As an early access user, you get the complete AI sourcing toolkit that replaces weeks of manual supplier scouting.',
     featuredLabel: 'Key feature',
     items: [
       {
-        title: 'AI-Powered Search',
-        description: 'A multi-stage AI agent searches the internet in 26 languages, identifies manufacturers, and verifies their production capabilities.',
-        highlight: '5 AI agents working in parallel',
+        title: 'AI Supplier Scouting',
+        description: 'Five specialized AI agents scout suppliers across 26 languages, identify qualified manufacturers, and verify their production capabilities.',
+        highlight: '5 AI agents running your sourcing in parallel',
       },
       {
-        title: 'Supplier Database',
-        description: 'A central supplier registry with AI scores, contact data, certifications, and production capability information.',
+        title: 'Supplier Intelligence Hub',
+        description: 'A centralized supplier registry with AI relevance scores, enriched contacts, certifications, and production capability profiles.',
       },
       {
         title: 'Live Monitoring',
@@ -150,8 +150,8 @@ export const EN: LandingTranslations = {
   },
   benefits: {
     sectionLabel: 'Results',
-    heading: 'Measurable results',
-    headingSub: 'for your procurement team',
+    heading: 'Measurable procurement impact',
+    headingSub: 'from day one',
     metrics: [
       { label: 'Faster than manual' },
       { label: 'Cheaper offers on average' },
@@ -160,34 +160,34 @@ export const EN: LandingTranslations = {
     ],
     cards: [
       {
-        title: 'More quotes = better price',
-        description: 'You reach suppliers you would never find manually. Greater reach and automatic data enrichment mean a larger supplier base and stronger negotiating position — 6% lower prices on average.',
+        title: 'Wider supplier base = stronger negotiations',
+        description: 'You reach qualified suppliers your team would never find manually. Greater reach and automatic contact enrichment mean a larger supplier base and stronger negotiating position — 6% lower prices on average.',
       },
       {
         title: '30 hours → 1 hour',
-        description: 'A process that takes a specialist 30 hours, Procurea completes in under an hour. Your team focuses on negotiations and relationship building instead of manual searching.',
+        description: 'A process that takes a specialist 30 hours, Procurea completes in under an hour. Your procurement team focuses on negotiations and supplier relationships instead of manual scouting.',
       },
     ],
   },
   audience: {
     sectionLabel: 'Who it\'s for',
-    heading: 'Built for procurement teams',
+    heading: 'Purpose-built for procurement',
     headingSub: 'in manufacturing companies',
     personas: [
       {
         title: 'Procurement Directors',
         description: 'Strategic overview of the sourcing process. Reports, metrics, and full control over the supplier base in one place.',
-        tags: ['Strategy', 'Reports', 'Control'],
+        tags: ['Sourcing strategy', 'Spend visibility', 'Supplier control'],
       },
       {
         title: 'Supply Chain Managers',
-        description: 'Manage sourcing campaigns. Quickly find and compare suppliers.',
-        tags: ['Campaigns', 'Analysis', 'Negotiations'],
+        description: 'Run AI sourcing campaigns. Quickly discover and compare qualified suppliers.',
+        tags: ['Sourcing campaigns', 'Supplier analysis', 'Negotiations'],
       },
       {
         title: 'Procurement Specialists',
-        description: 'Fast supplier discovery without manually searching the internet. AI does the heavy lifting for you.',
-        tags: ['Search', 'Contacts', 'Automation'],
+        description: 'Automated supplier scouting without hours of manual research. AI agents handle the heavy lifting.',
+        tags: ['AI scouting', 'Contact enrichment', 'Automation'],
       },
     ],
     industriesLabel: 'Ideal for industries:',
@@ -195,13 +195,13 @@ export const EN: LandingTranslations = {
   },
   betaSignup: {
     sectionLabel: 'Join the beta',
-    heading: 'Join the closed',
-    headingHighlight: 'beta program',
+    heading: 'Join the',
+    headingHighlight: 'early access program',
     description: 'Full access. For free. No obligations.',
     benefits: [
       {
         title: 'Full access to AI sourcing',
-        description: 'No limits on the number of processes during the beta program. Search in 26 languages, contact data, AI scores.',
+        description: 'No limits on sourcing campaigns during the early access period. Search in 26 languages, contact data, AI scores.',
       },
       {
         title: 'Priority in product development',
@@ -221,11 +221,11 @@ export const EN: LandingTranslations = {
   },
   faq: {
     heading: 'Frequently asked questions',
-    description: 'Everything you need to know about the Procurea beta program',
+    description: 'Everything you need to know about Procurea early access',
     items: [
       {
         question: 'How does AI-powered search work?',
-        answer: 'Procurea uses a multi-stage AI agent system. The Strategy Agent generates search queries in multiple languages tailored to your requirements. The Exploration Agent searches the internet and identifies manufacturers. The Analysis Agent evaluates their capabilities, and the Enrichment Agent automatically finds contact data. The entire process takes minutes, not weeks.',
+        answer: 'Procurea uses a multi-stage AI agent system. The Strategy Agent generates search queries in multiple languages tailored to your requirements. The Exploration Agent searches the internet and identifies manufacturers. The Analysis Agent evaluates their capabilities, and the Enrichment Agent automatically finds contact data. The entire sourcing process takes minutes, not weeks.',
       },
       {
         question: 'Which regions are supported?',
@@ -233,7 +233,7 @@ export const EN: LandingTranslations = {
       },
       {
         question: 'What exactly is available in the beta?',
-        answer: 'During the beta, you have full access to the AI supplier search engine, including multi-stage search in 26 languages, automatic contact data enrichment, supplier database, and live monitoring. Features like RFQs and email sequences are in development and will appear in the full product.',
+        answer: 'During the beta, you have full access to the AI sourcing platform, including multi-stage search in 26 languages, automatic contact data enrichment, supplier database, and live monitoring. Features like RFQs and email sequences are in development and will appear in the full product.',
       },
       {
         question: 'How long does the beta last?',
@@ -250,20 +250,20 @@ export const EN: LandingTranslations = {
     ],
   },
   cta: {
-    headingPart1: 'Try AI sourcing',
-    headingHighlight: 'on your own inquiry',
-    description: 'Create a free account, describe what you need, and let AI agents find suppliers for you. Beta program — full access at no cost.',
+    headingPart1: 'Run AI sourcing',
+    headingHighlight: 'on your next RFQ',
+    description: 'Create a free account, define your sourcing brief, and let five AI agents scout and qualify suppliers for you. Early access — full platform at no cost.',
     ctaPrimary: 'Join the beta program',
     ctaEmail: 'Contact us',
     contactEmail: 'hello@procurea.io',
     trustPoints: [
       'Full access for free',
       'No credit card required',
-      'AI-powered sourcing tool',
+      'AI sourcing automation platform',
     ],
   },
   footer: {
-    brand: 'AI-powered supplier discovery tool. Currently in beta.',
+    brand: 'AI sourcing automation for procurement teams. Currently in early access.',
     product: 'Product',
     company: 'Company',
     legal: 'Legal',
