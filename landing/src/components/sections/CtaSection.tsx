@@ -62,7 +62,7 @@ export function CtaSection() {
             </a>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-gray-400">
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-sm text-gray-400">
             {t.cta.trustPoints.map((point) => (
               <span key={point} className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-emerald-400" />

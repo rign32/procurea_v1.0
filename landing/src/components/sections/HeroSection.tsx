@@ -185,19 +185,19 @@ export function HeroSection() {
 
           <div className="relative rounded-2xl border border-border/60 bg-white shadow-2xl shadow-brand-500/[0.06] overflow-hidden ring-1 ring-black/[0.03]">
             {/* Browser chrome */}
-            <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border-b border-border/60">
+            <div className="flex items-center gap-2 px-3 sm:px-4 py-3 bg-gray-50 border-b border-border/60">
               <div className="flex gap-1.5">
                 <div className="w-3 h-3 rounded-full bg-red-400/80" />
                 <div className="w-3 h-3 rounded-full bg-amber-400/80" />
                 <div className="w-3 h-3 rounded-full bg-emerald-400/80" />
               </div>
               <div className="flex-1 flex justify-center">
-                <div className="flex items-center gap-2 px-4 py-1 rounded-md bg-white border border-border/60 text-xs text-muted-foreground w-64 justify-center">
+                <div className="flex items-center gap-2 px-3 sm:px-4 py-1 rounded-md bg-white border border-border/60 text-xs text-muted-foreground w-48 sm:w-64 justify-center">
                   <Shield className="h-3 w-3 text-emerald-500" />
                   {t.hero.browserUrl}
                 </div>
               </div>
-              <div className="w-[54px]" />
+              <div className="hidden sm:block w-[54px]" />
             </div>
 
             {/* App content */}
@@ -233,7 +233,7 @@ export function HeroSection() {
                     <ArrowLeft className="h-3.5 w-3.5 text-muted-foreground" />
                     <h3 className="text-sm font-bold text-foreground">{t.hero.mockup.campaignTitle}</h3>
                   </div>
-                  <div className="flex items-center gap-2 ml-5.5 text-[11px] text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 ml-5.5 text-[11px] text-muted-foreground">
                     <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-medium">
                       {t.hero.mockup.statusInProgress}
                     </span>
@@ -259,7 +259,7 @@ export function HeroSection() {
                               <div className={`w-2.5 h-2.5 rounded-full ${agentColors[idx].color} ring-2 ring-offset-1 ${agentColors[idx].color}/20`} />
                               <span className="text-xs font-bold text-foreground">{agent.name}</span>
                             </div>
-                            <p className="text-[11px] text-muted-foreground leading-snug">{agent.desc}</p>
+                            <p className="text-[11px] text-muted-foreground leading-snug line-clamp-2">{agent.desc}</p>
                           </motion.div>
                         ))}
                       </div>
@@ -360,20 +360,20 @@ export function HeroSection() {
             transition={{ duration: 0.7, delay: 1.0 }}
             className="flex justify-center -mt-6 relative z-10"
           >
-            <div className="inline-flex items-center gap-0 rounded-2xl border border-border bg-white/90 backdrop-blur-sm shadow-lg shadow-black/[0.05] overflow-hidden">
+            <div className="inline-flex flex-wrap items-center justify-center gap-0 rounded-2xl border border-border bg-white/90 backdrop-blur-sm shadow-lg shadow-black/[0.05] overflow-hidden">
               {t.hero.stats.map((stat, i) => {
                 const Icon = statIcons[i]
                 return (
                   <div
                     key={stat.label}
-                    className={`flex items-center gap-3 px-5 sm:px-7 py-3.5 ${
+                    className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-5 md:px-7 py-3 sm:py-3.5 ${
                       i < t.hero.stats.length - 1 ? "border-r border-border" : ""
                     }`}
                   >
                     <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${statColors[i]} hidden sm:block`} />
                     <div className="text-left">
-                      <div className="text-base sm:text-lg font-bold tracking-tight">{stat.value}</div>
-                      <div className="text-[11px] sm:text-xs text-muted-foreground">{stat.label}</div>
+                      <div className="text-sm sm:text-base md:text-lg font-bold tracking-tight">{stat.value}</div>
+                      <div className="text-[10px] sm:text-[11px] md:text-xs text-muted-foreground">{stat.label}</div>
                     </div>
                   </div>
                 )

@@ -58,7 +58,7 @@ export function HowItWorksSection() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
-          className="grid grid-cols-1 md:grid-cols-5 gap-4 lg:gap-5"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-5"
         >
           {t.howItWorks.steps.map((step, i) => {
             const Icon = stepIcons[i]
@@ -70,7 +70,7 @@ export function HowItWorksSection() {
                 className="relative group"
               >
                 {i < t.howItWorks.steps.length - 1 && (
-                  <div className="hidden md:flex absolute -right-3.5 top-1/2 -translate-y-1/2 z-10">
+                  <div className="hidden lg:flex absolute -right-3.5 top-1/2 -translate-y-1/2 z-10">
                     <ChevronRight className="h-5 w-5 text-brand-300" />
                   </div>
                 )}

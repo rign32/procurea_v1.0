@@ -38,7 +38,7 @@ function CounterItem({
       <div className={`inline-flex items-center justify-center h-14 w-14 rounded-2xl ${bg} ${color} mb-4 transition-transform duration-200 group-hover:scale-110 ring-1 ${ring}`}>
         <Icon className="h-6 w-6" />
       </div>
-      <div className="text-4xl sm:text-5xl font-extrabold tracking-tight tabular-nums mb-2">
+      <div className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight tabular-nums mb-2">
         <span className={`bg-gradient-to-r ${gradient} bg-clip-text text-transparent`}>{count}</span>
         <span className="text-muted-foreground/30">{suffix}</span>
       </div>
@@ -72,7 +72,7 @@ export function BenefitsSection() {
           whileInView="visible"
           viewport={{ once: true }}
           variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}
-          className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-20"
+          className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-12 mb-20"
         >
           {metricConfigs.map((config, idx) => (
             <motion.div

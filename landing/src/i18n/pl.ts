@@ -11,8 +11,8 @@ export type LandingTranslations = DeepString<typeof PL>;
 export const PL = {
   meta: {
     lang: 'pl',
-    title: 'Procurea — AI do wyszukiwania dostawców',
-    description: 'Polskie narzędzie AI, które automatycznie wyszukuje, analizuje i weryfikuje dostawców na rynkach całego świata.',
+    title: 'Procurea — Automatyzacja AI sourcingu dla zespołów zakupowych',
+    description: 'Narzędzie AI do sourcingu, które automatycznie wyszukuje, kwalifikuje i wzbogaca dane dostawców w 26 językach. Stworzone dla działów zakupów w przemyśle.',
   },
   nav: {
     howItWorks: 'Jak to działa',
@@ -33,11 +33,11 @@ export const PL = {
     demo: 'demo',
   },
   hero: {
-    badge: 'Polskie narzędzie AI · Darmowe beta testy',
-    headlinePart1: 'AI przeszuka internet',
-    headlineHighlight: 'za Ciebie',
-    headlinePart2: ' i znajdzie dostawców',
-    subheadline: 'Procurea to polskie narzędzie AI, które automatycznie wyszukuje, analizuje i weryfikuje dostawców na rynkach całego świata. Testuj za darmo w ramach zamkniętych beta testów.',
+    badge: 'Narzędzie AI do sourcingu · Darmowy dostęp w beta',
+    headlinePart1: 'Automatyzacja sourcingu',
+    headlineHighlight: 'napędzana AI',
+    headlinePart2: ' dla zespołów zakupowych',
+    subheadline: 'Procurea uruchamia agentów AI, którzy wyszukują, kwalifikują i wzbogacają dane dostawców w 26 językach — zamieniając tygodnie ręcznego sourcingu w minuty. Testuj za darmo w ramach programu beta.',
     ctaPrimary: 'Dołącz do beta testów',
     ctaSecondary: 'Obejrzyj demo',
     trustFreeAccess: 'Pełny dostęp za darmo',
@@ -267,11 +267,11 @@ export const PL = {
     trustPoints: [
       'Pełny dostęp za darmo',
       'Bez karty kredytowej',
-      'Polskie narzędzie AI',
+      'Platforma AI do automatyzacji sourcingu',
     ],
   },
   footer: {
-    brand: 'Polskie narzędzie AI do wyszukiwania dostawców. Obecnie w beta testach.',
+    brand: 'Automatyzacja AI sourcingu dla zespołów zakupowych. Obecnie w programie wczesnego dostępu.',
     product: 'Produkt',
     company: 'Firma',
     legal: 'Prawne',
