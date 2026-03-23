@@ -36,6 +36,9 @@ export interface Campaign {
   suppliers?: Supplier[];
   logs?: CampaignLog[];
 
+  // Apollo.io enrichment
+  apolloEnrichmentStatus?: string | null; // null | "pending" | "running" | "completed" | "failed"
+
   // Stats (computed)
   suppliersFound?: number;
   suppliersQualified?: number;
