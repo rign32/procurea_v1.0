@@ -124,18 +124,6 @@ export class AuthService {
 
         let isNewUser = false;
         if (!user) {
-            // Block registration from generic email domains
-            if (isBlockedEmailDomain(email)) {
-                this.observability.recordEvent('auth', 'registration_blocked', 'warning', {
-                    title: 'Rejestracja zablokowana — domena generyczna',
-                    userEmail: email,
-                    metadata: { domain: email.split('@')[1] },
-                }).catch(() => {});
-                throw new BadRequestException(
-                    'Registration requires a professional email address. Please use your corporate email.'
-                );
-            }
-
             isNewUser = true;
 
             // Auto-discovery: check if an org with this domain already exists
@@ -414,7 +402,6 @@ export class AuthService {
     }) {
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
         if (!user) throw new BadRequestException('User not found');
-        if (!user.isPhoneVerified) throw new BadRequestException('Phone not verified');
 
         let orgId = user.organizationId;
 
@@ -441,9 +428,10 @@ export class AuthService {
                     ...loc,
                     isDefault: i === 0,
                 }));
+                const resolvedCompanyName = data.companyName || user.email.split('@')[0];
                 const org = await this.prisma.organization.create({
                     data: {
-                        name: data.companyName,
+                        name: resolvedCompanyName,
                         domain,
                         users: { connect: { id: userId } },
                         locations: {
@@ -487,7 +475,7 @@ export class AuthService {
                 name: `${data.firstName || ''} ${data.lastName || ''}`.trim() || user.name,
                 jobTitle: data.jobTitle,
                 language: data.language || 'pl',
-                companyName: data.companyName,
+                companyName: data.companyName || user.email.split('@')[0],
                 organizationId: orgId,
                 onboardingCompleted: true,
             },

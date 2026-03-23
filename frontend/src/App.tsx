@@ -24,6 +24,7 @@ const SupplierPortalPage = lazy(() => import('./pages/SupplierPortalPage'))
 const SequencesPage = lazy(() => import('./pages/SequencesPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 const BlacklistPage = lazy(() => import('./pages/BlacklistPage'))
+const ContactsPage = lazy(() => import('./pages/ContactsPage'))
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -150,6 +151,42 @@ function App() {
     stagingAutoLogin();
   }, [hydrated, impersonating, stagingRefreshed, setUser, markSessionValidated]);
 
+  // Handle dev auto-login — local development with plan='full'
+  const [devRefreshed, setDevRefreshed] = useState(false);
+  useEffect(() => {
+    if (!hydrated || impersonating || devRefreshed) return;
+    // Only in Vite dev mode AND not staging mode
+    if (!import.meta.env.DEV || import.meta.env.VITE_STAGING_MODE === 'true') return;
+
+    const devAutoLogin = async () => {
+      try {
+        console.log('[Dev] Auto-login initiated...');
+        const res = await fetch('/api/auth/dev/auto-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+        });
+
+        if (!res.ok) throw new Error(`Dev auto-login failed: ${res.status}`);
+
+        const data = await res.json();
+        if (data.success && data.user) {
+          if (data.accessToken) localStorage.setItem('procurea_token', data.accessToken);
+          if (data.refreshToken) localStorage.setItem('procurea_refresh', data.refreshToken);
+          setUser(data.user);
+          markSessionValidated();
+          console.log('[Dev] Auto-login successful:', data.user.email, 'plan:', data.user.plan);
+        }
+      } catch (err: unknown) {
+        console.error('[Dev] Auto-login failed:', err instanceof Error ? err.message : err);
+      } finally {
+        setDevRefreshed(true);
+      }
+    };
+
+    devAutoLogin();
+  }, [hydrated, impersonating, devRefreshed, setUser, markSessionValidated]);
+
   // Validate persisted session against backend on mount (stale session detection only)
   useEffect(() => {
     if (!hydrated || impersonating || !isAuthenticated || !user?.id || sessionValidated) return;
@@ -199,9 +236,7 @@ function App() {
     logout()
   }
 
-  // Admin impersonation bypasses phone verification and onboarding — normal users unaffected
-  const needsPhoneVerification = isAuthenticated && !isImpersonated && user?.isPhoneVerified === false;
-  const needsOnboarding = isAuthenticated && !isImpersonated && !needsPhoneVerification && user?.onboardingCompleted === false && !user?.organizationId;
+  const needsOnboarding = isAuthenticated && !isImpersonated && user?.onboardingCompleted === false && !user?.organizationId;
 
   // Show loading screen while Zustand rehydrates or impersonation is in progress
   if (!hydrated || impersonating) {
@@ -225,6 +260,17 @@ function App() {
           zIndex: 9999,
         }} />
       )}
+      {import.meta.env.DEV && import.meta.env.VITE_STAGING_MODE !== 'true' && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '4px',
+          background: 'linear-gradient(90deg, #22c55e, #06b6d4)',
+          zIndex: 9999,
+        }} />
+      )}
       <Toaster
         position="top-right"
         richColors
@@ -240,7 +286,7 @@ function App() {
           <Route
             path="/login"
             element={
-              !isAuthenticated || needsPhoneVerification ? (
+              !isAuthenticated ? (
                 <Login onLogin={handleLogin} />
               ) : (
                 <Navigate to="/" />
@@ -279,6 +325,7 @@ function App() {
             <Route path="/suppliers" element={<SuppliersPage />} />
             <Route path="/suppliers/:id" element={<SupplierDetailPage />} />
             <Route path="/blacklist" element={<BlacklistPage />} />
+            <Route path="/contacts" element={<PlanGuard><ContactsPage /></PlanGuard>} />
             <Route path="/sequences" element={<PlanGuard><SequencesPage /></PlanGuard>} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>

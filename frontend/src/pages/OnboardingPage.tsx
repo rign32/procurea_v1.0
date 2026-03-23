@@ -50,18 +50,6 @@ export default function OnboardingPage() {
     };
 
     const handleNext = () => {
-        if (step === 1) {
-            if (!formData.firstName || !formData.lastName) {
-                setError(t.auth.onboarding.nameRequired);
-                return;
-            }
-        }
-        if (step === 2) {
-            if (!formData.companyName) {
-                setError(t.auth.onboarding.companyNameRequired);
-                return;
-            }
-        }
         setError('');
         analytics.onboardingStepComplete(step);
         const nextStep = Math.min(totalSteps, step + 1);

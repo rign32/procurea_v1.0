@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { t } from '@/i18n';
-import { Sparkles, Mail, KeyRound, ArrowLeft, Phone } from 'lucide-react';
+import { Sparkles, Mail, KeyRound, ArrowLeft } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import { analytics, startHesitationTracker } from '@/lib/analytics';
 import type { User } from '@/types/campaign.types';
@@ -26,12 +26,10 @@ const MicrosoftIcon = () => (
 );
 
 export default function Login({ onLogin }: { onLogin: (user: User) => void }) {
-    const { user, isAuthenticated, setUser } = useAuthStore();
+    const { user, isAuthenticated } = useAuthStore();
     const [email, setEmail] = useState('');
-    const [step, setStep] = useState<'email' | 'code' | 'phone' | 'phoneCode'>('email');
+    const [step, setStep] = useState<'email' | 'code'>('email');
     const [code, setCode] = useState('');
-    const [phone, setPhone] = useState('');
-    const [phoneCode, setPhoneCode] = useState('');
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
@@ -56,14 +54,6 @@ export default function Login({ onLogin }: { onLogin: (user: User) => void }) {
         // Handle corrupted or incomplete state
         if (isAuthenticated && (!user || !user.id)) {
             useAuthStore.getState().logout();
-            setStep('email');
-            return;
-        }
-
-        if (isAuthenticated && user && !user.isPhoneVerified) {
-            analytics.phoneStarted();
-            setStep('phone');
-        } else if (!isAuthenticated) {
             setStep('email');
         }
     }, [isAuthenticated, user]);
@@ -135,82 +125,12 @@ export default function Login({ onLogin }: { onLogin: (user: User) => void }) {
         }
     };
 
-    const handlePhoneSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
-        setMessage('');
-
-        if (!user?.id) {
-            setError(t.errors.generic);
-            return;
-        }
-
-        setLoading(true);
-        try {
-            const res = await fetch('/api/auth/phone/send', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: user.id, phone }),
-            });
-            if (!res.ok) {
-                const data = await res.json().catch(() => ({}));
-                const errorMsg = data.message === 'Missing userId or phone'
-                    ? 'Wystąpił błąd sesji. Odśwież stronę i spróbuj ponownie.'
-                    : (data.message || t.errors.generic);
-                throw new Error(errorMsg);
-            }
-            analytics.phoneOtpSent();
-            setStep('phoneCode');
-            setMessage(t.auth.phone.otpSent);
-        } catch (err: unknown) {
-            const errMsg = err instanceof Error ? err.message : String(err);
-            analytics.phoneFailed(errMsg);
-            setError(errMsg);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handlePhoneCodeSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
-
-        if (!user?.id) {
-            setError(t.errors.generic);
-            return;
-        }
-
-        setLoading(true);
-        try {
-            const res = await fetch('/api/auth/phone/verify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: user.id, phone, code: phoneCode }),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.message || t.errors.generic);
-            analytics.phoneVerified();
-            // Updating the user will implicitly navigate away via App.tsx routing logic.
-            setUser(data);
-        } catch (err: unknown) {
-            const errMsg = err instanceof Error ? err.message : String(err);
-            analytics.phoneFailed(errMsg);
-            setError(errMsg);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-
     // Calculate dynamic title/subtitle based on step
     let title = t.auth.loginTitle;
     let subtitle = t.auth.loginSubtitle;
     if (step === 'code') {
         title = t.auth.code;
         subtitle = `${t.auth.codeSentTo} ${email}`;
-    } else if (step === 'phone' || step === 'phoneCode') {
-        title = t.auth.phone.title;
-        subtitle = t.auth.phone.subtitle;
     }
 
     return (
@@ -351,64 +271,6 @@ export default function Login({ onLogin }: { onLogin: (user: User) => void }) {
                             </form>
                         )}
 
-                        {step === 'phone' && (
-                            <form onSubmit={handlePhoneSubmit} className="space-y-4">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium" htmlFor="phone">
-                                        {t.auth.phone.phoneNumber}
-                                    </label>
-                                    <div className="relative">
-                                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        <input
-                                            id="phone"
-                                            type="tel"
-                                            value={phone}
-                                            onChange={(e) => setPhone(e.target.value)}
-                                            required
-                                            placeholder={t.auth.phone.phonePlaceholder}
-                                            className="w-full rounded-md border border-input bg-background px-10 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                                        />
-                                    </div>
-                                </div>
-                                <Button type="submit" className="w-full" disabled={loading}>
-                                    {loading ? t.common.loading : t.auth.phone.sendOtp}
-                                </Button>
-                            </form>
-                        )}
-
-                        {step === 'phoneCode' && (
-                            <form onSubmit={handlePhoneCodeSubmit} className="space-y-4">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium" htmlFor="phoneCode">
-                                        {t.auth.phone.otpCode}
-                                    </label>
-                                    <div className="relative">
-                                        <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        <input
-                                            id="phoneCode"
-                                            type="text"
-                                            value={phoneCode}
-                                            onChange={(e) => setPhoneCode(e.target.value)}
-                                            required
-                                            placeholder={t.auth.phone.otpPlaceholder}
-                                            className="w-full rounded-md border border-input bg-background px-10 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                                        />
-                                    </div>
-                                </div>
-                                <Button type="submit" className="w-full" disabled={loading}>
-                                    {loading ? t.common.loading : t.auth.phone.verifyOtp}
-                                </Button>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    className="w-full"
-                                    onClick={() => { setStep('phone'); setMessage(''); setError(''); }}
-                                >
-                                    <ArrowLeft className="mr-2 h-4 w-4" />
-                                    {t.common.back}
-                                </Button>
-                            </form>
-                        )}
 
                     </CardContent>
                 </Card>
