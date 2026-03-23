@@ -300,11 +300,11 @@ function App() {
           {/* Public Routes — Supplier Portal (no auth required) */}
           <Route path="/offers/:accessToken" element={<SupplierPortalPage />} />
 
-          {/* Onboarding — authenticated and phone verified but not yet onboarded */}
+          {/* Onboarding — authenticated but not yet onboarded */}
           <Route
             path="/onboarding"
             element={
-              isAuthenticated && !needsPhoneVerification
+              isAuthenticated
                 ? (user?.onboardingCompleted ? <Navigate to="/" /> : <OnboardingPage />)
                 : <Navigate to="/login" />
             }
@@ -312,7 +312,7 @@ function App() {
 
           {/* Protected Routes */}
           <Route element={
-            isAuthenticated && !needsPhoneVerification
+            isAuthenticated
               ? (needsOnboarding ? <Navigate to="/onboarding" /> : <AppLayout onLogout={handleLogout} />)
               : <Navigate to="/login" />
           }>
