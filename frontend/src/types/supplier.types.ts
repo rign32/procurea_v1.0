@@ -24,10 +24,10 @@ export interface Supplier {
   employeeCount?: string;
 
   // AI Agent Results (JSON)
-  explorerResult?: any;
-  analystResult?: any;
-  enrichmentResult?: any;
-  auditorResult?: any;
+  explorerResult?: unknown;
+  analystResult?: unknown;
+  enrichmentResult?: unknown;
+  auditorResult?: unknown;
 
   // Scoring
   analysisScore?: number; // 0-10
@@ -62,8 +62,28 @@ export interface Contact {
   email?: string;
   phone?: string;
   isDecisionMaker: boolean;
+
+  // Apollo.io enrichment fields
+  apolloId?: string;
+  linkedinUrl?: string;
+  department?: string;
+  seniority?: string;
+  emailStatus?: string; // "verified" | "unverified" | "not_found"
+  enrichedAt?: string;
+
   createdAt: string;
   updatedAt: string;
+
+  // Joined data (from API)
+  supplier?: {
+    id: string;
+    name?: string;
+    website?: string;
+    campaign?: {
+      id: string;
+      name: string;
+    };
+  };
 }
 
 export interface CompanyRegistry {
@@ -85,10 +105,10 @@ export interface CompanyRegistry {
   primaryEmail?: string;
 
   // AI Agent Results (JSON)
-  explorerResult?: any;
-  analystResult?: any;
-  enrichmentResult?: any;
-  auditorResult?: any;
+  explorerResult?: unknown;
+  analystResult?: unknown;
+  enrichmentResult?: unknown;
+  auditorResult?: unknown;
 
   // Quality Metrics
   lastAnalysisScore?: number;

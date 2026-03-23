@@ -58,6 +58,7 @@ export const campaignsService = {
       stage: data.stage,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt || data.createdAt,
+      apolloEnrichmentStatus: data.apolloEnrichmentStatus || null,
       rfqRequest: data.rfqRequest,
       suppliers: (data.suppliers || []).map((s: any) => ({
         ...s,
@@ -172,6 +173,23 @@ export const campaignsService = {
 
   downloadPptx: async (id: string): Promise<Blob> => {
     const { data } = await apiClient.get(`/reports/campaign/${id}/pptx`, { responseType: 'blob' });
+    return data;
+  },
+
+  // --- Apollo.io Enrichment (DEV ONLY) ---
+
+  startApolloEnrichment: async (id: string): Promise<{ success: boolean; message: string }> => {
+    const { data } = await apiClient.post<{ success: boolean; message: string }>(`/campaigns/${id}/apollo-enrich`);
+    return data;
+  },
+
+  getCampaignContacts: async (id: string): Promise<any[]> => {
+    const { data } = await apiClient.get<any[]>(`/campaigns/${id}/contacts`);
+    return data;
+  },
+
+  getAllContacts: async (params?: { campaignId?: string; emailStatus?: string; search?: string }): Promise<any[]> => {
+    const { data } = await apiClient.get<any[]>('/contacts', { params });
     return data;
   },
 };
