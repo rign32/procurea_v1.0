@@ -61,6 +61,8 @@ export default function Login({ onLogin }: { onLogin: (user: User) => void }) {
     const handleSSOLogin = (provider: 'google' | 'microsoft') => {
         analytics.methodSelected(provider);
         document.cookie = 'procurea_auth_mode=login; path=/; max-age=600; SameSite=Lax';
+        const origin = import.meta.env.VITE_LANGUAGE === 'en' ? 'app-en' : 'app';
+        document.cookie = `procurea_auth_origin=${origin}; path=/; max-age=600; SameSite=Lax`;
         window.location.href = `/api/auth/${provider}`;
     };
 

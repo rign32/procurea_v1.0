@@ -37,9 +37,7 @@ export default function AuthCallbackPage() {
                     if (data.refreshToken) localStorage.setItem('procurea_refresh', data.refreshToken);
                     setUser(data.user);
 
-                    if (!data.user.isPhoneVerified) {
-                        navigate('/login', { replace: true });
-                    } else if (!data.user.onboardingCompleted) {
+                    if (!data.user.onboardingCompleted) {
                         navigate('/onboarding', { replace: true });
                     } else {
                         navigate('/', { replace: true });

@@ -151,7 +151,8 @@ export class AuthController {
                 oauthUser.email,
                 oauthUser.provider,
                 oauthUser.providerId,
-                oauthUser.name
+                oauthUser.name,
+                origin === 'app-en' ? 'en' : 'pl'
             );
 
             // Check if user is blocked before proceeding
@@ -672,10 +673,11 @@ export class AuthController {
         const oauthUser = req.user;
         const isProduction = isProductionEnvironment();
 
-        // Read authMode from cookie (set by frontend before OAuth redirect)
+        // Read authMode and origin from cookie (set by frontend before OAuth redirect)
         // Note: OAuth state parameter doesn't work in serverless (no session support)
         const authMode = req.cookies?.procurea_auth_mode || 'login';
-        console.log('[BACKEND] Microsoft callback - authMode from cookie:', authMode);
+        const msOrigin = req.cookies?.procurea_auth_origin || 'app';
+        console.log('[BACKEND] Microsoft callback - authMode from cookie:', authMode, 'origin:', msOrigin);
 
         // Clear the authMode cookie as it's no longer needed
         const isProd = isProductionEnvironment();
@@ -702,7 +704,8 @@ export class AuthController {
                 oauthUser.email,
                 oauthUser.provider,
                 oauthUser.providerId,
-                oauthUser.name
+                oauthUser.name,
+                msOrigin === 'app-en' ? 'en' : 'pl'
             );
 
             // Check if user is blocked before proceeding
@@ -772,9 +775,8 @@ export class AuthController {
 
             // Redirect to frontend WITHOUT token in URL (security improvement)
             // Determine redirect URL based on origin cookie (app-en for procurea.io)
-            const origin = req.cookies?.procurea_auth_origin || 'app';
             let frontendUrl: string;
-            if (origin === 'app-en') {
+            if (msOrigin === 'app-en') {
                 frontendUrl = process.env.FRONTEND_URL_EN || 'https://app.procurea.io';
             } else {
                 frontendUrl = process.env.FRONTEND_URL || 'https://app.procurea.pl';
