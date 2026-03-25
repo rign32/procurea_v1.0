@@ -35,6 +35,7 @@ interface User {
     lastLoginAt: string | null;
     onboardingCompleted: boolean;
     ssoProvider: string | null;
+    language: string;
     plan: string;
     searchCredits: number;
     stripeSubscriptionId: string | null;
@@ -254,6 +255,7 @@ export default function UsersPage() {
                                 <tr className="bg-surface-overlay/50">
                                     <th className="text-left py-3 px-4 font-medium text-text-muted text-xs uppercase tracking-wider">Uzytkownik</th>
                                     <th className="text-left py-3 px-4 font-medium text-text-muted text-xs uppercase tracking-wider">Status</th>
+                                    <th className="text-left py-3 px-4 font-medium text-text-muted text-xs uppercase tracking-wider">Wersja</th>
                                     <th className="text-left py-3 px-4 font-medium text-text-muted text-xs uppercase tracking-wider">Plan / Billing</th>
                                     <th className="text-left py-3 px-4 font-medium text-text-muted text-xs uppercase tracking-wider">Organizacja</th>
                                     <th className="text-left py-3 px-4 font-medium text-text-muted text-xs uppercase tracking-wider">Ostatnie logowanie</th>
@@ -320,6 +322,16 @@ export default function UsersPage() {
                                                     </div>
                                                 </td>
                                                 <td className="py-3 px-4">
+                                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                                                        user.language === 'en' ? 'bg-blue-500/15 text-blue-400' :
+                                                        user.language === 'de' ? 'bg-amber-500/15 text-amber-400' :
+                                                        'bg-surface-overlay text-text-muted'
+                                                    }`}>
+                                                        {user.language === 'en' ? 'EN' :
+                                                         user.language === 'de' ? 'DE' : 'PL'}
+                                                    </span>
+                                                </td>
+                                                <td className="py-3 px-4">
                                                     <div className="flex flex-col gap-1">
                                                         <PlanBadge plan={effectivePlan} hasSubscription={hasSubscription} />
                                                         {totalCredits > 0 && effectivePlan !== 'unlimited' && !hasSubscription && (
@@ -383,7 +395,7 @@ export default function UsersPage() {
                                             {/* Expandable billing detail */}
                                             {isExpanded && (
                                                 <tr>
-                                                    <td colSpan={6} className="p-0">
+                                                    <td colSpan={7} className="p-0">
                                                         <div className="bg-surface-overlay/30 border-t border-border/50 p-4">
                                                             {billingLoading ? (
                                                                 <div className="flex items-center justify-center py-8">
