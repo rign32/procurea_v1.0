@@ -158,14 +158,19 @@ export default function UsersPage() {
         }
     };
 
-    const handleImpersonate = async (userId: string) => {
-        setActionLoading(userId);
+    const handleImpersonate = async (user: User) => {
+        setActionLoading(user.id);
         const newTab = window.open('about:blank', '_blank');
         try {
-            const { data } = await impersonateUser(userId);
-            const frontendUrl = window.location.hostname === 'localhost'
-                ? 'http://localhost:5173'
-                : `${window.location.protocol}//app.${window.location.hostname.split('.').slice(-2).join('.')}`;
+            const { data } = await impersonateUser(user.id);
+            let frontendUrl: string;
+            if (window.location.hostname === 'localhost') {
+                frontendUrl = 'http://localhost:5173';
+            } else {
+                frontendUrl = user.language === 'en'
+                    ? 'https://app.procurea.io'
+                    : 'https://app.procurea.pl';
+            }
             const impersonationUrl = `${frontendUrl}?impersonate_token=${encodeURIComponent(data.accessToken)}&refresh_token=${encodeURIComponent(data.refreshToken)}`;
             if (newTab) {
                 newTab.location.href = impersonationUrl;
@@ -322,7 +327,9 @@ export default function UsersPage() {
                                                     </div>
                                                 </td>
                                                 <td className="py-3 px-4">
-                                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                                                    <span
+                                                        title={user.language === 'en' ? 'app.procurea.io' : 'app.procurea.pl'}
+                                                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
                                                         user.language === 'en' ? 'bg-blue-500/15 text-blue-400' :
                                                         user.language === 'de' ? 'bg-amber-500/15 text-amber-400' :
                                                         'bg-surface-overlay text-text-muted'
@@ -356,7 +363,7 @@ export default function UsersPage() {
                                                 <td className="py-3 px-4">
                                                     <div className="flex items-center justify-end gap-2" onClick={e => e.stopPropagation()}>
                                                         <button
-                                                            onClick={() => handleImpersonate(user.id)}
+                                                            onClick={() => handleImpersonate(user)}
                                                             disabled={actionLoading === user.id}
                                                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-accent-muted text-accent hover:bg-accent/20 transition-all disabled:opacity-50"
                                                             title="Zaloguj sie jako ten uzytkownik"
