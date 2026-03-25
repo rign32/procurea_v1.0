@@ -127,8 +127,10 @@ export class AuthService {
             isNewUser = true;
 
             // Auto-discovery: check if an org with this domain already exists
+            // Skip for public/free email domains (gmail.com, etc.) — each such user is standalone
             const domain = email.split('@')[1];
-            const existingOrg = await this.prisma.organization.findFirst({
+            const isPublicDomain = isBlockedEmailDomain(email);
+            const existingOrg = isPublicDomain ? null : await this.prisma.organization.findFirst({
                 where: { domain },
                 select: { id: true, name: true, plan: true, users: { select: { id: true } } },
             });
@@ -409,6 +411,10 @@ export class AuthService {
             // User already has an org (auto-discovered by domain) — shortened onboarding
             // Skip org creation, just update user profile
             console.log(`[ONBOARDING] User ${user.email} already in org ${orgId}, shortened flow`);
+        } else if (isBlockedEmailDomain(user.email)) {
+            // Public/free email domain (gmail.com, etc.) — NO org creation
+            // Credits stay on user.searchCredits (personal wallet)
+            console.log(`[ONBOARDING] Public email ${user.email} — skipping org creation, credits stay personal`);
         } else {
             const domain = user.email.split('@')[1];
 
