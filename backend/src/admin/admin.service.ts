@@ -214,6 +214,7 @@ export class AdminService {
                     lastLoginAt: true,
                     onboardingCompleted: true,
                     ssoProvider: true,
+                    language: true,
                     plan: true,
                     searchCredits: true,
                     stripeSubscriptionId: true,
