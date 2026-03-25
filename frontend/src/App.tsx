@@ -12,7 +12,6 @@ import type { User } from './types/campaign.types'
 
 // Lazy-loaded pages (code splitting)
 const Dashboard = lazy(() => import('./pages/Dashboard'))
-const OnboardingPage = lazy(() => import('./pages/OnboardingPage'))
 const CampaignsPage = lazy(() => import('./pages/CampaignsPage'))
 const CampaignDetailPage = lazy(() => import('./pages/CampaignDetailPage'))
 const RfqWizardPage = lazy(() => import('./pages/RfqWizardPage'))
@@ -47,7 +46,7 @@ function PlanGuard({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
-  const { user, isAuthenticated, isImpersonated, setUser, setImpersonated, logout, sessionValidated, markSessionValidated } = useAuthStore()
+  const { user, isAuthenticated, setUser, setImpersonated, logout, sessionValidated, markSessionValidated } = useAuthStore()
 
   // Wait for Zustand persist to finish rehydrating from localStorage
   const [hydrated, setHydrated] = useState(false)
@@ -236,7 +235,7 @@ function App() {
     logout()
   }
 
-  const needsOnboarding = isAuthenticated && !isImpersonated && user?.onboardingCompleted === false && !user?.organizationId;
+  const needsOnboarding = false; // Beta: rejestracja uproszczona, bez onboardingu
 
   // Show loading screen while Zustand rehydrates or impersonation is in progress
   if (!hydrated || impersonating) {
@@ -301,14 +300,8 @@ function App() {
           <Route path="/offers/:accessToken" element={<SupplierPortalPage />} />
 
           {/* Onboarding — authenticated but not yet onboarded */}
-          <Route
-            path="/onboarding"
-            element={
-              isAuthenticated
-                ? (user?.onboardingCompleted ? <Navigate to="/" /> : <OnboardingPage />)
-                : <Navigate to="/login" />
-            }
-          />
+          {/* Beta: onboarding skipped — redirect to dashboard */}
+          <Route path="/onboarding" element={<Navigate to="/" />} />
 
           {/* Protected Routes */}
           <Route element={

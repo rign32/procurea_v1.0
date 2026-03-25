@@ -146,7 +146,7 @@ export class AuthService {
                         role: 'USER',
                         organizationId: existingOrg.id,
                         searchCredits: 0, // No personal trial credits
-                        onboardingCompleted: false,
+                        onboardingCompleted: true,
                         ...(language ? { language } : {}),
                     },
                 });
@@ -188,8 +188,8 @@ export class AuthService {
                 }
 
                 console.log(`[AUTH] Auto-discovered org ${existingOrg.name} for ${email} (plan: ${existingOrg.plan})`);
-            } else {
-                // First user from this domain — no org yet (created during onboarding)
+            } else if (isPublicDomain) {
+                // Public email (gmail, etc.) — no org, personal credits only
                 user = await this.prisma.user.create({
                     data: {
                         email,
@@ -197,12 +197,11 @@ export class AuthService {
                         ssoProvider: provider,
                         ssoId: ssoId,
                         role: 'USER',
-                        onboardingCompleted: false,
+                        onboardingCompleted: true,
                         ...(language ? { language } : {}),
                     },
                 });
 
-                // Audit trail for trial credit grant (user-level, transferred to org during onboarding)
                 await this.prisma.creditTransaction.create({
                     data: {
                         userId: user.id,
@@ -212,7 +211,86 @@ export class AuthService {
                         balanceAfter: 10,
                     },
                 });
+
+                console.log(`[AUTH] Public email ${email} — personal credits, no org`);
+            } else {
+                // First user from corporate domain — auto-create org
+                user = await this.prisma.user.create({
+                    data: {
+                        email,
+                        name: name || email.split('@')[0],
+                        ssoProvider: provider,
+                        ssoId: ssoId,
+                        role: 'USER',
+                        onboardingCompleted: true,
+                        ...(language ? { language } : {}),
+                    },
+                });
+
+                // Race condition guard: check if org was created concurrently
+                const existingDomainOrg = await this.prisma.organization.findFirst({
+                    where: { domain },
+                });
+
+                let orgId: string;
+                if (existingDomainOrg) {
+                    orgId = existingDomainOrg.id;
+                    console.log(`[AUTH] User ${email} joining existing org ${existingDomainOrg.name} (race condition)`);
+                } else {
+                    const org = await this.prisma.organization.create({
+                        data: {
+                            name: domain,
+                            domain,
+                            users: { connect: { id: user.id } },
+                        },
+                    });
+                    orgId = org.id;
+                    console.log(`[AUTH] Auto-created org "${domain}" for ${email}`);
+                }
+
+                // Connect user to org + transfer trial credits to org pool
+                const userId = user.id;
+                const userCredits = user.searchCredits || 10;
+                await this.prisma.$transaction(async (tx) => {
+                    await tx.user.update({
+                        where: { id: userId },
+                        data: { organizationId: orgId, searchCredits: 0 },
+                    });
+                    await tx.organization.update({
+                        where: { id: orgId },
+                        data: { searchCredits: { increment: userCredits } },
+                    });
+                    await tx.creditTransaction.create({
+                        data: {
+                            userId,
+                            amount: 10,
+                            type: 'TRIAL_GRANT',
+                            description: 'Trial — 10 free searches',
+                            balanceAfter: 0,
+                        },
+                    });
+                    const updatedOrg = await tx.organization.findUnique({
+                        where: { id: orgId },
+                        select: { searchCredits: true },
+                    });
+                    await tx.orgCreditTransaction.create({
+                        data: {
+                            organizationId: orgId,
+                            userId,
+                            amount: userCredits,
+                            type: 'TRIAL_GRANT',
+                            description: 'Trial — initial org credit pool',
+                            balanceAfter: updatedOrg?.searchCredits ?? 0,
+                        },
+                    });
+                });
+
+                // Re-read user with updated org
+                user = await this.prisma.user.findUnique({ where: { id: userId } }) as any;
             }
+
+            // Ensure default sequence template exists for new users
+            await this.ensureDefaultSequenceTemplate(language || 'pl');
         } else {
             // Update existing user with SSO info if missing
             if (!user.ssoProvider) {
@@ -229,7 +307,7 @@ export class AuthService {
                 const domain = email.split('@')[1];
                 await this.salesOps.handleRegistration({
                     email,
-                    name: user.name || email.split('@')[0],
+                    name: user!.name || email.split('@')[0],
                     firstName: name?.split(' ')[0],
                     lastName: name?.split(' ').slice(1).join(' '),
                     companyDomain: domain,
@@ -393,6 +471,51 @@ export class AuthService {
         return user;
     }
 
+    private async ensureDefaultSequenceTemplate(language: string) {
+        const existing = await this.prisma.sequenceTemplate.findFirst({
+            where: { isSystem: true },
+        });
+        if (existing) return;
+
+        const isEn = language === 'en';
+        await this.prisma.sequenceTemplate.create({
+            data: {
+                name: isEn ? 'Standard RFQ Sequence' : 'Standardowa Sekwencja RFQ',
+                isSystem: true,
+                steps: {
+                    create: [
+                        {
+                            dayOffset: 0,
+                            type: 'INITIAL',
+                            subject: isEn ? 'Request for Quotation: {{Product_Name}}' : 'Zapytanie Ofertowe: {{Product_Name}}',
+                            bodySnippet: isEn
+                                ? 'Dear Sir or Madam,\n\nWe would like to request a quotation for {{Product_Name}}.\n\nBest regards,\n{{Sender_Name}}\n{{Sender_Company}}'
+                                : 'Dzień dobry,\n\nZwracamy się z prośbą o przedstawienie oferty na {{Product_Name}}.\n\nZ poważaniem,\n{{Sender_Name}}\n{{Sender_Company}}',
+                        },
+                        {
+                            dayOffset: 3,
+                            type: 'REMINDER',
+                            subject: isEn ? 'Reminder: RFQ {{Product_Name}}' : 'Przypomnienie: RFQ {{Product_Name}}',
+                            bodySnippet: isEn
+                                ? 'Dear Sir or Madam,\n\nThis is a friendly reminder regarding our request for quotation for {{Product_Name}}.\n\nAre you planning to submit a quote?\n\nBest regards,\n{{Sender_Name}}'
+                                : 'Dzień dobry,\n\nPrzypominamy o naszym zapytaniu ofertowym dotyczącym {{Product_Name}}.\n\nCzy planują Państwo złożyć ofertę?\n\nZ poważaniem,\n{{Sender_Name}}',
+                        },
+                        {
+                            dayOffset: 7,
+                            type: 'FINAL',
+                            subject: isEn ? 'Final Reminder: RFQ {{Product_Name}}' : 'Ostatnie przypomnienie: RFQ {{Product_Name}}',
+                            bodySnippet: isEn
+                                ? 'Dear Sir or Madam,\n\nThis is our final reminder regarding the request for quotation for {{Product_Name}}.\n\nPlease respond by the end of the week.\n\nBest regards,\n{{Sender_Name}}'
+                                : 'Dzień dobry,\n\nTo nasze ostatnie przypomnienie dotyczące zapytania na {{Product_Name}}.\n\nProsimy o odpowiedź do końca tygodnia.\n\nZ poważaniem,\n{{Sender_Name}}',
+                        },
+                    ],
+                },
+            },
+        });
+        console.log('[AUTH] Default sequence template created');
+    }
+
+    // DEPRECATED: beta — onboarding skipped at registration. Kept for backward compat.
     async completeOnboarding(userId: string, data: {
         firstName?: string;
         lastName?: string;
@@ -488,49 +611,7 @@ export class AuthService {
         });
 
         // Ensure default sequence template exists
-        const existingSequence = await this.prisma.sequenceTemplate.findFirst({
-            where: { isSystem: true },
-        });
-
-        const userLang = data.language || 'pl';
-        if (!existingSequence) {
-            const isEn = userLang === 'en';
-            await this.prisma.sequenceTemplate.create({
-                data: {
-                    name: isEn ? 'Standard RFQ Sequence' : 'Standardowa Sekwencja RFQ',
-                    isSystem: true,
-                    steps: {
-                        create: [
-                            {
-                                dayOffset: 0,
-                                type: 'INITIAL',
-                                subject: isEn ? 'Request for Quotation: {{Product_Name}}' : 'Zapytanie Ofertowe: {{Product_Name}}',
-                                bodySnippet: isEn
-                                    ? 'Dear Sir or Madam,\n\nWe would like to request a quotation for {{Product_Name}}.\n\nBest regards,\n{{Sender_Name}}\n{{Sender_Company}}'
-                                    : 'Dzień dobry,\n\nZwracamy się z prośbą o przedstawienie oferty na {{Product_Name}}.\n\nZ poważaniem,\n{{Sender_Name}}\n{{Sender_Company}}',
-                            },
-                            {
-                                dayOffset: 3,
-                                type: 'REMINDER',
-                                subject: isEn ? 'Reminder: RFQ {{Product_Name}}' : 'Przypomnienie: RFQ {{Product_Name}}',
-                                bodySnippet: isEn
-                                    ? 'Dear Sir or Madam,\n\nThis is a friendly reminder regarding our request for quotation for {{Product_Name}}.\n\nAre you planning to submit a quote?\n\nBest regards,\n{{Sender_Name}}'
-                                    : 'Dzień dobry,\n\nPrzypominamy o naszym zapytaniu ofertowym dotyczącym {{Product_Name}}.\n\nCzy planują Państwo złożyć ofertę?\n\nZ poważaniem,\n{{Sender_Name}}',
-                            },
-                            {
-                                dayOffset: 7,
-                                type: 'FINAL',
-                                subject: isEn ? 'Final Reminder: RFQ {{Product_Name}}' : 'Ostatnie przypomnienie: RFQ {{Product_Name}}',
-                                bodySnippet: isEn
-                                    ? 'Dear Sir or Madam,\n\nThis is our final reminder regarding the request for quotation for {{Product_Name}}.\n\nPlease respond by the end of the week.\n\nBest regards,\n{{Sender_Name}}'
-                                    : 'Dzień dobry,\n\nTo nasze ostatnie przypomnienie dotyczące zapytania na {{Product_Name}}.\n\nProsimy o odpowiedź do końca tygodnia.\n\nZ poważaniem,\n{{Sender_Name}}',
-                            },
-                        ],
-                    },
-                },
-            });
-            console.log('[ONBOARDING] Default sequence template created');
-        }
+        await this.ensureDefaultSequenceTemplate(data.language || 'pl');
 
         return updatedUser;
     }

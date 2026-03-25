@@ -37,11 +37,8 @@ export default function AuthCallbackPage() {
                     if (data.refreshToken) localStorage.setItem('procurea_refresh', data.refreshToken);
                     setUser(data.user);
 
-                    if (!data.user.onboardingCompleted) {
-                        navigate('/onboarding', { replace: true });
-                    } else {
-                        navigate('/', { replace: true });
-                    }
+                    // Beta: skip onboarding, go straight to dashboard
+                    navigate('/', { replace: true });
                 } else {
                     throw new Error('Authentication failed');
                 }
