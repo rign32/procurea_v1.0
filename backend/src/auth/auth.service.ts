@@ -663,12 +663,13 @@ export class AuthService {
             });
 
             if (existing.organization) {
+                const orgPlan = isEnglish ? 'pay_as_you_go' : (existing.organization.plan || 'research');
                 await this.prisma.organization.update({
                     where: { id: existing.organization.id },
                     data: {
                         trialCreditsUsed: true,
                         searchCredits: Math.max(existing.organization.searchCredits ?? 0, 50),
-                        plan: existing.organization.plan || 'research',
+                        plan: orgPlan,
                         domain: existing.organization.domain || 'procurea.dev',
                     }
                 });
@@ -683,7 +684,7 @@ export class AuthService {
                         domain: 'procurea.dev',
                         searchCredits: 50,
                         trialCreditsUsed: true,
-                        plan: 'research',
+                        plan: isEnglish ? 'pay_as_you_go' : 'research',
                         locations: {
                             create: [{
                                 name: 'HQ',
@@ -730,7 +731,7 @@ export class AuthService {
                 domain: 'procurea.dev',
                 searchCredits: 50,
                 trialCreditsUsed: true,
-                plan: 'research',
+                plan: isEnglish ? 'pay_as_you_go' : 'research',
                 users: { connect: { id: created.id } },
                 locations: {
                     create: [{
