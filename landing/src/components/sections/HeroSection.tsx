@@ -23,8 +23,8 @@ import { t } from "@/i18n"
 
 const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 
-const statIcons = [Users, Zap, TrendingDown]
-const statColors = ["text-brand-500", "text-amber-500", "text-emerald-500"]
+const statIcons = [Zap, Users, TrendingDown]
+const statColors = ["text-amber-500", "text-brand-500", "text-emerald-500"]
 
 const sidebarIcons = [LayoutDashboard, Search, Building2, BookOpen, Settings]
 
@@ -35,9 +35,9 @@ const agentColors = [
   { color: "bg-emerald-500", iconBg: "bg-emerald-100", iconColor: "text-emerald-600" },
 ]
 
-const supplierFlags = ["🇩🇪", "🇩🇪", "🇩🇪"]
-const supplierScores = [83, 92, 64]
-const supplierCerts = [["ISO 9001", "ISO 14001", "ISO 50001"], ["ISO 9001"], ["ISO 9001"]]
+const supplierFlags = ["🇩🇪", "🇵🇱", "🇳🇱"]
+const supplierScores = [91, 85, 78]
+const supplierCerts = [["ISO 14001", "FSC", "BRC"], ["ISO 9001", "FSC"], ["ISO 14001", "PEFC"]]
 
 export function HeroSection() {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })

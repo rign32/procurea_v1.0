@@ -1,6 +1,6 @@
 import { motion } from "framer-motion"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
-import { Briefcase, Target, Search } from "lucide-react"
+import { Briefcase, Target, Search, TrendingUp } from "lucide-react"
 import { t } from "@/i18n"
 
 const personaStyles = [
@@ -33,6 +33,16 @@ const personaStyles = [
     tagRing: "ring-cyan-100",
     borderAccent: "border-cyan-200/60",
     lightBg: "bg-gradient-to-br from-cyan-50/40 to-teal-50/20",
+  },
+  {
+    icon: TrendingUp,
+    iconBg: "bg-gradient-to-br from-amber-500 to-orange-500",
+    iconColor: "text-white",
+    tagBg: "bg-amber-50",
+    tagText: "text-amber-700",
+    tagRing: "ring-amber-100",
+    borderAccent: "border-amber-200/60",
+    lightBg: "bg-gradient-to-br from-amber-50/40 to-orange-50/20",
   },
 ]
 
@@ -86,7 +96,7 @@ export function AudienceSection() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
-          className="grid md:grid-cols-3 gap-5 lg:gap-6 mb-16"
+          className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6 mb-16"
         >
           {t.audience.personas.map((persona, idx) => {
             const style = personaStyles[idx]

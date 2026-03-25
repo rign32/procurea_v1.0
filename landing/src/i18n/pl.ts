@@ -12,7 +12,7 @@ export const PL = {
   meta: {
     lang: 'pl',
     title: 'Procurea — Automatyzacja AI sourcingu dla zespołów zakupowych',
-    description: 'Narzędzie AI do sourcingu, które automatycznie wyszukuje, kwalifikuje i wzbogaca dane dostawców w 26 językach. Stworzone dla działów zakupów w przemyśle.',
+    description: 'Narzędzie AI do sourcingu dostawców. Pierwsze wyniki w 2-3 minuty, pełna lista w 20 minut. Dla każdej branży, w 26 językach.',
   },
   nav: {
     howItWorks: 'Jak to działa',
@@ -36,17 +36,17 @@ export const PL = {
     badge: 'Narzędzie AI do sourcingu · Darmowy dostęp w beta',
     headlinePart1: 'Automatyzacja sourcingu',
     headlineHighlight: 'napędzana AI',
-    headlinePart2: ' dla zespołów zakupowych',
-    subheadline: 'Procurea uruchamia agentów AI, którzy wyszukują, kwalifikują i wzbogacają dane dostawców w 26 językach — zamieniając tygodnie ręcznego sourcingu w minuty. Testuj za darmo w ramach programu beta.',
+    headlinePart2: ' dla Twojego biznesu',
+    subheadline: 'Opisz czego szukasz — pierwsze wyniki pojawią się po 2–3 minutach. Pełna, zweryfikowana lista dostawców gotowa w max 20 minut. W 26 językach, w każdej branży.',
     ctaPrimary: 'Dołącz do beta testów',
     ctaSecondary: 'Obejrzyj demo',
     trustFreeAccess: 'Pełny dostęp za darmo',
     trustNoCreditCard: 'Bez karty kredytowej',
     trustBeta: 'Zamknięte beta testy',
     stats: [
-      { value: '5', label: 'agentów AI' },
-      { value: '26', label: 'języków' },
-      { value: '5-10', label: 'min na sourcing' },
+      { value: '2-3 min', label: 'pierwsze wyniki' },
+      { value: 'do 200', label: 'dostawców na liście' },
+      { value: '26', label: 'języków wyszukiwania' },
     ],
     sidebar: {
       dashboard: 'Dashboard',
@@ -56,7 +56,7 @@ export const PL = {
       settings: 'Ustawienia',
     },
     mockup: {
-      campaignTitle: 'Granulat polietylenu',
+      campaignTitle: 'Opakowania ekologiczne',
       statusInProgress: 'W toku',
       createdAt: 'Utworzono: 18.02.2026',
       region: 'Unia Europejska',
@@ -74,16 +74,16 @@ export const PL = {
       suppliersCount: '(3 dostawców)',
     },
     mockSuppliers: [
-      { name: 'SABIC', location: 'Niemcy · Gelsenkirchen', spec: 'Produkcja granulatu polietylenu' },
-      { name: 'Dreyplas GmbH', location: 'Niemcy · Meerbusch', spec: 'Tworzywa sztuczne i granulaty' },
-      { name: 'SL Recycling GmbH', location: 'Niemcy · Löhne', spec: 'Recycling of metal scrap' },
+      { name: 'EcoPack GmbH', location: 'Niemcy · Hamburg', spec: 'Opakowania biodegradowalne i kompostowalne' },
+      { name: 'GreenBox Polska', location: 'Polska · Poznań', spec: 'Opakowania z surowców wtórnych' },
+      { name: 'BioWrap BV', location: 'Holandia · Rotterdam', spec: 'Folie i opakowania ekologiczne' },
     ],
     browserUrl: 'app.procurea.pl',
   },
   problem: {
     heading: 'Ręczne wyszukiwanie dostawców',
     headingSub: 'kosztuje Cię czas i pieniądze',
-    description: 'Tradycyjny sourcing w firmach produkcyjnych to tygodnie przeszukiwania internetu, setki emaili i arkusze kalkulacyjne pełne nieaktualnych danych.',
+    description: 'Tradycyjny sourcing to tygodnie przeszukiwania internetu, setki emaili i arkusze kalkulacyjne pełne nieaktualnych danych.',
     painPoints: [
       {
         title: '30 godzin na jeden sourcing',
@@ -99,7 +99,7 @@ export const PL = {
       },
       {
         title: 'Bariera językowa',
-        description: 'Wyszukiwanie dostawców na rynkach zagranicznych wymaga języków lokalnych. Bez tego omijasz najlepszych producentów z Europy i świata.',
+        description: 'Wyszukiwanie dostawców na rynkach zagranicznych wymaga języków lokalnych. Bez tego omijasz najlepszych dostawców z Europy i świata.',
         stat: '26',
         statLabel: 'języków rynków dostawców',
       },
@@ -108,19 +108,17 @@ export const PL = {
   howItWorks: {
     sectionLabel: 'Jak to działa',
     heading: 'Od zapytania do listy dostawców',
-    headingSub: 'w 5 prostych krokach',
-    description: 'Cały proces jest w pełni automatyczny. Ty definiujesz potrzeby — AI robi resztę.',
+    headingSub: 'w 3 prostych krokach',
+    description: 'Opisz czego szukasz — AI zrobi resztę. Bez ręcznego googlowania, bez arkuszy kalkulacyjnych.',
     stepPrefix: 'KROK',
     steps: [
-      { title: 'Opisz czego szukasz', description: 'Wprowadź nazwę produktu, specyfikacje techniczne i wymagania. Intuicyjny kreator przeprowadzi Cię krok po kroku.' },
-      { title: 'AI tworzy strategię', description: 'Agent Strategii analizuje wymagania i tworzy zapytania w wielu językach, dopasowane do specyfiki rynków.' },
-      { title: 'Skanowanie internetu', description: 'Agent Eksploracji przeszukuje internet, identyfikuje producentów i ocenia ich możliwości.' },
-      { title: 'Wzbogacanie danych', description: 'System automatycznie znajduje emaile, telefony i dane decyzyjne dla każdego dostawcy.' },
-      { title: 'Gotowa lista', description: 'Zweryfikowana lista dostawców z ocenami AI, danymi kontaktowymi i certyfikatami. Gotowa do wykorzystania.' },
+      { title: 'Opisz czego szukasz', description: 'Wpisz kategorię produktu lub usługi, specyfikację i region. Intuicyjny kreator przeprowadzi Cię krok po kroku.' },
+      { title: 'Pierwsze wyniki w 2–3 minuty', description: 'AI przeszukuje internet w 26 językach, identyfikuje dostawców i weryfikuje ich profil. Pierwsze firmy pojawiają się niemal natychmiast.' },
+      { title: 'Pełna lista w 20 minut', description: 'Zweryfikowani dostawcy z danymi kontaktowymi, ocenami AI i certyfikatami. Od 20 do 200 firm, zależnie od kategorii.' },
     ],
-    summaryPart1: 'Cały proces',
-    summaryPart2: ' trwa średnio ',
-    summaryHighlight: '5–10 minut',
+    summaryPart1: 'Pełna lista dostawców',
+    summaryPart2: ' gotowa w max ',
+    summaryHighlight: '20 minut',
   },
   demo: {
     sectionLabel: 'Demo',
@@ -137,12 +135,12 @@ export const PL = {
     items: [
       {
         title: 'Wyszukiwanie AI',
-        description: 'Wieloetapowy agent AI przeszukuje internet w 26 językach, identyfikuje producentów i weryfikuje ich możliwości produkcyjne.',
-        highlight: '5 agentów AI pracujących równolegle',
+        description: 'Wieloetapowy agent AI przeszukuje internet w 26 językach, identyfikuje dostawców i weryfikuje ich możliwości.',
+        highlight: 'Pierwsze wyniki w 2–3 minuty',
       },
       {
         title: 'Baza dostawców',
-        description: 'Centralny rejestr dostawców z ocenami AI, danymi kontaktowymi, certyfikatami i informacjami o możliwościach produkcyjnych.',
+        description: 'Centralny rejestr dostawców z ocenami AI, danymi kontaktowymi, certyfikatami i profilami firm.',
       },
       {
         title: 'Monitoring na żywo',
@@ -159,7 +157,7 @@ export const PL = {
   benefits: {
     sectionLabel: 'Rezultaty',
     heading: 'Mierzalne rezultaty',
-    headingSub: 'dla Twojego zespołu zakupów',
+    headingSub: 'dla Twojego zespołu',
     metrics: [
       { label: 'Szybciej niż ręcznie' },
       { label: 'Tańsze oferty średnio' },
@@ -179,27 +177,32 @@ export const PL = {
   },
   audience: {
     sectionLabel: 'Dla kogo',
-    heading: 'Stworzone dla zespołów zakupowych',
-    headingSub: 'w firmach produkcyjnych',
+    heading: 'Dla każdego, kto szuka dostawców',
+    headingSub: 'szybko i na skalę',
     personas: [
       {
         title: 'Dyrektorzy zakupów',
-        description: 'Strategiczny przegląd procesu sourcingu. Raporty, metryki i pełna kontrola nad bazą dostawców w jednym miejscu.',
+        description: 'Strategiczny nadzór nad sourcingiem. Raporty, metryki i optymalizacja bazy dostawców w jednym narzędziu.',
         tags: ['Strategia', 'Raporty', 'Kontrola'],
       },
       {
         title: 'Kierownicy zaopatrzenia',
-        description: 'Zarządzanie kampaniami sourcingowymi. Szybkie znajdowanie i porównywanie dostawców.',
+        description: 'Kampanie sourcingowe w każdej kategorii. Szybkie znajdowanie i porównywanie dostawców z dowolnej branży.',
         tags: ['Kampanie', 'Analiza', 'Negocjacje'],
       },
       {
-        title: 'Specjaliści zakupów',
-        description: 'Szybkie wyszukiwanie dostawców bez ręcznego przeszukiwania internetu. AI wykonuje ciężką pracę za Ciebie.',
+        title: 'Specjaliści ds. zakupów',
+        description: 'Automatyczne wyszukiwanie dostawców bez googlowania. AI przeszukuje internet w 26 językach za Ciebie.',
         tags: ['Wyszukiwanie', 'Kontakty', 'Automatyzacja'],
       },
+      {
+        title: 'Dyrektorzy i zarząd',
+        description: 'Potrzebujesz listy dostawców na zaraz? Wchodzisz na nowy rynek? Szukasz alternatyw? Wpisz czego potrzebujesz — lista gotowa w 20 minut.',
+        tags: ['Szybkie decyzje', 'Nowe rynki', 'Dywersyfikacja'],
+      },
     ],
-    industriesLabel: 'Idealnie dla branż:',
-    industries: ['Automotive', 'Elektronika', 'Obróbka metali', 'Tworzywa sztuczne', 'Opakowania', 'Maszyny i urządzenia', 'Chemikalia', 'Komponenty elektryczne'],
+    industriesLabel: 'Działa w każdej branży:',
+    industries: ['IT & Software', 'Ochrona zdrowia', 'Energetyka', 'Logistyka', 'Budownictwo', 'FMCG & Food', 'Usługi finansowe', 'Przemysł'],
   },
   betaSignup: {
     sectionLabel: 'Dołącz do beta',
@@ -233,7 +236,7 @@ export const PL = {
     items: [
       {
         question: 'Jak działa wyszukiwanie AI?',
-        answer: 'Procurea wykorzystuje wieloetapowy system agentów AI. Agent strategii generuje zapytania w wielu językach dopasowane do Twoich wymagań. Agent eksploracji przeszukuje internet i identyfikuje producentów. Agent analizy ocenia ich możliwości, a agent wzbogacania automatycznie znajduje dane kontaktowe. Cały proces trwa minuty, nie tygodnie.',
+        answer: 'Procurea wykorzystuje wieloetapowy system agentów AI. Agent strategii generuje zapytania w wielu językach dopasowane do Twoich wymagań. Agent eksploracji przeszukuje internet i identyfikuje dostawców. Agent analizy ocenia ich możliwości, a agent wzbogacania automatycznie znajduje dane kontaktowe. Pierwsze wyniki pojawiają się po 2–3 minutach, pełna lista jest gotowa w max 20 minut.',
       },
       {
         question: 'Jakie regiony są obsługiwane?',
@@ -260,7 +263,7 @@ export const PL = {
   cta: {
     headingPart1: 'Wypróbuj AI sourcing',
     headingHighlight: 'na swoim zapytaniu',
-    description: 'Załóż darmowe konto, opisz czego szukasz i pozwól agentom AI znaleźć dostawców za Ciebie. Beta testy — pełny dostęp bez opłat.',
+    description: 'Załóż darmowe konto, opisz czego szukasz — zweryfikowana lista dostawców będzie gotowa w kilka minut. Beta testy — pełny dostęp bez opłat.',
     ctaPrimary: 'Dołącz do beta testów',
     ctaEmail: 'Napisz do nas',
     contactEmail: 'kontakt@procurea.pl',
@@ -271,7 +274,7 @@ export const PL = {
     ],
   },
   footer: {
-    brand: 'Automatyzacja AI sourcingu dla zespołów zakupowych. Obecnie w programie wczesnego dostępu.',
+    brand: 'AI-powered supplier discovery dla każdej branży. Obecnie w programie wczesnego dostępu.',
     product: 'Produkt',
     company: 'Firma',
     legal: 'Prawne',
