@@ -1,19 +1,17 @@
 import { motion } from "framer-motion"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
-import { FileText, Brain, Search, UserCheck, ListChecks, ChevronRight } from "lucide-react"
+import { FileText, Search, ListChecks, ChevronRight } from "lucide-react"
 import { t } from "@/i18n"
 
-const stepIcons = [FileText, Brain, Search, UserCheck, ListChecks]
+const stepIcons = [FileText, Search, ListChecks]
 
 const stepStyles = [
   { gradient: "from-brand-500 to-brand-600", iconBg: "bg-brand-50", iconColor: "text-brand-600", ringColor: "ring-brand-100" },
-  { gradient: "from-brand-900 to-brand-800", iconBg: "bg-brand-gray-50", iconColor: "text-brand-900", ringColor: "ring-brand-gray-100" },
-  { gradient: "from-brand-700 to-brand-800", iconBg: "bg-brand-100", iconColor: "text-brand-700", ringColor: "ring-brand-200" },
   { gradient: "from-cyan-500 to-cyan-600", iconBg: "bg-cyan-50", iconColor: "text-cyan-600", ringColor: "ring-cyan-100" },
   { gradient: "from-emerald-500 to-emerald-600", iconBg: "bg-emerald-50", iconColor: "text-emerald-600", ringColor: "ring-emerald-100" },
 ]
 
-const stepNumbers = ["01", "02", "03", "04", "05"]
+const stepNumbers = ["01", "02", "03"]
 
 const containerVariants = {
   hidden: {},
@@ -58,7 +56,7 @@ export function HowItWorksSection() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-5"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6"
         >
           {t.howItWorks.steps.map((step, i) => {
             const Icon = stepIcons[i]
