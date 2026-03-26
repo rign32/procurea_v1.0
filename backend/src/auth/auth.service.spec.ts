@@ -5,6 +5,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { RedisService } from './redis.service';
 import { SmsService } from './sms.service';
+import { SalesOpsService } from '../sales-ops/sales-ops.service';
+import { ObservabilityService } from '../observability/observability.service';
 import { BadRequestException } from '@nestjs/common';
 
 describe('AuthService', () => {
@@ -75,6 +77,18 @@ describe('AuthService', () => {
                         verifyAndDeleteMagicCode: jest.fn(),
                         setExchangeToken: jest.fn(),
                         getAndDeleteExchangeToken: jest.fn(),
+                    },
+                },
+                {
+                    provide: SalesOpsService,
+                    useValue: {
+                        syncUserToAttio: jest.fn(),
+                    },
+                },
+                {
+                    provide: ObservabilityService,
+                    useValue: {
+                        recordEvent: jest.fn(),
                     },
                 },
             ],
