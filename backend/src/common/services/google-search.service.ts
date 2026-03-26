@@ -52,7 +52,7 @@ export class GoogleSearchService {
     @Inject(forwardRef(() => ApiUsageService))
     private readonly apiUsageService?: ApiUsageService,
   ) {
-    const maxSearches = parseInt(process.env.MAX_SEARCHES_PER_CAMPAIGN || '1500', 10);
+    const maxSearches = parseInt(process.env.MAX_SEARCHES_PER_CAMPAIGN || '2500', 10);
     this.budget = new SearchBudget(maxSearches);
 
     const hasKey = !!this.serperApiKey;

@@ -12,6 +12,7 @@ jobs:
   deploy:
     name: Build & Deploy to Staging
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment: staging
     steps:
       - uses: actions/checkout@v4
@@ -36,7 +37,6 @@ jobs:
       - name: Backend tests
         working-directory: backend
         run: npm test -- --passWithNoTests
-        continue-on-error: true
 
       - name: Build backend
         working-directory: backend
@@ -53,7 +53,6 @@ jobs:
       - name: Frontend lint
         working-directory: frontend
         run: npm run lint
-        continue-on-error: true
 
       - name: Build frontend PL (staging)
         working-directory: frontend
@@ -79,3 +78,8 @@ jobs:
             --non-interactive
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: Post-deploy health check
+        run: |
+          sleep 10
+          curl -sf https://staging.procurea.pl/api/health/ping || echo "⚠️ Health check failed — backend may still be warming up"

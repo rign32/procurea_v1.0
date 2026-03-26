@@ -49,7 +49,7 @@ Po potwierdzeniu użytkownika:
 - **NIGDY** nie kończ zadania zanim CI nie przejdzie pomyślnie
 - Jeśli CI trwa > 5 minut, sprawdź status co minutę
 - Po wykryciu błędu CI, automatycznie przeczytaj logi i zaproponuj fix
-- GitHub API token do monitorowania: użyj `ghp_...` jeśli dostępny, albo poproś użytkownika
+- Status CI/CD monitoruj przez: `gh run list --branch staging --limit 1` (gh CLI) lub GitHub API z tokenem z GitHub Secrets
 
 ### Czego Claude Code NIE robi
 - **NIE** uruchamia `npm run dev`, `npm start` ani żadnych serwerów lokalnych
