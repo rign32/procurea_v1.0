@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Building, Loader2, Save, Eye } from 'lucide-react';
+import { Loader2, Eye } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,7 +26,7 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
 
-    const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<UpdateOrganizationDto>();
+    const { register, handleSubmit, watch, setValue, formState: { errors: _errors } } = useForm<UpdateOrganizationDto>();
     const footerEnabled = watch('footerEnabled');
     const watchedValues = watch();
 

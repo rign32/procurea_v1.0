@@ -18,7 +18,6 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from '@/components/ui/dialog';
 import {
     DropdownMenu,
@@ -67,7 +66,7 @@ export function LocationsTab({ user }: LocationsTabProps) {
     const [editingLocation, setEditingLocation] = useState<OrganizationLocation | null>(null);
     const [isSaving, setIsSaving] = useState(false);
 
-    const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<LocationFormData>({
+    const { register, handleSubmit, reset, setValue, watch, formState: { errors: _errors } } = useForm<LocationFormData>({
         defaultValues: { country: t.settings.location.defaultCountry }
     });
 

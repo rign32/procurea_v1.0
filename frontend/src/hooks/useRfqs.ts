@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import rfqsService, { offersService } from '../services/rfqs.service';
-import type { CreateRfqDto, UpdateRfqDto, RfqRequest, Offer } from '../types/campaign.types';
+import type { CreateRfqDto, UpdateRfqDto, RfqRequest } from '../types/campaign.types';
 
 /**
  * React Query hook - Pobierz wszystkie RFQ

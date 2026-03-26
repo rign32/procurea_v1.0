@@ -46,7 +46,7 @@ const initialState = {
 
 export const useCampaignsStore = create<CampaignsState>()(
   devtools(
-    (set, get) => ({
+    (set, _get) => ({
       ...initialState,
 
       // Campaigns actions
