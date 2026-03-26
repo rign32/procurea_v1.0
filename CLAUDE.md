@@ -87,63 +87,25 @@ Stare pliki `explorer.agent.ts` i `analyst.agent.ts` nie są używane — można
 
 ---
 
-## INSTRUKCJA: Zmiana limitu firm na 120
+## Aktualne limity pipeline (po skalowaniu 2026-03-26)
 
-### Kontekst
+Pipeline jest skonfigurowany na **500+ dostawców** per kampanię.
 
-Obecny limit to 10 firm (MAX_TOTAL_QUALIFIED). Poniżej opisano WSZYSTKIE zmiany
-potrzebne do bezpiecznego zwiększenia do 120, z odpowiednim dostrojeniem
-concurrency i budżetów API.
+### Kluczowe parametry
 
-### Zmiany do wykonania
-
-#### 1. `backend/src/sourcing/sourcing.service.ts`
-
-```
-Linia ~55-56 (concurrency limits):
-  BYŁO:   workerLimit = pLimit(2)   urlLimit = pLimit(3)
-  MA BYĆ: workerLimit = pLimit(3)   urlLimit = pLimit(5)
-
-Linia ~343-344 (limity firm):
-  BYŁO:   MAX_TOTAL_QUALIFIED = 10   MAX_PER_LANGUAGE = 5
-  MA BYĆ: MAX_TOTAL_QUALIFIED = 120  MAX_PER_LANGUAGE = 50
-
-Linia ~424 (limit strategii):
-  BYŁO:   languageStrategies.slice(0, 3)
-  MA BYĆ: languageStrategies.slice(0, 5)
-```
-
-#### 2. `backend/src/common/services/google-search.service.ts`
-
-```
-Linia ~65 (budżet search per kampania):
-  BYŁO:   MAX_SEARCHES_PER_CAMPAIGN = 20
-  MA BYĆ: MAX_SEARCHES_PER_CAMPAIGN = 80
-
-Linia ~50 (minimalne opóźnienie między requestami):
-  BYŁO:   MIN_DELAY_MS = 1500
-  MA BYĆ: MIN_DELAY_MS = 1000
-```
-
-Alternatywnie budżet można ustawić przez env: `MAX_SEARCHES_PER_CAMPAIGN=80`
-
-#### 3. `backend/src/sourcing/agents/strategy.agent.ts`
-
-```
-W prompcie (linia ~140-141):
-  BYŁO:   "LIMIT: max 3 kraje/języki" i "3-4 zapytania PER JĘZYK"
-  MA BYĆ: "LIMIT: max 5 krajów/języków" i "4-5 zapytań PER JĘZYK"
-```
-
-### Dlaczego takie wartości?
-
-| Parametr | Wartość | Uzasadnienie |
+| Parametr | Wartość | Plik |
 |---|---|---|
-| `workerLimit(3)` | 3 równoległe workery | 5 strategii × 3 parallel = stabilne obciążenie Gemini |
-| `urlLimit(5)` | 5 równoległych URLi | 5 URLs × 3 Gemini calls = ~15 RPM per worker, bezpiecznie poniżej limitu |
-| `MAX_PER_LANGUAGE = 50` | 50 per język | 120 / 3-5 języków ≈ 25-40, z zapasem |
-| `MAX_SEARCHES = 80` | 80 search queries | 5 strategii × ~12 queries + email discovery |
-| `slice(0, 5)` | 5 strategii | Więcej rynków = więcej różnorodności dostawców |
+| `PIPELINE_SUPPLIER_LIMIT` | 500 | `sourcing.service.ts` |
+| `MAX_TOTAL_QUALIFIED` | 500 (prod) | `sourcing.service.ts` |
+| `MAX_PER_LANGUAGE` | 150 (prod) | `sourcing.service.ts` |
+| `PIPELINE_TIMEOUT_MS` | 1800000 (30min) | `sourcing.service.ts` |
+| `URL_LIMIT` | 40 | `sourcing.service.ts` |
+| `MAX_WORKER_LIMIT` | 20 | `sourcing.service.ts` |
+| `MAX_SEARCHES_PER_CAMPAIGN` | 2500 | `google-search.service.ts` |
+| Strategy: kraje | max 15 EU / 30 GLOBAL | `strategy.agent.ts` |
+| Strategy: queries/kraj | 25-40 | `strategy.agent.ts` |
+| Screener: directory mining | max 20 firm/portal | `screener.agent.ts` |
+| Expansion pass | min(20, ceil(MAX*0.3)) | `sourcing.service.ts` |
 
 ### Czego NIE zmieniać
 
@@ -153,11 +115,11 @@ W prompcie (linia ~140-141):
 - Rate limiting w GoogleSearchService — chroni przed 429
 - Scraping retry logic (3 próby, exponential backoff)
 
-### Szacowany czas dla 120 firm
+### Szacowane koszty per kampanię
 
-- Gemini calls: ~120 × 3 = 360 (minus cache hits)
-- Przy 5 parallel URLs × 3 workers = ~15 jednoczesnych pipeline'ów
-- Szacowany czas: **8-15 minut** (vs ~60 min gdyby sekwencyjnie)
+- Serper.dev: ~$2.50 max ($0.001 × 2500 queries)
+- Gemini: cache hit ~60-70%, mieści się w free tier AI Studio
+- Cloud Functions: minInstances:1 na produkcji = +$5/mies
 
 ### Uwaga: PostgreSQL
 
