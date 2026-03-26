@@ -10,11 +10,13 @@ export class GoogleAuthGuard extends AuthGuard('google') {
     }
 
     getAuthenticateOptions(context: ExecutionContext) {
-        // authMode is now passed via cookie, not OAuth state (serverless has no session support)
+        const req = context.switchToHttp().getRequest();
+        const origin = req.query?.origin || req.cookies?.procurea_auth_origin || 'app';
         return {
             ...super.getAuthenticateOptions(context),
             session: false,
-            prompt: 'select_account' // Force Google to show account picker every time
+            prompt: 'select_account',
+            state: origin, // Pass origin through OAuth state (cookies don't survive cross-domain callback)
         };
     }
 }

@@ -1,6 +1,7 @@
 import { motion } from "framer-motion"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { Sparkles, Zap, Package, ArrowRight, Gift, Check } from "lucide-react"
+import { appendUtm } from "@/lib/utm"
 
 const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 
@@ -184,7 +185,7 @@ export function PricingSection() {
 
                 {/* CTA */}
                 <a
-                  href={APP_URL}
+                  href={appendUtm(APP_URL, 'pricing')}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`mt-auto inline-flex items-center justify-center w-full gap-2 px-5 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 group/btn ${

@@ -1,5 +1,6 @@
 import axios, { AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
 import type { ApiError } from '../types/api.types';
+import { analytics } from '../lib/analytics';
 
 // API Base URL
 // Dev: '/api' → Vite proxy strips /api and forwards to localhost:3010
@@ -129,6 +130,12 @@ apiClient.interceptors.response.use(
       error: error.response?.data?.error,
       details: error.response?.data?.details,
     };
+
+    // Track non-auth API errors in GA4
+    const status = error.response?.status;
+    if (status && status !== 401 && status !== 403) {
+      analytics.apiError(originalRequest?.url || 'unknown', status);
+    }
 
     if (import.meta.env.DEV) {
       console.error('[API] Error:', apiError);

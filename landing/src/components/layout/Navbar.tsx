@@ -5,6 +5,7 @@ import { MobileMenu } from "./MobileMenu"
 import { Menu } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { trackCtaClick } from "@/lib/analytics"
+import { appendUtm } from "@/lib/utm"
 import { t } from "@/i18n"
 
 const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
@@ -57,7 +58,7 @@ export function Navbar() {
             {/* Desktop CTA */}
             <div className="hidden md:flex items-center gap-2.5">
               <a
-                href={APP_URL}
+                href={appendUtm(APP_URL, 'navbar_login')}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => trackCtaClick('navbar_login')}
@@ -66,7 +67,7 @@ export function Navbar() {
                 {t.nav.login}
               </a>
               <a
-                href={APP_URL}
+                href={appendUtm(APP_URL, 'navbar_cta')}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => trackCtaClick('navbar_cta')}

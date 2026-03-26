@@ -117,6 +117,15 @@ export class AdminController {
         return this.adminService.updateUserRole(id, body.role);
     }
 
+    @Patch('users/:id/language')
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    async updateUserLanguage(
+        @Param('id') id: string,
+        @Body() body: { language: string },
+    ) {
+        return this.adminService.updateUserLanguage(id, body.language);
+    }
+
     // =====================
     // User Impersonation
     // =====================

@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { trackCtaClick } from "@/lib/analytics"
+import { appendUtm } from "@/lib/utm"
 import { t } from "@/i18n"
 
 interface MobileMenuProps {
@@ -61,12 +62,12 @@ export function MobileMenu({ open, onClose, links, appUrl }: MobileMenuProps) {
 
               {/* CTAs */}
               <div className="mt-auto flex flex-col gap-3">
-                <a href={appUrl} target="_blank" rel="noopener noreferrer" onClick={() => trackCtaClick('mobile_login')}>
+                <a href={appendUtm(appUrl, 'mobile_login')} target="_blank" rel="noopener noreferrer" onClick={() => trackCtaClick('mobile_login')}>
                   <Button variant="secondary" className="w-full">
                     {t.nav.login}
                   </Button>
                 </a>
-                <a href={appUrl} target="_blank" rel="noopener noreferrer" onClick={() => trackCtaClick('mobile_cta')}>
+                <a href={appendUtm(appUrl, 'mobile_cta')} target="_blank" rel="noopener noreferrer" onClick={() => trackCtaClick('mobile_cta')}>
                   <Button variant="primary" className="w-full">
                     {t.nav.cta}
                   </Button>

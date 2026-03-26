@@ -4,10 +4,12 @@ import { AuthGuard } from '@nestjs/passport';
 @Injectable()
 export class MicrosoftAuthGuard extends AuthGuard('microsoft') {
     getAuthenticateOptions(context: ExecutionContext) {
-        // authMode is now passed via cookie, not OAuth state (serverless has no session support)
+        const req = context.switchToHttp().getRequest();
+        const origin = req.query?.origin || req.cookies?.procurea_auth_origin || 'app';
         return {
             ...super.getAuthenticateOptions(context),
-            session: false
+            session: false,
+            state: origin, // Pass origin through OAuth state (cookies don't survive cross-domain callback)
         };
     }
 }

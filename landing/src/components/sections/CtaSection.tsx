@@ -2,6 +2,7 @@ import { motion } from "framer-motion"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { ArrowRight, CheckCircle } from "lucide-react"
 import { trackCtaClick } from "@/lib/analytics"
+import { appendUtm } from "@/lib/utm"
 import { t } from "@/i18n"
 
 const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
@@ -39,7 +40,7 @@ export function CtaSection() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-5 mb-12">
             <motion.a
-              href={APP_URL}
+              href={appendUtm(APP_URL, 'cta_bottom')}
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => trackCtaClick('cta_bottom')}

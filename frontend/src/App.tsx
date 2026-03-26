@@ -8,6 +8,7 @@ import Login from './Login'
 import AuthCallbackPage from './pages/AuthCallbackPage'
 import { useAuthStore } from './stores/auth.store'
 import apiClient from './services/api.client'
+import { setUserIdentity, clearUserIdentity } from './lib/analytics'
 import type { User } from './types/campaign.types'
 
 // Lazy-loaded pages (code splitting)
@@ -100,6 +101,7 @@ function App() {
     apiClient.get('/auth/me').then((res) => {
       console.log('[App] Admin impersonation successful:', res.data.email);
       setUser(res.data);
+      setUserIdentity(res.data);
       setImpersonated(true);
       markSessionValidated();
     }).catch((err) => {
@@ -137,6 +139,7 @@ function App() {
           if (data.accessToken) localStorage.setItem('procurea_token', data.accessToken);
           if (data.refreshToken) localStorage.setItem('procurea_refresh', data.refreshToken);
           setUser(data.user);
+          setUserIdentity(data.user);
           markSessionValidated();
           console.log('[Staging] Auto-login successful:', data.user.email);
         }
@@ -173,6 +176,7 @@ function App() {
           if (data.accessToken) localStorage.setItem('procurea_token', data.accessToken);
           if (data.refreshToken) localStorage.setItem('procurea_refresh', data.refreshToken);
           setUser(data.user);
+          setUserIdentity(data.user);
           markSessionValidated();
           console.log('[Dev] Auto-login successful:', data.user.email, 'plan:', data.user.plan);
         }
@@ -197,7 +201,10 @@ function App() {
       try {
         const res = await apiClient.get('/auth/me');
         // Refresh user data (picks up new fields like plan)
-        if (res.data?.id) setUser(res.data);
+        if (res.data?.id) {
+          setUser(res.data);
+          setUserIdentity(res.data);
+        }
       } catch (err: unknown) {
         const axiosErr = err as { response?: { status?: number }; message?: string };
         // Only logout on authentication errors (401, 403)
@@ -220,6 +227,7 @@ function App() {
 
   const handleLogin = (loggedInUser: User) => {
     setUser(loggedInUser)
+    setUserIdentity(loggedInUser)
     markSessionValidated()
   }
 
@@ -232,6 +240,7 @@ function App() {
     } catch {
       // Proceed with local logout even if server call fails
     }
+    clearUserIdentity()
     logout()
   }
 
