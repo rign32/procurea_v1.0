@@ -127,6 +127,9 @@ export const unblockUser = (id: string) =>
 export const deleteUser = (id: string) =>
     api.delete(`/admin/users/${id}`);
 
+export const updateUserLanguage = (id: string, language: string) =>
+    api.patch(`/admin/users/${id}/language`, { language });
+
 // Error Logs
 export const getErrorLogs = (category?: string, limit?: number) =>
     api.get('/admin/errors', { params: { category, limit } });

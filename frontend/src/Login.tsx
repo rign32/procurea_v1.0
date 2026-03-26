@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { t } from '@/i18n';
 import { Sparkles, Mail, KeyRound, ArrowLeft } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
-import { analytics, startHesitationTracker } from '@/lib/analytics';
+import { analytics, startHesitationTracker, captureUtmParams } from '@/lib/analytics';
 import type { User } from '@/types/campaign.types';
 
 const GoogleIcon = () => (
@@ -46,6 +46,7 @@ export default function Login({ onLogin }: { onLogin: (user: User) => void }) {
     }, []);
 
     useEffect(() => {
+        captureUtmParams();
         analytics.loginPageView();
         return startHesitationTracker('login', 30000);
     }, []);
@@ -63,7 +64,7 @@ export default function Login({ onLogin }: { onLogin: (user: User) => void }) {
         document.cookie = 'procurea_auth_mode=login; path=/; max-age=600; SameSite=Lax';
         const origin = import.meta.env.VITE_LANGUAGE === 'en' ? 'app-en' : 'app';
         document.cookie = `procurea_auth_origin=${origin}; path=/; max-age=600; SameSite=Lax`;
-        window.location.href = `/api/auth/${provider}`;
+        window.location.href = `/api/auth/${provider}?origin=${origin}`;
     };
 
     const handleEmailSubmit = async (e: React.FormEvent) => {

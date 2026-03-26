@@ -21,7 +21,7 @@ import { organizationService } from '@/services/organization.service';
 import { useAuthStore } from '@/stores/auth.store';
 import { useUIStore } from '@/stores/ui.store';
 import { cn } from '@/lib/utils';
-import { analytics } from '@/lib/analytics';
+import { analytics, startHesitationTracker } from '@/lib/analytics';
 import type { CreateCampaignDto, OrganizationLocation, Region } from '@/types/campaign.types';
 import { AVAILABLE_COUNTRIES } from '@/constants/countries';
 
@@ -127,7 +127,9 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
   useEffect(() => {
     analytics.campaignWizardStart();
     analytics.campaignWizardStep(0);
+    const cleanupHesitation = startHesitationTracker('wizard', 45000);
     return () => {
+      cleanupHesitation();
       if (!submittedRef.current) {
         analytics.campaignWizardAbandoned(currentStep);
       }

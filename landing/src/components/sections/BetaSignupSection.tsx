@@ -2,6 +2,7 @@ import { motion } from "framer-motion"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { ArrowRight, CheckCircle, Sparkles, MessageSquare, Gift } from "lucide-react"
 import { trackCtaClick } from "@/lib/analytics"
+import { appendUtm } from "@/lib/utm"
 import { t } from "@/i18n"
 
 const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
@@ -99,7 +100,7 @@ export function BetaSignupSection() {
         <RevealOnScroll delay={0.15}>
           <div className="text-center">
             <motion.a
-              href={APP_URL}
+              href={appendUtm(APP_URL, 'beta_signup')}
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => trackCtaClick('beta_signup')}

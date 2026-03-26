@@ -117,7 +117,7 @@ export class AuthController {
         // Read authMode and origin from cookie (set by frontend before OAuth redirect)
         // Note: OAuth state parameter doesn't work in serverless (no session support)
         const authMode = req.cookies?.procurea_auth_mode || 'login';
-        const origin = req.cookies?.procurea_auth_origin || req.query?.origin || 'app';
+        const origin = req.query?.state || req.cookies?.procurea_auth_origin || 'app';
         console.log('[BACKEND] Google callback - authMode from cookie:', authMode, 'origin:', origin);
 
         // Clear the authMode and origin cookies as they're no longer needed
@@ -676,7 +676,7 @@ export class AuthController {
         // Read authMode and origin from cookie (set by frontend before OAuth redirect)
         // Note: OAuth state parameter doesn't work in serverless (no session support)
         const authMode = req.cookies?.procurea_auth_mode || 'login';
-        const msOrigin = req.cookies?.procurea_auth_origin || 'app';
+        const msOrigin = req.query?.state || req.cookies?.procurea_auth_origin || 'app';
         console.log('[BACKEND] Microsoft callback - authMode from cookie:', authMode, 'origin:', msOrigin);
 
         // Clear the authMode cookie as it's no longer needed

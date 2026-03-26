@@ -12,7 +12,7 @@ import { AudienceSection } from "@/components/sections/AudienceSection"
 import { BetaSignupSection } from "@/components/sections/BetaSignupSection"
 import { CtaSection } from "@/components/sections/CtaSection"
 import { FaqSection } from "@/components/sections/FaqSection"
-import { initSectionTracking } from "@/lib/analytics"
+import { initSectionTracking, initScrollDepthTracking } from "@/lib/analytics"
 import { t } from "@/i18n"
 
 // PL legal pages
@@ -29,8 +29,12 @@ const isEN = t.meta.lang === 'en'
 
 function LandingPage() {
   useEffect(() => {
-    const cleanup = initSectionTracking();
-    return cleanup;
+    const cleanupSections = initSectionTracking();
+    const cleanupScroll = initScrollDepthTracking();
+    return () => {
+      cleanupSections?.();
+      cleanupScroll?.();
+    };
   }, []);
 
   return (

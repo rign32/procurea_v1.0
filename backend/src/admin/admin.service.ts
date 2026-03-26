@@ -492,6 +492,18 @@ export class AdminService {
         });
     }
 
+    async updateUserLanguage(userId: string, language: string) {
+        const validLanguages = ['pl', 'en', 'de'];
+        if (!validLanguages.includes(language)) {
+            throw new BadRequestException(`Invalid language. Must be one of: ${validLanguages.join(', ')}`);
+        }
+
+        return this.prisma.user.update({
+            where: { id: userId },
+            data: { language },
+        });
+    }
+
     // =====================
     // Organization Management
     // =====================

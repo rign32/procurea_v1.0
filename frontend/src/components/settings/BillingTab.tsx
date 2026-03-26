@@ -11,7 +11,7 @@ import { billingService } from '@/services/billing.service';
 import type { BillingInfo } from '@/services/billing.service';
 import apiClient from '@/services/api.client';
 import { useAuthStore } from '@/stores/auth.store';
-import { analytics } from '@/lib/analytics';
+import { analytics, ecommerce, startHesitationTracker } from '@/lib/analytics';
 import { ThankYouOverlay } from '@/components/billing/ThankYouOverlay';
 import type { User } from '@/types/campaign.types';
 
@@ -224,6 +224,7 @@ export function BillingTab({ user }: BillingTabProps) {
         loadBillingInfo();
         analytics.billingPageView();
         apiClient.post('/billing/track-view', { planId: 'billing_page', source: 'settings' }).catch(() => {});
+        return startHesitationTracker('billing', 20000);
     }, []);
 
     useEffect(() => {
@@ -242,6 +243,7 @@ export function BillingTab({ user }: BillingTabProps) {
                         console.error('Failed to verify session:', err);
                     }
                 }
+                ecommerce.completePendingPurchase(sessionId || 'unknown');
                 loadBillingInfo();
                 apiClient.get('/auth/me').then(res => { if (res.data?.id) setUser(res.data); }).catch(() => {});
                 setShowThankYou(true);
@@ -268,8 +270,10 @@ export function BillingTab({ user }: BillingTabProps) {
     async function handleCreditCheckout(packId: string) {
         setCheckoutLoading(packId);
         analytics.planClicked(packId);
+        const pack = PACKS.find(p => p.id === packId);
         try {
             analytics.checkoutStarted(packId);
+            if (pack) ecommerce.beginCheckout(packId, pack.priceNet, `Credit Pack ${pack.credits}`);
             const { url } = await billingService.createCreditCheckout(packId);
             window.location.href = url;
         } catch (err: unknown) {
@@ -283,6 +287,7 @@ export function BillingTab({ user }: BillingTabProps) {
         analytics.planClicked('unlimited');
         try {
             analytics.checkoutStarted('unlimited');
+            ecommerce.beginCheckout('unlimited', SUBSCRIPTION_PRICE_NET, 'Unlimited Subscription');
             const { url } = await billingService.createSubscriptionCheckout();
             window.location.href = url;
         } catch (err: unknown) {

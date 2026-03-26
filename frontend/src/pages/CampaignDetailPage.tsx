@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronRight, Download, Loader2, AlertTriangle, Trash2, BarChart3, CheckCircle2, Mail, Clock, Send, FileDown, StopCircle, Monitor } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Download, Loader2, AlertTriangle, Trash2, BarChart3, CheckCircle2, Mail, Clock, Send, FileDown, StopCircle, Monitor, Circle, X } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -18,8 +18,11 @@ import apiClient from '@/services/api.client';
 import { useAuthStore } from '@/stores/auth.store';
 import { t, isEN } from '@/i18n';
 import { analytics } from '@/lib/analytics';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { normalizeCountry } from '@/utils/normalize-country';
+import { StatusTabs } from '@/components/ui/status-tabs';
+import { getStatusConfig, getDisplayName, getDisplayRole } from '@/utils/contact-status';
+import { Progress } from '@/components/ui/progress';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -31,6 +34,12 @@ const itemVariants = {
   show: { opacity: 1, y: 0 }
 };
 
+// Variants for tab content — always animate in (not dependent on parent stagger)
+const tabItemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.2 } }
+};
+
 export function CampaignDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -39,7 +48,7 @@ export function CampaignDetailPage() {
 
   // Only activate real-time monitor for running campaigns
   const isRunning = !campaign || campaign.status === 'RUNNING';
-  const { logs, suppliers: rtSuppliers, progress } = useRealTimeMonitor(id || '', !!id && isRunning);
+  const { logs, suppliers: rtSuppliers, progress, completedSignal, contactProgress } = useRealTimeMonitor(id || '', !!id && isRunning);
 
   // For running campaigns: show real-time if available, otherwise fallback to API data
   // For completed campaigns: use persisted data from API
@@ -53,6 +62,8 @@ export function CampaignDetailPage() {
   const [excludedIds, setExcludedIds] = useState<string[]>([]);
   const [excludingId, setExcludingId] = useState<string | null>(null);
   const [accepting, setAccepting] = useState(false);
+  const [apolloContacts, setApolloContacts] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState('overview');
   const { user } = useAuthStore();
   const isFullPlan = user?.plan === 'full';
   const { activeCampaign } = useCampaignsStore();
@@ -86,10 +97,22 @@ export function CampaignDetailPage() {
       prevRtStatus.current === 'RUNNING' &&
       (rtStatus === 'COMPLETED' || rtStatus === 'STOPPED' || rtStatus === 'ERROR')
     ) {
+      if (rtStatus === 'COMPLETED') {
+        analytics.campaignCompleted(suppliers.length);
+      }
       refetchCampaign();
     }
     prevRtStatus.current = rtStatus;
   }, [rtStatus, refetchCampaign]);
+
+  // Fallback: refetch when completedSignal fires (handles cases where rtStatus tracking fails)
+  const prevCompletedSignal = useRef(completedSignal);
+  useEffect(() => {
+    if (completedSignal > prevCompletedSignal.current) {
+      refetchCampaign();
+    }
+    prevCompletedSignal.current = completedSignal;
+  }, [completedSignal, refetchCampaign]);
 
   const handleBack = () => {
     navigate('/campaigns');
@@ -154,7 +177,7 @@ export function CampaignDetailPage() {
         .finally(() => setAiSummaryLoading(false));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, campaign?.status]);
+  }, [id, campaign?.status, completedSignal]);
 
   const handleAcceptAll = async () => {
     if (!id) return;
@@ -194,6 +217,30 @@ export function CampaignDetailPage() {
     }
   };
 
+  // Auto-poll contacts when enrichment is running or fetch once when completed
+  useEffect(() => {
+    if (!id) return;
+    const status = campaign?.apolloEnrichmentStatus;
+
+    if (status === 'completed' || status === 'failed') {
+      // Fetch contacts once
+      campaignsService.getCampaignContacts(id).then(setApolloContacts).catch(() => {});
+      return;
+    }
+
+    if (status === 'running') {
+      // Poll every 5s while running
+      const fetchContacts = () => {
+        campaignsService.getCampaignContacts(id).then(setApolloContacts).catch(() => {});
+        refetchCampaign();
+      };
+      fetchContacts(); // immediate fetch
+      const interval = setInterval(fetchContacts, 5000);
+      return () => clearInterval(interval);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, campaign?.apolloEnrichmentStatus]);
+
   if (!campaign && campaignLoading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -215,8 +262,9 @@ export function CampaignDetailPage() {
     );
   }
 
-  const isCompleted = campaign.status === 'COMPLETED';
-  const isAccepted = ['ACCEPTED', 'SENDING', 'DONE'].includes(campaign.status);
+  const isCompleted = campaign.status === 'COMPLETED' || rtStatus === 'COMPLETED';
+  const isAccepted = ['ACCEPTED', 'SENDING', 'DONE'].includes(campaign.status)
+                  || ['ACCEPTED', 'SENDING', 'DONE'].includes(rtStatus || '');
   const isError = campaign.status === 'ERROR';
 
   const getStatusBadge = () => {
@@ -278,16 +326,6 @@ export function CampaignDetailPage() {
                 {t.campaigns.detail.stopButton}
               </Button>
             )}
-            {isFullPlan && isCompleted && !isAccepted && (
-              <Button
-                onClick={handleAcceptAll}
-                disabled={suppliers.length === 0 || accepting}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                {accepting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
-                {accepting ? t.campaigns.detail.accepting : t.campaigns.detail.acceptAllSuppliers}
-              </Button>
-            )}
             <Button variant="outline" onClick={() => setShowDelete(true)} className="text-destructive hover:bg-destructive/10">
               <Trash2 className="mr-2 h-4 w-4" />
               {t.campaigns.deleteCampaign}
@@ -318,10 +356,27 @@ export function CampaignDetailPage() {
         )
       }
 
+      {/* TABS: Show for completed/accepted campaigns */}
+      {(isCompleted || isAccepted) && (
+        <motion.div variants={itemVariants}>
+          <StatusTabs
+            tabs={[
+              { key: 'overview', label: t.campaigns.detail.tabOverview },
+              { key: 'suppliers', label: t.campaigns.detail.tabSuppliers, count: suppliers.length },
+              { key: 'contacts', label: t.campaigns.detail.tabContacts, count: apolloContacts.filter((c: any) => c.email).length },
+            ]}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+        </motion.div>
+      )}
+
+      {/* === TAB: OVERVIEW === */}
+
       {/* COMPLETED/ACCEPTED: Stats Cards */}
       {
-        (isCompleted || isAccepted) && (
-          <motion.div variants={itemVariants} className={`grid grid-cols-1 gap-4 ${isFullPlan ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
+        (isCompleted || isAccepted) && activeTab === 'overview' && (
+          <motion.div variants={tabItemVariants} initial="hidden" animate="show" className={`grid grid-cols-1 gap-4 ${isFullPlan ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">{t.campaigns.detail.suppliersFound}</CardTitle>
@@ -354,8 +409,8 @@ export function CampaignDetailPage() {
 
       {/* AI SUMMARY */}
       {
-        (isCompleted || isAccepted) && (
-          <motion.div variants={itemVariants}>
+        (isCompleted || isAccepted) && activeTab === 'overview' && (
+          <motion.div variants={tabItemVariants} initial="hidden" animate="show">
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -477,9 +532,9 @@ export function CampaignDetailPage() {
 
       {/* REPORT: Sequence Progress + Country Breakdown */}
       {
-        (isCompleted || isAccepted) && report &&
+        (isCompleted || isAccepted) && activeTab === 'overview' && report &&
         (report.sequenceProgress?.length > 0 || report.countries?.length > 0) && (
-          <motion.div variants={itemVariants}>
+          <motion.div variants={tabItemVariants} initial="hidden" animate="show">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -602,8 +657,8 @@ export function CampaignDetailPage() {
 
       {/* SEQUENCE DETAILS: Per-supplier email execution log */}
       {
-        isFullPlan && isAccepted && report?.sequenceDetails && report.sequenceDetails.length > 0 && (
-          <motion.div variants={itemVariants}>
+        isFullPlan && isAccepted && activeTab === 'overview' && report?.sequenceDetails && report.sequenceDetails.length > 0 && (
+          <motion.div variants={tabItemVariants} initial="hidden" animate="show">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -733,73 +788,212 @@ export function CampaignDetailPage() {
       }
 
       {/* RUNNING: Agent Animation + Info sidebar — show only after first supplier appears */}
-      {isRunning && !isError && suppliers.length > 0 && (
-        <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <AgentAnimation currentStage={campaign.stage || 'STRATEGY'} progress={progress} suppliersFound={suppliers.length} />
-          </div>
-          <div>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                  {t.campaigns.detail.searchInProgress}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 text-sm">
-                <div className="flex justify-between items-center pb-3 border-b">
-                  <span className="text-muted-foreground">{t.campaigns.detail.suppliersFoundLabel}:</span>
-                  <span className="font-bold text-2xl text-primary">{suppliers.length}</span>
-                </div>
-                <div className="space-y-3 text-muted-foreground">
-                  <div className="flex items-start gap-2">
-                    <Monitor className="h-4 w-4 mt-0.5 shrink-0 text-primary/70" />
-                    <p>{t.campaigns.detail.backgroundNote}</p>
+      <AnimatePresence>
+        {isRunning && !isError && suppliers.length > 0 && (
+          <motion.div
+            key="agent-animation"
+            variants={itemVariants}
+            exit={{ opacity: 0, height: 0, transition: { duration: 0.3 } }}
+            className="grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-hidden"
+          >
+            <div className="lg:col-span-2">
+              <AgentAnimation currentStage={campaign.stage || 'STRATEGY'} progress={progress} suppliersFound={suppliers.length} />
+            </div>
+            <div>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                    {t.campaigns.detail.searchInProgress}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4 text-sm">
+                  <div className="flex justify-between items-center pb-3 border-b">
+                    <span className="text-muted-foreground">{t.campaigns.detail.suppliersFoundLabel}:</span>
+                    <span className="font-bold text-2xl text-primary">{suppliers.length}</span>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <Clock className="h-4 w-4 mt-0.5 shrink-0 text-primary/70" />
-                    <p>{t.campaigns.detail.maxTimeNote}</p>
+                  <div className="space-y-3 text-muted-foreground">
+                    <div className="flex items-start gap-2">
+                      <Monitor className="h-4 w-4 mt-0.5 shrink-0 text-primary/70" />
+                      <p>{t.campaigns.detail.backgroundNote}</p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Clock className="h-4 w-4 mt-0.5 shrink-0 text-primary/70" />
+                      <p>{t.campaigns.detail.maxTimeNote}</p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <FileDown className="h-4 w-4 mt-0.5 shrink-0 text-primary/70" />
+                      <p>{t.campaigns.detail.afterCompletion}</p>
+                    </div>
+                    <ul className="ml-6 space-y-1.5 text-xs">
+                      <li>{t.campaigns.detail.exportExcelDesc}</li>
+                      <li>{t.campaigns.detail.aiReportDesc}</li>
+                    </ul>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <FileDown className="h-4 w-4 mt-0.5 shrink-0 text-primary/70" />
-                    <p>{t.campaigns.detail.afterCompletion}</p>
-                  </div>
-                  <ul className="ml-6 space-y-1.5 text-xs">
-                    <li>{t.campaigns.detail.exportExcelDesc}</li>
-                    <li>{t.campaigns.detail.aiReportDesc}</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                </CardContent>
+              </Card>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* === TAB: SUPPLIERS (or always visible when running) === */}
+      {(isRunning || activeTab === 'suppliers') && (
+        <motion.div variants={isRunning ? itemVariants : tabItemVariants} initial={isRunning ? undefined : "hidden"} animate={isRunning ? undefined : "show"}>
+          {(!isRunning || suppliers.length > 0) && (
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold">{t.campaigns.detail.suppliersList} ({suppliers.length})</h2>
+              <div className="flex gap-2">
+                {isFullPlan && isCompleted && !isAccepted && (
+                  <Button
+                    size="sm"
+                    onClick={handleAcceptAll}
+                    disabled={suppliers.length === 0 || accepting}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {accepting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
+                    {accepting ? t.campaigns.detail.accepting : t.campaigns.detail.acceptAllSuppliers}
+                  </Button>
+                )}
+                {(isCompleted || isAccepted) && (
+                  <Button variant="outline" size="sm" onClick={handleExport} disabled={exportMutation.isPending}>
+                    <Download className="mr-2 h-4 w-4" />
+                    {t.campaigns.detail.exportCSV}
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+          <LiveSupplierFeed
+            suppliers={suppliers}
+            campaignId={id}
+            rfqRequestId={isFullPlan ? campaign?.rfqRequest?.id : undefined}
+            isAccepted={isFullPlan ? isAccepted : false}
+            isRunning={isRunning}
+            excludedIds={isFullPlan ? excludedIds : []}
+            onExclude={isFullPlan ? handleExclude : undefined}
+            campaignStartedAt={campaign?.createdAt}
+            onStop={handleStopCampaign}
+          />
         </motion.div>
       )}
 
-      {/* Suppliers Feed */}
-      <motion.div variants={itemVariants}>
-        {(!isRunning || suppliers.length > 0) && (
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold">{t.campaigns.detail.suppliersList} ({suppliers.length})</h2>
-            {(isCompleted || isAccepted) && (
-              <Button variant="outline" size="sm" onClick={handleExport} disabled={exportMutation.isPending}>
-                <Download className="mr-2 h-4 w-4" />
-                {t.campaigns.detail.exportCSV}
-              </Button>
+      {/* === TAB: CONTACTS === */}
+      {(isCompleted || isAccepted) && activeTab === 'contacts' && (() => {
+        const isEnrichmentRunning = campaign?.apolloEnrichmentStatus === 'running';
+        const statusConfig = getStatusConfig();
+        const processedCount = contactProgress.length;
+        const totalCount = suppliers.length;
+        const progressPct = totalCount > 0 ? Math.round((processedCount / totalCount) * 100) : 0;
+        const contactsWithEmail = apolloContacts.filter((c: any) => c.email);
+
+        const levelLabel = (level?: string) => {
+          if (!level) return '';
+          const map: Record<string, string> = {
+            L1_apollo: t.campaigns.detail.levelApollo,
+            L2_website: t.campaigns.detail.levelWebsite,
+            L3_google: t.campaigns.detail.levelGoogle,
+            L4_generic: t.campaigns.detail.levelGeneric,
+            L5_unreachable: t.campaigns.detail.levelUnreachable,
+          };
+          return map[level] || level;
+        };
+
+        return (
+          <motion.div variants={tabItemVariants} initial="hidden" animate="show" className="space-y-4">
+            {/* Progress bar when enrichment is running */}
+            {isEnrichmentRunning && (
+              <Card>
+                <CardContent className="py-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                    <span className="text-sm font-medium">
+                      {t.campaigns.detail.searchingContacts} ({processedCount}/{totalCount})
+                    </span>
+                  </div>
+                  <Progress value={progressPct} className="h-2" />
+                </CardContent>
+              </Card>
             )}
-          </div>
-        )}
-        <LiveSupplierFeed
-          suppliers={suppliers}
-          campaignId={id}
-          rfqRequestId={isFullPlan ? campaign?.rfqRequest?.id : undefined}
-          isAccepted={isFullPlan ? isAccepted : false}
-          isRunning={isRunning}
-          excludedIds={isFullPlan ? excludedIds : []}
-          onExclude={isFullPlan ? handleExclude : undefined}
-          campaignStartedAt={campaign?.createdAt}
-          onStop={handleStopCampaign}
-        />
-      </motion.div>
+
+            {/* Summary badges */}
+            {!isEnrichmentRunning && (
+              <div className="flex items-center gap-2">
+                <Badge className="bg-green-100 text-green-800">
+                  {contactsWithEmail.length} {t.campaigns.detail.filterWithEmail}
+                </Badge>
+                <Badge variant="secondary">
+                  {suppliers.length - contactsWithEmail.length} {t.campaigns.detail.filterWithout}
+                </Badge>
+              </div>
+            )}
+
+            {/* Per-supplier contact cards */}
+            <div className="space-y-2">
+              {suppliers.map((supplier) => {
+                const supplierContacts = apolloContacts.filter((c: any) => c.supplierId === supplier.id);
+                const bestContact = supplierContacts.find((c: any) => c.email) || supplierContacts[0];
+                const cp = contactProgress.find(p => p.supplierName === supplier.name);
+
+                // Determine status
+                let statusIcon: React.ReactNode;
+                let statusLine: React.ReactNode;
+
+                if (bestContact?.email) {
+                  const displayName = getDisplayName(bestContact);
+                  const displayRole = getDisplayRole(bestContact);
+                  const emailStatus = statusConfig[bestContact.emailStatus] || { label: bestContact.emailStatus || '—', className: 'bg-gray-100 text-gray-600' };
+
+                  statusIcon = <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />;
+                  statusLine = (
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <a href={`mailto:${bestContact.email}`} className="text-blue-600 hover:underline text-sm font-medium">
+                          {bestContact.email}
+                        </a>
+                        <Badge className={`text-xs ${emailStatus.className}`}>{emailStatus.label}</Badge>
+                        {bestContact.linkedinUrl && (
+                          <a href={bestContact.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700 text-xs">
+                            LinkedIn
+                          </a>
+                        )}
+                      </div>
+                      {(displayName !== '—' || displayRole !== '—') && (
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {displayName !== '—' ? displayName : ''}{displayName !== '—' && displayRole !== '—' ? ' · ' : ''}{displayRole !== '—' ? displayRole : ''}
+                        </p>
+                      )}
+                    </div>
+                  );
+                } else if (isEnrichmentRunning && cp && cp.level === 'L5_unreachable') {
+                  statusIcon = <X className="h-5 w-5 text-orange-400 flex-shrink-0 mt-0.5" />;
+                  statusLine = <span className="text-sm text-muted-foreground">{t.campaigns.detail.levelUnreachable}</span>;
+                } else if (isEnrichmentRunning && cp) {
+                  statusIcon = <Loader2 className="h-5 w-5 animate-spin text-blue-400 flex-shrink-0 mt-0.5" />;
+                  statusLine = <span className="text-sm text-muted-foreground">{levelLabel(cp.level) || t.campaigns.detail.contactSearching}</span>;
+                } else if (isEnrichmentRunning) {
+                  statusIcon = <Circle className="h-5 w-5 text-gray-300 flex-shrink-0 mt-0.5" />;
+                  statusLine = <span className="text-sm text-muted-foreground">{t.campaigns.detail.contactWaiting}</span>;
+                } else {
+                  // Enrichment done, no contact found
+                  statusIcon = <X className="h-5 w-5 text-gray-300 flex-shrink-0 mt-0.5" />;
+                  statusLine = <span className="text-sm text-muted-foreground">{isEN ? 'No contact found' : 'Nie znaleziono kontaktu'}</span>;
+                }
+
+                return (
+                  <div key={supplier.id} className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
+                    {statusIcon}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm">{supplier.name}</p>
+                      <div className="mt-1">{statusLine}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        );
+      })()}
 
       {/* Delete Confirmation Dialog */}
       {showDelete && (

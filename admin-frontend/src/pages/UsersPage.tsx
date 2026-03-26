@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, Fragment } from 'react';
-import { getUsers, impersonateUser, blockUser, unblockUser, deleteUser, getUserBilling } from '../services/api';
+import { getUsers, impersonateUser, blockUser, unblockUser, deleteUser, getUserBilling, updateUserLanguage } from '../services/api';
 import {
     Search,
     UserCheck,
@@ -202,6 +202,16 @@ export default function UsersPage() {
         }
     };
 
+    const handleToggleLanguage = async (user: User) => {
+        const newLang = user.language === 'en' ? 'pl' : 'en';
+        try {
+            await updateUserLanguage(user.id, newLang);
+            fetchUsers();
+        } catch (err) {
+            console.error('Failed to update language:', err);
+        }
+    };
+
     const handleDelete = async (user: User) => {
         const confirmed = window.confirm(
             `Czy na pewno chcesz usunac uzytkownika ${user.email}? Ta operacja jest nieodwracalna.`
@@ -327,16 +337,17 @@ export default function UsersPage() {
                                                     </div>
                                                 </td>
                                                 <td className="py-3 px-4">
-                                                    <span
-                                                        title={user.language === 'en' ? 'app.procurea.io' : 'app.procurea.pl'}
-                                                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                                                    <button
+                                                        onClick={() => handleToggleLanguage(user)}
+                                                        title={`${user.language === 'en' ? 'app.procurea.io' : 'app.procurea.pl'} — kliknij aby zmienic`}
+                                                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium cursor-pointer hover:opacity-80 transition-opacity ${
                                                         user.language === 'en' ? 'bg-blue-500/15 text-blue-400' :
                                                         user.language === 'de' ? 'bg-amber-500/15 text-amber-400' :
                                                         'bg-surface-overlay text-text-muted'
                                                     }`}>
-                                                        {user.language === 'en' ? 'EN' :
-                                                         user.language === 'de' ? 'DE' : 'PL'}
-                                                    </span>
+                                                        {user.language === 'en' ? '🇺🇸 EN' :
+                                                         user.language === 'de' ? '🇩🇪 DE' : '🇵🇱 PL'}
+                                                    </button>
                                                 </td>
                                                 <td className="py-3 px-4">
                                                     <div className="flex flex-col gap-1">

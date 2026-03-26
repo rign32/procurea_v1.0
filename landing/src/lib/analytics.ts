@@ -49,3 +49,26 @@ export function initSectionTracking() {
 
   return () => observer.disconnect();
 }
+
+// Scroll depth milestones
+export function initScrollDepthTracking() {
+  if (typeof window === 'undefined') return;
+
+  const milestones = [25, 50, 75, 90];
+  const fired = new Set<number>();
+
+  const handler = () => {
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    if (docHeight <= 0) return;
+    const scrollPct = Math.round((window.scrollY / docHeight) * 100);
+    milestones.forEach((m) => {
+      if (scrollPct >= m && !fired.has(m)) {
+        fired.add(m);
+        trackEvent('scroll_depth', { percent: m });
+      }
+    });
+  };
+
+  window.addEventListener('scroll', handler, { passive: true });
+  return () => window.removeEventListener('scroll', handler);
+}
