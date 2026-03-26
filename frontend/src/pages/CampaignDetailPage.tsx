@@ -103,7 +103,7 @@ export function CampaignDetailPage() {
       refetchCampaign();
     }
     prevRtStatus.current = rtStatus;
-  }, [rtStatus, refetchCampaign]);
+  }, [rtStatus, refetchCampaign, suppliers.length]);
 
   // Fallback: refetch when completedSignal fires (handles cases where rtStatus tracking fails)
   const prevCompletedSignal = useRef(completedSignal);
