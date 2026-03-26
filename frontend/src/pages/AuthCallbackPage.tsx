@@ -17,10 +17,22 @@ export default function AuthCallbackPage() {
     useEffect(() => {
         const exchangeToken = async () => {
             try {
+                // Read exchange token from URL (set by backend OAuth callback redirect)
+                const params = new URLSearchParams(window.location.search);
+                const token = params.get('exchangeToken');
+
+                // Clean sensitive token from URL immediately
+                if (token) {
+                    const cleanUrl = new URL(window.location.href);
+                    cleanUrl.searchParams.delete('exchangeToken');
+                    window.history.replaceState({}, '', cleanUrl.toString());
+                }
+
                 const res = await fetch('/api/auth/exchange', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
+                    body: JSON.stringify({ exchangeToken: token }),
                 });
 
                 if (!res.ok) {

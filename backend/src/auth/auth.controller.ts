@@ -231,7 +231,7 @@ export class AuthController {
             } else {
                 frontendUrl = process.env.FRONTEND_URL || 'https://app.procurea.pl';
             }
-            const redirectUrl = `${frontendUrl}/auth/callback?userId=${user.id}&needsPhone=${!user.isPhoneVerified}&onboardingCompleted=${user.onboardingCompleted}&isNewUser=${isNewUser}&authMode=${authMode}`;
+            const redirectUrl = `${frontendUrl}/auth/callback?userId=${user.id}&exchangeToken=${exchangeToken}&needsPhone=${!user.isPhoneVerified}&onboardingCompleted=${user.onboardingCompleted}&isNewUser=${isNewUser}&authMode=${authMode}`;
 
             await this.authLogsService.logAuthEvent({
                 requestId,
@@ -270,11 +270,12 @@ export class AuthController {
 
     // ========== EXCHANGE TOKEN FOR COOKIES ==========
     @Post('exchange')
-    async exchangeToken(@Res({ passthrough: true }) res: Response, @Req() req) {
+    async exchangeToken(@Body() body: any, @Res({ passthrough: true }) res: Response, @Req() req) {
         const requestId = (req as any).requestId || 'unknown';
 
-        // Read exchange token from httpOnly cookie
-        const exchangeToken = req.cookies?.procurea_exchange;
+        // Accept from body (primary, works through Firebase Hosting) or cookie (fallback)
+        // Firebase Hosting strips all cookies except __session, so body is the reliable transport
+        const exchangeToken = body?.exchangeToken || req.cookies?.procurea_exchange;
 
         if (!exchangeToken) {
             await this.authLogsService.logAuthEvent({
@@ -781,7 +782,7 @@ export class AuthController {
             } else {
                 frontendUrl = process.env.FRONTEND_URL || 'https://app.procurea.pl';
             }
-            const redirectUrl = `${frontendUrl}/auth/callback?userId=${user.id}&needsPhone=${!user.isPhoneVerified}&onboardingCompleted=${user.onboardingCompleted}&isNewUser=${isNewUser}&authMode=${authMode}`;
+            const redirectUrl = `${frontendUrl}/auth/callback?userId=${user.id}&exchangeToken=${exchangeToken}&needsPhone=${!user.isPhoneVerified}&onboardingCompleted=${user.onboardingCompleted}&isNewUser=${isNewUser}&authMode=${authMode}`;
 
             await this.authLogsService.logAuthEvent({
                 requestId,
