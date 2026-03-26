@@ -72,6 +72,21 @@ export function getStoredUtm(): Record<string, string> | null {
   }
 }
 
+// ── Google Ads conversion ──
+
+export function fireGoogleAdsConversion(): Promise<void> {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined' || !window.gtag) {
+      resolve();
+      return;
+    }
+    window.gtag('event', 'conversion_event_page_view', {
+      event_callback: resolve,
+      event_timeout: 2000,
+    });
+  });
+}
+
 // ── Auth funnel ──
 
 export const analytics = {

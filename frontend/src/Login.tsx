@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { t } from '@/i18n';
 import { Sparkles, Mail, KeyRound, ArrowLeft } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
-import { analytics, startHesitationTracker, captureUtmParams } from '@/lib/analytics';
+import { analytics, startHesitationTracker, captureUtmParams, fireGoogleAdsConversion } from '@/lib/analytics';
 import type { User } from '@/types/campaign.types';
 
 const GoogleIcon = () => (
@@ -59,11 +59,12 @@ export default function Login({ onLogin }: { onLogin: (user: User) => void }) {
         }
     }, [isAuthenticated, user]);
 
-    const handleSSOLogin = (provider: 'google' | 'microsoft') => {
+    const handleSSOLogin = async (provider: 'google' | 'microsoft') => {
         analytics.methodSelected(provider);
         document.cookie = 'procurea_auth_mode=login; path=/; max-age=600; SameSite=Lax';
         const origin = import.meta.env.VITE_LANGUAGE === 'en' ? 'app-en' : 'app';
         document.cookie = `procurea_auth_origin=${origin}; path=/; max-age=600; SameSite=Lax`;
+        await fireGoogleAdsConversion();
         window.location.href = `/api/auth/${provider}?origin=${origin}`;
     };
 
@@ -83,6 +84,7 @@ export default function Login({ onLogin }: { onLogin: (user: User) => void }) {
             const data = await res.json();
             if (!res.ok) throw new Error(data.message || t.errors.generic);
             analytics.codeSent();
+            fireGoogleAdsConversion();
             setStep('code');
             setMessage(t.auth.codeSent);
         } catch (err: unknown) {
@@ -115,6 +117,7 @@ export default function Login({ onLogin }: { onLogin: (user: User) => void }) {
                 throw new Error(data.message || t.errors.generic);
             }
             analytics.codeVerified();
+            fireGoogleAdsConversion();
             // Store tokens for Authorization header (Firebase Hosting strips cookies)
             if (data.accessToken) localStorage.setItem('procurea_token', data.accessToken);
             if (data.refreshToken) localStorage.setItem('procurea_refresh', data.refreshToken);
