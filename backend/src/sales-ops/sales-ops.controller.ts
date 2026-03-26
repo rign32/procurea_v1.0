@@ -1,21 +1,47 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument */
-import { Controller, Post, Body, Logger } from "@nestjs/common";
-import { SkipThrottle } from "@nestjs/throttler";
+import { Controller, Post, Body, Headers, Logger, ForbiddenException } from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
+import { ConfigService } from "@nestjs/config";
 import { SalesOpsService } from "./sales-ops.service";
+import * as crypto from "crypto";
 
 @Controller("sales-ops")
-@SkipThrottle()
 export class SalesOpsController {
   private readonly logger = new Logger(SalesOpsController.name);
 
-  constructor(private readonly salesOpsService: SalesOpsService) {}
+  constructor(
+    private readonly salesOpsService: SalesOpsService,
+    private readonly configService: ConfigService,
+  ) {}
+
+  private verifyWebhookSecret(signature: string | undefined, body: any, secretEnvKey: string): void {
+    const secret = this.configService.get<string>(secretEnvKey);
+    if (!secret) return; // Skip verification if secret not configured
+    if (!signature) {
+      throw new ForbiddenException("Missing webhook signature");
+    }
+    const expectedSignature = crypto
+      .createHmac("sha256", secret)
+      .update(JSON.stringify(body))
+      .digest("hex");
+    const sigBuffer = Buffer.from(signature, "utf8");
+    const expectedBuffer = Buffer.from(expectedSignature, "utf8");
+    if (sigBuffer.length !== expectedBuffer.length || !crypto.timingSafeEqual(sigBuffer, expectedBuffer)) {
+      throw new ForbiddenException("Invalid webhook signature");
+    }
+  }
 
   /**
    * Apollo reply webhook — lead responded to email sequence.
    * POST /sales-ops/webhooks/apollo/reply
    */
   @Post("webhooks/apollo/reply")
-  async handleApolloReply(@Body() body: any) {
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  async handleApolloReply(
+    @Headers("x-apollo-signature") signature: string,
+    @Body() body: any,
+  ) {
+    this.verifyWebhookSecret(signature, body, "APOLLO_WEBHOOK_SECRET");
     this.logger.log(`Apollo reply webhook received`);
     try {
       await this.salesOpsService.handleApolloReply({
@@ -38,7 +64,12 @@ export class SalesOpsController {
    * POST /sales-ops/webhooks/apollo/open
    */
   @Post("webhooks/apollo/open")
-  async handleApolloOpen(@Body() body: any) {
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  async handleApolloOpen(
+    @Headers("x-apollo-signature") signature: string,
+    @Body() body: any,
+  ) {
+    this.verifyWebhookSecret(signature, body, "APOLLO_WEBHOOK_SECRET");
     try {
       await this.salesOpsService.handleApolloOpen({
         email: body.email || body.contact?.email,
@@ -58,7 +89,12 @@ export class SalesOpsController {
    * Tally sends: { eventId, eventType, createdAt, data: { responseId, fields: [...] } }
    */
   @Post("webhooks/tally/feedback")
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   async handleTallyFeedback(@Body() body: any) {
+    const tallySecret = this.configService.get<string>("TALLY_WEBHOOK_SECRET");
+    if (tallySecret && body?.webhookSecret !== tallySecret) {
+      throw new ForbiddenException("Invalid Tally webhook secret");
+    }
     this.logger.log(`Tally feedback webhook received`);
     try {
       // Parse Tally webhook format

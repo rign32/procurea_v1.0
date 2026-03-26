@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { GeminiService } from './gemini.service';
 
@@ -284,13 +285,23 @@ export class DatabaseExplorerService {
     /**
      * Get full schema information
      */
+    private readonly ALLOWED_TABLES = new Set(
+        ['User', 'Organization', 'AuditLog', 'Campaign', 'Supplier', 'DocumentChunk',
+         'AiInteraction', 'Log', 'CompanyRegistry', 'RfqRequest', 'Offer', 'SearchQueryCache']
+    );
+
+    private isAllowedTable(name: string): boolean {
+        return this.ALLOWED_TABLES.has(name);
+    }
+
     async getSchema(): Promise<{ tables: TableInfo[] }> {
         const tablesWithCounts = await Promise.all(
             this.schemaDefinition.map(async (table) => {
                 let rowCount = 0;
+                if (!this.isAllowedTable(table.name)) return { ...table, rowCount };
                 try {
-                    const result = await this.prisma.$queryRawUnsafe(
-                        `SELECT COUNT(*) as count FROM "${table.name}"`
+                    const result = await this.prisma.$queryRaw(
+                        Prisma.sql`SELECT COUNT(*) as count FROM ${Prisma.raw(`"${table.name}"`)}`
                     ) as any[];
                     rowCount = Number(result[0]?.count || 0);
                 } catch (e) {
@@ -327,38 +338,66 @@ export class DatabaseExplorerService {
             (t) => t.name.toLowerCase() === tableName.toLowerCase()
         );
 
-        if (!validTable) {
-            throw new Error(`Table "${tableName}" not found`);
+        if (!validTable || !this.isAllowedTable(validTable.name)) {
+            throw new Error(`Table "${tableName}" not found or not accessible`);
         }
 
-        const safeLimit = Math.min(limit, 100);
-        const sql = `SELECT * FROM "${validTable.name}" LIMIT ${safeLimit} OFFSET ${offset}`;
+        const safeLimit = Math.min(Math.max(0, Math.floor(limit)), 100);
+        const safeOffset = Math.max(0, Math.floor(offset));
 
-        return this.executeQuery(sql);
+        const startTime = Date.now();
+        const results = await this.prisma.$queryRaw(
+            Prisma.sql`SELECT * FROM ${Prisma.raw(`"${validTable.name}"`)} LIMIT ${safeLimit} OFFSET ${safeOffset}`
+        ) as any[];
+        const executionTime = Date.now() - startTime;
+
+        const columns = results.length > 0 ? Object.keys(results[0]) : [];
+        return { columns, rows: results, rowCount: results.length, executionTime };
     }
 
     /**
      * Execute a SELECT-only query
      */
     async executeQuery(sql: string): Promise<QueryResult> {
-        // Security: Only allow SELECT statements
-        const normalizedSql = sql.trim().toUpperCase();
-        if (!normalizedSql.startsWith('SELECT')) {
+        // Strip comments (block and line) to prevent bypass
+        const cleanedSql = sql
+            .replace(/\/\*[\s\S]*?\*\//g, ' ')
+            .replace(/--[^\n]*/g, ' ')
+            .trim();
+
+        // Security: Only allow SELECT statements (case-insensitive)
+        if (!/^SELECT\b/i.test(cleanedSql)) {
             throw new Error('Only SELECT queries are allowed for security reasons');
         }
 
-        // Block dangerous keywords
-        const dangerousKeywords = ['DROP', 'DELETE', 'UPDATE', 'INSERT', 'ALTER', 'TRUNCATE', 'CREATE', 'GRANT', 'REVOKE'];
+        // Block dangerous keywords (word-boundary matching, case-insensitive)
+        const dangerousKeywords = ['DROP', 'DELETE', 'UPDATE', 'INSERT', 'ALTER', 'TRUNCATE', 'CREATE', 'GRANT', 'REVOKE', 'EXEC', 'EXECUTE', 'INTO'];
         for (const keyword of dangerousKeywords) {
-            if (normalizedSql.includes(keyword)) {
+            if (new RegExp(`\\b${keyword}\\b`, 'i').test(cleanedSql)) {
                 throw new Error(`Query contains forbidden keyword: ${keyword}`);
             }
+        }
+
+        // Validate all referenced tables are in the allowed set
+        const tableReferences = cleanedSql.match(/"([A-Z][a-zA-Z]+)"/g);
+        if (tableReferences) {
+            for (const ref of tableReferences) {
+                const tableName = ref.replace(/"/g, '');
+                if (!this.isAllowedTable(tableName)) {
+                    throw new Error(`Query references unknown table: ${tableName}`);
+                }
+            }
+        }
+
+        // Enforce LIMIT to prevent full table scans
+        if (!/\bLIMIT\b/i.test(cleanedSql)) {
+            throw new Error('Query must include a LIMIT clause (max 100)');
         }
 
         const startTime = Date.now();
 
         try {
-            const results = await this.prisma.$queryRawUnsafe(sql) as any[];
+            const results = await this.prisma.$queryRawUnsafe(cleanedSql) as any[];
             const executionTime = Date.now() - startTime;
 
             const columns = results.length > 0 ? Object.keys(results[0]) : [];
@@ -371,7 +410,7 @@ export class DatabaseExplorerService {
             };
         } catch (error) {
             this.logger.error(`Query failed: ${error.message}`);
-            throw new Error(`Query execution failed: ${error.message}`);
+            throw new Error('Query execution failed');
         }
     }
 
@@ -478,8 +517,8 @@ Odpowiedz TYLKO w formacie JSON:
         let supplierStats = { total: 0, byCountry: {} };
 
         try {
-            const campaigns = await this.prisma.$queryRawUnsafe(
-                `SELECT status, COUNT(*) as count FROM "Campaign" GROUP BY status`
+            const campaigns = await this.prisma.$queryRaw(
+                Prisma.sql`SELECT status, COUNT(*) as count FROM "Campaign" GROUP BY status`
             ) as any[];
             campaignStats = {
                 total: campaigns.reduce((sum, c) => sum + Number(c.count), 0),
@@ -488,8 +527,8 @@ Odpowiedz TYLKO w formacie JSON:
         } catch { /* ignore */ }
 
         try {
-            const suppliers = await this.prisma.$queryRawUnsafe(
-                `SELECT country, COUNT(*) as count FROM "Supplier" WHERE country IS NOT NULL GROUP BY country ORDER BY count DESC LIMIT 10`
+            const suppliers = await this.prisma.$queryRaw(
+                Prisma.sql`SELECT country, COUNT(*) as count FROM "Supplier" WHERE country IS NOT NULL GROUP BY country ORDER BY count DESC LIMIT 10`
             ) as any[];
             supplierStats = {
                 total: suppliers.reduce((sum, s) => sum + Number(s.count), 0),

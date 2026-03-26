@@ -194,7 +194,7 @@ Jeśli strona to PORTAL BRANŻOWY / KATALOG FIRM (np. Plastech, tworzywa.pl, Eur
   - Podaj ich nazwy i URL-e STRON FIRMOWYCH (NIE URL profilu na portalu!)
   - Jeśli na stronie jest link do strony firmy (np. "www.mkkolibri.pl"), użyj TEGO linku
   - Jeśli brak bezpośredniego linku do strony firmy, zostaw url jako pusty string ""
-  - Limit: max 10 firm, tylko te powiązane z docelowym produktem
+  - Limit: max 20 firm, tylko te powiązane z docelowym produktem
   - Zwróć w polu "mentioned_companies"
 
 === ZADANIE 3 — ANALIZA ===

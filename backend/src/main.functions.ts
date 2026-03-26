@@ -105,9 +105,7 @@ export const api = onRequest(
         concurrency: 80,
 
         // Min instances: Keep 1 warm to avoid cold starts (costs ~$5/month but eliminates 2-3s cold starts)
-        // Set to 0 if you want to optimize for cost over latency
-        // Currently set to 0 for cost optimization - change to 1 and deploy with --force if cold starts become an issue
-        minInstances: 0,
+        minInstances: 1,
 
         // Max instances: Limit to prevent runaway costs
         maxInstances: 10,

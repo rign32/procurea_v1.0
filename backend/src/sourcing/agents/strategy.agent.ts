@@ -529,14 +529,14 @@ ${languageInstructions}
    - EKSPORTOWA: "baza eksporterów" / "export directory" + kraj
    - ŁAŃCUCH DOSTAW: "nasi dostawcy" / "our suppliers" / "approved vendors"
 4. Dla każdego kraju generuj zapytania w LOKALNYM JĘZYKU (tłumacz nazwę produktu!)
-5. LIMIT: max 12 krajów/języków dla EU, max 25 dla GLOBAL (wybierz najważniejsze gospodarczo)
+5. LIMIT: max 15 krajów/języków dla EU, max 30 dla GLOBAL (wybierz najważniejsze gospodarczo)
 6. NIE opakowuj nazwy produktu w cudzysłowy ("") w zapytaniach — to zbyt restrykcyjne!
 
 KRYTYCZNE ZASADY:
 1. Zapytania powinny zawierać nazwę produktu (lub synonim/ogólniejszy termin) + słowo producent/manufacturer/Hersteller
 2. Generuj zapytania na RÓŻNYCH poziomach szczegółowości — od dokładnych po ogólne
 3. Dodaj negatywne słowa kluczowe: ${negativeKeywords}
-4. 20-30 queries per kraj — każde unikalne, pokrywające INNY typ strategii
+4. 25-40 queries per kraj — każde unikalne, pokrywające INNY typ strategii
 5. WYKLUCZ kraje objęte sankcjami: Rosja, Iran, Korea Północna, Syria, Afganistan, Kuba, Wenezuela, Myanmar, Białoruś
 6. Dla KAŻDEGO kraju musisz mieć przynajmniej po 1 zapytaniu z typów: TARGOWA, STOWARZYSZENIOWA, KATALOG B2B, ŁAŃCUCH DOSTAW
 

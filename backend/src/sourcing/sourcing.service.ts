@@ -17,9 +17,30 @@ import { EmailService } from '../email/email.service';
 import { GeminiService } from '../common/services/gemini.service';
 import { ObservabilityService } from '../observability/observability.service';
 import { SalesOpsService } from '../sales-ops/sales-ops.service';
+import { ApolloEnrichmentAgent } from './agents/apollo-enrichment.agent';
+import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
 import pLimit = require('p-limit');
 import * as XLSX from 'xlsx';
+
+/**
+ * Thread-safe counter for limiting concurrent supplier creation.
+ * Uses pre-increment (tryReserve) so parallel workers can't overshoot the limit.
+ */
+class AtomicCounter {
+    private _value = 0;
+    get value(): number { return this._value; }
+    /** Try to reserve a slot. Returns true if the count was below max and slot was reserved. */
+    tryReserve(max: number): boolean {
+        if (this._value >= max) return false;
+        this._value++;
+        return true;
+    }
+    /** Release a slot (when processSupplierUrl returned 0 = didn't actually qualify). */
+    release(): void {
+        this._value = Math.max(0, this._value - 1);
+    }
+}
 
 // Known industry portals / directories — never save as suppliers, always mine
 const PORTAL_DOMAINS = new Set([
@@ -201,7 +222,7 @@ export class SourcingService {
     private readonly logger = new Logger(SourcingService.name);
 
     // Concurrency limit for parallel URL processing within each worker
-    private readonly urlLimit = pLimit(parseInt(process.env.URL_LIMIT || '30', 10));
+    private readonly urlLimit = pLimit(parseInt(process.env.URL_LIMIT || '40', 10));
 
     // Deep Research counter per campaign (cap expensive subpage scraping)
     private readonly deepResearchCounts = new Map<string, number>();
@@ -211,8 +232,8 @@ export class SourcingService {
     private readonly cancelledCampaigns = new Set<string>();
     private readonly campaignStartTimes = new Map<string, number>();
     private readonly campaignTimers = new Map<string, ReturnType<typeof setTimeout>>();
-    private readonly PIPELINE_TIMEOUT_MS = parseInt(process.env.PIPELINE_TIMEOUT_MS || '1200000', 10); // 20 min
-    private readonly PIPELINE_SUPPLIER_LIMIT = parseInt(process.env.PIPELINE_SUPPLIER_LIMIT || '250', 10);
+    private readonly PIPELINE_TIMEOUT_MS = parseInt(process.env.PIPELINE_TIMEOUT_MS || '1800000', 10); // 30 min
+    private readonly PIPELINE_SUPPLIER_LIMIT = parseInt(process.env.PIPELINE_SUPPLIER_LIMIT || '500', 10);
 
     constructor(
         private readonly prisma: PrismaService,
@@ -230,6 +251,8 @@ export class SourcingService {
         private readonly geminiService: GeminiService,
         private readonly observability: ObservabilityService,
         @Inject(forwardRef(() => SalesOpsService)) private readonly salesOps: SalesOpsService,
+        private readonly apolloEnrichment: ApolloEnrichmentAgent,
+        private readonly configService: ConfigService,
     ) { }
 
     /**
@@ -641,7 +664,7 @@ export class SourcingService {
         if (this.cancelledCampaigns.has(campaignId)) return 'USER_STOPPED';
         const startTime = this.campaignStartTimes.get(campaignId);
         if (startTime && Date.now() - startTime > this.PIPELINE_TIMEOUT_MS) return 'TIMEOUT';
-        if (qualifiedCount >= this.PIPELINE_SUPPLIER_LIMIT) return 'SUPPLIER_LIMIT_250';
+        if (qualifiedCount >= this.PIPELINE_SUPPLIER_LIMIT) return 'SUPPLIER_LIMIT';
         return null;
     }
 
@@ -840,13 +863,17 @@ OUTPUT FORMAT (JSON only):
         const { searchCriteria } = dto;
         const processedDomains = new Set<string>(); // Global deduplication by domain
         const processedCompanyNames = new Set<string>(); // Global deduplication by company name
-        let globalQualifiedCount = 0;
+        const qualifiedCounter = new AtomicCounter();
 
         // Register pipeline start time for auto-stop
         this.campaignStartTimes.set(id, Date.now());
         this.cancelledCampaigns.delete(id); // Clear stale cancel flag
-        const MAX_TOTAL_QUALIFIED = parseInt(process.env.MAX_TOTAL_QUALIFIED || '300', 10);
-        const MAX_PER_LANGUAGE = parseInt(process.env.MAX_PER_LANGUAGE || '80', 10);
+        // Dev environment: default to 10 firms. Production (Cloud Functions): default to 300.
+        const isDevEnv = !process.env.FUNCTION_TARGET && !process.env.K_SERVICE;
+        const MAX_TOTAL_QUALIFIED = parseInt(process.env.MAX_TOTAL_QUALIFIED || (isDevEnv ? '10' : '500'), 10);
+        const MAX_PER_LANGUAGE = parseInt(process.env.MAX_PER_LANGUAGE || (isDevEnv ? '5' : '150'), 10);
+
+        await this.log(id, `[CONFIG] Environment: ${isDevEnv ? 'DEV' : 'PROD'}, MAX_TOTAL_QUALIFIED=${MAX_TOTAL_QUALIFIED}, MAX_PER_LANGUAGE=${MAX_PER_LANGUAGE}`);
 
         // Auto-timeout: shouldStop() checks elapsed time and returns 'TIMEOUT'
         // This timer is a safety net — if pipeline is truly stuck, force completion
@@ -856,7 +883,7 @@ OUTPUT FORMAT (JSON only):
             this.observability.recordEvent('campaign', 'pipeline_timeout', 'warning', {
                 title: `Kampania przekroczyła timeout (${this.PIPELINE_TIMEOUT_MS / 60000} min)`,
                 campaignId: id,
-                message: `${globalQualifiedCount} dostawców znalezionych przed timeout`,
+                message: `${qualifiedCounter.value} dostawców znalezionych przed timeout`,
             }).catch(() => {});
             // Safety net: if still RUNNING after extra 60s, force-complete
             setTimeout(async () => {
@@ -971,7 +998,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             this.sourcingGateway?.emitProgress(id, 'STRATEGY', 100);
 
             // Check timeout after strategy generation
-            const stopAfterStrategy = this.shouldStop(id, globalQualifiedCount);
+            const stopAfterStrategy = this.shouldStop(id, qualifiedCounter.value);
             if (stopAfterStrategy) {
                 const elapsed = Math.round((Date.now() - (this.campaignStartTimes.get(id) || Date.now())) / 1000);
                 await this.log(id, `[STOP] Pipeline stopped after Strategy: ${stopAfterStrategy} (${elapsed}s elapsed)`);
@@ -1111,7 +1138,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             const optimizedStrategies = languageStrategies;
 
             // Adaptive parallelism for search phase
-            const maxWorkerLimit = parseInt(process.env.MAX_WORKER_LIMIT || '15', 10);
+            const maxWorkerLimit = parseInt(process.env.MAX_WORKER_LIMIT || '20', 10);
             const effectiveWorkers = Math.min(optimizedStrategies.length, maxWorkerLimit);
             const searchWorkerLimit = pLimit(effectiveWorkers);
 
@@ -1137,20 +1164,20 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 perCountryCollected.set(item.workerTag, (perCountryCollected.get(item.workerTag) || 0) + 1);
 
                 const p = this.urlLimit(async () => {
-                    const stopReason = this.shouldStop(id, globalQualifiedCount);
-                    if (stopReason || globalQualifiedCount >= MAX_TOTAL_QUALIFIED) return 0;
+                    const stopReason = this.shouldStop(id, qualifiedCounter.value);
+                    if (stopReason || !qualifiedCounter.tryReserve(MAX_TOTAL_QUALIFIED)) return 0;
                     const result = await this.processSupplierUrl(
                         id, dto, item.url, item.workerTag,
                         processedCompanyNames, item.originLanguage, item.originCountry,
                         productContext || undefined, processedDomains, 0,
                         userLanguage, knownManufacturers
                     );
-                    if (result > 0) {
-                        globalQualifiedCount += result;
+                    if (result <= 0) {
+                        qualifiedCounter.release();
                     }
                     processedCount++;
                     if (processedCount % 50 === 0) {
-                        await this.log(id, `[PHASE 2] Progress: ${processedCount} processed — qualified: ${globalQualifiedCount}`);
+                        await this.log(id, `[PHASE 2] Progress: ${processedCount} processed — qualified: ${qualifiedCounter.value}`);
                         this.sourcingGateway?.emitProgress(id, 'PROCESSING', Math.min(90, Math.round((processedCount / Math.max(totalCollected, 1)) * 100)));
                     }
                     return result;
@@ -1182,19 +1209,19 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             // Wait for all URL processing to complete (10 min max)
             await this.allSettledWithTimeout(processingPromises, 600000, id);
 
-            await this.log(id, `✅ [PHASE 2] Streaming pipeline complete. Processed: ${processedCount}, Qualified: ${globalQualifiedCount}/${MAX_TOTAL_QUALIFIED}`);
+            await this.log(id, `✅ [PHASE 2] Streaming pipeline complete. Processed: ${processedCount}, Qualified: ${qualifiedCounter.value}/${MAX_TOTAL_QUALIFIED}`);
 
             // Check stop conditions after Phase 2
-            const stopAfter2B = this.shouldStop(id, globalQualifiedCount);
+            const stopAfter2B = this.shouldStop(id, qualifiedCounter.value);
             if (stopAfter2B) {
                 const elapsed = Math.round((Date.now() - (this.campaignStartTimes.get(id) || Date.now())) / 1000);
-                await this.log(id, `[STOP] Pipeline stopped after Phase 2: ${stopAfter2B} (${elapsed}s elapsed, ${globalQualifiedCount} suppliers)`);
+                await this.log(id, `[STOP] Pipeline stopped after Phase 2: ${stopAfter2B} (${elapsed}s elapsed, ${qualifiedCounter.value} suppliers)`);
             }
 
             // --- PHASE 2.5: EXPANSION PASS (second sweep for missed suppliers) ---
-            const EXPANSION_THRESHOLD = Math.min(10, Math.ceil(MAX_TOTAL_QUALIFIED * 0.3));
-            if (!stopAfter2B && globalQualifiedCount < EXPANSION_THRESHOLD) {
-                await this.log(id, `[EXPANSION] Coverage at ${globalQualifiedCount}/${MAX_TOTAL_QUALIFIED} (${Math.round(globalQualifiedCount / MAX_TOTAL_QUALIFIED * 100)}%) — running expansion pass...`);
+            const EXPANSION_THRESHOLD = Math.min(20, Math.ceil(MAX_TOTAL_QUALIFIED * 0.3));
+            if (!stopAfter2B && qualifiedCounter.value < EXPANSION_THRESHOLD) {
+                await this.log(id, `[EXPANSION] Coverage at ${qualifiedCounter.value}/${MAX_TOTAL_QUALIFIED} (${Math.round(qualifiedCounter.value / MAX_TOTAL_QUALIFIED * 100)}%) — running expansion pass...`);
                 this.sourcingGateway?.emitProgress(id, 'EXPANSION', 0);
 
                 try {
@@ -1331,16 +1358,17 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                     let expansionFound = 0;
                     const expansionProcessPromises = expansionUrls.map(item =>
                         this.urlLimit(async () => {
-                            const expStop = this.shouldStop(id, globalQualifiedCount);
-                            if (expStop || globalQualifiedCount >= MAX_TOTAL_QUALIFIED) return 0;
+                            const expStop = this.shouldStop(id, qualifiedCounter.value);
+                            if (expStop || !qualifiedCounter.tryReserve(MAX_TOTAL_QUALIFIED)) return 0;
                             const result = await this.processSupplierUrl(
                                 id, dto, item.url, item.workerTag,
                                 processedCompanyNames, item.originLanguage, item.originCountry,
                                 productContext || undefined, processedDomains, 0,
                                 userLanguage, knownManufacturers
                             );
-                            if (result > 0) {
-                                globalQualifiedCount += result;
+                            if (result <= 0) {
+                                qualifiedCounter.release();
+                            } else {
                                 expansionFound += result;
                             }
                             return result;
@@ -1349,17 +1377,17 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
 
                     await this.allSettledWithTimeout(expansionProcessPromises, 120000, id);
 
-                    await this.log(id, `[EXPANSION] Expansion pass found ${expansionFound} additional suppliers. Total: ${globalQualifiedCount}`);
+                    await this.log(id, `[EXPANSION] Expansion pass found ${expansionFound} additional suppliers. Total: ${qualifiedCounter.value}`);
                     this.sourcingGateway?.emitProgress(id, 'EXPANSION', 100);
                 } catch (expansionErr: any) {
                     await this.log(id, `[EXPANSION] Expansion pass error (non-fatal): ${expansionErr.message}`);
                 }
             } else {
-                await this.log(id, `[EXPANSION] Coverage at ${globalQualifiedCount}/${MAX_TOTAL_QUALIFIED} — expansion pass not needed.`);
+                await this.log(id, `[EXPANSION] Coverage at ${qualifiedCounter.value}/${MAX_TOTAL_QUALIFIED} — expansion pass not needed.`);
             }
 
             // --- PHASE 2.7: COVERAGE CHECK — find missing known manufacturers ---
-            const stopBeforeCoverage = this.shouldStop(id, globalQualifiedCount);
+            const stopBeforeCoverage = this.shouldStop(id, qualifiedCounter.value);
             if (!stopBeforeCoverage && knownManufacturers.length > 0) {
                 try {
                     const foundSuppliers = await this.prisma.supplier.findMany({
@@ -1383,8 +1411,8 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                         await this.log(id, `[COVERAGE] Missing leaders: ${missingLeaders.map(m => m.name).join(', ')}`);
 
                         for (const leader of missingLeaders.slice(0, 10)) {
-                            const leaderStop = this.shouldStop(id, globalQualifiedCount);
-                            if (leaderStop || globalQualifiedCount >= MAX_TOTAL_QUALIFIED) {
+                            const leaderStop = this.shouldStop(id, qualifiedCounter.value);
+                            if (leaderStop || qualifiedCounter.value >= MAX_TOTAL_QUALIFIED) {
                                 if (leaderStop) await this.log(id, `[COVERAGE] Stopping leader processing: ${leaderStop}`);
                                 break;
                             }
@@ -1395,14 +1423,16 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                                 if (!processedDomains.has(leaderDomain)) {
                                     processedDomains.add(leaderDomain);
                                     await this.log(id, `[LEADER-DIRECT] Trying ${leader.name} → ${leader.website}`);
+                                    if (!qualifiedCounter.tryReserve(MAX_TOTAL_QUALIFIED)) break;
                                     const result = await this.processSupplierUrl(
                                         id, dto, leader.website, '[LEADER-DIRECT]',
                                         processedCompanyNames, 'en', leader.country || 'EU',
                                         productContext || undefined, processedDomains, 0,
                                         userLanguage, knownManufacturers
                                     );
-                                    if (result > 0) {
-                                        globalQualifiedCount += result;
+                                    if (result <= 0) {
+                                        qualifiedCounter.release();
+                                    } else {
                                         await this.log(id, `[LEADER-DIRECT] ${leader.name} QUALIFIED`);
                                     }
                                 }
@@ -1418,14 +1448,16 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                                         const srDomain = this.extractDomain(sr.link);
                                         if (processedDomains.has(srDomain)) continue;
                                         processedDomains.add(srDomain);
+                                        if (!qualifiedCounter.tryReserve(MAX_TOTAL_QUALIFIED)) break;
                                         const result = await this.processSupplierUrl(
                                             id, dto, sr.link, '[LEADER-SEARCH]',
                                             processedCompanyNames, 'en', leader.country || 'EU',
                                             productContext || undefined, processedDomains, 0,
                                             userLanguage, knownManufacturers
                                         );
-                                        if (result > 0) {
-                                            globalQualifiedCount += result;
+                                        if (result <= 0) {
+                                            qualifiedCounter.release();
+                                        } else {
                                             await this.log(id, `[LEADER-SEARCH] ${leader.name} QUALIFIED via ${srDomain}`);
                                             break;
                                         }
@@ -1462,7 +1494,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 .sort((a, b) => parseInt(b.split(': ')[1]) - parseInt(a.split(': ')[1]));
 
             const elapsed = Math.round((Date.now() - (this.campaignStartTimes.get(id) || Date.now())) / 1000);
-            const finalStopReason = this.shouldStop(id, globalQualifiedCount);
+            const finalStopReason = this.shouldStop(id, qualifiedCounter.value);
 
             await this.log(id, `[RESULTS] Per-country: ${languageStats.join(' | ')}`);
             await this.log(id, `[ANALYSIS] Total suppliers found: ${finalSupplierCount} | URLs processed: ${processedCount}/${globalSeenDomains.size} | Time: ${elapsed}s`);
@@ -2855,6 +2887,17 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
         });
 
         this.logger.log(`[ACCEPT] Campaign ${campaignId}: ${emailsSent} initial emails sent`);
+
+        // 6. Auto-start contact enrichment (dev only)
+        const isDevEnv = !process.env.FUNCTION_TARGET && !process.env.K_SERVICE;
+        if (isDevEnv && this.configService.get('APOLLO_API_KEY')) {
+            this.logger.log(`[ACCEPT] Starting contact enrichment for campaign ${campaignId}`);
+            this.apolloEnrichment.enrichCampaign(campaignId, (current, total, supplierName, level, email) => {
+                this.sourcingGateway?.emitContactProgress(campaignId, { current, total, supplierName, level, email });
+            }).catch((err) => {
+                this.logger.error(`[ACCEPT] Contact enrichment failed for ${campaignId}: ${err.message}`);
+            });
+        }
 
         return {
             qualified: qualifiedSuppliers.length,

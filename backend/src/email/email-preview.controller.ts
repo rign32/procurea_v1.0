@@ -1,4 +1,5 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { EmailService } from './email.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -14,6 +15,7 @@ export class EmailPreviewController {
      * Renders email HTML without sending — same templates as production.
      */
     @Post('preview')
+    @UseGuards(AuthGuard('jwt'))
     async preview(@Body() body: {
         stepId?: string;
         subject?: string;
