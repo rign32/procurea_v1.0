@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps, react-hooks/refs */
+import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import websocketService from '../services/websocket.service';
 import campaignsService, { inferLogLevel } from '../services/campaigns.service';
@@ -9,12 +10,21 @@ import type {
   Supplier,
 } from '../types/campaign.types';
 
+interface ContactProgress {
+  supplierName: string;
+  status: string;
+  contactsFound: number;
+  level?: string;
+}
+
 interface UseRealTimeMonitorReturn {
   logs: CampaignLog[];
   suppliers: Supplier[];
   progress: Record<CampaignStage, number>;
   isConnected: boolean;
   isPolling: boolean;
+  completedSignal: number;
+  contactProgress: ContactProgress[];
 }
 
 /**
@@ -36,6 +46,8 @@ export function useRealTimeMonitor(
   } = useCampaignsStore();
 
   const [wsConnected, setWsConnected] = useState(false);
+  const [completedSignal, setCompletedSignal] = useState(0);
+  const [contactProgress, setContactProgress] = useState<ContactProgress[]>([]);
   const lastLogTimestamp = useRef<string | undefined>(undefined);
   const previousCampaignId = useRef<string | undefined>(undefined);
   const recentLogHashes = useRef<Set<string>>(new Set());
@@ -102,20 +114,34 @@ export function useRealTimeMonitor(
         // Detect completion via progress (backend emits 'COMPLETED', 100)
         if (stage === 'COMPLETED' && progress === 100) {
           updateActiveCampaign({ status: 'COMPLETED', stage: 'COMPLETED' });
+          setCompletedSignal(prev => prev + 1);
         }
       },
 
       onSupplierUpdate: (event: any) => {
         if (event.data) {
           addSupplier(event.data as Supplier);
+          const s = event.data as Supplier;
+          if (s.name) {
+            setContactProgress(prev => {
+              const existing = prev.find(p => p.supplierName === s.name);
+              if (existing) {
+                return prev.map(p => p.supplierName === s.name
+                  ? { ...p, status: event.status || 'found', contactsFound: (s as any).contacts?.length || 0, level: (s as any).contactLevel || p.level }
+                  : p);
+              }
+              return [...prev, { supplierName: s.name, status: event.status || 'found', contactsFound: (s as any).contacts?.length || 0, level: (s as any).contactLevel }];
+            });
+          }
         }
       },
 
       // Backend doesn't emit these, but keep as safety net
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       onCompleted: (data: any) => {
         updateActiveCampaign({ status: data?.status || 'COMPLETED', stage: 'COMPLETED' });
         progressRef.current.COMPLETED = 100;
+        setCompletedSignal(prev => prev + 1);
       },
       onError: (error: any) => {
         console.error('[RealTimeMonitor] Campaign error:', error);
@@ -170,6 +196,8 @@ export function useRealTimeMonitor(
     progress: progressRef.current,
     isConnected: wsConnected,
     isPolling: !wsConnected && isLoading,
+    completedSignal,
+    contactProgress,
   };
 }
 
