@@ -189,6 +189,9 @@ model Campaign {
   aiSummary            String?
   aiSummaryGeneratedAt DateTime?
 
+  // Apollo Enrichment
+  apolloEnrichmentStatus String?
+
   // Feedback Survey
   feedbackEmailSentAt  DateTime?
 
@@ -257,16 +260,23 @@ model Contact {
   id              String   @id @default(uuid())
   supplierId      String
   supplier        Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-  
+
   name            String?
   role            String?
   email           String?
   phone           String?
   isDecisionMaker Boolean  @default(false)
-  
+
+  apolloId        String?
+  linkedinUrl     String?
+  department      String?
+  seniority       String?
+  emailStatus     String?
+  enrichedAt      DateTime?
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-  
+
   @@index([email])
   @@index([supplierId])
 }

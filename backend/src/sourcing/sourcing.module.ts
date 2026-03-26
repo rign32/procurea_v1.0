@@ -9,6 +9,8 @@ import { ScreenerAgentService } from './agents/screener.agent';
 import { EnrichmentAgentService } from './agents/enrichment.agent';
 import { AuditorAgentService } from './agents/auditor.agent';
 import { ExpansionAgentService } from './agents/expansion.agent';
+import { ApolloEnrichmentAgent } from './agents/apollo-enrichment.agent';
+import { ContactsController } from './contacts.controller';
 import { SourcingGateway } from './sourcing.gateway';
 import { EmailModule } from '../email/email.module';
 import { ObservabilityModule } from '../observability/observability.module';
@@ -16,7 +18,7 @@ import { SalesOpsModule } from '../sales-ops/sales-ops.module';
 
 @Module({
   imports: [EmailModule, ObservabilityModule, forwardRef(() => SalesOpsModule)],
-  controllers: [SourcingController],
+  controllers: [SourcingController, ContactsController],
   providers: [
     SourcingService,
     ScrapingService,
@@ -27,6 +29,7 @@ import { SalesOpsModule } from '../sales-ops/sales-ops.module';
     EnrichmentAgentService,
     AuditorAgentService,
     ExpansionAgentService,
+    ApolloEnrichmentAgent,
     SourcingGateway,
   ],
 })

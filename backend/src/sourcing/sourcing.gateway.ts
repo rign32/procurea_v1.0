@@ -74,4 +74,8 @@ export class SourcingGateway
     emitError(campaignId: string, error: string) {
         this.server.to(campaignId).emit('campaign.error', { message: error });
     }
+
+    emitContactProgress(campaignId: string, data: { current: number; total: number; supplierName?: string; level?: string; email?: string }) {
+        this.server.to(campaignId).emit('campaign.contact_progress', data);
+    }
 }
