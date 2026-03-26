@@ -56,7 +56,8 @@ export function useWebSocket(
 
   useEffect(() => {
     if (autoConnect) {
-      connect();
+      // Defer to avoid synchronous setState in effect
+      queueMicrotask(() => connect());
     }
 
     return () => {

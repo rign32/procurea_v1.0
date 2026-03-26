@@ -3,8 +3,9 @@ import { useState, useMemo, useEffect } from 'react';
 export function usePagination<T>(items: T[], pageSize: number = 12) {
     const [currentPage, setCurrentPage] = useState(1);
 
-    // Reset to page 1 when items change
-    useEffect(() => { setCurrentPage(1); }, [items.length]);
+    // Reset to page 1 when items change — use startTransition to avoid synchronous setState warning
+     
+    useEffect(() => { queueMicrotask(() => setCurrentPage(1)); }, [items.length]);
 
     const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
 
