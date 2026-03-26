@@ -71,7 +71,8 @@ jobs:
             --only hosting:app,hosting:app-en,functions:api \
             --token "$FIREBASE_TOKEN" \
             --project project-c64b9be9-1d92-4bc6-be7 \
-            --non-interactive
+            --non-interactive \
+            --force
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
