@@ -123,6 +123,17 @@ export class AuthService {
         });
 
         let isNewUser = false;
+        if (user) {
+            // Auto-correct language on every login based on origin domain
+            if (language && user.language !== language) {
+                await this.prisma.user.update({
+                    where: { id: user.id },
+                    data: { language },
+                });
+                user = { ...user, language };
+                console.log(`[AUTH] Updated language for ${email}: ${user.language} → ${language}`);
+            }
+        }
         if (!user) {
             isNewUser = true;
 
@@ -323,15 +334,6 @@ export class AuthService {
     async startEmailLogin(email: string, language?: string) {
         const { user, isNewUser } = await this.validateUserByProvider(email, 'email', undefined, undefined, language);
         const magicCode = crypto.randomInt(100000, 999999).toString();
-
-        // Update language for existing users when they log in from a different domain
-        if (!isNewUser && language && user.language !== language) {
-            await this.prisma.user.update({
-                where: { id: user.id },
-                data: { language },
-            });
-            user.language = language;
-        }
 
         // Store magic code in Redis (10 minute TTL)
         await this.redisService.setMagicCode(email, magicCode, user.id, 600);
