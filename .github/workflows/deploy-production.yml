@@ -35,6 +35,24 @@ jobs:
         working-directory: backend
         run: npx prisma generate
 
+      - name: Run database migrations
+        working-directory: backend
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Verify no pending migrations
+        working-directory: backend
+        run: |
+          STATUS=$(npx prisma migrate status 2>&1)
+          echo "$STATUS"
+          if echo "$STATUS" | grep -q "not yet been applied"; then
+            echo "::error::Pending migrations remain after deploy!"
+            exit 1
+          fi
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
       - name: Backend tests
         working-directory: backend
         run: npm test -- --passWithNoTests
@@ -88,7 +106,12 @@ jobs:
       - name: Post-deploy health check
         run: |
           sleep 15
-          curl -sf https://app.procurea.pl/api/health/ping || echo "⚠️ Health check failed — backend may still be warming up"
+          curl -sf https://app.procurea.pl/api/health/ping || echo "⚠️ Health ping failed — backend may still be warming up"
+          SCHEMA_STATUS=$(curl -sf https://app.procurea.pl/api/health/db-schema 2>/dev/null || echo '{"status":"unreachable"}')
+          echo "Schema check: $SCHEMA_STATUS"
+          if echo "$SCHEMA_STATUS" | grep -q '"status":"drift"'; then
+            echo "::warning::Database schema drift detected — pending migrations exist!"
+          fi
 
       - name: Install landing dependencies
         working-directory: landing

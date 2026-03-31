@@ -34,6 +34,12 @@ jobs:
         working-directory: backend
         run: npx prisma generate
 
+      - name: Run database migrations
+        working-directory: backend
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_STAGING }}
+
       - name: Backend tests
         working-directory: backend
         run: npm test -- --passWithNoTests

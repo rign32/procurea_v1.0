@@ -1,10 +1,14 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { HealthService, SystemHealth, ServiceHealth } from '../services/health.service';
 import { ErrorRecord } from '../services/error-tracking.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Controller('health')
 export class HealthController {
-    constructor(private readonly healthService: HealthService) { }
+    constructor(
+        private readonly healthService: HealthService,
+        private readonly prisma: PrismaService,
+    ) { }
 
     /**
      * GET /api/health - Full system health status
@@ -66,5 +70,32 @@ export class HealthController {
             status: 'ok',
             timestamp: new Date(),
         };
+    }
+
+    /**
+     * GET /api/health/db-schema - Check for pending migrations
+     */
+    @Get('db-schema')
+    async checkDbSchema() {
+        try {
+            const pending = await this.prisma.$queryRawUnsafe<{ count: string }[]>(
+                `SELECT COUNT(*)::text as count FROM "_prisma_migrations" WHERE "finished_at" IS NULL AND "rolled_back_at" IS NULL`
+            );
+            const tables = await this.prisma.$queryRawUnsafe<{ table_name: string }[]>(
+                `SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name`
+            );
+            const pendingCount = parseInt(pending[0]?.count || '0', 10);
+            return {
+                status: pendingCount === 0 ? 'ok' : 'drift',
+                pendingMigrations: pendingCount,
+                tableCount: tables.length,
+                tables: tables.map(t => t.table_name),
+            };
+        } catch (e) {
+            return {
+                status: 'error',
+                message: e instanceof Error ? e.message.substring(0, 200) : 'Unknown error',
+            };
+        }
     }
 }

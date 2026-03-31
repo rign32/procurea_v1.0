@@ -69,6 +69,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
                 `${request.method} ${request.url} → ${status}`,
                 exception instanceof Error ? exception.stack : String(exception),
             );
+        } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
+            this.logger.warn(
+                `${request.method} ${request.url} → ${status}: ${message} [Prisma ${exception.code}] ${JSON.stringify(exception.meta || {})}`,
+            );
+        } else if (exception instanceof Prisma.PrismaClientValidationError) {
+            this.logger.warn(
+                `${request.method} ${request.url} → ${status}: ${message} [Prisma ValidationError] ${exception.message.substring(0, 200)}`,
+            );
         } else {
             this.logger.warn(`${request.method} ${request.url} → ${status}: ${message}`);
         }
