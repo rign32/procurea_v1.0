@@ -106,6 +106,7 @@ export class AttioService {
             email_addresses: [{ email_address: data.email }],
             name: [
               {
+                full_name: [data.firstName, data.lastName].filter(Boolean).join(" ") || data.email.split("@")[0],
                 first_name: data.firstName || "",
                 last_name: data.lastName || "",
               },
