@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument */
 import { Controller, Post, Get, Query, Body, Headers, Logger, ForbiddenException } from "@nestjs/common";
-import { Throttle, SkipThrottle } from "@nestjs/throttler";
+import { Throttle } from "@nestjs/throttler";
 import { ConfigService } from "@nestjs/config";
 import { SalesOpsService } from "./sales-ops.service";
 import { AttioService } from "./attio.service";
@@ -41,7 +41,7 @@ export class SalesOpsController {
    * Remove after verifying integration works.
    */
   @Get("test-attio")
-  @SkipThrottle()
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   async testAttio(@Query("secret") secret: string) {
     const stagingSecret = this.configService.get<string>("STAGING_SECRET");
     if (!secret || secret !== stagingSecret) {
@@ -92,7 +92,7 @@ export class SalesOpsController {
    * Remove after backfill is complete.
    */
   @Get("backfill-attio")
-  @SkipThrottle()
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   async backfillAttio(@Query("secret") secret: string) {
     const stagingSecret = this.configService.get<string>("STAGING_SECRET");
     if (!secret || secret !== stagingSecret) {
