@@ -5,6 +5,7 @@ import { SalesOpsController } from "./sales-ops.controller";
 import { SalesOpsService } from "./sales-ops.service";
 import { AttioService } from "./attio.service";
 import { SlackNotificationsService } from "./slack-notifications.service";
+import { ResendAudiencesService } from "./resend-audiences.service";
 import { ApolloApiService } from "./apollo-api.service";
 import { ApolloPollingService } from "./apollo-polling.service";
 
@@ -15,6 +16,7 @@ import { ApolloPollingService } from "./apollo-polling.service";
     SalesOpsService,
     AttioService,
     SlackNotificationsService,
+    ResendAudiencesService,
     ApolloApiService,
     ApolloPollingService,
   ],

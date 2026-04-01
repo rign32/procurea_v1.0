@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { AttioService } from "./attio.service";
 import { SlackNotificationsService } from "./slack-notifications.service";
+import { ResendAudiencesService } from "./resend-audiences.service";
 
 @Injectable()
 export class SalesOpsService implements OnModuleInit {
@@ -9,6 +10,7 @@ export class SalesOpsService implements OnModuleInit {
   constructor(
     private readonly attio: AttioService,
     private readonly slack: SlackNotificationsService,
+    private readonly resendAudiences: ResendAudiencesService,
   ) {}
 
   onModuleInit() {
@@ -118,6 +120,7 @@ export class SalesOpsService implements OnModuleInit {
     company?: string;
     companyDomain?: string;
     utmData?: Record<string, string>;
+    language?: string;
   }): Promise<void> {
     this.logger.log(`Registration: ${payload.email}`);
 
@@ -158,6 +161,25 @@ export class SalesOpsService implements OnModuleInit {
       });
       attioOk = !!dealId;
     }
+
+    // Auto-segmentation: add to Attio list + Resend audience
+    const lang = payload.language || "pl";
+    const listSlug = lang === "pl" ? "users_pl" : "users_en";
+    if (personId) {
+      await this.attio.addPersonToList(listSlug, personId).catch((e) => {
+        this.logger.warn(`Attio list add failed: ${e.message}`);
+      });
+    }
+    await this.resendAudiences
+      .addContact({
+        email: payload.email,
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        language: lang,
+      })
+      .catch((e) => {
+        this.logger.warn(`Resend audience add failed: ${e.message}`);
+      });
 
     await this.slack.notifyRegistration(
       payload.email,

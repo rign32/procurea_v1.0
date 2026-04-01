@@ -4,6 +4,7 @@ import { Throttle } from "@nestjs/throttler";
 import { ConfigService } from "@nestjs/config";
 import { SalesOpsService } from "./sales-ops.service";
 import { AttioService } from "./attio.service";
+import { ResendAudiencesService } from "./resend-audiences.service";
 import { PrismaService } from "../prisma/prisma.service";
 import * as crypto from "crypto";
 
@@ -14,6 +15,7 @@ export class SalesOpsController {
   constructor(
     private readonly salesOpsService: SalesOpsService,
     private readonly attioService: AttioService,
+    private readonly resendAudiences: ResendAudiencesService,
     private readonly configService: ConfigService,
     private readonly prisma: PrismaService,
   ) {}
@@ -104,6 +106,7 @@ export class SalesOpsController {
         email: true,
         name: true,
         companyName: true,
+        language: true,
         organization: { select: { name: true } },
         createdAt: true,
       },
@@ -125,6 +128,7 @@ export class SalesOpsController {
           lastName: nameParts.slice(1).join(" ") || undefined,
           company,
           companyDomain: domain,
+          language: user.language,
         });
 
         results.push({ email: user.email, status: "ok" });
@@ -140,6 +144,30 @@ export class SalesOpsController {
       ok: results.filter((r) => r.status === "ok").length,
       failed: results.filter((r) => r.status !== "ok").length,
       details: results,
+    };
+  }
+
+  /**
+   * Sync all existing users to Resend Audiences (PL + EN segments).
+   * GET /sales-ops/sync-resend-audiences?secret=STAGING_SECRET
+   */
+  @Get("sync-resend-audiences")
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  async syncResendAudiences(@Query("secret") secret: string) {
+    const stagingSecret = this.configService.get<string>("STAGING_SECRET");
+    if (!secret || secret !== stagingSecret) {
+      throw new ForbiddenException("Invalid secret");
+    }
+
+    const users = await this.prisma.user.findMany({
+      select: { email: true, name: true, language: true },
+      orderBy: { createdAt: "asc" },
+    });
+
+    const result = await this.resendAudiences.syncAll(users);
+    return {
+      total: users.length,
+      ...result,
     };
   }
 

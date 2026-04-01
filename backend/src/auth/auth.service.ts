@@ -323,6 +323,7 @@ export class AuthService {
                     lastName: name?.split(' ').slice(1).join(' '),
                     companyDomain: domain,
                     utmData,
+                    language: user!.language,
                 });
             } catch (e) {
                 console.warn(`[AUTH] Sales ops registration notification failed: ${e.message}`);

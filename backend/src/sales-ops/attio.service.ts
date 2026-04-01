@@ -303,6 +303,28 @@ export class AttioService {
     }));
   }
 
+  /**
+   * Add a Person record to a list (e.g., USERS_PL or USERS_EN).
+   */
+  async addPersonToList(
+    listSlug: string,
+    personRecordId: string,
+  ): Promise<boolean> {
+    const result = await this.request("POST", `/lists/${listSlug}/entries`, {
+      data: {
+        parent_object: "people",
+        parent_record_id: personRecordId,
+      },
+    });
+
+    if (result) {
+      this.logger.log(
+        `Attio list ${listSlug}: added person ${personRecordId}`,
+      );
+    }
+    return !!result;
+  }
+
   getStageId(stage: string): string | undefined {
     return this.STAGES[stage];
   }
