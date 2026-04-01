@@ -51,7 +51,7 @@ export function clearUserIdentity() {
 
 export function captureUtmParams() {
   const params = new URLSearchParams(window.location.search);
-  const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+  const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'gclid'];
   const utmData: Record<string, string> = {};
   utmKeys.forEach((key) => {
     const val = params.get(key);

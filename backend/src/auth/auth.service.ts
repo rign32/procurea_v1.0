@@ -117,7 +117,7 @@ export class AuthService {
         });
     }
 
-    async validateUserByProvider(email: string, provider: string, ssoId?: string, name?: string, language?: string): Promise<{ user: any; isNewUser: boolean }> {
+    async validateUserByProvider(email: string, provider: string, ssoId?: string, name?: string, language?: string, utmData?: Record<string, string>): Promise<{ user: any; isNewUser: boolean }> {
         let user = await this.prisma.user.findUnique({
             where: { email },
         });
@@ -322,6 +322,7 @@ export class AuthService {
                     firstName: name?.split(' ')[0],
                     lastName: name?.split(' ').slice(1).join(' '),
                     companyDomain: domain,
+                    utmData,
                 });
             } catch (e) {
                 console.warn(`[AUTH] Sales ops registration notification failed: ${e.message}`);
@@ -331,8 +332,8 @@ export class AuthService {
         return { user, isNewUser };
     }
 
-    async startEmailLogin(email: string, language?: string) {
-        const { user, isNewUser } = await this.validateUserByProvider(email, 'email', undefined, undefined, language);
+    async startEmailLogin(email: string, language?: string, utmData?: Record<string, string>) {
+        const { user, isNewUser } = await this.validateUserByProvider(email, 'email', undefined, undefined, language, utmData);
         const magicCode = crypto.randomInt(100000, 999999).toString();
 
         // Store magic code in Redis (10 minute TTL)

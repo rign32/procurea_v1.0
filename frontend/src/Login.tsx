@@ -47,6 +47,11 @@ export default function Login({ onLogin }: { onLogin: (user: User) => void }) {
 
     useEffect(() => {
         captureUtmParams();
+        // Write UTM data as cookie so backend can read it during SSO/email auth flows
+        const utmRaw = sessionStorage.getItem('procurea_utm');
+        if (utmRaw) {
+            document.cookie = `procurea_utm=${encodeURIComponent(utmRaw)}; path=/; max-age=600; SameSite=Lax`;
+        }
         analytics.loginPageView();
         return startHesitationTracker('login', 30000);
     }, []);

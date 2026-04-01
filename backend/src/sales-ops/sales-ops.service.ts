@@ -86,6 +86,21 @@ export class SalesOpsService implements OnModuleInit {
    * User registered on procurea.io.
    * Creates/updates person + deal in Attio (Rejestracja stage) + Slack notification.
    */
+  private deriveAcquisitionSource(utmData?: Record<string, string>): string {
+    if (!utmData || Object.keys(utmData).length === 0) return "➡️ Direct";
+    if (utmData.gclid || (utmData.utm_source === "google" && utmData.utm_medium === "cpc")) {
+      return "🔴 Google Ads";
+    }
+    if (utmData.utm_source === "landing") {
+      return "🌐 Landing page";
+    }
+    if (utmData.utm_source) {
+      const parts = [utmData.utm_source, utmData.utm_medium].filter(Boolean);
+      return `🔗 ${parts.join(" / ")}`;
+    }
+    return "➡️ Direct";
+  }
+
   async handleRegistration(payload: {
     email: string;
     name: string;
@@ -93,6 +108,7 @@ export class SalesOpsService implements OnModuleInit {
     lastName?: string;
     company?: string;
     companyDomain?: string;
+    utmData?: Record<string, string>;
   }): Promise<void> {
     this.logger.log(`Registration: ${payload.email}`);
 
@@ -110,6 +126,9 @@ export class SalesOpsService implements OnModuleInit {
       );
     }
 
+    // Derive acquisition source from UTM data
+    const source = this.deriveAcquisitionSource(payload.utmData);
+
     // Check if deal already exists (e.g., from Apollo outreach)
     let attioOk = false;
     const existingDeals = await this.attio.findDealsByEmail(payload.email);
@@ -126,7 +145,7 @@ export class SalesOpsService implements OnModuleInit {
         stage: "rejestracja",
         personRecordId: personId || undefined,
         companyRecordId: companyId || undefined,
-        source: "Organic",
+        source,
       });
       attioOk = !!dealId;
     }
@@ -136,6 +155,7 @@ export class SalesOpsService implements OnModuleInit {
       payload.name,
       payload.company,
       attioOk,
+      source,
     );
   }
 

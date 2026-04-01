@@ -100,6 +100,19 @@ export class AuthController {
         };
     }
 
+    /** Parse UTM cookie set by frontend (JSON-encoded, URI-encoded) */
+    private parseUtmCookie(req: any): Record<string, string> | undefined {
+        const raw = req.cookies?.procurea_utm;
+        if (!raw) return undefined;
+        try {
+            const parsed = JSON.parse(decodeURIComponent(raw));
+            if (typeof parsed === 'object' && parsed !== null) return parsed;
+        } catch {
+            // malformed cookie, ignore
+        }
+        return undefined;
+    }
+
     // ========== GOOGLE OAUTH ==========
     @Get('google')
     @UseGuards(GoogleAuthGuard)
@@ -118,15 +131,20 @@ export class AuthController {
         // Note: OAuth state parameter doesn't work in serverless (no session support)
         const authMode = req.cookies?.procurea_auth_mode || 'login';
         const origin = req.query?.state || req.cookies?.procurea_auth_origin || 'app';
-        console.log('[BACKEND] Google callback - authMode from cookie:', authMode, 'origin:', origin);
+        const utmData = this.parseUtmCookie(req);
+        console.log('[BACKEND] Google callback - authMode from cookie:', authMode, 'origin:', origin, 'utm:', utmData ? JSON.stringify(utmData) : 'none');
 
-        // Clear the authMode and origin cookies as they're no longer needed
+        // Clear the authMode, origin and UTM cookies as they're no longer needed
         const isProd = isProductionEnvironment();
         res.clearCookie('procurea_auth_mode', {
             path: '/',
             domain: getCookieDomain(req)
         });
         res.clearCookie('procurea_auth_origin', {
+            path: '/',
+            domain: getCookieDomain(req)
+        });
+        res.clearCookie('procurea_utm', {
             path: '/',
             domain: getCookieDomain(req)
         });
@@ -152,7 +170,8 @@ export class AuthController {
                 oauthUser.provider,
                 oauthUser.providerId,
                 oauthUser.name,
-                origin === 'app-en' ? 'en' : 'pl'
+                origin === 'app-en' ? 'en' : 'pl',
+                utmData,
             );
 
             // Check if user is blocked before proceeding
@@ -678,11 +697,16 @@ export class AuthController {
         // Note: OAuth state parameter doesn't work in serverless (no session support)
         const authMode = req.cookies?.procurea_auth_mode || 'login';
         const msOrigin = req.query?.state || req.cookies?.procurea_auth_origin || 'app';
-        console.log('[BACKEND] Microsoft callback - authMode from cookie:', authMode, 'origin:', msOrigin);
+        const utmData = this.parseUtmCookie(req);
+        console.log('[BACKEND] Microsoft callback - authMode from cookie:', authMode, 'origin:', msOrigin, 'utm:', utmData ? JSON.stringify(utmData) : 'none');
 
-        // Clear the authMode cookie as it's no longer needed
+        // Clear the authMode and UTM cookies as they're no longer needed
         const isProd = isProductionEnvironment();
         res.clearCookie('procurea_auth_mode', {
+            path: '/',
+            domain: getCookieDomain(req)
+        });
+        res.clearCookie('procurea_utm', {
             path: '/',
             domain: getCookieDomain(req)
         });
@@ -706,7 +730,8 @@ export class AuthController {
                 oauthUser.provider,
                 oauthUser.providerId,
                 oauthUser.name,
-                msOrigin === 'app-en' ? 'en' : 'pl'
+                msOrigin === 'app-en' ? 'en' : 'pl',
+                utmData,
             );
 
             // Check if user is blocked before proceeding
@@ -872,9 +897,10 @@ export class AuthController {
 
     @Post('email/login')
     @Throttle({ default: { ttl: 60000, limit: 5 } }) // 5 per minute
-    async emailLogin(@Body() body: { email: string; language?: string }) {
+    async emailLogin(@Body() body: { email: string; language?: string }, @Req() req) {
         if (!body.email) throw new BadRequestException('Missing email');
-        return this.authService.startEmailLogin(body.email, body.language);
+        const utmData = this.parseUtmCookie(req);
+        return this.authService.startEmailLogin(body.email, body.language, utmData);
     }
 
     @Post('email/verify')

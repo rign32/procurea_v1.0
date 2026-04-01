@@ -151,6 +151,7 @@ export class SlackNotificationsService {
     name: string,
     company?: string,
     attioOk?: boolean,
+    source?: string,
   ): Promise<boolean> {
     return this.send({
       icon: "🎉",
@@ -159,6 +160,7 @@ export class SlackNotificationsService {
         { label: "Użytkownik", value: name || email },
         { label: "Email", value: email },
         ...(company ? [{ label: "Firma", value: company }] : []),
+        ...(source ? [{ label: "Źródło", value: source }] : []),
       ],
       footer: this.attioFooter(attioOk, "Attio: deal → etap Rejestracja"),
     });
