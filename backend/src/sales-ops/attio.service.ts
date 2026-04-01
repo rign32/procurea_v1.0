@@ -59,13 +59,17 @@ export class AttioService {
     method: string,
     path: string,
     body?: any,
+    params?: Record<string, string>,
   ): Promise<any> {
     if (!this.apiKey) {
       this.logger.warn(`Attio disabled, skipping ${method} ${path}`);
       return null;
     }
 
-    const url = `${this.baseUrl}${path}`;
+    const qs = params ? "?" + new URLSearchParams(params).toString() : "";
+    const url = `${this.baseUrl}${path}${qs}`;
+    this.logger.log(`Attio API → ${method} ${path}${qs}`);
+
     const res = await fetch(url, {
       method,
       headers: {
@@ -78,7 +82,9 @@ export class AttioService {
     if (!res.ok) {
       const text = await res.text();
       this.logger.error(
-        `Attio API error: ${res.status} ${method} ${path} — ${text}`,
+        `Attio API FAILED: ${res.status} ${method} ${path}${qs}\n` +
+          `  Request: ${JSON.stringify(body).substring(0, 500)}\n` +
+          `  Response: ${text.substring(0, 500)}`,
       );
       return null;
     }
@@ -91,21 +97,25 @@ export class AttioService {
    * Uses upsert (matching_attribute: email_addresses).
    */
   async upsertPerson(data: AttioPersonData): Promise<string | null> {
-    const result = await this.request("PUT", "/objects/people/records", {
-      data: {
-        values: {
-          email_addresses: [{ email_address: data.email }],
-          name: [
-            {
-              first_name: data.firstName || "",
-              last_name: data.lastName || "",
-            },
-          ],
-          ...(data.jobTitle && { job_title: [{ value: data.jobTitle }] }),
+    const result = await this.request(
+      "PUT",
+      "/objects/people/records",
+      {
+        data: {
+          values: {
+            email_addresses: [{ email_address: data.email }],
+            name: [
+              {
+                first_name: data.firstName || "",
+                last_name: data.lastName || "",
+              },
+            ],
+            ...(data.jobTitle && { job_title: [{ value: data.jobTitle }] }),
+          },
         },
       },
-      matching_attribute: "email_addresses",
-    });
+      { matching_attribute: "email_addresses" },
+    );
 
     const recordId = result?.data?.id?.record_id;
     if (recordId) {
@@ -125,10 +135,12 @@ export class AttioService {
       values.domains = [{ domain }];
     }
 
-    const result = await this.request("PUT", "/objects/companies/records", {
-      data: { values },
-      matching_attribute: domain ? "domains" : undefined,
-    });
+    const result = await this.request(
+      "PUT",
+      "/objects/companies/records",
+      { data: { values } },
+      domain ? { matching_attribute: "domains" } : undefined,
+    );
 
     const recordId = result?.data?.id?.record_id;
     if (recordId) {
@@ -154,10 +166,14 @@ export class AttioService {
       ];
     }
     if (data.personRecordId) {
-      values.associated_people = [{ target_record_id: data.personRecordId }];
+      values.associated_people = [
+        { target_object: "people", target_record_id: data.personRecordId },
+      ];
     }
     if (data.companyRecordId) {
-      values.associated_company = [{ target_record_id: data.companyRecordId }];
+      values.associated_company = [
+        { target_object: "companies", target_record_id: data.companyRecordId },
+      ];
     }
     if (data.sekwencjaApollo) {
       values.sekwencja_apollo = [{ value: data.sekwencjaApollo }];

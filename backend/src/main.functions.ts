@@ -139,6 +139,8 @@ export const api = onRequest(
             'SLACK_BOT_TOKEN',
             'SLACK_CHANNEL_ID',
             'SLACK_ALERTS_CHANNEL_ID',
+            'APOLLO_WEBHOOK_SECRET',
+            'APOLLO_API_KEY',
         ],
     },
     expressApp
@@ -173,6 +175,8 @@ export const apiStaging = onRequest(
             'SLACK_BOT_TOKEN',
             'SLACK_CHANNEL_ID',
             'SLACK_ALERTS_CHANNEL_ID',
+            'APOLLO_WEBHOOK_SECRET',
+            'APOLLO_API_KEY',
         ],
     },
     expressApp

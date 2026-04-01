@@ -33,6 +33,15 @@ export class SalesOpsService implements OnModuleInit {
   }): Promise<void> {
     this.logger.log(`Apollo reply from: ${payload.email}`);
 
+    // Dedup: skip if deal already exists for this email (handles cold-start re-processing)
+    const existingDeals = await this.attio.findDealsByEmail(payload.email);
+    if (existingDeals.length > 0) {
+      this.logger.log(
+        `Apollo reply: deal already exists for ${payload.email}, skipping`,
+      );
+      return;
+    }
+
     const personId = await this.attio.upsertPerson({
       email: payload.email,
       firstName: payload.first_name,

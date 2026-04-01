@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument */
-import { Controller, Post, Body, Headers, Logger, ForbiddenException } from "@nestjs/common";
+import { Controller, Post, Get, Query, Body, Headers, Logger, ForbiddenException } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
 import { ConfigService } from "@nestjs/config";
 import { SalesOpsService } from "./sales-ops.service";
+import { AttioService } from "./attio.service";
+import { PrismaService } from "../prisma/prisma.service";
 import * as crypto from "crypto";
 
 @Controller("sales-ops")
@@ -11,7 +13,9 @@ export class SalesOpsController {
 
   constructor(
     private readonly salesOpsService: SalesOpsService,
+    private readonly attioService: AttioService,
     private readonly configService: ConfigService,
+    private readonly prisma: PrismaService,
   ) {}
 
   private verifyWebhookSecret(signature: string | undefined, body: any, secretEnvKey: string): void {
@@ -29,6 +33,112 @@ export class SalesOpsController {
     if (sigBuffer.length !== expectedBuffer.length || !crypto.timingSafeEqual(sigBuffer, expectedBuffer)) {
       throw new ForbiddenException("Invalid webhook signature");
     }
+  }
+
+  /**
+   * Diagnostic endpoint to test Attio API connectivity.
+   * GET /sales-ops/test-attio?secret=STAGING_SECRET
+   * Remove after verifying integration works.
+   */
+  @Get("test-attio")
+  async testAttio(@Query("secret") secret: string) {
+    const stagingSecret = this.configService.get<string>("STAGING_SECRET");
+    if (!secret || secret !== stagingSecret) {
+      throw new ForbiddenException("Invalid secret");
+    }
+
+    const results: Record<string, any> = {
+      attioEnabled: this.attioService.isEnabled,
+    };
+
+    // Test 1: Upsert Person
+    const personId = await this.attioService.upsertPerson({
+      email: "test-attio-diagnostic@procurea.pl",
+      firstName: "Test",
+      lastName: "Diagnostic",
+    });
+    results.person = personId;
+
+    // Test 2: Upsert Company
+    const companyId = await this.attioService.upsertCompany(
+      "procurea.pl",
+      "procurea.pl",
+    );
+    results.company = companyId;
+
+    // Test 3: Create Deal (only if person was created)
+    if (personId) {
+      const dealId = await this.attioService.createDeal({
+        name: "Test Diagnostic — DELETE ME",
+        stage: "rejestracja",
+        personRecordId: personId,
+        companyRecordId: companyId || undefined,
+        source: "Diagnostic",
+      });
+      results.deal = dealId;
+    } else {
+      results.deal = null;
+      results.dealSkipped = "person upsert failed, cannot create deal";
+    }
+
+    return results;
+  }
+
+  /**
+   * Backfill all existing users to Attio CRM.
+   * GET /sales-ops/backfill-attio?secret=STAGING_SECRET
+   * Creates Person + Company + Deal for each user that doesn't have a deal yet.
+   * Remove after backfill is complete.
+   */
+  @Get("backfill-attio")
+  async backfillAttio(@Query("secret") secret: string) {
+    const stagingSecret = this.configService.get<string>("STAGING_SECRET");
+    if (!secret || secret !== stagingSecret) {
+      throw new ForbiddenException("Invalid secret");
+    }
+
+    const users = await this.prisma.user.findMany({
+      select: {
+        email: true,
+        name: true,
+        companyName: true,
+        organization: { select: { name: true } },
+        createdAt: true,
+      },
+      orderBy: { createdAt: "asc" },
+    });
+
+    const results: Array<{ email: string; status: string }> = [];
+
+    for (const user of users) {
+      try {
+        const domain = user.email.split("@")[1];
+        const nameParts = (user.name || "").split(" ");
+        const company = user.organization?.name || user.companyName || undefined;
+
+        await this.salesOpsService.handleRegistration({
+          email: user.email,
+          name: user.name || user.email.split("@")[0],
+          firstName: nameParts[0] || undefined,
+          lastName: nameParts.slice(1).join(" ") || undefined,
+          company,
+          companyDomain: domain,
+        });
+
+        results.push({ email: user.email, status: "ok" });
+        this.logger.log(`Backfill OK: ${user.email}`);
+      } catch (e) {
+        results.push({ email: user.email, status: `error: ${e.message}` });
+        this.logger.error(`Backfill FAILED: ${user.email} — ${e.message}`);
+      }
+    }
+
+    return {
+      total: users.length,
+      ok: results.filter((r) => r.status === "ok").length,
+      failed: results.filter((r) => r.status !== "ok").length,
+      details: results,
+    };
   }
 
   /**
