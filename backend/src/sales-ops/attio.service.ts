@@ -29,6 +29,9 @@ export class AttioService {
   private readonly apiKey: string;
   private readonly baseUrl = "https://api.attio.com/v2";
 
+  // Default deal owner (Rafal Reiwer — only workspace member)
+  private readonly DEFAULT_OWNER_ID = "416b7599-41ee-4253-9c26-407638d53a32";
+
   // Pipeline stage IDs from Attio (discovered via MCP audit)
   private readonly STAGES = {
     outreach: "02ceec60-0ed1-4aa3-9b49-5ff54bd8b915",
@@ -159,6 +162,12 @@ export class AttioService {
     const values: any = {
       name: [{ value: data.name }],
       stage: [{ status: stageId }],
+      owner: [
+        {
+          referenced_actor_type: "workspace-member",
+          referenced_actor_id: this.DEFAULT_OWNER_ID,
+        },
+      ],
     };
 
     if (data.value) {
