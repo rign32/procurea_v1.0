@@ -1958,10 +1958,13 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             if (this.shouldStop(campaignId, 0)) return 0;
 
             // BLACKLIST CHECK — must happen before ANY processing
-            if (await this.companyRegistry.isBlacklisted(domain)) {
-                await this.log(campaignId, `${workerTag} [BLACKLISTED] ${domain} — skipping`);
-                return 0;
-            }
+            // Graceful: DB errors treated as "not blacklisted" to survive transient Cloud SQL disconnects
+            try {
+                if (await this.companyRegistry.isBlacklisted(domain)) {
+                    await this.log(campaignId, `${workerTag} [BLACKLISTED] ${domain} — skipping`);
+                    return 0;
+                }
+            } catch { /* DB unreachable — continue without blacklist check */ }
 
             // SHOP CHECK — known marketplaces/e-commerce, hard-reject
             const cleanDomain = domain.replace(/^www\./, '').toLowerCase();
@@ -1984,7 +1987,11 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             }
 
             // 0. CHECK GLOBAL REGISTRY CACHE FIRST!
-            const cachedSupplier = await this.companyRegistry.getByDomain(domain);
+            // Graceful: DB errors treated as cache miss to survive transient Cloud SQL disconnects
+            let cachedSupplier: any = null;
+            try {
+                cachedSupplier = await this.companyRegistry.getByDomain(domain);
+            } catch { /* DB unreachable — proceed without cache */ }
 
             if (cachedSupplier && !this.companyRegistry.isStale(cachedSupplier.lastProcessedAt)) {
                 await this.log(campaignId, `${workerTag} [CACHE HIT] ${cachedSupplier.name || domain} - reusing cached data`);
