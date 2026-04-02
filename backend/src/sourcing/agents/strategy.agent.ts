@@ -576,8 +576,13 @@ Output Format (JSON Only):
       }
 
       // POST-PROCESSING: Filter strategies to only allowed languages from region config
+      // Normalize language codes: "en-US" → "en", "pt-BR" → "pt"
       const allowedLanguages = new Set(regionConfig.languages.map(l => l.code));
       if (result.strategies && result.strategies.length > 0) {
+        // Normalize Gemini's language codes before filtering
+        for (const s of result.strategies) {
+          if (s.language) s.language = s.language.split('-')[0].toLowerCase();
+        }
         const before = result.strategies.length;
         result.strategies = result.strategies.filter((s: any) =>
           allowedLanguages.has(s.language)
@@ -596,8 +601,16 @@ Output Format (JSON Only):
         const normalizeForMatch = (name: string) => {
           const lower = name.toLowerCase().trim();
           const aliases: Record<string, string> = {
-            'czechia': 'czech republic', 'the netherlands': 'netherlands',
-            'holland': 'netherlands', 'united states': 'usa',
+            'czechia': 'czech republic', 'the czech republic': 'czech republic', 'czech': 'czech republic',
+            'the netherlands': 'netherlands', 'holland': 'netherlands',
+            'united states': 'usa', 'united states of america': 'usa', 'u.s.a.': 'usa', 'u.s.': 'usa',
+            'united kingdom': 'uk', 'great britain': 'uk', 'england': 'uk',
+            'republic of korea': 'south korea', 'korea': 'south korea', 'korea (south)': 'south korea',
+            'republic of türkiye': 'turkey', 'türkiye': 'turkey', 'turkiye': 'turkey',
+            'brasil': 'brazil',
+            'republic of india': 'india',
+            'taiwan, province of china': 'taiwan', 'chinese taipei': 'taiwan',
+            'viet nam': 'vietnam',
           };
           return aliases[lower] || lower;
         };

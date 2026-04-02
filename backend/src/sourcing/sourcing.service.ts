@@ -1013,8 +1013,17 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
 
             await this.log(id, `🎯 [STRATEGY] Generating multimodal search strategy for region: ${strategyParams.region}`);
             await this.log(id, `📊 [STRATEGY] Product: "${strategyParams.productName}", Material: ${strategyParams.material || 'N/A'}, Category: ${strategyParams.category || 'N/A'}, Keywords: [${strategyParams.keywords.join(', ')}]`);
-            const strategyResult = await this.strategyAgent.execute(strategyParams);
+            let strategyResult = await this.strategyAgent.execute(strategyParams);
             await this.log(id, `✅ [STRATEGY] Generated ${strategyResult.strategies?.length || 0} language-specific strategies`);
+
+            // Retry strategy if Gemini timeout returned empty strategies
+            const STRATEGY_RETRIES = 2;
+            for (let retry = 1; retry <= STRATEGY_RETRIES && (!strategyResult.strategies || strategyResult.strategies.length === 0); retry++) {
+                await this.log(id, `[STRATEGY] ⚠️ Got 0 strategies (likely Gemini timeout). Retry ${retry}/${STRATEGY_RETRIES}...`);
+                await new Promise(r => setTimeout(r, 3000 * retry)); // 3s, 6s backoff
+                strategyResult = await this.strategyAgent.execute(strategyParams);
+                await this.log(id, `[STRATEGY] Retry ${retry} returned ${strategyResult.strategies?.length || 0} strategies`);
+            }
             this.sourcingGateway?.emitProgress(id, 'STRATEGY', 100);
 
             // Check timeout after strategy generation
@@ -1142,13 +1151,26 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                         negatives,
                     });
                 } else {
-                    // GLOBAL, GLOBAL_NO_CN or unknown — English fallback
-                    languageStrategies.push({
-                        country: 'Global',
-                        language: 'en',
-                        queries: fallbackQueries,
-                        negatives,
-                    });
+                    // GLOBAL, GLOBAL_NO_CN or unknown — top 7 languages for maximum coverage
+                    const globalFallbacks = [
+                        { country: 'USA', language: 'en' },
+                        { country: 'Germany', language: 'de' },
+                        { country: 'France', language: 'fr' },
+                        { country: 'Italy', language: 'it' },
+                        { country: 'Japan', language: 'ja' },
+                        { country: 'South Korea', language: 'ko' },
+                        { country: 'Poland', language: 'pl' },
+                    ];
+                    for (const fb of globalFallbacks) {
+                        languageStrategies.push({
+                            country: fb.country,
+                            language: fb.language,
+                            queries: fallbackQueries,
+                            negatives: fb.language === 'pl'
+                                ? [...negatives, '-olx', '-ceneo']
+                                : negatives,
+                        });
+                    }
                 }
 
                 await this.log(id, `[FALLBACK] Generated ${languageStrategies.length} fallback strategies with ${fallbackQueries.length} queries each`);
