@@ -120,6 +120,13 @@ export class GeminiService {
         }
     }
 
+    // Circuit breaker: track consecutive failures to back off when Gemini is overloaded
+    private consecutiveFailures = 0;
+    private lastFailureTime = 0;
+    private readonly MAX_RETRIES = parseInt(process.env.GEMINI_MAX_RETRIES || '2', 10);
+    private readonly CIRCUIT_BREAKER_THRESHOLD = 5; // After 5 consecutive failures, add cooldown
+    private readonly CIRCUIT_BREAKER_COOLDOWN_MS = 10_000; // 10s cooldown when circuit open
+
     async generateContent(prompt: string, userId?: string, context?: string): Promise<string> {
         // 0. Check Cache
         const cacheKey = this.getCacheKey(prompt);
@@ -130,53 +137,87 @@ export class GeminiService {
             return cachedResponse;
         }
 
+        // Circuit breaker: if many consecutive failures, wait before retrying
+        if (this.consecutiveFailures >= this.CIRCUIT_BREAKER_THRESHOLD) {
+            const timeSinceLastFailure = Date.now() - this.lastFailureTime;
+            if (timeSinceLastFailure < this.CIRCUIT_BREAKER_COOLDOWN_MS) {
+                const waitMs = this.CIRCUIT_BREAKER_COOLDOWN_MS - timeSinceLastFailure;
+                this.logger.warn(`[GEMINI] Circuit breaker active (${this.consecutiveFailures} failures) — waiting ${waitMs}ms`);
+                await new Promise(r => setTimeout(r, waitMs));
+            }
+        }
+
         const startTime = Date.now();
         let resultText = '';
         let status: 'success' | 'error' = 'success';
         let errorMessage: string | undefined;
+        let lastError: Error | undefined;
 
-        // Executing Generation...
-        try {
-            resultText = await Promise.race([
-                this.executeGeneration(prompt),
-                new Promise<never>((_, reject) =>
-                    setTimeout(() => reject(new Error(`Gemini API timeout after ${this.GEMINI_TIMEOUT_MS}ms`)), this.GEMINI_TIMEOUT_MS)
-                ),
-            ]);
-            // Save to cache on success
-            if (resultText && !resultText.startsWith('{ "error":')) {
-                this.saveToCache(cacheKey, resultText);
+        // Retry with exponential backoff
+        for (let attempt = 0; attempt <= this.MAX_RETRIES; attempt++) {
+            if (attempt > 0) {
+                const backoffMs = Math.min(2000 * Math.pow(2, attempt - 1), 8000); // 2s, 4s, 8s
+                this.logger.warn(`[GEMINI] Retry ${attempt}/${this.MAX_RETRIES} after ${backoffMs}ms backoff`);
+                await new Promise(r => setTimeout(r, backoffMs));
             }
-        } catch (e) {
-            status = 'error';
-            errorMessage = e.message;
-            // Record error for admin error tracking
-            if (this.errorTrackingService) {
-                this.errorTrackingService.recordError(e, {
-                    type: 'API_ERROR',
-                    service: 'gemini',
-                    context: { prompt: prompt.substring(0, 200), userId, context },
-                });
-            }
-            throw e;
-        } finally {
-            // Log API usage (skip for mock responses)
-            if (process.env.USE_MOCK_AI !== 'true' && this.apiUsageService) {
-                const responseTimeMs = Date.now() - startTime;
-                // Estimate tokens (rough: ~4 chars per token)
-                const tokensUsed = Math.ceil((prompt.length + (resultText?.length || 0)) / 4);
 
-                await this.apiUsageService.logCall({
-                    service: 'gemini',
-                    endpoint: this.modelName + (context ? `:${context}` : ''),
-                    userId,
-                    requestPayload: prompt.substring(0, 200),
-                    status,
-                    errorMessage,
-                    tokensUsed,
-                    responseTimeMs,
-                }).catch(() => { }); // Don't fail main operation
+            try {
+                resultText = await Promise.race([
+                    this.executeGeneration(prompt),
+                    new Promise<never>((_, reject) =>
+                        setTimeout(() => reject(new Error(`Gemini API timeout after ${this.GEMINI_TIMEOUT_MS}ms`)), this.GEMINI_TIMEOUT_MS)
+                    ),
+                ]);
+                // Success — reset circuit breaker
+                this.consecutiveFailures = 0;
+                // Save to cache on success
+                if (resultText && !resultText.startsWith('{ "error":')) {
+                    this.saveToCache(cacheKey, resultText);
+                }
+                lastError = undefined;
+                break; // Success — exit retry loop
+            } catch (e) {
+                lastError = e;
+                this.consecutiveFailures++;
+                this.lastFailureTime = Date.now();
+                const isTimeout = e.message?.includes('timeout');
+                const isRetryable = isTimeout || e.message?.includes('429') || e.message?.includes('503') || e.message?.includes('RESOURCE_EXHAUSTED');
+
+                if (!isRetryable || attempt >= this.MAX_RETRIES) {
+                    status = 'error';
+                    errorMessage = e.message;
+                    if (this.errorTrackingService) {
+                        this.errorTrackingService.recordError(e, {
+                            type: 'API_ERROR',
+                            service: 'gemini',
+                            context: { prompt: prompt.substring(0, 200), userId, context, attempt, consecutiveFailures: this.consecutiveFailures },
+                        });
+                    }
+                    break; // Non-retryable or max retries exhausted
+                }
+                this.logger.warn(`[GEMINI] Attempt ${attempt + 1} failed (${isTimeout ? 'timeout' : e.message}) — will retry`);
             }
+        }
+
+        // Log API usage
+        if (process.env.USE_MOCK_AI !== 'true' && this.apiUsageService) {
+            const responseTimeMs = Date.now() - startTime;
+            const tokensUsed = Math.ceil((prompt.length + (resultText?.length || 0)) / 4);
+
+            await this.apiUsageService.logCall({
+                service: 'gemini',
+                endpoint: this.modelName + (context ? `:${context}` : ''),
+                userId,
+                requestPayload: prompt.substring(0, 200),
+                status,
+                errorMessage,
+                tokensUsed,
+                responseTimeMs,
+            }).catch(() => { });
+        }
+
+        if (lastError) {
+            throw lastError;
         }
 
         return resultText;

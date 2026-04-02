@@ -232,6 +232,7 @@ export class SourcingService {
     private readonly cancelledCampaigns = new Set<string>();
     private readonly campaignStartTimes = new Map<string, number>();
     private readonly campaignTimers = new Map<string, ReturnType<typeof setTimeout>>();
+    private readonly campaignAbortControllers = new Map<string, AbortController>();
     private readonly PIPELINE_TIMEOUT_MS = parseInt(process.env.PIPELINE_TIMEOUT_MS || '1800000', 10); // 30 min
     private readonly PIPELINE_SUPPLIER_LIMIT = parseInt(process.env.PIPELINE_SUPPLIER_LIMIT || '500', 10);
 
@@ -698,6 +699,8 @@ export class SourcingService {
             new Promise<PromiseSettledResult<T>[]>((resolve) =>
                 setTimeout(() => {
                     this.logger.warn(`[${campaignId}] allSettledWithTimeout: ${effectiveTimeout}ms elapsed, resolving early`);
+                    // Signal queued URLs to bail out immediately
+                    this.campaignAbortControllers.get(campaignId)?.abort();
                     resolve(
                         promises.map(() => ({
                             status: 'rejected' as const,
@@ -707,6 +710,21 @@ export class SourcingService {
                 }, effectiveTimeout)
             ),
         ]);
+    }
+
+    /**
+     * Wrap a promise with a timeout. Rejects with descriptive error if timeout exceeded.
+     */
+    private withUrlTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+        return new Promise<T>((resolve, reject) => {
+            const timer = setTimeout(() => {
+                reject(new Error(`Per-URL timeout (${ms}ms): ${label}`));
+            }, ms);
+            promise.then(
+                val => { clearTimeout(timer); resolve(val); },
+                err => { clearTimeout(timer); reject(err); }
+            );
+        });
     }
 
     async getLogs(campaignId: string, since?: string) {
@@ -868,6 +886,8 @@ OUTPUT FORMAT (JSON only):
         // Register pipeline start time for auto-stop
         this.campaignStartTimes.set(id, Date.now());
         this.cancelledCampaigns.delete(id); // Clear stale cancel flag
+        const abortController = new AbortController();
+        this.campaignAbortControllers.set(id, abortController);
         // Dev environment: default to 10 firms. Production (Cloud Functions): default to 300.
         const isDevEnv = !process.env.FUNCTION_TARGET && !process.env.K_SERVICE;
         const MAX_TOTAL_QUALIFIED = parseInt(process.env.MAX_TOTAL_QUALIFIED || (isDevEnv ? '10' : '500'), 10);
@@ -1163,15 +1183,35 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 // Track per-country stats for expansion
                 perCountryCollected.set(item.workerTag, (perCountryCollected.get(item.workerTag) || 0) + 1);
 
+                const PER_URL_TIMEOUT_MS = parseInt(process.env.PER_URL_TIMEOUT_MS || '90000', 10);
+                // Early exit before waiting for pLimit slot (avoids wasting queue time after timeout)
+                if (abortController.signal.aborted) return;
                 const p = this.urlLimit(async () => {
+                    if (abortController.signal.aborted) return 0;
                     const stopReason = this.shouldStop(id, qualifiedCounter.value);
-                    if (stopReason || !qualifiedCounter.tryReserve(MAX_TOTAL_QUALIFIED)) return 0;
-                    const result = await this.processSupplierUrl(
-                        id, dto, item.url, item.workerTag,
-                        processedCompanyNames, item.originLanguage, item.originCountry,
-                        productContext || undefined, processedDomains, 0,
-                        userLanguage, knownManufacturers
-                    );
+                    if (stopReason) {
+                        if (!abortController.signal.aborted) abortController.abort();
+                        return 0;
+                    }
+                    if (!qualifiedCounter.tryReserve(MAX_TOTAL_QUALIFIED)) return 0;
+                    let result: number;
+                    try {
+                        result = await this.withUrlTimeout(
+                            this.processSupplierUrl(
+                                id, dto, item.url, item.workerTag,
+                                processedCompanyNames, item.originLanguage, item.originCountry,
+                                productContext || undefined, processedDomains, 0,
+                                userLanguage, knownManufacturers
+                            ),
+                            PER_URL_TIMEOUT_MS,
+                            item.url
+                        );
+                    } catch (err: any) {
+                        if (err.message?.includes('Per-URL timeout')) {
+                            this.logger.warn(`[${id}] ${item.url} exceeded per-URL timeout (${PER_URL_TIMEOUT_MS}ms)`);
+                        }
+                        result = 0;
+                    }
                     if (result <= 0) {
                         qualifiedCounter.release();
                     }
@@ -1206,8 +1246,11 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             this.sourcingGateway?.emitProgress(id, 'SEARCH', 100);
             await this.log(id, `✅ [PHASE 2] Search complete: ${totalCollected} URLs collected, ${globalSeenDomains.size} unique. Waiting for processing to finish...`);
 
-            // Wait for all URL processing to complete (10 min max)
-            await this.allSettledWithTimeout(processingPromises, 600000, id);
+            // Wait for all URL processing to complete (dynamic timeout based on URL count)
+            // Base: 10 min. Scale: 1.5s per URL. Cap: 20 min. allSettledWithTimeout caps to remaining pipeline time.
+            const dynamicProcessingTimeout = Math.max(600_000, Math.min(globalSeenDomains.size * 1500, 1_200_000));
+            await this.log(id, `[PHASE 2] Processing timeout: ${Math.round(dynamicProcessingTimeout / 1000)}s for ${globalSeenDomains.size} URLs`);
+            await this.allSettledWithTimeout(processingPromises, dynamicProcessingTimeout, id);
 
             await this.log(id, `✅ [PHASE 2] Streaming pipeline complete. Processed: ${processedCount}, Qualified: ${qualifiedCounter.value}/${MAX_TOTAL_QUALIFIED}`);
 
@@ -1591,6 +1634,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             this.cancelledCampaigns.delete(id);
             this.campaignStartTimes.delete(id);
             this.deepResearchCounts.delete(id);
+            this.campaignAbortControllers.delete(id);
         }
     }
 
@@ -1907,9 +1951,9 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
         userLanguage: string = 'pl',
         knownManufacturers: { name: string; country?: string; website?: string; size?: string }[] = []
     ): Promise<number> {
+        const urlStartTime = Date.now();
+        const domain = this.extractDomain(url);
         try {
-            const domain = this.extractDomain(url);
-
             // TIMEOUT CHECK — don't start expensive processing if pipeline timed out
             if (this.shouldStop(campaignId, 0)) return 0;
 
@@ -1971,25 +2015,28 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 const mentionedCompanies = screenerResult.mentioned_companies || [];
                 if (depth === 0 && mentionedCompanies.length > 0) {
                     await this.log(campaignId, `${workerTag} [PORTAL] ${domain} → ${mentionedCompanies.length} companies to mine`);
-                    let mined = 0;
-                    let portalFollowed = 0;
                     const MAX_PORTAL_LEADS = 10;
+                    const portalLeads: typeof mentionedCompanies = [];
                     for (const company of mentionedCompanies) {
-                        if (portalFollowed >= MAX_PORTAL_LEADS) break;
+                        if (portalLeads.length >= MAX_PORTAL_LEADS) break;
                         if (!company.url) continue;
                         const companyDomain = this.extractDomain(company.url);
                         if (globalProcessedDomains?.has(companyDomain)) continue;
                         globalProcessedDomains?.add(companyDomain);
-                        portalFollowed++;
-                        const result = await this.processSupplierUrl(
-                            campaignId, dto, company.url, workerTag,
-                            processedCompanyNames, originLanguage, originCountry,
-                            productContext, globalProcessedDomains, 1,
-                            userLanguage, knownManufacturers
-                        );
-                        mined += result;
+                        portalLeads.push(company);
                     }
-                    return mined;
+                    // Parallel: each mined company processed concurrently instead of blocking parent slot
+                    const portalResults = await Promise.allSettled(
+                        portalLeads.map(company =>
+                            this.processSupplierUrl(
+                                campaignId, dto, company.url!, workerTag,
+                                processedCompanyNames, originLanguage, originCountry,
+                                productContext, globalProcessedDomains, 1,
+                                userLanguage, knownManufacturers
+                            ).catch(() => 0)
+                        )
+                    );
+                    return portalResults.reduce((sum, r) => sum + (r.status === 'fulfilled' ? r.value : 0), 0);
                 }
                 return 0;
             }
@@ -2036,28 +2083,28 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 ) {
                     await this.log(campaignId, `${workerTag} [DIRECTORY] ${domain} → ${mentionedCompanies.length} mentioned companies`);
 
-                    let directoryQualified = 0;
-                    let directoryFollowed = 0;
                     const MAX_DIRECTORY_LEADS = 5;
+                    const directoryLeads: typeof mentionedCompanies = [];
                     for (const company of mentionedCompanies) {
-                        if (directoryFollowed >= MAX_DIRECTORY_LEADS) break;
+                        if (directoryLeads.length >= MAX_DIRECTORY_LEADS) break;
                         if (!company.url) continue;
-
                         const companyDomain = this.extractDomain(company.url);
                         if (globalProcessedDomains?.has(companyDomain)) continue;
                         globalProcessedDomains?.add(companyDomain);
-
-                        directoryFollowed++;
-                        await this.log(campaignId, `${workerTag} [DIRECTORY] Following lead: ${company.name} → ${companyDomain}`);
-                        const result = await this.processSupplierUrl(
-                            campaignId, dto, company.url, workerTag,
-                            processedCompanyNames, originLanguage, originCountry,
-                            productContext, globalProcessedDomains, 1,
-                            userLanguage, knownManufacturers
-                        );
-                        directoryQualified += result;
+                        directoryLeads.push(company);
                     }
-                    return directoryQualified;
+                    await this.log(campaignId, `${workerTag} [DIRECTORY] Following ${directoryLeads.length} leads in parallel`);
+                    const directoryResults = await Promise.allSettled(
+                        directoryLeads.map(company =>
+                            this.processSupplierUrl(
+                                campaignId, dto, company.url!, workerTag,
+                                processedCompanyNames, originLanguage, originCountry,
+                                productContext, globalProcessedDomains, 1,
+                                userLanguage, knownManufacturers
+                            ).catch(() => 0)
+                        )
+                    );
+                    return directoryResults.reduce((sum, r) => sum + (r.status === 'fulfilled' ? r.value : 0), 0);
                 }
 
                 await this.log(campaignId, `${workerTag} Skipped: Not relevant (${screenerResult.page_type})`);
@@ -2072,26 +2119,28 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 const mentionedFromLowScore = screenerResult.mentioned_companies || [];
                 if (depth === 0 && mentionedFromLowScore.length > 0) {
                     await this.log(campaignId, `${workerTag} [DIRECTORY] Low-score page ${domain} (${capScore}%) has ${mentionedFromLowScore.length} leads — mining before rejecting`);
-                    let mined = 0;
-                    let lowScoreFollowed = 0;
                     const MAX_LOW_SCORE_LEADS = 5;
+                    const lowScoreLeads: typeof mentionedFromLowScore = [];
                     for (const company of mentionedFromLowScore) {
-                        if (lowScoreFollowed >= MAX_LOW_SCORE_LEADS) break;
+                        if (lowScoreLeads.length >= MAX_LOW_SCORE_LEADS) break;
                         if (!company.url) continue;
                         const companyDomain = this.extractDomain(company.url);
                         if (globalProcessedDomains?.has(companyDomain)) continue;
                         globalProcessedDomains?.add(companyDomain);
-                        lowScoreFollowed++;
-                        await this.log(campaignId, `${workerTag} [DIRECTORY] Following lead: ${company.name} → ${companyDomain}`);
-                        const result = await this.processSupplierUrl(
-                            campaignId, dto, company.url, workerTag,
-                            processedCompanyNames, originLanguage, originCountry,
-                            productContext, globalProcessedDomains, 1,
-                            userLanguage, knownManufacturers
-                        );
-                        mined += result;
+                        lowScoreLeads.push(company);
                     }
-                    return mined;
+                    await this.log(campaignId, `${workerTag} [DIRECTORY] Following ${lowScoreLeads.length} low-score leads in parallel`);
+                    const lowScoreResults = await Promise.allSettled(
+                        lowScoreLeads.map(company =>
+                            this.processSupplierUrl(
+                                campaignId, dto, company.url!, workerTag,
+                                processedCompanyNames, originLanguage, originCountry,
+                                productContext, globalProcessedDomains, 1,
+                                userLanguage, knownManufacturers
+                            ).catch(() => 0)
+                        )
+                    );
+                    return lowScoreResults.reduce((sum, r) => sum + (r.status === 'fulfilled' ? r.value : 0), 0);
                 }
 
                 await this.log(campaignId, `${workerTag} Skipped: Low match (${capScore}%)`);
@@ -2107,23 +2156,27 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 const mentionedFromBorderline = screenerResult.mentioned_companies || [];
                 if (depth === 0 && mentionedFromBorderline.length > 0) {
                     await this.log(campaignId, `${workerTag} [DIRECTORY] Borderline page ${domain} has ${mentionedFromBorderline.length} leads — mining in parallel`);
-                    let borderlineFollowed = 0;
                     const MAX_BORDERLINE_LEADS = 5;
+                    const borderlineLeads: typeof mentionedFromBorderline = [];
                     for (const company of mentionedFromBorderline) {
-                        if (borderlineFollowed >= MAX_BORDERLINE_LEADS) break;
+                        if (borderlineLeads.length >= MAX_BORDERLINE_LEADS) break;
                         if (!company.url) continue;
                         const companyDomain = this.extractDomain(company.url);
                         if (globalProcessedDomains?.has(companyDomain)) continue;
                         globalProcessedDomains?.add(companyDomain);
-                        borderlineFollowed++;
-                        // Await directory mining (depth=1 prevents further recursion)
-                        await this.processSupplierUrl(
-                            campaignId, dto, company.url, workerTag,
-                            processedCompanyNames, originLanguage, originCountry,
-                            productContext, globalProcessedDomains, 1,
-                            userLanguage, knownManufacturers
-                        ).catch(() => {});
+                        borderlineLeads.push(company);
                     }
+                    // Parallel mining (depth=1 prevents further recursion)
+                    await Promise.allSettled(
+                        borderlineLeads.map(company =>
+                            this.processSupplierUrl(
+                                campaignId, dto, company.url!, workerTag,
+                                processedCompanyNames, originLanguage, originCountry,
+                                productContext, globalProcessedDomains, 1,
+                                userLanguage, knownManufacturers
+                            ).catch(() => 0)
+                        )
+                    );
                 }
             }
 
@@ -2240,35 +2293,15 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 enrichmentResult = await this.enrichmentAgent.execute(screenerResult.extracted_data || {}, url, userLanguage, productContext || undefined);
             }
 
-            // 2.5. LOCAL SUBSIDIARY DETECTION — if supplier is from another country, search for local entity
+            // 2.5. LOCAL SUBSIDIARY DETECTION — deferred to post-save (non-blocking)
+            // Previously ran synchronously adding ~5s per non-Polish URL on the critical path
             const supplierCountryForLocal = normalizeCountry(
                 enrichmentResult?.enriched_data?.country || screenerResult.extracted_data?.country || ''
             );
             const userCountry = 'Polska'; // TODO: from organization settings
-            if (supplierCountryForLocal !== userCountry && supplierCountryForLocal !== 'Nieznany') {
-                const companyNameForLocal = enrichmentResult?.enriched_data?.company_name || screenerResult.extracted_data?.company_name || '';
-                if (companyNameForLocal) {
-                    try {
-                        const localQuery = `"${companyNameForLocal}" Polska`;
-                        const localResults = await this.searchService.searchExtended(
-                            localQuery, { gl: 'pl', hl: 'pl' }, undefined, campaignId
-                        );
-                        if (localResults.length > 0) {
-                            const localUrl = localResults[0].link;
-                            const localDomain = this.extractDomain(localUrl);
-                            if (!isPortalDomain(localDomain) && !SHOP_DOMAINS.has(localDomain.replace(/^www\./, '').toLowerCase())) {
-                                const localContent = await this.scrapingService.fetchContent(localUrl);
-                                const shortName = normalizeCompanyNameForDedup(companyNameForLocal);
-                                if (localContent && localContent.length > 200 && localContent.toLowerCase().includes(shortName)) {
-                                    enrichmentResult.enriched_data = enrichmentResult.enriched_data || {};
-                                    enrichmentResult.enriched_data.local_subsidiary_url = localUrl;
-                                    await this.log(campaignId, `${workerTag} LOCAL SUBSIDIARY: ${companyNameForLocal} → ${localDomain}`);
-                                }
-                            }
-                        }
-                    } catch { /* non-fatal — local subsidiary search is optional */ }
-                }
-            }
+            const shouldSearchLocalSubsidiary = supplierCountryForLocal !== userCountry
+                && supplierCountryForLocal !== 'Nieznany'
+                && !!(enrichmentResult?.enriched_data?.company_name || screenerResult.extracted_data?.company_name);
 
             // 3. AUDITOR - STRICT VALIDATION
             if (this.shouldStop(campaignId, 0)) return 0;
@@ -2516,11 +2549,23 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             await this.log(campaignId, `${workerTag} QUALIFIED: ${newSupplier.name} (${finalScore}%) | Emails: ${emailArray.length}`);
             this.sourcingGateway?.emitSupplierUpdate(campaignId, { url, status: 'QUALIFIED', data: newSupplier });
 
+            // Fire-and-forget: search for local subsidiary after save (non-blocking)
+            if (shouldSearchLocalSubsidiary) {
+                const companyNameForLocal = enrichmentResult?.enriched_data?.company_name || screenerResult.extracted_data?.company_name || '';
+                this.findLocalSubsidiary(campaignId, newSupplier.id, companyNameForLocal, workerTag).catch(() => {});
+            }
+
             return 1;
 
         } catch (err: any) {
-            await this.log(campaignId, `${workerTag} Error processing ${url}: ${err.message}`);
+            const elapsed = Date.now() - urlStartTime;
+            await this.log(campaignId, `${workerTag} Error processing ${url} (${Math.round(elapsed / 1000)}s): ${err.message}`);
             return 0;
+        } finally {
+            const elapsed = Date.now() - urlStartTime;
+            if (elapsed > 30000) {
+                this.logger.warn(`[${campaignId}] SLOW URL: ${domain} took ${Math.round(elapsed / 1000)}s`);
+            }
         }
     }
 
@@ -2547,6 +2592,46 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             const translated = result.trim().replace(/^["']|["']$/g, '');
             return translated.length > 0 && translated.length < 100 ? translated : spec;
         } catch { return spec; }
+    }
+
+    /**
+     * Deferred local subsidiary search — runs after supplier is saved (non-blocking).
+     * Updates the supplier's enrichmentResult JSON with local_subsidiary_url if found.
+     */
+    private async findLocalSubsidiary(
+        campaignId: string, supplierId: string, companyName: string, workerTag: string
+    ): Promise<void> {
+        try {
+            const localQuery = `"${companyName}" Polska`;
+            const localResults = await this.searchService.searchExtended(
+                localQuery, { gl: 'pl', hl: 'pl' }, undefined, campaignId
+            );
+            if (localResults.length > 0) {
+                const localUrl = localResults[0].link;
+                const localDomain = this.extractDomain(localUrl);
+                if (!isPortalDomain(localDomain) && !SHOP_DOMAINS.has(localDomain.replace(/^www\./, '').toLowerCase())) {
+                    const localContent = await this.scrapingService.fetchContent(localUrl);
+                    const shortName = normalizeCompanyNameForDedup(companyName);
+                    if (localContent && localContent.length > 200 && localContent.toLowerCase().includes(shortName)) {
+                        // Update enrichmentResult JSON with subsidiary URL
+                        const supplier = await this.prisma.supplier.findUnique({
+                            where: { id: supplierId },
+                            select: { enrichmentResult: true },
+                        });
+                        if (supplier) {
+                            const enrichResult = supplier.enrichmentResult ? JSON.parse(supplier.enrichmentResult as string) : {};
+                            enrichResult.enriched_data = enrichResult.enriched_data || {};
+                            enrichResult.enriched_data.local_subsidiary_url = localUrl;
+                            await this.prisma.supplier.update({
+                                where: { id: supplierId },
+                                data: { enrichmentResult: JSON.stringify(enrichResult) },
+                            });
+                            await this.log(campaignId, `${workerTag} LOCAL SUBSIDIARY (deferred): ${companyName} → ${localDomain}`);
+                        }
+                    }
+                }
+            }
+        } catch { /* non-fatal — local subsidiary search is optional */ }
     }
 
     /**
