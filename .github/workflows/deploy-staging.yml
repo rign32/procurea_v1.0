@@ -89,4 +89,4 @@ jobs:
       - name: Post-deploy health check
         run: |
           sleep 10
-          curl -sf https://staging.procurea.pl/api/health/ping || echo "⚠️ Health check failed — backend may still be warming up"
+          curl -sf https://procurea-app-staging.web.app/api/health/ping || echo "⚠️ Health check failed — backend may still be warming up"

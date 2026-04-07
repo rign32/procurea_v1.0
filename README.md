@@ -91,14 +91,15 @@ Key variables:
 
 | Environment | URL | Branch | Cloud Function |
 |------------|-----|--------|---------------|
-| Staging | staging.procurea.pl | `staging` | `apiStaging` |
+| Staging PL | procurea-app-staging.web.app | `staging` | `apiStaging` |
+| Staging EN | procurea-app-staging-en.web.app | `staging` | `apiStaging` |
 | Production | app.procurea.pl | `main` | `api` |
 
 ### CI/CD Flow
 
 1. Develop on `main` branch locally
 2. Push to `staging` branch → GitHub Actions deploys to staging
-3. Test on staging.procurea.pl
+3. Test on procurea-app-staging.web.app
 4. Merge `staging` to `main` → GitHub Actions deploys to production
 
 Environments are **fully isolated** — separate Cloud Functions, separate databases.

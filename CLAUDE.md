@@ -3,7 +3,7 @@
 ## Sposób pracy Claude Code (OBOWIĄZKOWE)
 
 ### Zasada naczelna
-Claude Code **NIE** uruchamia aplikacji lokalnie (npm run dev, localhost). Środowiskiem testowym jest **staging** (`staging.procurea.pl`). Każda zmiana w kodzie trafia na staging przez GitHub → CI/CD, a użytkownik testuje tam w przeglądarce.
+Claude Code **NIE** uruchamia aplikacji lokalnie (npm run dev, localhost). Środowiskiem testowym jest **staging** (`procurea-app-staging.web.app`). Każda zmiana w kodzie trafia na staging przez GitHub → CI/CD, a użytkownik testuje tam w przeglądarce.
 
 ### Workflow: od zadania do produkcji
 
@@ -32,10 +32,10 @@ Po potwierdzeniu użytkownika:
    ```
 6. Jeśli CI **FAILED** → przeczytaj logi, napraw błąd, commitnij poprawkę i powtórz
 7. Jeśli CI **SUCCESS** → poinformuj użytkownika:
-   > „Deploy na staging zakończony. Odśwież staging.procurea.pl i przetestuj."
+   > „Deploy na staging zakończony. Odśwież procurea-app-staging.web.app i przetestuj."
 
 **Faza 4 — Akceptacja i produkcja**
-1. Użytkownik testuje na staging.procurea.pl
+1. Użytkownik testuje na procurea-app-staging.web.app
 2. Jeśli znajdzie problemy → Claude naprawia i wraca do fazy 3
 3. Jeśli użytkownik akceptuje (mówi np. „git", „deploy na proda", „ok"):
    - `git checkout main && git merge staging`
@@ -130,7 +130,7 @@ Baza danych to PostgreSQL (via Docker). Stary opis o SQLite jest nieaktualny.
 ## Deployment Workflow (OBOWIĄZKOWY)
 
 ### Środowiska (IZOLOWANE)
-- **Staging**: `staging.procurea.pl` — Cloud Function `apiStaging`, baza `procurea_staging`
+- **Staging**: `procurea-app-staging.web.app` — Cloud Function `apiStaging`, baza `procurea_staging`
 - **Produkcja**: `app.procurea.pl` — Cloud Function `api`, baza `procurea`
 - Środowiska są **w pełni oddzielone** — osobny backend, osobna baza danych
 
