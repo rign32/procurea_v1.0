@@ -8,6 +8,10 @@ import { CreateRfqDto } from '../common/dto/create-rfq.dto';
 export class RequestsController {
     constructor(private readonly requestsService: RequestsService) { }
 
+    private getUserId(req: any): string {
+        return req.user?.userId || req.user?.sub;
+    }
+
     @Get('categories')
     getCategories() {
         return [
@@ -27,39 +31,37 @@ export class RequestsController {
 
     @Get()
     findAll(@Req() req: any) {
-        const userId = req.user?.userId || req.user?.sub;
-        return this.requestsService.findAll(userId);
+        return this.requestsService.findAll(this.getUserId(req));
     }
 
     @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.requestsService.findOne(id);
+    findOne(@Param('id') id: string, @Req() req: any) {
+        return this.requestsService.findOne(id, this.getUserId(req));
     }
 
     @Post()
     create(@Body() body: CreateRfqDto, @Req() req: any) {
-        const userId = req.user?.userId || req.user?.sub;
-        return this.requestsService.create(body, userId);
+        return this.requestsService.create(body, this.getUserId(req));
     }
 
     @Patch(':id')
-    update(@Param('id') id: string, @Body() body: Record<string, unknown>) {
-        return this.requestsService.update(id, body);
+    update(@Param('id') id: string, @Body() body: Record<string, unknown>, @Req() req: any) {
+        return this.requestsService.update(id, body, this.getUserId(req));
     }
 
     @Post(':id/send-to-campaign')
-    sendToCampaign(@Param('id') id: string, @Body() body: { campaignId: string }) {
-        return this.requestsService.sendRfqToCampaign(id, body.campaignId);
+    sendToCampaign(@Param('id') id: string, @Body() body: { campaignId: string }, @Req() req: any) {
+        return this.requestsService.sendRfqToCampaign(id, body.campaignId, this.getUserId(req));
     }
 
     @Post(':id/send')
-    sendToSuppliers(@Param('id') id: string, @Body() body: { supplierIds: string[] }) {
-        return this.requestsService.sendRfqToSuppliers(id, body.supplierIds);
+    sendToSuppliers(@Param('id') id: string, @Body() body: { supplierIds: string[] }, @Req() req: any) {
+        return this.requestsService.sendRfqToSuppliers(id, body.supplierIds, this.getUserId(req));
     }
 
     @Get(':id/offers')
-    getOffers(@Param('id') id: string) {
-        return this.requestsService.getOffersByRfq(id);
+    getOffers(@Param('id') id: string, @Req() req: any) {
+        return this.requestsService.getOffersByRfq(id, this.getUserId(req));
     }
 
     @Post('offers')
@@ -71,34 +73,34 @@ export class RequestsController {
         moq?: number;
         leadTime?: number;
         comments?: string;
-    }) {
-        return this.requestsService.createOffer(body);
+    }, @Req() req: any) {
+        return this.requestsService.createOffer(body, this.getUserId(req));
     }
 
     @Post('offers/compare')
-    compareOffers(@Body() body: { offerIds: string[] }) {
-        return this.requestsService.compareOffers(body.offerIds);
+    compareOffers(@Body() body: { offerIds: string[] }, @Req() req: any) {
+        return this.requestsService.compareOffers(body.offerIds, this.getUserId(req));
     }
 
     @Post('offers/:offerId/accept')
-    acceptOffer(@Param('offerId') offerId: string) {
-        return this.requestsService.acceptOffer(offerId);
+    acceptOffer(@Param('offerId') offerId: string, @Req() req: any) {
+        return this.requestsService.acceptOffer(offerId, this.getUserId(req));
     }
 
     @Post('offers/:offerId/reject')
-    rejectOffer(@Param('offerId') offerId: string, @Body() body: { reason?: string }) {
-        return this.requestsService.rejectOffer(offerId, body.reason);
+    rejectOffer(@Param('offerId') offerId: string, @Body() body: { reason?: string }, @Req() req: any) {
+        return this.requestsService.rejectOffer(offerId, body.reason, this.getUserId(req));
     }
 
     @Post('offers/:offerId/shortlist')
-    shortlistOffer(@Param('offerId') offerId: string) {
-        return this.requestsService.shortlistOffer(offerId);
+    shortlistOffer(@Param('offerId') offerId: string, @Req() req: any) {
+        return this.requestsService.shortlistOffer(offerId, this.getUserId(req));
     }
 
     @Get('offers/:offerId/portal-link')
-    async getPortalLink(@Param('offerId') offerId: string) {
-        const offer = await this.requestsService.findOfferById(offerId);
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    async getPortalLink(@Param('offerId') offerId: string, @Req() req: any) {
+        const offer = await this.requestsService.findOfferById(offerId, this.getUserId(req));
+        const frontendUrl = process.env.FRONTEND_URL || 'https://app.procurea.pl';
         const portalUrl = `${frontendUrl}/offers/${offer.accessToken}`;
 
         return {
@@ -108,7 +110,7 @@ export class RequestsController {
     }
 
     @Post('offers/:offerId/resend-email')
-    resendOfferEmail(@Param('offerId') offerId: string) {
-        return this.requestsService.resendOfferEmail(offerId);
+    resendOfferEmail(@Param('offerId') offerId: string, @Req() req: any) {
+        return this.requestsService.resendOfferEmail(offerId, this.getUserId(req));
     }
 }

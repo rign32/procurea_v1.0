@@ -1,10 +1,26 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationService } from '../common/services/notification.service';
 import { EmailService } from '../email/email.service';
 import { TranslationService } from '../common/services/translation.service';
 import { CurrencyService } from '../common/services/currency.service';
 import { getLanguageForCountry } from '../common/normalize-country';
+import * as crypto from 'crypto';
+
+// Valid RFQ status transitions
+const RFQ_TRANSITIONS: Record<string, string[]> = {
+    DRAFT: ['ACTIVE'],
+    ACTIVE: ['CLOSED', 'ARCHIVED'],
+    CLOSED: ['ARCHIVED'],
+};
+
+// Valid Offer status transitions
+const OFFER_TRANSITIONS: Record<string, string[]> = {
+    PENDING: ['VIEWED'],
+    VIEWED: ['SUBMITTED'],
+    SUBMITTED: ['SHORTLISTED', 'REJECTED', 'ACCEPTED'],
+    SHORTLISTED: ['ACCEPTED', 'REJECTED'],
+};
 
 @Injectable()
 export class RequestsService {
@@ -18,11 +34,38 @@ export class RequestsService {
         private readonly currencyService: CurrencyService,
     ) { }
 
+    // --- Ownership helpers ---
+
+    private async verifyRfqOwnership(rfqId: string, userId: string) {
+        const rfq = await this.prisma.rfqRequest.findUnique({ where: { id: rfqId } });
+        if (!rfq) throw new NotFoundException('RFQ not found');
+        if (rfq.ownerId !== userId) throw new ForbiddenException('Not authorized to access this RFQ');
+        return rfq;
+    }
+
+    private async verifyOfferOwnership(offerId: string, userId: string) {
+        const offer = await this.prisma.offer.findUnique({
+            where: { id: offerId },
+            include: { rfqRequest: true },
+        });
+        if (!offer) throw new NotFoundException('Offer not found');
+        if (offer.rfqRequest?.ownerId !== userId) throw new ForbiddenException('Not authorized to access this offer');
+        return offer;
+    }
+
+    private validateTransition(current: string, next: string, transitionMap: Record<string, string[]>, entityName: string) {
+        const allowed = transitionMap[current];
+        if (!allowed || !allowed.includes(next)) {
+            throw new BadRequestException(
+                `Invalid ${entityName} status transition: ${current} → ${next}. Allowed: ${allowed?.join(', ') || 'none'}`,
+            );
+        }
+    }
+
+    // --- RFQ CRUD ---
+
     async findAll(userId?: string) {
-        const where: any = {
-            // Hide draft RFQs (not yet sent to suppliers)
-            status: { not: 'DRAFT' },
-        };
+        const where: any = {};
 
         // Organization isolation + sharing-aware filtering
         if (userId) {
@@ -36,7 +79,11 @@ export class RequestsService {
                     select: { fromUserId: true },
                 });
                 const visibleOwnerIds = [userId, ...sharingWith.map(s => s.fromUserId)];
-                where.ownerId = { in: visibleOwnerIds };
+                // Show DRAFTs only for the owner, all other statuses for shared users
+                where.OR = [
+                    { ownerId: { in: visibleOwnerIds }, status: { not: 'DRAFT' } },
+                    { ownerId: userId }, // Owner sees all including DRAFT
+                ];
             } else {
                 where.ownerId = userId;
             }
@@ -63,14 +110,17 @@ export class RequestsService {
         return { rfqs, total: rfqs.length };
     }
 
-    async findOne(id: string) {
-        return this.prisma.rfqRequest.findUnique({
+    async findOne(id: string, userId?: string) {
+        const rfq = await this.prisma.rfqRequest.findUnique({
             where: { id },
             include: {
                 deliveryLocation: true,
                 offers: true,
             },
         });
+        if (!rfq) throw new NotFoundException('RFQ not found');
+        if (userId && rfq.ownerId !== userId) throw new ForbiddenException('Not authorized to access this RFQ');
+        return rfq;
     }
 
     async create(data: any, userId?: string) {
@@ -89,29 +139,56 @@ export class RequestsService {
                 incoterms: Array.isArray(data.incoterms) ? data.incoterms.join(',') : data.incoterms,
                 deliveryLocationId: data.deliveryLocationId,
                 desiredDeliveryDate: data.leadTime ? new Date(data.leadTime) : null,
+                offerDeadline: data.offerDeadline ? new Date(data.offerDeadline) : null,
+                attachments: data.attachments || null,
                 status: 'DRAFT',
                 ownerId: userId || null,
             },
         });
     }
 
-    async update(id: string, data: any) {
+    async update(id: string, data: any, userId?: string) {
+        const rfq = await this.verifyRfqOwnership(id, userId!);
+
+        // If updating status, validate transition
+        if (data.status) {
+            this.validateTransition(rfq.status, data.status, RFQ_TRANSITIONS, 'RFQ');
+        }
+
+        // Allow editing more fields when RFQ is still DRAFT
+        if (rfq.status === 'DRAFT') {
+            return this.prisma.rfqRequest.update({
+                where: { id },
+                data: {
+                    ...(data.status && { status: data.status }),
+                    ...(data.productName !== undefined && { productName: data.productName }),
+                    ...(data.partNumber !== undefined && { partNumber: data.partNumber }),
+                    ...(data.category !== undefined && { category: data.category }),
+                    ...(data.material !== undefined && { material: data.material }),
+                    ...(data.description !== undefined && { description: data.description }),
+                    ...(data.targetPrice !== undefined && { targetPrice: data.targetPrice ? parseFloat(data.targetPrice) : null }),
+                    ...(data.currency !== undefined && { currency: data.currency }),
+                    ...(data.quantity !== undefined && { quantity: parseInt(data.quantity?.toString()) || 0 }),
+                    ...(data.unit !== undefined && { unit: data.unit }),
+                    ...(data.incoterms !== undefined && { incoterms: Array.isArray(data.incoterms) ? data.incoterms.join(',') : data.incoterms }),
+                    ...(data.paymentTerms !== undefined && { paymentTerms: data.paymentTerms }),
+                    ...(data.deliveryLocationId !== undefined && { deliveryLocationId: data.deliveryLocationId }),
+                    ...(data.offerDeadline !== undefined && { offerDeadline: data.offerDeadline ? new Date(data.offerDeadline) : null }),
+                    ...(data.attachments !== undefined && { attachments: data.attachments }),
+                },
+            });
+        }
+
+        // Non-DRAFT: only allow status changes
         return this.prisma.rfqRequest.update({
             where: { id },
-            data: {
-                status: data.status,
-            }
+            data: { status: data.status },
         });
     }
 
-    async acceptOffer(offerId: string) {
-        const offer = await this.prisma.offer.findUnique({
-            where: { id: offerId }
-        });
-
-        if (!offer) {
-            throw new Error('Offer not found');
-        }
+    async acceptOffer(offerId: string, userId?: string) {
+        const offer = await this.verifyOfferOwnership(offerId, userId!);
+        this.validateTransition(offer.status, 'ACCEPTED', OFFER_TRANSITIONS, 'Offer');
 
         const requestId = offer.rfqRequestId;
 
@@ -123,13 +200,14 @@ export class RequestsService {
             this.prisma.offer.updateMany({
                 where: {
                     rfqRequestId: requestId,
-                    id: { not: offerId }
+                    id: { not: offerId },
+                    status: { notIn: ['REJECTED'] }, // Don't re-reject already rejected
                 },
                 data: { status: 'REJECTED' }
             }),
             this.prisma.rfqRequest.update({
                 where: { id: requestId },
-                data: { status: 'COMPLETED' }
+                data: { status: 'CLOSED' }
             })
         ]);
     }
@@ -137,20 +215,22 @@ export class RequestsService {
     /**
      * Send RFQ to all suppliers from a campaign
      */
-    async sendRfqToCampaign(rfqId: string, campaignId: string): Promise<{ sent: number; failed: number }> {
+    async sendRfqToCampaign(rfqId: string, campaignId: string, userId?: string): Promise<{ sent: number; failed: number }> {
+        if (userId) await this.verifyRfqOwnership(rfqId, userId);
+
         const suppliers = await this.prisma.supplier.findMany({
             where: { campaignId },
             include: { contacts: true },
         });
 
         const supplierIds = suppliers.map(s => s.id);
-        return this.sendRfqToSuppliers(rfqId, supplierIds);
+        return this.sendRfqToSuppliers(rfqId, supplierIds, userId);
     }
 
     /**
      * Send RFQ to specific suppliers
      */
-    async sendRfqToSuppliers(rfqId: string, supplierIds: string[]): Promise<{ sent: number; failed: number }> {
+    async sendRfqToSuppliers(rfqId: string, supplierIds: string[], userId?: string): Promise<{ sent: number; failed: number }> {
         const rfq = await this.prisma.rfqRequest.findUnique({
             where: { id: rfqId },
             include: {
@@ -158,6 +238,7 @@ export class RequestsService {
             },
         });
         if (!rfq) throw new NotFoundException('RFQ not found');
+        if (userId && rfq.ownerId !== userId) throw new ForbiddenException('Not authorized to send this RFQ');
 
         const suppliers = await this.prisma.supplier.findMany({
             where: { id: { in: supplierIds } },
@@ -177,7 +258,16 @@ export class RequestsService {
                     continue;
                 }
 
-                // Create Offer record (PENDING = invitation sent)
+                // Prevent duplicate offers for same supplier+RFQ
+                const existingOffer = await this.prisma.offer.findFirst({
+                    where: { rfqRequestId: rfqId, supplierId: supplier.id, parentOfferId: null },
+                });
+                if (existingOffer) {
+                    this.logger.warn(`Offer already exists for supplier ${supplier.name} on RFQ ${rfqId}, skipping`);
+                    continue;
+                }
+
+                // Create Offer record (PENDING = invitation sent) with 30-day token expiry
                 const offer = await this.prisma.offer.create({
                     data: {
                         rfqRequestId: rfqId,
@@ -185,6 +275,7 @@ export class RequestsService {
                         status: 'PENDING',
                         price: 0,
                         currency: rfq.currency || 'EUR',
+                        tokenExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
                     },
                 });
 
@@ -232,11 +323,11 @@ export class RequestsService {
             }
         }
 
-        // Update RFQ status
+        // Update RFQ status to ACTIVE (was incorrectly 'SENT')
         if (sent > 0) {
             await this.prisma.rfqRequest.update({
                 where: { id: rfqId },
-                data: { status: 'SENT' },
+                data: { status: 'ACTIVE' },
             });
         }
 
@@ -259,9 +350,10 @@ export class RequestsService {
         return [];
     }
 
-    async getOffersByRfq(rfqId: string) {
+    async getOffersByRfq(rfqId: string, userId?: string) {
         const rfq = await this.prisma.rfqRequest.findUnique({ where: { id: rfqId } });
         if (!rfq) throw new NotFoundException('RFQ not found');
+        if (userId && rfq.ownerId !== userId) throw new ForbiddenException('Not authorized to access this RFQ');
 
         return this.prisma.offer.findMany({
             where: {
@@ -291,9 +383,9 @@ export class RequestsService {
         });
     }
 
-    async rejectOffer(offerId: string, reason?: string) {
-        const offer = await this.prisma.offer.findUnique({ where: { id: offerId } });
-        if (!offer) throw new NotFoundException('Offer not found');
+    async rejectOffer(offerId: string, reason?: string, userId?: string) {
+        const offer = await this.verifyOfferOwnership(offerId, userId!);
+        this.validateTransition(offer.status, 'REJECTED', OFFER_TRANSITIONS, 'Offer');
 
         const comments = reason
             ? `${offer.comments ? offer.comments + '\n' : ''}[REJECTION] ${reason}`
@@ -306,9 +398,9 @@ export class RequestsService {
         });
     }
 
-    async shortlistOffer(offerId: string) {
-        const offer = await this.prisma.offer.findUnique({ where: { id: offerId } });
-        if (!offer) throw new NotFoundException('Offer not found');
+    async shortlistOffer(offerId: string, userId?: string) {
+        const offer = await this.verifyOfferOwnership(offerId, userId!);
+        this.validateTransition(offer.status, 'SHORTLISTED', OFFER_TRANSITIONS, 'Offer');
 
         return this.prisma.offer.update({
             where: { id: offerId },
@@ -317,7 +409,7 @@ export class RequestsService {
         });
     }
 
-    async findOfferById(offerId: string) {
+    async findOfferById(offerId: string, userId?: string) {
         const offer = await this.prisma.offer.findUnique({
             where: { id: offerId },
             include: {
@@ -336,12 +428,15 @@ export class RequestsService {
         if (!offer) {
             throw new NotFoundException('Offer not found');
         }
+        if (userId && offer.rfqRequest?.ownerId !== userId) {
+            throw new ForbiddenException('Not authorized to access this offer');
+        }
 
         return offer;
     }
 
-    async resendOfferEmail(offerId: string) {
-        let offer = await this.findOfferById(offerId);
+    async resendOfferEmail(offerId: string, userId?: string) {
+        let offer = await this.findOfferById(offerId, userId);
 
         // Regenerate token if expired
         const now = new Date();
@@ -352,13 +447,13 @@ export class RequestsService {
             await this.prisma.offer.update({
                 where: { id: offerId },
                 data: {
-                    accessToken: require('crypto').randomUUID(),
+                    accessToken: crypto.randomUUID(),
                     tokenExpiresAt: newExpiry,
                 },
             });
 
             // Refetch offer with new token
-            offer = await this.findOfferById(offerId);
+            offer = await this.findOfferById(offerId, userId);
         }
 
         // Get email addresses
@@ -408,9 +503,9 @@ export class RequestsService {
         return { success: true, message: 'Email sent successfully' };
     }
 
-    async compareOffers(offerIds: string[]) {
+    async compareOffers(offerIds: string[], userId?: string) {
         if (!offerIds || offerIds.length < 2) {
-            throw new NotFoundException('At least 2 offers required for comparison');
+            throw new BadRequestException('At least 2 offers required for comparison');
         }
 
         const offers = await this.prisma.offer.findMany({
@@ -437,6 +532,15 @@ export class RequestsService {
                 },
             },
         });
+
+        // Verify ownership: all offers must belong to the same RFQ owned by this user
+        if (userId) {
+            for (const offer of offers) {
+                if (offer.rfqRequest?.ownerId !== userId) {
+                    throw new ForbiddenException('Not authorized to compare these offers');
+                }
+            }
+        }
 
         // Get organization's base currency
         const org = offers[0]?.rfqRequest?.owner?.organization;
@@ -493,13 +597,14 @@ export class RequestsService {
         };
     }
 
-    async createOffer(data: any) {
+    async createOffer(data: any, userId?: string) {
         const rfq = await this.prisma.rfqRequest.findUnique({
-            where: { id: data.requestId },
+            where: { id: data.rfqRequestId },
             include: { owner: true }
         });
 
         if (!rfq) throw new NotFoundException('RFQ not found');
+        if (userId && rfq.ownerId !== userId) throw new ForbiddenException('Not authorized to create offers for this RFQ');
 
         const supplier = await this.prisma.supplier.findUnique({
             where: { id: data.supplierId }
@@ -509,21 +614,21 @@ export class RequestsService {
 
         if (rfq.campaignId && supplier.campaignId) {
             if (rfq.campaignId !== supplier.campaignId) {
-                throw new Error('Security Violation: Supplier cannot bid on RFQ from different campaign');
+                throw new ForbiddenException('Supplier cannot bid on RFQ from different campaign');
             }
         }
 
         const offer = await this.prisma.offer.create({
             data: {
-                rfqRequestId: data.requestId,
+                rfqRequestId: data.rfqRequestId,
                 supplierId: data.supplierId,
-                price: parseFloat(data.pricePerUnit) || 0,
+                price: parseFloat(data.price) || 0,
                 currency: data.currency,
                 moq: parseInt(data.moq) || 0,
-                leadTime: parseInt(data.leadTimeWeeks) || 0,
+                leadTime: parseInt(data.leadTime) || 0,
                 status: 'SUBMITTED',
                 validityDate: data.validityDate ? new Date(data.validityDate) : null,
-                comments: data.comment,
+                comments: data.comments,
                 submittedAt: new Date(),
             },
             include: { supplier: true }

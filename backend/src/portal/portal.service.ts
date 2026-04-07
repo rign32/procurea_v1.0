@@ -67,6 +67,11 @@ export class PortalService {
             throw new NotFoundException('Offer not found');
         }
 
+        // Validate token expiry
+        if (offer.tokenExpiresAt && offer.tokenExpiresAt < new Date()) {
+            throw new BadRequestException('This link has expired. Please contact the buyer for a new invitation.');
+        }
+
         // Mark as VIEWED if still PENDING
         if (offer.status === 'PENDING') {
             await this.prisma.offer.update({
@@ -199,6 +204,11 @@ export class PortalService {
 
         if (!offer) {
             throw new NotFoundException('Offer not found');
+        }
+
+        // Validate token expiry
+        if (offer.tokenExpiresAt && offer.tokenExpiresAt < new Date()) {
+            throw new BadRequestException('This link has expired. Please contact the buyer for a new invitation.');
         }
 
         if (!['PENDING', 'VIEWED'].includes(offer.status)) {

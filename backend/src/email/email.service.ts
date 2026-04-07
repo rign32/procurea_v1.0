@@ -282,7 +282,7 @@ export class EmailService {
         }
     }
 
-    async sendEmail(options: { to: string; subject: string; html: string; organizationId?: string; locale?: string }): Promise<boolean> {
+    async sendEmail(options: { to: string; subject: string; html: string; organizationId?: string; locale?: string; replyTo?: string }): Promise<boolean> {
         if (!this.resend) {
             this.logger.log(`[MOCK EMAIL] To: ${options.to} | Subject: ${options.subject}`);
             return true;
@@ -314,11 +314,26 @@ export class EmailService {
                 );
             }
 
+            // Determine reply-to: explicit option > org footer email
+            let replyTo = options.replyTo;
+            if (!replyTo && options.organizationId) {
+                try {
+                    const org = await this.prisma.organization.findUnique({
+                        where: { id: options.organizationId },
+                        select: { footerEmail: true, footerEnabled: true },
+                    });
+                    if (org?.footerEnabled && org?.footerEmail) {
+                        replyTo = org.footerEmail;
+                    }
+                } catch { /* ignore */ }
+            }
+
             await this.resend.emails.send({
                 from: this.getFromEmailForLocale(options.locale),
                 to: to,
                 subject: subject,
                 html: finalHtml,
+                ...(replyTo && { reply_to: replyTo }),
             });
             this.logger.log(`Email sent to ${options.to}`);
             return true;
