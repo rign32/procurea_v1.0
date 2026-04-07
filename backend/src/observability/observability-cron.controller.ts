@@ -12,7 +12,7 @@ export class ObservabilityCronController {
   ) {}
 
   @Post("observability/daily")
-  @SkipThrottle()
+  @SkipThrottle({ default: true })
   async dailyCheck(@Headers("x-cron-secret") secret: string) {
     const expectedSecret = this.configService.get<string>("CRON_SECRET");
     if (expectedSecret) {

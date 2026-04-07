@@ -9,6 +9,7 @@ import { SkipThrottle } from "@nestjs/throttler";
 import { SmokeTestService } from "./smoke-test.service";
 import * as crypto from "crypto";
 
+@SkipThrottle({ default: true })
 @Controller("cron")
 export class MonitoringCronController {
   constructor(
@@ -17,7 +18,6 @@ export class MonitoringCronController {
   ) {}
 
   @Post("smoke-tests")
-  @SkipThrottle()
   async runSmokeTests(@Headers("x-cron-secret") secret: string) {
     const expectedSecret = this.configService.get<string>("CRON_SECRET");
     if (expectedSecret) {

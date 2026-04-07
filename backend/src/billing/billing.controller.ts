@@ -89,7 +89,7 @@ export class BillingController {
     }
 
     @Post('webhook')
-    @SkipThrottle()
+    @SkipThrottle({ default: true })
     async handleWebhook(@Req() req, @Headers('stripe-signature') signature: string) {
         const bodyType = Buffer.isBuffer(req.body) ? 'Buffer' : typeof req.body;
         const hasRawBody = !!(req as any).rawBody;

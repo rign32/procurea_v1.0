@@ -17,7 +17,7 @@ export class UploadsController {
     }
 
     @Get(':storedFilename')
-    @SkipThrottle()
+    @SkipThrottle({ default: true })
     async download(
         @Param('storedFilename') storedFilename: string,
         @Res() res: Response,
