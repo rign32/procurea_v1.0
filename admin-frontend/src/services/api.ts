@@ -155,4 +155,13 @@ export const getApiUsageLogs = (params?: Record<string, string>) =>
 export const getObservabilityEvents = (params?: Record<string, string>) =>
     api.get('/admin/events', { params });
 
+// Monitoring
+export const getMonitoringStatus = () => api.get('/monitoring/status');
+
+export const getMonitoringHistory = (hours?: number) =>
+    api.get('/monitoring/history', { params: { hours } });
+
+export const getMonitoringIncidents = (status?: string) =>
+    api.get('/monitoring/incidents', { params: { status } });
+
 export default api;

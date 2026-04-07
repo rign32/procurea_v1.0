@@ -26,6 +26,7 @@ import { PostHogModule } from './posthog/posthog.module';
 import { BillingModule } from './billing/billing.module';
 import { SalesOpsModule } from './sales-ops/sales-ops.module';
 import { ObservabilityModule } from './observability/observability.module';
+import { MonitoringModule } from './monitoring/monitoring.module';
 import { SentryModule } from '@sentry/nestjs/setup';
 
 @Module({
@@ -60,6 +61,7 @@ import { SentryModule } from '@sentry/nestjs/setup';
     BillingModule,
     SalesOpsModule,
     ObservabilityModule,
+    MonitoringModule,
   ],
   controllers: [AppController],
   providers: [

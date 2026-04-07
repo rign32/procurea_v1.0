@@ -3,7 +3,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { SlackNotificationsService } from "../sales-ops/slack-notifications.service";
 
-type EventCategory = "auth" | "conversion" | "campaign" | "error";
+type EventCategory = "auth" | "conversion" | "campaign" | "error" | "monitoring";
 type EventSeverity = "info" | "warning" | "error" | "critical";
 
 interface RecordEventOptions {
@@ -35,6 +35,10 @@ const CATEGORY_ICONS: Record<string, string> = {
   pipeline_error: "🔴",
   pipeline_crash: "🔴",
   backend_error: "🚨",
+  smoke_test: "🔍",
+  service_down: "🔴",
+  service_recovered: "🟢",
+  incident_reminder: "🔶",
 };
 
 @Injectable()
@@ -116,9 +120,9 @@ export class ObservabilityService {
         value: options.message.substring(0, 300),
       });
 
-    // Route to appropriate channel: campaign/error → alerts, auth/conversion → sales
+    // Route to appropriate channel: campaign/error/monitoring → alerts, auth/conversion → sales
     const channelId =
-      category === "campaign" || category === "error"
+      category === "campaign" || category === "error" || category === "monitoring"
         ? this.slack.alertsChannelId || undefined
         : undefined; // undefined = default sales channel
 

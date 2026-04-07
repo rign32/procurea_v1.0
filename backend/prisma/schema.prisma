@@ -717,3 +717,22 @@ model ObservabilityEvent {
   @@index([severity, createdAt])
   @@index([type, createdAt])
 }
+
+// --- MONITORING INCIDENTS ---
+
+model MonitoringIncident {
+  id          String    @id @default(uuid())
+  serviceId   String    // "gemini", "serper", "database", "resend", "app_pl", "app_io"
+  status      String    @default("open") // open | resolved
+  startedAt   DateTime  @default(now())
+  resolvedAt  DateTime?
+  durationMs  Int?
+  lastAlertAt DateTime  @default(now())
+  severity    String    @default("warning") // warning | critical
+  title       String
+  message     String?
+  metadata    Json?
+
+  @@index([serviceId, status])
+  @@index([status, startedAt])
+}

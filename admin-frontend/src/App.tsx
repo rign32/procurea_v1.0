@@ -6,6 +6,7 @@ import UsersPage from './pages/UsersPage';
 import ErrorLogsPage from './pages/ErrorLogsPage';
 import EventsPage from './pages/EventsPage';
 import IntegrationsPage from './pages/IntegrationsPage';
+import SystemStatusPage from './pages/SystemStatusPage';
 import Layout from './components/Layout';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -30,6 +31,7 @@ export default function App() {
                                     <Route path="/events" element={<EventsPage />} />
                                     <Route path="/errors" element={<ErrorLogsPage />} />
                                     <Route path="/integrations" element={<IntegrationsPage />} />
+                                    <Route path="/status" element={<SystemStatusPage />} />
                                     <Route path="*" element={<Navigate to="/" replace />} />
                                 </Routes>
                             </Layout>

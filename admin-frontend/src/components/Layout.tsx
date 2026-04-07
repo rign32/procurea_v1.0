@@ -6,6 +6,7 @@ import {
     AlertTriangle,
     Plug,
     Bell,
+    Activity,
     LogOut,
 } from 'lucide-react';
 
@@ -15,6 +16,7 @@ const navItems = [
     { to: '/events', icon: Bell, label: 'Events' },
     { to: '/errors', icon: AlertTriangle, label: 'Logi błędów' },
     { to: '/integrations', icon: Plug, label: 'API & Koszty' },
+    { to: '/status', icon: Activity, label: 'System Status' },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
