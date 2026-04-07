@@ -1,0 +1,738 @@
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- USER MANAGEMENT & SECURITY ---
+
+// enum UserRole {
+//   ADMIN
+//   MANAGER
+//   USER
+//   VIEWER
+// }
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String?   // Nullable for SSO users
+  name          String?
+  phone         String?   @unique
+  role          String    @default("USER") // formerly UserRole enum
+  
+  // Security
+  ssoProvider   String?   // "google", "microsoft", "email"
+  ssoId         String?   // Provider's unique ID
+  pendingPhone  String?   // Temporarily store here during verification
+  
+  isEmailVerified Boolean @default(false)
+  isPhoneVerified Boolean @default(false)
+  phoneVerifiedAt DateTime?
+  twoFactorEnabled Boolean @default(false)
+  
+  // Onboarding
+  onboardingCompleted Boolean @default(false)
+  companyName   String?
+  jobTitle      String?
+  language      String    @default("pl") // "pl", "en", "de"
+  notificationPreferences String? // JSON string of preferences
+
+  // Relations
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  
+  // Auditing
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastLoginAt   DateTime?
+  
+  // Inverse Relations
+  ownedRfqs     RfqRequest[] 
+  auditLogs     AuditLog[]
+  aiInteractions AiInteraction[]
+  apiUsageLogs  ApiUsageLog[]
+  
+  // Permissions
+  campaignAccess String  @default("own") // "all" | "own" | "readonly"
+  plan          String  @default("research") // "research" | "pay_as_you_go" | "unlimited"
+
+  // Billing & Credits
+  searchCredits     Int     @default(10)
+  stripeCustomerId  String? @unique
+  stripeSubscriptionId          String?  @unique
+  subscriptionCancelAtPeriodEnd Boolean  @default(false)
+  creditTransactions CreditTransaction[]
+
+  // Trial
+  trialCreditsUsed  Boolean @default(false)
+
+  // Admin Controls
+  isBlocked     Boolean   @default(false)
+  blockedAt     DateTime?
+  blockedReason String?
+
+  // Refresh Tokens
+  refreshTokens RefreshToken[]
+
+  // Sharing Preferences (democratic team model)
+  sharingFrom UserSharingPreference[] @relation("SharingFrom") // Preferences I set for others
+  sharingTo   UserSharingPreference[] @relation("SharingTo")   // Preferences others set for me
+}
+
+// Refresh Token Model for secure session management
+model RefreshToken {
+  id          String   @id @default(uuid())
+  userId      String
+  token       String   @unique
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  revoked     Boolean  @default(false)
+  revokedAt   DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+model Organization {
+  id          String   @id @default(uuid())
+  name        String
+  domain      String?  // Auto-join users with this email domain
+
+  // Customization (legacy)
+  footerText  String?
+
+  // Email Footer / Signature
+  footerEnabled    Boolean  @default(false)
+  footerFirstName  String?
+  footerLastName   String?
+  footerCompany    String?
+  footerPosition   String?
+  footerEmail      String?
+  footerPhone      String?
+
+  // Currency Settings
+  baseCurrency String @default("PLN") // ISO 4217 currency code
+
+  // Shared Credit Pool
+  searchCredits     Int     @default(10)
+  trialCreditsUsed  Boolean @default(false)
+
+  // Billing (org-level)
+  plan                          String  @default("research") // "research" | "pay_as_you_go" | "unlimited"
+  stripeCustomerId              String? @unique
+  stripeSubscriptionId          String? @unique
+  subscriptionCancelAtPeriodEnd Boolean @default(false)
+
+  users       User[]
+  locations   OrganizationLocation[]
+  orgCreditTransactions OrgCreditTransaction[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model OrganizationLocation {
+  id             String   @id @default(uuid())
+  name           String   // e.g. "HQ", "Warehouse A"
+  address        String   // Full address
+  isDefault      Boolean  @default(false)
+  
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  
+  // Relations
+  rfqRequests    RfqRequest[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String   // Email or Phone
+  token      String
+  expires    DateTime
+  type       String   // EMAIL_CODE, PHONE_CODE, RESET_PASSWORD
+  
+  createdAt  DateTime @default(now())
+
+  @@unique([identifier, token])
+}
+
+// --- CORE DOMAIN MODELS ---
+
+model Campaign {
+  id        String   @id @default(uuid())
+  name      String   @default("My Strategy Campaign")
+  language  String   @default("pl")
+  status    String   @default("RUNNING")
+  stage     String   @default("STRATEGY")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Soft Delete
+  deletedAt DateTime?
+
+  // Email Sequence
+  sequenceTemplateId String?
+  sequenceTemplate   SequenceTemplate? @relation(fields: [sequenceTemplateId], references: [id])
+
+  // AI Campaign Summary
+  aiSummary            String?
+  aiSummaryGeneratedAt DateTime?
+
+  // Apollo Enrichment
+  apolloEnrichmentStatus String?
+
+  // Feedback Survey
+  feedbackEmailSentAt  DateTime?
+
+  logs      Log[]
+  suppliers Supplier[]
+  rfqRequest RfqRequest?
+}
+
+model Supplier {
+  id             String   @id @default(uuid())
+  campaignId     String
+  url            String
+  
+  // Frontend Mapped Fields
+  name           String?
+  country        String?
+  city           String?
+  website        String?
+  
+  // Raw Agent Results (JSON strings)
+  explorerResult String?
+  analystResult  String?
+  enrichmentResult String?
+  auditorResult  String?
+  
+  analysisScore  Float?
+  analysisReason String?
+
+  // Rich Data Fields
+  specialization String?
+  certificates   String? // Stored as comma-separated string or JSON
+  employeeCount  String?
+  contactEmails  String? // Comma-separated list of contact emails
+  
+  // AI & RAG
+  documentChunks DocumentChunk[]
+  metadata       String? // JSON for flexible metadata
+
+  campaign       Campaign @relation(fields: [campaignId], references: [id])
+  
+  offers         Offer[]
+
+  // Origin Tracking
+  originLanguage String?  @default("en") // Language of the strategy that found this
+  originCountry  String?  @default("Global") // Country/Region of the strategy
+  sourceAgent    String?  @default("SourcingPipeline") // Agent or Worker ID
+  
+  // Link to Global Registry
+  registryId     String?
+  registry       CompanyRegistry? @relation(fields: [registryId], references: [id])
+  
+  // Structured Contacts
+  contacts       Contact[]
+
+  // Company Classification
+  companyType               String?   @default("NIEJASNY")  // PRODUCENT, HANDLOWIEC, NIEJASNY
+  companyTypeConfidence      Int?      @default(0)
+  needsManualClassification  Boolean   @default(false)
+  sourceType                String?   @default("SEARCH")    // SEARCH, PORTAL_MINE, LEADER_DIRECT, LEADER_SEARCH, EXPANSION
+
+  // Soft Delete
+  deletedAt DateTime?
+}
+
+model Contact {
+  id              String   @id @default(uuid())
+  supplierId      String
+  supplier        Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  name            String?
+  role            String?
+  email           String?
+  phone           String?
+  isDecisionMaker Boolean  @default(false)
+
+  apolloId        String?
+  linkedinUrl     String?
+  department      String?
+  seniority       String?
+  emailStatus     String?
+  enrichedAt      DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([email])
+  @@index([supplierId])
+}
+
+model Log {
+  id         String   @id @default(uuid())
+  campaignId String
+  message    String
+  timestamp  DateTime @default(now())
+
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+}
+
+// --- AI & KNOWLEDGE BASE ---
+
+model DocumentChunk {
+  id          String   @id @default(uuid())
+  content     String   // The actual text chunk
+  
+  // Vector embedding (stored as JSON array, can use pgvector extension later)
+  vector      String?
+  
+  sourceUrl   String?
+  
+  supplierId  String?
+  supplier    Supplier? @relation(fields: [supplierId], references: [id])
+  
+  createdAt   DateTime @default(now())
+}
+
+model AiInteraction {
+  id          String   @id @default(uuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  
+  campaignId  String?
+  
+  prompt      String
+  response    String
+  modelUsed   String
+  tokensUsed  Int?
+  feedback    Int?     // User rating 1-5
+  
+  createdAt   DateTime @default(now())
+}
+
+// --- API USAGE TRACKING ---
+
+model ApiUsageLog {
+  id             String   @id @default(uuid())
+  
+  // Tracking
+  service        String   // "gemini" | "serper"
+  endpoint       String?  // Specific endpoint/model used
+  
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id])
+  
+  // Request details
+  requestPayload String?  // Truncated query (first 500 chars)
+  
+  // Results
+  status         String   // "success" | "error"
+  errorMessage   String?
+  
+  // Cost tracking
+  tokensUsed     Int?      // For Gemini
+  estimatedCost  Float?    // Estimated cost in USD
+  responseTimeMs Int?      // Response time in milliseconds
+  
+  createdAt      DateTime @default(now())
+  
+  @@index([service, createdAt])
+  @@index([userId])
+  @@index([status])
+}
+
+// --- SMART CACHE MODELS ---
+
+// Caches SerpApi search results with 30-day TTL
+model SearchQueryCache {
+  id         String   @id @default(uuid())
+  queryHash  String   @unique // SHA256 hash of normalized query
+  queryText  String   // Original query for debugging
+  results    String   // JSON array of {title, link, snippet}
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime // createdAt + 30 days
+
+  @@index([queryHash])
+}
+
+// Global registry of processed companies (indexed by domain)
+// This is the COLLECTIVE KNOWLEDGE BASE - aggregates data from ALL campaigns/users
+model CompanyRegistry {
+  id              String   @id @default(uuid())
+  domain          String   @unique // Root domain (e.g., example.com)
+  name            String?
+  country         String?
+  city            String?
+  specialization  String?
+  certificates    String?  // Comma-separated
+  employeeCount   String?
+  
+  // CRITICAL: Contact Information
+  contactEmails   String?  // Comma-separated list of discovered emails
+  primaryEmail    String?  // Best email for contact (first discovered, or most responsive)
+  
+  // Raw agent results (JSON strings)
+  explorerResult    String?
+  analystResult     String?
+  enrichmentResult  String?
+  auditorResult     String?
+
+  // Quality Metrics
+  lastAnalysisScore Float?
+  dataQualityScore  Float?  // 0-100 based on completeness
+  
+  // Usage Statistics - COLLECTIVE LEARNING
+  usageCount        Int      @default(0)  // How many times this supplier was found/used
+  campaignsCount    Int      @default(0)  // In how many campaigns appeared
+  rfqsSent          Int      @default(0)  // How many RFQs sent to this supplier
+  rfqsResponded     Int      @default(0)  // How many RFQs they responded to
+  
+  // Engagement Tracking
+  lastContactedAt   DateTime?  // When last RFQ was sent
+  lastResponseAt    DateTime?  // When last response received
+  responseRate      Float?     // rfqsResponded / rfqsSent
+  avgResponseTime   Float?     // Average hours to respond
+  
+  // Supplier Status
+  isActive          Boolean  @default(true)   // Still in business
+  isVerified        Boolean  @default(false)  // Manually verified by user
+  isBlacklisted     Boolean  @default(false)  // Marked as unreliable
+  blacklistReason   String?
+  
+  // AI Vector ID (reference to external or internal vector store)
+  vectorId          String?
+  
+  // Timestamps
+  createdAt         DateTime @default(now())
+  lastProcessedAt   DateTime @default(now())
+  lastUpdatedAt     DateTime @updatedAt
+  
+  // Search Keywords
+  keywords          String?  // JSON array of associated keywords
+
+  suppliers         Supplier[] // Back-relation to Campaign Suppliers
+
+  @@index([domain])
+  @@index([name])
+  @@index([country])
+  @@index([isActive, usageCount])
+}
+
+// --- BUSINESS LOGIC MODELS (CRM & RFQ) ---
+
+// 1. RFQ Request - The "Ask"
+// Represents what we are buying (Product Specs, Targets)
+// Separated from Campaign (Shadow Sourcing)
+model RfqRequest {
+  id          String   @id @default(uuid())
+  status      String   @default("DRAFT") // DRAFT, ACTIVE, CLOSED, ARCHIVED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Soft Delete
+  deletedAt   DateTime?
+  
+  // Public ID (Human readable)
+  publicId    String?  // e.g. "RFQ-2026-001"
+  
+  // Product Specification
+  productName String
+  partNumber  String?
+  category    String?
+  material    String?
+  description String?
+  
+  // Commercial Targets
+  targetPrice Float?
+  currency    String   @default("EUR")
+  quantity    Int
+  eau         Int?     // Estimated Annual Usage
+  unit        String   @default("pcs")
+  
+  // Logistics
+  incoterms       String?
+  paymentTerms    String?
+  deliveryAddress String? // Legacy/Manual address override
+  
+  deliveryLocationId String?
+  deliveryLocation   OrganizationLocation? @relation(fields: [deliveryLocationId], references: [id])
+
+  desiredDeliveryDate DateTime?    // Target Delivery Date
+  offerDeadline       DateTime?    // Deadline for submitting offers
+  
+  // Attachments (S3/Local paths)
+  attachments     String? // JSON array
+  
+  // Relations
+  campaign    Campaign? @relation(fields: [campaignId], references: [id])
+  campaignId  String?   @unique // Link to Sourcing Campaign (optional)
+  
+  offers      Offer[] // Received offers
+  
+  ownerId     String? // Internal User ID
+  owner       User?   @relation(fields: [ownerId], references: [id])
+}
+
+// 2. Offer - The "Bid" (Response from Supplier)
+model Offer {
+  id          String   @id @default(uuid())
+  status      String   @default("PENDING") // PENDING (Invited), VIEWED, SUBMITTED, REJECTED, SHORTLISTED, ACCEPTED
+  
+  // Commercials (Filled by Supplier)
+  price       Float?
+  currency    String?  @default("EUR")
+  moq         Int?
+  leadTime    Int?     // In weeks
+  validityDate DateTime?
+  
+  // Checkboxes / Compliance
+  incotermsConfirmed Boolean @default(false)
+  specsConfirmed     Boolean @default(false)
+  
+  comments    String?
+
+  // Relations
+  rfqRequest   RfqRequest @relation(fields: [rfqRequestId], references: [id])
+  rfqRequestId String
+
+  supplier     Supplier   @relation(fields: [supplierId], references: [id])
+  supplierId   String
+
+  // SUPPLIER PORTAL ACCESS
+  // This token allows the supplier to access the specific offer page without login
+  accessToken  String     @unique @default(uuid())
+  tokenExpiresAt DateTime?
+
+  // Audit
+  viewedAt     DateTime?
+  submittedAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Sequence Executions
+  sequenceExecutions SequenceExecution[]
+
+  // Price Tiers (quantity-based pricing)
+  priceTiers    OfferPriceTier[]
+
+  // Alternative Offer (self-reference)
+  parentOfferId String?
+  parentOffer   Offer?  @relation("OfferAlternatives", fields: [parentOfferId], references: [id])
+  alternatives  Offer[] @relation("OfferAlternatives")
+
+  // Alternative offer description
+  altDescription String?
+  altMaterial    String?
+
+  // Language used by supplier in portal
+  submissionLanguage String?
+}
+
+// Price tier for quantity-based pricing
+model OfferPriceTier {
+  id        String   @id @default(uuid())
+  offerId   String
+  offer     Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  minQty    Int
+  maxQty    Int?     // null = last tier ("and above")
+  unitPrice Float
+  createdAt DateTime @default(now())
+
+  @@index([offerId])
+}
+
+// --- SYSTEM HEALTH & AUDIT ---
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  action      String   // CREATE, UPDATE, DELETE
+  entityType  String   // Supplier, Campaign, User
+  entityId    String
+  changes     String?  // JSON diff { "old": ..., "new": ... }
+  metadata    String?  // JSON IP, user-agent etc
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([entityType, entityId])
+  @@index([userId])
+}
+
+
+model SequenceTemplate {
+  id        String   @id @default(uuid())
+  name      String
+  isSystem  Boolean  @default(false)
+  steps     SequenceStep[]
+  campaigns Campaign[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SequenceStep {
+  id          String   @id @default(uuid())
+  dayOffset   Int
+  type        String   // INITIAL, REMINDER, FINAL
+  subject     String
+  bodySnippet String
+
+  template    SequenceTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  templateId  String
+
+  executions  SequenceExecution[]
+}
+
+model SequenceExecution {
+  id             String   @id @default(uuid())
+  offerId        String
+  stepId         String
+  recipientEmail String?  // Track which contact received this email
+  sentAt         DateTime? // Nullable, as we create PENDING records first
+  status         String   @default("SENT") // PENDING, SENT, FAILED, SKIPPED
+  createdAt      DateTime @default(now())
+
+  offer    Offer        @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  step     SequenceStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@unique([offerId, stepId, recipientEmail])
+  @@index([offerId])
+}
+
+// --- CURRENCY EXCHANGE RATES ---
+
+model CurrencyExchangeRate {
+  id            String   @id @default(uuid())
+
+  // Currency code (ISO 4217)
+  currencyCode  String   // e.g., "USD", "EUR", "GBP"
+  currencyName  String   // e.g., "dolar amerykański"
+
+  // Exchange rate to PLN (NBP provides rates vs PLN)
+  rateToPln     Float    // e.g., 4.0234 (1 USD = 4.0234 PLN)
+
+  // Date this rate is valid for
+  effectiveDate DateTime
+
+  // NBP table metadata
+  tableNumber   String?  // e.g., "045/A/NBP/2026"
+
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([currencyCode, effectiveDate])
+  @@index([effectiveDate])
+  @@index([currencyCode])
+}
+
+// --- BILLING & CREDITS ---
+
+model CreditTransaction {
+  id               String   @id @default(uuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount           Int      // +N for purchase, -1 for consumption
+  type             String   // "PURCHASE" | "CONSUMPTION" | "SUBSCRIPTION_GRANT" | "CONTRIBUTION"
+  description      String?
+  stripeSessionId  String?
+  campaignId       String?
+  balanceAfter     Int
+  createdAt        DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([stripeSessionId])
+}
+
+// Organization-level credit transactions (shared pool)
+model OrgCreditTransaction {
+  id               String       @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId           String?      // Which user triggered this transaction
+  amount           Int          // +N for purchase/grant, -1 for consumption
+  type             String       // "TRIAL_GRANT" | "MEMBER_BONUS" | "CONSUMPTION" | "CONTRIBUTION" | "SUBSCRIPTION_GRANT"
+  description      String?
+  stripeSessionId  String?
+  campaignId       String?
+  balanceAfter     Int
+  createdAt        DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([stripeSessionId])
+}
+
+// Per-pair sharing preference (democratic team model)
+model UserSharingPreference {
+  id          String  @id @default(uuid())
+  fromUserId  String  // The user who owns the data
+  toUserId    String  // The user who can see the data
+  enabled     Boolean @default(false)
+
+  fromUser    User @relation("SharingFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser      User @relation("SharingTo", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([fromUserId, toUserId])
+  @@index([fromUserId])
+  @@index([toUserId])
+}
+
+// --- OBSERVABILITY ---
+
+model ObservabilityEvent {
+  id          String   @id @default(uuid())
+  category    String   // auth | conversion | campaign | error
+  type        String   // registration_blocked | trial_exhausted | plan_viewed | low_supplier_count | pipeline_error...
+  severity    String   @default("info") // info | warning | error | critical
+  userId      String?
+  userEmail   String?
+  campaignId  String?
+  title       String
+  message     String?
+  metadata    Json?
+  slackSent   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([category, createdAt])
+  @@index([userId])
+  @@index([severity, createdAt])
+  @@index([type, createdAt])
+}
+
+// --- MONITORING INCIDENTS ---
+
+model MonitoringIncident {
+  id          String    @id @default(uuid())
+  serviceId   String    // "gemini", "serper", "database", "resend", "app_pl", "app_io"
+  status      String    @default("open") // open | resolved
+  startedAt   DateTime  @default(now())
+  resolvedAt  DateTime?
+  durationMs  Int?
+  lastAlertAt DateTime  @default(now())
+  severity    String    @default("warning") // warning | critical
+  title       String
+  message     String?
+  metadata    Json?
+
+  @@index([serviceId, status])
+  @@index([status, startedAt])
+}
