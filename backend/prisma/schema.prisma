@@ -185,6 +185,9 @@ model Campaign {
   sequenceTemplateId String?
   sequenceTemplate   SequenceTemplate? @relation(fields: [sequenceTemplateId], references: [id])
 
+  // Search criteria (persisted for campaign re-run and audit trail)
+  searchCriteria Json?
+
   // AI Campaign Summary
   aiSummary            String?
   aiSummaryGeneratedAt DateTime?
@@ -198,6 +201,46 @@ model Campaign {
   logs      Log[]
   suppliers Supplier[]
   rfqRequest RfqRequest?
+  metrics   CampaignMetrics?
+}
+
+model CampaignMetrics {
+  id                  String   @id @default(uuid())
+  campaignId          String   @unique
+  campaign            Campaign @relation(fields: [campaignId], references: [id])
+
+  // Funnel
+  urlsCollected       Int      @default(0)
+  urlsProcessed       Int      @default(0)
+  screenerPassed      Int      @default(0)
+  screenerFallback    Int      @default(0)
+  auditorApproved     Int      @default(0)
+  auditorRejected     Int      @default(0)
+  auditorNeedsReview  Int      @default(0)
+
+  // Quality
+  avgCapabilityScore  Float?
+  avgTrustScore       Float?
+
+  // Cost
+  geminiCalls         Int      @default(0)
+  serperCalls         Int      @default(0)
+  totalCost           Float    @default(0)
+  costPerSupplier     Float?
+
+  // Rejection breakdown
+  rejectionReasons    Json?
+
+  // Timing
+  totalDurationMs     Int?
+
+  // Flags
+  lowYieldModeUsed    Boolean  @default(false)
+  expansionUsed       Boolean  @default(false)
+  similarityUsed      Boolean  @default(false)
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
 model Supplier {
@@ -285,9 +328,12 @@ model Log {
   id         String   @id @default(uuid())
   campaignId String
   message    String
+  severity   String   @default("info") // info, warning, error, critical
   timestamp  DateTime @default(now())
 
   campaign   Campaign @relation(fields: [campaignId], references: [id])
+
+  @@index([campaignId, severity])
 }
 
 // --- AI & KNOWLEDGE BASE ---
@@ -334,7 +380,9 @@ model ApiUsageLog {
   
   userId         String?
   user           User?    @relation(fields: [userId], references: [id])
-  
+
+  campaignId     String?  // Link API calls to campaigns for cost attribution
+
   // Request details
   requestPayload String?  // Truncated query (first 500 chars)
   
@@ -352,6 +400,7 @@ model ApiUsageLog {
   @@index([service, createdAt])
   @@index([userId])
   @@index([status])
+  @@index([campaignId])
 }
 
 // --- SMART CACHE MODELS ---

@@ -42,9 +42,20 @@ export class SourcingController {
         });
     }
 
+    @Get('health/dashboard')
+    getCampaignHealth() {
+        return this.sourcingService.getCampaignHealth();
+    }
+
     @Get(':id')
     findOne(@Param('id') id: string) {
         return this.sourcingService.findOne(id);
+    }
+
+    @Post(':id/rerun')
+    async rerunCampaign(@Param('id') id: string, @Req() req: any) {
+        const userId = req.user?.userId || req.user?.sub;
+        return this.sourcingService.rerunCampaign(id, userId);
     }
 
     @Get(':id/logs')

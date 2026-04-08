@@ -123,9 +123,9 @@ export class GeminiService {
     // Circuit breaker: track consecutive failures to back off when Gemini is overloaded
     private consecutiveFailures = 0;
     private lastFailureTime = 0;
-    private readonly MAX_RETRIES = parseInt(process.env.GEMINI_MAX_RETRIES || '2', 10);
-    private readonly CIRCUIT_BREAKER_THRESHOLD = 5; // After 5 consecutive failures, add cooldown
-    private readonly CIRCUIT_BREAKER_COOLDOWN_MS = 10_000; // 10s cooldown when circuit open
+    private readonly MAX_RETRIES = parseInt(process.env.GEMINI_MAX_RETRIES || '4', 10);
+    private readonly CIRCUIT_BREAKER_THRESHOLD = 8; // After 8 consecutive failures, add cooldown
+    private readonly CIRCUIT_BREAKER_COOLDOWN_MS = 30_000; // 30s cooldown when circuit open
 
     async generateContent(prompt: string, userId?: string, context?: string): Promise<string> {
         // 0. Check Cache
@@ -156,8 +156,9 @@ export class GeminiService {
         // Retry with exponential backoff
         for (let attempt = 0; attempt <= this.MAX_RETRIES; attempt++) {
             if (attempt > 0) {
-                const backoffMs = Math.min(2000 * Math.pow(2, attempt - 1), 8000); // 2s, 4s, 8s
-                this.logger.warn(`[GEMINI] Retry ${attempt}/${this.MAX_RETRIES} after ${backoffMs}ms backoff`);
+                const jitter = Math.floor(Math.random() * 2000);
+                const backoffMs = Math.min(3000 * Math.pow(2, attempt - 1), 30000) + jitter; // 3s, 6s, 12s, 24s + jitter
+                this.logger.warn(`[GEMINI] Retry ${attempt}/${this.MAX_RETRIES} after ${backoffMs}ms backoff (jitter=${jitter}ms)`);
                 await new Promise(r => setTimeout(r, backoffMs));
             }
 

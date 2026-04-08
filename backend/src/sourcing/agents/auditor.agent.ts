@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { GeminiService } from '../../common/services/gemini.service';
+import { parseAiJson } from '../../common/utils/parse-ai-json';
 
 @Injectable()
 export class AuditorAgentService {
@@ -185,8 +186,7 @@ Zwróć JSON:
 
         try {
             const responseText = await this.geminiService.generateContent(systemPrompt);
-            const jsonString = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
-            const result = JSON.parse(jsonString);
+            const result = parseAiJson(responseText);
 
             // Post-processing: Log validation result
             if (result.validation_result === 'REJECTED') {
@@ -199,42 +199,33 @@ Zwróć JSON:
         } catch (e) {
             this.logger.error('Failed to execute Auditor Agent', e);
 
-            // STRICT FALLBACK: If AI fails, do basic domain-name check
+            // FALLBACK: If AI fails, do basic domain-name check but NEVER reject outright
+            // Reason: Many legitimate companies have domains that don't match their legal name
+            // (holdings, rebrands, abbreviations). Rejecting here causes 0-supplier cascading failure.
             const domainIncludesCompanyName = companyName.includes(coreDomainName) ||
                 coreDomainName.includes(companyName.split(' ')[0]);
+            const domainMismatch = !domainIncludesCompanyName && companyName.length > 3 && coreDomainName.length > 3;
 
-            if (!domainIncludesCompanyName && companyName.length > 3 && coreDomainName.length > 3) {
-                this.logger.warn(`FALLBACK REJECTION: Domain "${coreDomainName}" doesn't match company "${companyName}"`);
-                return {
-                    is_valid: false,
-                    is_match: false,
-                    validation_result: 'REJECTED',
-                    confidence_score: 0.2,
-                    rejection_reason: `Domain "${coreDomainName}" does not match company name "${companyName}". Possible data falsification.`,
-                    warnings: ["AI verification failed, basic check rejected the record."],
-                    checks_performed: {
-                        domain_company_match: false,
-                        is_blog_or_article: false,
-                        is_distributor: false,
-                        location_domain_consistent: false
-                    },
-                    golden_record: null
-                };
+            if (domainMismatch) {
+                this.logger.warn(`FALLBACK NEEDS_REVIEW: Domain "${coreDomainName}" doesn't match company "${companyName}"`);
             }
 
-            // If basic check passes, return with caution
+            // Always return NEEDS_REVIEW in fallback — let pipeline decide with thresholds
             return {
                 is_valid: true,
-                is_match: true,
+                is_match: !domainMismatch,
                 validation_result: 'NEEDS_REVIEW',
-                confidence_score: 0.5,
+                confidence_score: domainMismatch ? 0.4 : 0.55,
                 rejection_reason: null,
-                warnings: ["AI verification failed, record passed basic domain check but needs manual review."],
+                warnings: [
+                    'AI verification unavailable — fallback heuristic used.',
+                    ...(domainMismatch ? [`Domain "${coreDomainName}" doesn't match company "${companyName}"`] : []),
+                ],
                 checks_performed: {
-                    domain_company_match: true,
+                    domain_company_match: !domainMismatch,
                     is_blog_or_article: false,
                     is_distributor: false,
-                    location_domain_consistent: true
+                    location_domain_consistent: !domainMismatch,
                 },
                 golden_record: {
                     company_name: registryData?.name || websiteData?.company_name || "Unknown Company",

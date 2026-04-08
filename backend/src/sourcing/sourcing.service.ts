@@ -19,6 +19,7 @@ import { ObservabilityService } from '../observability/observability.service';
 import { SalesOpsService } from '../sales-ops/sales-ops.service';
 import { ApolloEnrichmentAgent } from './agents/apollo-enrichment.agent';
 import { ConfigService } from '@nestjs/config';
+import { VatValidationService } from '../common/services/vat-validation.service';
 import { v4 as uuidv4 } from 'uuid';
 import pLimit = require('p-limit');
 import * as XLSX from 'xlsx';
@@ -97,7 +98,7 @@ function inferCountryFromTLD(domain: string): string | null {
         'pt': 'Portugalia', 'ro': 'Rumunia', 'bg': 'Bułgaria', 'hr': 'Chorwacja',
         'si': 'Słowenia', 'lt': 'Litwa', 'lv': 'Łotwa', 'ee': 'Estonia',
         'ie': 'Irlandia', 'lu': 'Luksemburg', 'uk': 'Wielka Brytania',
-        'jp': 'Japonia', 'kr': 'Korea Południowa', 'cn': 'Chiny', 'tw': 'Tajwan',
+        'jp': 'Japonia', 'kr': 'Korea Południowa', 'cn': 'Chiny', 'tw': 'Tajwan', 'hk': 'Hongkong', 'mo': 'Makao',
         'in': 'Indie', 'br': 'Brazylia', 'mx': 'Meksyk', 'au': 'Australia',
         'tr': 'Turcja', 'ua': 'Ukraina', 'ru': 'Rosja',
     };
@@ -174,6 +175,13 @@ function languageToGoogleLocale(lang: string): { gl: string; hl: string } {
         id: { gl: 'id', hl: 'id' },
         ms: { gl: 'my', hl: 'ms' },
         hi: { gl: 'in', hl: 'hi' },
+        bg: { gl: 'bg', hl: 'bg' },  // Bulgarian
+        hr: { gl: 'hr', hl: 'hr' },  // Croatian
+        et: { gl: 'ee', hl: 'et' },  // Estonian
+        lv: { gl: 'lv', hl: 'lv' },  // Latvian
+        lt: { gl: 'lt', hl: 'lt' },  // Lithuanian
+        sk: { gl: 'sk', hl: 'sk' },  // Slovak
+        sl: { gl: 'si', hl: 'sl' },  // Slovenian
     };
     return mapping[lang] || { gl: 'us', hl: 'en' };
 }
@@ -226,13 +234,15 @@ export class SourcingService {
 
     // Deep Research counter per campaign (cap expensive subpage scraping)
     private readonly deepResearchCounts = new Map<string, number>();
-    private readonly MAX_DEEP_RESEARCH = parseInt(process.env.MAX_DEEP_RESEARCH || '30', 10);
+    private readonly MAX_DEEP_RESEARCH = parseInt(process.env.MAX_DEEP_RESEARCH || '50', 10);
 
     // Campaign cancellation flags (in-memory, per-instance)
     private readonly cancelledCampaigns = new Set<string>();
     private readonly campaignStartTimes = new Map<string, number>();
     private readonly campaignTimers = new Map<string, ReturnType<typeof setTimeout>>();
     private readonly campaignAbortControllers = new Map<string, AbortController>();
+    private readonly campaignLowYield = new Map<string, boolean>();
+    private readonly campaignStats = new Map<string, { processedUrls: number; screenerPassed: number; auditorApproved: number; auditorRejected: number; geminiFallbacks: number; rejectionReasons: Map<string, number> }>();
     private readonly PIPELINE_TIMEOUT_MS = parseInt(process.env.PIPELINE_TIMEOUT_MS || '1800000', 10); // 30 min
     private readonly PIPELINE_SUPPLIER_LIMIT = parseInt(process.env.PIPELINE_SUPPLIER_LIMIT || '500', 10);
 
@@ -254,6 +264,7 @@ export class SourcingService {
         @Inject(forwardRef(() => SalesOpsService)) private readonly salesOps: SalesOpsService,
         private readonly apolloEnrichment: ApolloEnrichmentAgent,
         private readonly configService: ConfigService,
+        @Optional() private readonly vatValidation: VatValidationService,
     ) { }
 
     /**
@@ -280,16 +291,26 @@ export class SourcingService {
         }
     }
 
-    private async log(campaignId: string, message: string) {
+    private async log(campaignId: string, message: string, severityOverride?: 'info' | 'warning' | 'error' | 'critical') {
+        // Auto-detect severity from message content if not explicitly provided
+        const severity = severityOverride || this.inferLogSeverity(message);
         this.logger.log(`[${campaignId}] ${message}`);
         try {
             await this.prisma.log.create({
-                data: { campaignId, message }
+                data: { campaignId, message, severity }
             });
         } catch (e) {
             this.logger.error(`Failed to save log: ${e.message}`);
         }
         this.sourcingGateway?.emitLog(campaignId, message);
+    }
+
+    private inferLogSeverity(message: string): 'info' | 'warning' | 'error' | 'critical' {
+        const m = message.toUpperCase();
+        if (m.includes('🚨') || m.includes('CRASH') || m.includes('ZERO_SUPPLIERS')) return 'critical';
+        if (m.includes('[ERROR]') || m.includes('FAILED') || m.includes('Error:')) return 'error';
+        if (m.includes('⚠️') || m.includes('REJECTED') || m.includes('LOW YIELD') || m.includes('MISMATCH') || m.includes('[BUDGET]')) return 'warning';
+        return 'info';
     }
 
     async create(dto: CreateCampaignDto, userId?: string) {
@@ -300,6 +321,7 @@ export class SourcingService {
                 status: 'RUNNING',
                 stage: 'STRATEGY',
                 sequenceTemplateId: dto.sequenceTemplateId || null,
+                searchCriteria: dto.searchCriteria ? JSON.parse(JSON.stringify(dto.searchCriteria)) : undefined,
             }
         });
 
@@ -313,6 +335,8 @@ export class SourcingService {
                 deliveryLocationId: dto.searchCriteria?.deliveryLocationId || null,
                 category: dto.searchCriteria?.category || null,
                 material: dto.searchCriteria?.material || null,
+                description: dto.searchCriteria?.description || dto.name || null,
+                eau: dto.searchCriteria?.eau || null,
                 ownerId: userId || null,
                 targetPrice: dto.searchCriteria?.targetPrice || null,
                 currency: dto.searchCriteria?.currency || 'EUR',
@@ -589,6 +613,100 @@ export class SourcingService {
                     reasoning: s.analysisReason || ''
                 }
             }))
+        };
+    }
+
+    /**
+     * 5.6 INTELLIGENT RE-RUN — create new campaign based on original's searchCriteria,
+     * excluding already-found suppliers. Triggered when < 100 suppliers or user wants more.
+     */
+    async rerunCampaign(originalId: string, userId?: string) {
+        const original = await this.prisma.campaign.findUnique({
+            where: { id: originalId },
+            select: { name: true, language: true, searchCriteria: true, sequenceTemplateId: true, suppliers: { select: { website: true }, where: { deletedAt: null } } },
+        });
+        if (!original) throw new NotFoundException(`Campaign ${originalId} not found`);
+        if (!original.searchCriteria) throw new BadRequestException('Original campaign has no searchCriteria — cannot re-run');
+
+        const sc = original.searchCriteria as any;
+
+        // Build new DTO, reusing original searchCriteria
+        const newDto: CreateCampaignDto = {
+            name: `${original.name} (re-run)`,
+            language: original.language,
+            sequenceTemplateId: original.sequenceTemplateId || undefined,
+            searchCriteria: sc,
+        };
+
+        // Create new campaign
+        const result = await this.create(newDto, userId);
+
+        // Log linkage
+        await this.log(result.id, `[RE-RUN] Based on campaign ${originalId}. Original had ${original.suppliers.length} suppliers. Excluded domains will be deduplicated via CompanyRegistry.`);
+
+        return { ...result, rerunOf: originalId };
+    }
+
+    /**
+     * 4.2 CAMPAIGN HEALTH DASHBOARD — overview of running + recent campaigns for operations
+     */
+    async getCampaignHealth() {
+        const [running, recentCompleted, zeroSupplierAlerts] = await Promise.all([
+            // Running campaigns
+            this.prisma.campaign.findMany({
+                where: { status: 'RUNNING', deletedAt: null },
+                select: { id: true, name: true, createdAt: true, stage: true, _count: { select: { suppliers: true } } },
+                orderBy: { createdAt: 'desc' },
+                take: 20,
+            }),
+            // Recent completed (last 30 days)
+            this.prisma.campaign.findMany({
+                where: { status: { in: ['COMPLETED', 'ACCEPTED'] }, deletedAt: null, createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } },
+                select: { id: true, name: true, createdAt: true, updatedAt: true, _count: { select: { suppliers: true } }, metrics: true },
+                orderBy: { updatedAt: 'desc' },
+                take: 20,
+            }),
+            // Zero supplier campaigns (last 7 days)
+            this.prisma.campaign.findMany({
+                where: {
+                    status: { in: ['COMPLETED', 'FAILED'] },
+                    deletedAt: null,
+                    createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+                    suppliers: { none: {} },
+                },
+                select: { id: true, name: true, createdAt: true, status: true },
+                orderBy: { createdAt: 'desc' },
+            }),
+        ]);
+
+        // Compute averages from recent campaigns with metrics
+        const metricsArr = recentCompleted.filter(c => c.metrics).map(c => c.metrics!);
+        const avgSuppliers = recentCompleted.length > 0
+            ? Math.round(recentCompleted.reduce((s, c) => s + c._count.suppliers, 0) / recentCompleted.length) : 0;
+        const avgDuration = metricsArr.length > 0
+            ? Math.round(metricsArr.reduce((s, m) => s + (m.totalDurationMs || 0), 0) / metricsArr.length / 1000) : 0;
+
+        return {
+            running: running.map(c => ({
+                id: c.id, name: c.name, startedAt: c.createdAt, stage: c.stage,
+                suppliers: c._count.suppliers,
+                elapsed: `${Math.round((Date.now() - c.createdAt.getTime()) / 60000)}m`,
+            })),
+            recentCompleted: recentCompleted.map(c => ({
+                id: c.id, name: c.name, completedAt: c.updatedAt,
+                suppliers: c._count.suppliers,
+                duration: c.metrics?.totalDurationMs ? `${Math.round(c.metrics.totalDurationMs / 60000)}m` : '?',
+                lowYield: c.metrics?.lowYieldModeUsed || false,
+            })),
+            alerts: zeroSupplierAlerts.map(c => ({
+                type: 'zero_suppliers', campaignId: c.id, name: c.name, completedAt: c.createdAt, status: c.status,
+            })),
+            averages: {
+                avgSuppliersPerCampaign: avgSuppliers,
+                avgDurationSeconds: avgDuration,
+                totalCampaigns30d: recentCompleted.length,
+                zeroSupplierCount7d: zeroSupplierAlerts.length,
+            },
         };
     }
 
@@ -886,6 +1004,8 @@ OUTPUT FORMAT (JSON only):
         // Register pipeline start time for auto-stop
         this.campaignStartTimes.set(id, Date.now());
         this.cancelledCampaigns.delete(id); // Clear stale cancel flag
+        this.campaignLowYield.set(id, false);
+        this.campaignStats.set(id, { processedUrls: 0, screenerPassed: 0, auditorApproved: 0, auditorRejected: 0, geminiFallbacks: 0, rejectionReasons: new Map() });
         const abortController = new AbortController();
         this.campaignAbortControllers.set(id, abortController);
         // Dev environment: default to 10 firms. Production (Cloud Functions): default to 300.
@@ -930,6 +1050,20 @@ OUTPUT FORMAT (JSON only):
             const rawProductName = dto.searchCriteria?.keywords?.[0] || dto.name || '';
             const cleanProductName = rawProductName.replace(/^Kampania:\s*/i, '').trim() || rawProductName;
 
+            // E1: GEMINI HEALTH CHECK — verify AI is responsive before investing pipeline time
+            const geminiOk = await this.geminiService.checkConnectivity().catch(() => false);
+            if (!geminiOk) {
+                await this.log(id, `⚠️ Gemini API connectivity check failed — waiting 30s before retrying...`);
+                await new Promise(r => setTimeout(r, 30000));
+                const retryOk = await this.geminiService.checkConnectivity().catch(() => false);
+                if (!retryOk) {
+                    await this.log(id, `⚠️ Gemini still unavailable — proceeding with cache/fallbacks`);
+                } else {
+                    await this.log(id, `✅ Gemini API recovered after 30s wait`);
+                }
+            }
+
+            // Geocode buyer delivery location for proximity scoring (non-blocking, cached)
             // --- PHASE 0 + 0.5: PRODUCT CONTEXT + MARKET INTELLIGENCE (parallel) ---
             await this.log(id, `🔬 [CONTEXT] Analyzing product semantics + market intelligence in parallel for: "${cleanProductName}"`);
             const rawCategory = dto.searchCriteria?.category || dto.searchCriteria?.industry || '';
@@ -1017,10 +1151,11 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             await this.log(id, `✅ [STRATEGY] Generated ${strategyResult.strategies?.length || 0} language-specific strategies`);
 
             // Retry strategy if Gemini timeout returned empty strategies
-            const STRATEGY_RETRIES = 2;
+            const STRATEGY_RETRIES = 4;
             for (let retry = 1; retry <= STRATEGY_RETRIES && (!strategyResult.strategies || strategyResult.strategies.length === 0); retry++) {
-                await this.log(id, `[STRATEGY] ⚠️ Got 0 strategies (likely Gemini timeout). Retry ${retry}/${STRATEGY_RETRIES}...`);
-                await new Promise(r => setTimeout(r, 3000 * retry)); // 3s, 6s backoff
+                const backoff = 5000 * Math.pow(2, retry - 1); // 5s, 10s, 20s, 40s
+                await this.log(id, `[STRATEGY] ⚠️ Got 0 strategies (likely Gemini timeout). Retry ${retry}/${STRATEGY_RETRIES} after ${backoff / 1000}s...`);
+                await new Promise(r => setTimeout(r, backoff));
                 strategyResult = await this.strategyAgent.execute(strategyParams);
                 await this.log(id, `[STRATEGY] Retry ${retry} returned ${strategyResult.strategies?.length || 0} strategies`);
             }
@@ -1283,8 +1418,16 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 await this.log(id, `[STOP] Pipeline stopped after Phase 2: ${stopAfter2B} (${elapsed}s elapsed, ${qualifiedCounter.value} suppliers)`);
             }
 
+            // D4: LOW YIELD MODE — relax thresholds when pipeline is underperforming
+            const statsNow = this.campaignStats.get(id);
+            if (statsNow && statsNow.processedUrls > 100 && qualifiedCounter.value < 10) {
+                this.campaignLowYield.set(id, true);
+                await this.log(id, `⚠️ LOW YIELD MODE activated: ${qualifiedCounter.value} suppliers after ${statsNow.processedUrls} URLs — relaxing thresholds`);
+            }
+
             // --- PHASE 2.5: EXPANSION PASS (second sweep for missed suppliers) ---
-            const EXPANSION_THRESHOLD = Math.min(20, Math.ceil(MAX_TOTAL_QUALIFIED * 0.3));
+            // Trigger expansion more aggressively: max(30, 40% of target) instead of min(20, 30%)
+            const EXPANSION_THRESHOLD = Math.max(30, Math.ceil(MAX_TOTAL_QUALIFIED * 0.4));
             if (!stopAfter2B && qualifiedCounter.value < EXPANSION_THRESHOLD) {
                 await this.log(id, `[EXPANSION] Coverage at ${qualifiedCounter.value}/${MAX_TOTAL_QUALIFIED} (${Math.round(qualifiedCounter.value / MAX_TOTAL_QUALIFIED * 100)}%) — running expansion pass...`);
                 this.sourcingGateway?.emitProgress(id, 'EXPANSION', 0);
@@ -1542,8 +1685,107 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 }
             }
 
+            // --- PHASE 2.8: SIMILARITY DISCOVERY (when < 100 suppliers, find "companies like top results") ---
+            const SIMILARITY_THRESHOLD = 100;
+            const stopBeforeSimilarity = this.shouldStop(id, qualifiedCounter.value);
+            if (!stopBeforeSimilarity && qualifiedCounter.value < SIMILARITY_THRESHOLD && qualifiedCounter.value > 0) {
+                try {
+                    await this.log(id, `🔍 [SIMILARITY] Only ${qualifiedCounter.value} suppliers (< ${SIMILARITY_THRESHOLD}) — running similarity discovery...`);
+                    this.sourcingGateway?.emitProgress(id, 'SIMILARITY', 0);
+
+                    // Get top-scoring suppliers as seeds
+                    const topSeeds = await this.prisma.supplier.findMany({
+                        where: { campaignId: id, deletedAt: null },
+                        orderBy: { analysisScore: 'desc' },
+                        take: Math.min(10, qualifiedCounter.value),
+                        select: { name: true, country: true, specialization: true, website: true },
+                    });
+
+                    // Generate competitor/similar company queries from top seeds
+                    const similarityQueries: string[] = [];
+                    for (const seed of topSeeds.slice(0, 5)) {
+                        const seedName = (seed.name || '').replace(/\b(sp\.?\s*z\s*o\.?\s*o\.?|gmbh|ltd|s\.?a\.?|s\.?r\.?l\.?|bv|ag|inc|corp)\b/gi, '').trim();
+                        if (seedName.length < 3) continue;
+                        similarityQueries.push(
+                            `"${seedName}" competitors ${cleanProductName}`,
+                            `companies similar to "${seedName}" ${seed.specialization || cleanProductName}`,
+                        );
+                        if (seed.country) {
+                            similarityQueries.push(`${cleanProductName} manufacturer ${seed.country} -"${seedName}"`);
+                        }
+                    }
+
+                    // Add certification-based queries if requiredCertificates specified
+                    const requiredCerts = dto.searchCriteria?.requiredCertificates || [];
+                    for (const cert of requiredCerts.slice(0, 2)) {
+                        similarityQueries.push(`"${cert}" certified ${cleanProductName} manufacturer`);
+                    }
+
+                    // Add B2B marketplace deep queries
+                    const marketplaceQueries = [
+                        `site:europages.com "${cleanProductName}" manufacturer`,
+                        `site:kompass.com "${cleanProductName}" producer`,
+                    ];
+                    if (searchCriteria.region === 'GLOBAL' || searchCriteria.region === 'CN') {
+                        marketplaceQueries.push(`site:made-in-china.com "${cleanProductName}" factory`);
+                    }
+
+                    const allSimilarityQueries = [...new Set([...similarityQueries, ...marketplaceQueries])];
+                    await this.log(id, `[SIMILARITY] Generated ${allSimilarityQueries.length} similarity queries from ${topSeeds.length} seed suppliers`);
+
+                    // Execute similarity queries
+                    let similarityFound = 0;
+                    const negatives = languageStrategies[0]?.negatives || ['-amazon', '-ebay', '-alibaba'];
+                    const negStr = negatives.join(' ');
+
+                    for (const query of allSimilarityQueries) {
+                        const stopMid = this.shouldStop(id, qualifiedCounter.value);
+                        if (stopMid || qualifiedCounter.value >= SIMILARITY_THRESHOLD) break;
+
+                        try {
+                            const results = await this.searchService.searchExtended(
+                                `${query} ${negStr}`, { gl: 'us', hl: 'en' }, undefined, id
+                            );
+
+                            for (const r of results) {
+                                const rDomain = this.extractDomain(r.link);
+                                if (processedDomains.has(rDomain)) continue;
+                                if (qualifiedCounter.value >= MAX_TOTAL_QUALIFIED) break;
+
+                                processedDomains.add(rDomain);
+                                if (!qualifiedCounter.tryReserve(MAX_TOTAL_QUALIFIED)) break;
+                                const result = await this.processSupplierUrl(
+                                    id, dto, r.link, '[SIMILARITY]',
+                                    processedCompanyNames, 'en', 'Global',
+                                    productContext || undefined, processedDomains, 0,
+                                    userLanguage, knownManufacturers
+                                );
+                                if (result <= 0) {
+                                    qualifiedCounter.release();
+                                } else {
+                                    similarityFound++;
+                                }
+                            }
+                        } catch (searchErr: any) {
+                            if (searchErr.message?.startsWith('BUDGET_EXHAUSTED')) {
+                                await this.log(id, `[SIMILARITY] Budget exhausted — stopping`);
+                                break;
+                            }
+                            // Skip individual query errors
+                        }
+                    }
+
+                    await this.log(id, `✅ [SIMILARITY] Found ${similarityFound} additional suppliers via similarity. Total: ${qualifiedCounter.value}`);
+                    this.sourcingGateway?.emitProgress(id, 'SIMILARITY', 100);
+                } catch (simErr: any) {
+                    await this.log(id, `[SIMILARITY] Error (non-fatal): ${simErr.message}`);
+                }
+            } else if (!stopBeforeSimilarity && qualifiedCounter.value >= SIMILARITY_THRESHOLD) {
+                await this.log(id, `[SIMILARITY] ${qualifiedCounter.value} suppliers >= ${SIMILARITY_THRESHOLD} — similarity discovery not needed.`);
+            }
+
             // --- PHASE 3: AGGREGATE RESULTS ---
-            // Re-count from DB for accuracy (includes expansion results)
+            // Re-count from DB for accuracy (includes expansion + similarity results)
             const finalSupplierCount = await this.prisma.supplier.count({
                 where: { campaignId: id, deletedAt: null },
             });
@@ -1563,6 +1805,42 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
 
             await this.log(id, `[RESULTS] Per-country: ${languageStats.join(' | ')}`);
             await this.log(id, `[ANALYSIS] Total suppliers found: ${finalSupplierCount} | URLs processed: ${processedCount}/${globalSeenDomains.size} | Time: ${elapsed}s`);
+
+            // D5: Pipeline summary with rejection breakdown
+            const pipelineStats = this.campaignStats.get(id);
+            if (pipelineStats) {
+                const topReasons = [...pipelineStats.rejectionReasons.entries()]
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 5)
+                    .map(([reason, count]) => `${reason}: ${count}`)
+                    .join(', ');
+                await this.log(id, `📊 PIPELINE SUMMARY:\n- URLs processed: ${pipelineStats.processedUrls}\n- Auditor approved: ${pipelineStats.auditorApproved}, rejected: ${pipelineStats.auditorRejected}\n- Gemini fallbacks: ${pipelineStats.geminiFallbacks}\n- Low yield mode: ${this.campaignLowYield.get(id) ? 'YES' : 'NO'}\n- Top rejection reasons: ${topReasons || 'none'}`);
+
+                // Persist CampaignMetrics to DB
+                await this.prisma.campaignMetrics.upsert({
+                    where: { campaignId: id },
+                    create: {
+                        campaignId: id,
+                        urlsProcessed: pipelineStats.processedUrls,
+                        urlsCollected: globalSeenDomains.size,
+                        auditorApproved: pipelineStats.auditorApproved,
+                        auditorRejected: pipelineStats.auditorRejected,
+                        totalDurationMs: Date.now() - (this.campaignStartTimes.get(id) || Date.now()),
+                        lowYieldModeUsed: this.campaignLowYield.get(id) || false,
+                        rejectionReasons: Object.fromEntries(pipelineStats.rejectionReasons),
+                        costPerSupplier: finalSupplierCount > 0 ? undefined : undefined, // Calculated separately via API usage
+                    },
+                    update: {
+                        urlsProcessed: pipelineStats.processedUrls,
+                        urlsCollected: globalSeenDomains.size,
+                        auditorApproved: pipelineStats.auditorApproved,
+                        auditorRejected: pipelineStats.auditorRejected,
+                        totalDurationMs: Date.now() - (this.campaignStartTimes.get(id) || Date.now()),
+                        lowYieldModeUsed: this.campaignLowYield.get(id) || false,
+                        rejectionReasons: Object.fromEntries(pipelineStats.rejectionReasons),
+                    },
+                }).catch(e => this.logger.error(`Failed to save CampaignMetrics: ${e.message}`));
+            }
 
             if (finalStopReason === 'USER_STOPPED') {
                 await this.log(id, `[STOPPED] Pipeline stopped by user (${elapsed}s, ${finalSupplierCount} suppliers)`);
@@ -1618,8 +1896,17 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                     this.logger.error(`Feedback email error for campaign ${id}:`, err)
                 );
 
-                // Alert if campaign found fewer than 30 suppliers
-                if (finalSupplierCount < 30) {
+                // Alert based on supplier count
+                if (finalSupplierCount === 0) {
+                    // CRITICAL: 0 suppliers = pipeline completely failed to deliver
+                    const ps = this.campaignStats.get(id);
+                    this.observability.recordEvent('campaign', 'zero_suppliers', 'critical', {
+                        title: `🚨 KAMPANIA 0 DOSTAWCÓW: ${dto.name || id}`,
+                        campaignId: id,
+                        message: `Czas: ${elapsed}s | URLs: ${processedCount}/${globalSeenDomains.size} | Auditor rejected: ${ps?.auditorRejected || '?'} | Gemini fallbacks: ${ps?.geminiFallbacks || '?'} | Low yield: ${this.campaignLowYield.get(id) ? 'YES' : 'NO'}`,
+                        metadata: { supplierCount: 0, elapsed, processedUrls: processedCount, auditorRejected: ps?.auditorRejected, geminiFallbacks: ps?.geminiFallbacks },
+                    }).catch(() => {});
+                } else if (finalSupplierCount < 30) {
                     this.observability.recordEvent('campaign', 'low_supplier_count', 'warning', {
                         title: `Kampania zakończona z ${finalSupplierCount} dostawcami (< 30)`,
                         campaignId: id,
@@ -1657,6 +1944,8 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             this.campaignStartTimes.delete(id);
             this.deepResearchCounts.delete(id);
             this.campaignAbortControllers.delete(id);
+            this.campaignLowYield.delete(id);
+            this.campaignStats.delete(id);
         }
     }
 
@@ -1771,18 +2060,27 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
 
                     // For English: search BOTH US and UK markets for maximum coverage
                     let rawResults: { title: string; link: string; snippet: string }[];
-                    if (language === 'en') {
-                        const [usResults, gbResults] = await Promise.all([
-                            this.searchService.searchExtended(fullQuery, { gl: 'us', hl: 'en' }, undefined, campaignId),
-                            this.searchService.searchExtended(fullQuery, { gl: 'gb', hl: 'en' }, undefined, campaignId),
-                        ]);
-                        const seen = new Set<string>();
-                        rawResults = [];
-                        for (const r of [...usResults, ...gbResults]) {
-                            if (!seen.has(r.link)) { seen.add(r.link); rawResults.push(r); }
+                    try {
+                        if (language === 'en') {
+                            const [usResults, gbResults] = await Promise.all([
+                                this.searchService.searchExtended(fullQuery, { gl: 'us', hl: 'en' }, undefined, campaignId),
+                                this.searchService.searchExtended(fullQuery, { gl: 'gb', hl: 'en' }, undefined, campaignId),
+                            ]);
+                            const seen = new Set<string>();
+                            rawResults = [];
+                            for (const r of [...usResults, ...gbResults]) {
+                                if (!seen.has(r.link)) { seen.add(r.link); rawResults.push(r); }
+                            }
+                        } else {
+                            rawResults = await this.searchService.searchExtended(fullQuery, locale, undefined, campaignId);
                         }
-                    } else {
-                        rawResults = await this.searchService.searchExtended(fullQuery, locale, undefined, campaignId);
+                    } catch (searchErr: any) {
+                        if (searchErr.message?.startsWith('BUDGET_EXHAUSTED')) {
+                            await this.log(campaignId, `${workerTag} [BUDGET] Search budget exhausted — stopping worker`);
+                            break;
+                        }
+                        await this.log(campaignId, `${workerTag} [SEARCH] Error: ${searchErr.message} — skipping query`);
+                        continue;
                     }
                     urls = rawResults.map(r => r.link);
 
@@ -1906,28 +2204,37 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             } else {
                 const locale = languageToGoogleLocale(language);
 
-                if (language === 'en') {
-                    const [usResults, gbResults] = await Promise.all([
-                        this.searchService.searchExtended(fullQuery, { gl: 'us', hl: 'en' }, undefined, campaignId),
-                        this.searchService.searchExtended(fullQuery, { gl: 'gb', hl: 'en' }, undefined, campaignId),
-                    ]);
-                    searchesUsed += 2;
-                    const seen = new Set<string>();
-                    const rawResults: { title: string; link: string; snippet: string }[] = [];
-                    for (const r of [...usResults, ...gbResults]) {
-                        if (!seen.has(r.link)) { seen.add(r.link); rawResults.push(r); }
+                try {
+                    if (language === 'en') {
+                        const [usResults, gbResults] = await Promise.all([
+                            this.searchService.searchExtended(fullQuery, { gl: 'us', hl: 'en' }, undefined, campaignId),
+                            this.searchService.searchExtended(fullQuery, { gl: 'gb', hl: 'en' }, undefined, campaignId),
+                        ]);
+                        searchesUsed += 2;
+                        const seen = new Set<string>();
+                        const rawResults: { title: string; link: string; snippet: string }[] = [];
+                        for (const r of [...usResults, ...gbResults]) {
+                            if (!seen.has(r.link)) { seen.add(r.link); rawResults.push(r); }
+                        }
+                        urls = rawResults.map(r => r.link);
+                        if (rawResults.length > 0) {
+                            await this.queryCache.cacheResults(query, rawResults);
+                        }
+                    } else {
+                        const rawResults = await this.searchService.searchExtended(fullQuery, locale, undefined, campaignId);
+                        searchesUsed += 1;
+                        urls = rawResults.map(r => r.link);
+                        if (rawResults.length > 0) {
+                            await this.queryCache.cacheResults(query, rawResults);
+                        }
                     }
-                    urls = rawResults.map(r => r.link);
-                    if (rawResults.length > 0) {
-                        await this.queryCache.cacheResults(query, rawResults);
+                } catch (searchErr: any) {
+                    if (searchErr.message?.startsWith('BUDGET_EXHAUSTED')) {
+                        await this.log(campaignId, `${workerTag} [BUDGET] Expansion budget exhausted — stopping`);
+                        break;
                     }
-                } else {
-                    const rawResults = await this.searchService.searchExtended(fullQuery, locale, undefined, campaignId);
-                    searchesUsed += 1;
-                    urls = rawResults.map(r => r.link);
-                    if (rawResults.length > 0) {
-                        await this.queryCache.cacheResults(query, rawResults);
-                    }
+                    await this.log(campaignId, `${workerTag} [SEARCH] Expansion error: ${searchErr.message} — skipping`);
+                    continue;
                 }
             }
 
@@ -1975,6 +2282,9 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
     ): Promise<number> {
         const urlStartTime = Date.now();
         const domain = this.extractDomain(url);
+        const isLowYield = this.campaignLowYield.get(campaignId) || false;
+        const stats = this.campaignStats.get(campaignId);
+        if (stats) stats.processedUrls++;
         try {
             // TIMEOUT CHECK — don't start expensive processing if pipeline timed out
             if (this.shouldStop(campaignId, 0)) return 0;
@@ -2044,7 +2354,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 const mentionedCompanies = screenerResult.mentioned_companies || [];
                 if (depth === 0 && mentionedCompanies.length > 0) {
                     await this.log(campaignId, `${workerTag} [PORTAL] ${domain} → ${mentionedCompanies.length} companies to mine`);
-                    const MAX_PORTAL_LEADS = 10;
+                    const MAX_PORTAL_LEADS = 15;
                     const portalLeads: typeof mentionedCompanies = [];
                     for (const company of mentionedCompanies) {
                         if (portalLeads.length >= MAX_PORTAL_LEADS) break;
@@ -2112,7 +2422,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 ) {
                     await this.log(campaignId, `${workerTag} [DIRECTORY] ${domain} → ${mentionedCompanies.length} mentioned companies`);
 
-                    const MAX_DIRECTORY_LEADS = 5;
+                    const MAX_DIRECTORY_LEADS = 8;
                     const directoryLeads: typeof mentionedCompanies = [];
                     for (const company of mentionedCompanies) {
                         if (directoryLeads.length >= MAX_DIRECTORY_LEADS) break;
@@ -2143,12 +2453,13 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             const capScore = screenerResult.capability_match_score || 0;
             let isBorderline = false;
 
-            if (capScore < 35) {
+            const capScoreRejectThreshold = isLowYield ? 25 : 35;
+            if (capScore < capScoreRejectThreshold) {
                 // HARD REJECT — clearly irrelevant, but still mine directory leads
                 const mentionedFromLowScore = screenerResult.mentioned_companies || [];
                 if (depth === 0 && mentionedFromLowScore.length > 0) {
                     await this.log(campaignId, `${workerTag} [DIRECTORY] Low-score page ${domain} (${capScore}%) has ${mentionedFromLowScore.length} leads — mining before rejecting`);
-                    const MAX_LOW_SCORE_LEADS = 5;
+                    const MAX_LOW_SCORE_LEADS = 8;
                     const lowScoreLeads: typeof mentionedFromLowScore = [];
                     for (const company of mentionedFromLowScore) {
                         if (lowScoreLeads.length >= MAX_LOW_SCORE_LEADS) break;
@@ -2185,7 +2496,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 const mentionedFromBorderline = screenerResult.mentioned_companies || [];
                 if (depth === 0 && mentionedFromBorderline.length > 0) {
                     await this.log(campaignId, `${workerTag} [DIRECTORY] Borderline page ${domain} has ${mentionedFromBorderline.length} leads — mining in parallel`);
-                    const MAX_BORDERLINE_LEADS = 5;
+                    const MAX_BORDERLINE_LEADS = 8;
                     const borderlineLeads: typeof mentionedFromBorderline = [];
                     for (const company of mentionedFromBorderline) {
                         if (borderlineLeads.length >= MAX_BORDERLINE_LEADS) break;
@@ -2286,8 +2597,9 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             // 1.8. NIEJASNY GATE — require minimum confidence for unclassified companies
             const finalCompanyType = screenerResult.company_type || 'NIEJASNY';
             const finalConfidence = screenerResult.company_type_confidence || 0;
+            const niejasnyThreshold = isLowYield ? 35 : 50;
             if (finalCompanyType === 'NIEJASNY') {
-                if (finalConfidence >= 50) {
+                if (finalConfidence >= niejasnyThreshold) {
                     // Leave as NIEJASNY — auditor will verify and reclassify
                     await this.log(campaignId, `${workerTag} NIEJASNY PRZEPUSZCZONY: ${domain} (conf=${finalConfidence})`);
                 } else {
@@ -2336,6 +2648,31 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             if (this.shouldStop(campaignId, 0)) return 0;
             this.sourcingGateway?.emitSupplierUpdate(campaignId, { url, status: 'VERIFYING' });
             const enrichedData = enrichmentResult.enriched_data || screenerResult.extracted_data;
+
+            // 5.5 MULTI-SOURCE VERIFICATION — check CompanyRegistry first, Serper only for unknowns
+            let multiSourceBonus = 0;
+            if (capScore > 50 && depth === 0) {
+                try {
+                    const msRegistry = await this.companyRegistry.getByDomain(domain).catch(() => null);
+                    if (msRegistry && msRegistry.usageCount >= 2) {
+                        // Company known across multiple campaigns = high trust
+                        multiSourceBonus = 10;
+                    } else if (msRegistry && msRegistry.usageCount === 1) {
+                        // Known from 1 campaign = moderate trust
+                        multiSourceBonus = 4;
+                    } else if (enrichedData.company_name && enrichedData.company_name !== 'Detected Supplier') {
+                        // Unknown company — Serper fallback for B2B directory check
+                        const verifyResults = await this.searchService.searchExtended(
+                            `site:europages.com OR site:kompass.com "${enrichedData.company_name}"`,
+                            { gl: 'us', hl: 'en', num: 3 }, undefined, campaignId,
+                        ).catch(() => []);
+                        if (verifyResults.length > 0) {
+                            multiSourceBonus = 8;
+                        }
+                    }
+                } catch { /* non-critical */ }
+            }
+
             const registryData = {
                 name: enrichedData.company_name || 'Unknown',
                 status: 'Active',
@@ -2353,12 +2690,23 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             // CRITICAL: Filter out rejected records
             if (auditorResult.validation_result === 'REJECTED' || auditorResult.is_valid === false) {
                 await this.log(campaignId, `${workerTag} REJECTED: ${auditorResult.rejection_reason || 'Validation failed'}`);
+                if (stats) {
+                    stats.auditorRejected++;
+                    const reason = auditorResult.rejection_reason?.substring(0, 50) || 'AUDITOR_REJECTED';
+                    stats.rejectionReasons.set(reason, (stats.rejectionReasons.get(reason) || 0) + 1);
+                }
                 return 0;
             }
 
             // BORDERLINE suppliers need higher auditor confidence to pass
-            if (isBorderline && (auditorResult.confidence_score || 0) < 0.7) {
-                await this.log(campaignId, `${workerTag} BORDERLINE REJECTED: Low auditor confidence (${auditorResult.confidence_score}) for borderline supplier ${domain}`);
+            // But when auditor is in fallback mode (AI unavailable), use a lower threshold
+            // to avoid cascading 0-supplier failures
+            const isAuditorFallback = auditorResult.warnings?.some(
+                (w: string) => w.includes('AI verification unavailable') || w.includes('AI verification failed'),
+            );
+            const borderlineThreshold = isAuditorFallback ? 0.35 : (isLowYield ? 0.5 : 0.7);
+            if (isBorderline && (auditorResult.confidence_score || 0) < borderlineThreshold) {
+                await this.log(campaignId, `${workerTag} BORDERLINE REJECTED: confidence ${auditorResult.confidence_score} < ${borderlineThreshold} (fallback=${isAuditorFallback}, lowYield=${isLowYield}) for ${domain}`);
                 return 0;
             }
 
@@ -2442,9 +2790,11 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             }
 
             // 3.1.2 EXCLUDED COUNTRIES — negative filter from region config
+            // FIXED: Use exact equality instead of substring .includes() to prevent false matches
+            // (e.g., "Słowacja" should NOT match exclusion of "Słow")
             if (regionConfig?.excludedCountries) {
                 const excluded = regionConfig.excludedCountries.some(
-                    (ex: string) => supplierCountryNorm.toLowerCase().includes(ex.toLowerCase())
+                    (ex: string) => supplierCountryNorm.toLowerCase() === ex.toLowerCase()
                 );
                 if (excluded) {
                     await this.log(campaignId, `${workerTag} EXCLUDED COUNTRY: "${enrichedData.company_name}" from ${supplierCountryNorm}`);
@@ -2453,11 +2803,23 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             }
 
             // 3.1.3 ALLOWED COUNTRIES — positive filter (e.g., EU region only allows European countries)
-            // Rejects suppliers with unknown country too — if we can't confirm the country, we can't confirm they're in the region
+            // Unknown country with generic TLD (.com) gets a pass instead of auto-rejection
+            let unknownCountryPenalty = false;
             if (regionConfig?.allowedCountries && regionConfig.allowedCountries.length > 0) {
                 if (!regionConfig.allowedCountries.includes(supplierCountryNorm)) {
-                    await this.log(campaignId, `${workerTag} REGION MISMATCH: "${enrichedData.company_name}" from ${supplierCountryNorm} — not in ${regionKey}`);
-                    return 0;
+                    if (supplierCountryNorm === 'Nieznany') {
+                        // Don't reject — TLD was generic (.com/.net/.org), country truly unknown
+                        // Apply score penalty later to deprioritize
+                        unknownCountryPenalty = true;
+                        await this.log(campaignId, `${workerTag} UNKNOWN COUNTRY (kept): "${enrichedData.company_name}" — country unknown, will apply score penalty`);
+                    } else {
+                        await this.log(campaignId, `${workerTag} REGION MISMATCH: "${enrichedData.company_name}" from ${supplierCountryNorm} — not in ${regionKey}`);
+                        if (stats) {
+                            const reason = 'REGION_MISMATCH';
+                            stats.rejectionReasons.set(reason, (stats.rejectionReasons.get(reason) || 0) + 1);
+                        }
+                        return 0;
+                    }
                 }
             }
 
@@ -2498,14 +2860,69 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             }
 
             const capabilityScore = screenerResult.capability_match_score || 50;
-            const trustScore = enrichmentResult.verification?.confidence_score || 50;
-            let finalScore = Math.round((capabilityScore * 0.6) + (trustScore * 0.4));
+            const enrichmentConfidence = enrichmentResult.verification?.confidence_score || 50;
+            const websiteTrust = (screenerResult as any).website_trust_score || 50;
+            // Weighted formula: capability 50%, enrichment 25%, website trust 25%
+            let finalScore = Math.round((capabilityScore * 0.50) + (enrichmentConfidence * 0.25) + (websiteTrust * 0.25));
 
             // Penalty for forced PRODUCENT classification (was NIEJASNY)
             if (screenerResult.company_type === 'NIEJASNY') {
                 const originalScore = finalScore;
                 finalScore = Math.max(10, finalScore - 15);
                 await this.log(campaignId, `${workerTag} Score penalty: ${originalScore}% → ${finalScore}% (uncertain classification)`);
+            }
+
+            // VIES VAT Validation — bonus/penalty for EU suppliers (if VAT number was extracted by Screener)
+            const extractedVat = screenerResult.extracted_data?.vat_id;
+            if (this.vatValidation && extractedVat && extractedVat.length >= 8) {
+                const vatParsed = this.vatValidation.extractVatFromContent(extractedVat);
+                if (vatParsed) {
+                    const vatResult = await this.vatValidation.validate(vatParsed.countryCode, vatParsed.vatNumber)
+                        .catch(() => null);
+                    if (vatResult) {
+                        const vatBonus = vatResult.valid ? 15 : -20;
+                        finalScore = Math.max(10, Math.min(100, finalScore + vatBonus));
+                        if (vatResult.valid) {
+                            await this.log(campaignId, `${workerTag} VAT VERIFIED: ${enrichedData.company_name} (+15 trust)${vatResult.name ? ` — "${vatResult.name}"` : ''}`);
+                        } else {
+                            await this.log(campaignId, `${workerTag} VAT INVALID: ${enrichedData.company_name} (-20 trust)`);
+                        }
+                    }
+                }
+            }
+
+            // 5.5 MULTI-SOURCE bonus — found in B2B directories
+            if (multiSourceBonus > 0) {
+                finalScore = Math.min(100, finalScore + multiSourceBonus);
+            }
+
+            // 5.2 FEEDBACK LOOP — boost/penalize based on historical response rate + response speed
+            try {
+                const fbRegistry = await this.companyRegistry.getByDomain(domain).catch(() => null);
+                if (fbRegistry && fbRegistry.rfqsSent >= 2) {
+                    const rr = fbRegistry.responseRate || 0;
+                    if (rr > 0.3) {
+                        finalScore = Math.min(100, finalScore + 10);
+                        // Bonus for fast responders — query DB directly for avgResponseTime
+                        const fullRecord = await this.prisma.companyRegistry.findUnique({
+                            where: { domain }, select: { avgResponseTime: true },
+                        }).catch(() => null);
+                        const avgHrs = fullRecord?.avgResponseTime || 999;
+                        if (avgHrs > 0 && avgHrs < 24) {
+                            finalScore = Math.min(100, finalScore + 5);
+                        } else if (avgHrs > 0 && avgHrs < 72) {
+                            finalScore = Math.min(100, finalScore + 2);
+                        }
+                    } else if (rr === 0 && fbRegistry.rfqsSent >= 3) {
+                        finalScore = Math.max(10, finalScore - 15);
+                        await this.log(campaignId, `${workerTag} FEEDBACK PENALTY: ${enrichedData.company_name} (0% response after ${fbRegistry.rfqsSent} RFQs) → -15`);
+                    }
+                }
+            } catch { /* registry unavailable — skip */ }
+
+            // Penalty for unknown country (generic TLD, no inference possible)
+            if (unknownCountryPenalty) {
+                finalScore = Math.max(10, finalScore - 10);
             }
 
             // Use enriched website (discovered real domain) instead of original URL

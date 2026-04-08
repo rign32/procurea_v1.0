@@ -133,7 +133,7 @@ export class GoogleSearchService {
     // Budget check (single budget for all searches)
     if (!this.budget.canSearch(campaignId)) {
       this.logger.warn(`[BUDGET] Campaign ${campaignId} exceeded search limit. Remaining: 0`);
-      return [];
+      throw new Error(`BUDGET_EXHAUSTED:${campaignId}`);
     }
 
     this.logger.log(`[SEARCH] serper: "${query.substring(0, 50)}..." (budget: ${this.budget.remaining(campaignId)} left)`);
@@ -159,7 +159,9 @@ export class GoogleSearchService {
       status = 'error';
       errorMessage = e.message;
       this.logger.error(`[SEARCH] serper failed: ${e.message}`);
+      throw e; // Propagate error instead of silent empty array
     } finally {
+      // Log API usage ONCE — covers both success and error paths
       if (this.apiUsageService) {
         await this.apiUsageService.logCall({
           service: 'serper',

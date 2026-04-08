@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { GeminiService } from '../../common/services/gemini.service';
+import { parseAiJson } from '../../common/utils/parse-ai-json';
 import { ProductContext } from './screener.agent';
 
 // Sanctioned countries — universal hard filter (Polish-normalized names)
@@ -222,6 +223,8 @@ export class StrategyAgentService {
     'KR': { languages: ['ko'], countryName: 'South Korea', countryNamePL: 'Korea Południowa' },
     'IN': { languages: ['hi', 'en'], countryName: 'India', countryNamePL: 'Indie' },
     'TW': { languages: ['zh'], countryName: 'Taiwan', countryNamePL: 'Tajwan' },
+    'HK': { languages: ['zh', 'en'], countryName: 'Hong Kong', countryNamePL: 'Hongkong' },
+    'MO': { languages: ['zh', 'pt'], countryName: 'Macau', countryNamePL: 'Makao' },
     'VN': { languages: ['vi'], countryName: 'Vietnam', countryNamePL: 'Wietnam' },
     'TH': { languages: ['th'], countryName: 'Thailand', countryNamePL: 'Tajlandia' },
     'MY': { languages: ['ms'], countryName: 'Malaysia', countryNamePL: 'Malezja' },
@@ -330,11 +333,14 @@ export class StrategyAgentService {
     const langSet = new Set<string>();
 
     for (const code of countryCodes) {
-      const info = StrategyAgentService.COUNTRY_LANGUAGES[code];
+      const upperCode = code.toUpperCase();
+      const info = StrategyAgentService.COUNTRY_LANGUAGES[upperCode] || StrategyAgentService.COUNTRY_LANGUAGES[code];
       if (info) {
         countries.push(info.countryName);
         allowedCountries.push(info.countryNamePL);
         info.languages.forEach(l => langSet.add(l));
+      } else {
+        this.logger.warn(`[STRATEGY] Unknown country code "${code}" in CUSTOM region — skipped. Available: ${Object.keys(StrategyAgentService.COUNTRY_LANGUAGES).length} codes.`);
       }
     }
 
@@ -565,10 +571,9 @@ Output Format (JSON Only):
       const responseText = await this.geminiService.generateContent(systemPrompt);
       this.logger.log(`[STRATEGY] Gemini API response length: ${responseText.length} chars`);
 
-      const jsonString = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
-      this.logger.log(`[STRATEGY] Cleaned JSON length: ${jsonString.length} chars`);
+      this.logger.log(`[STRATEGY] Raw response length: ${responseText.length} chars`);
 
-      const result = JSON.parse(jsonString);
+      const result = parseAiJson(responseText);
       this.logger.log(`Strategy Agent generated ${result.strategies?.length || 0} country strategies`);
 
       if (!result.strategies || result.strategies.length === 0) {
@@ -649,10 +654,16 @@ Output Format (JSON Only):
             // B2B directory targeted searches
             `site:europages.com ${localProduct} ${countryName}`,
             `site:kompass.com ${localProduct} ${countryName}`,
-            // Certification registries
+            // Certification registries (TÜV, DNV, Bureau Veritas)
             `${localProduct} "ISO 9001" certificate holder ${countryName}`,
+            `site:tuv.com ${localProduct} certified ${countryName}`,
             // OEM manufacturer search
             `${localProduct} OEM manufacturer ${countryName}`,
+            // Industry news — find companies investing/expanding
+            `${localProduct} manufacturer new factory OR expansion ${countryName} 2025 OR 2026`,
+            // Regional B2B directories (WLW for DACH, ThomasNet for US)
+            ...(lang === 'de' ? [`site:wlw.de ${localProduct} hersteller`] : []),
+            ...(lang === 'en' ? [`site:thomasnet.com ${localProduct} manufacturer`] : []),
           ];
 
           // Add certificate-based queries if user specified required certs

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { GeminiService } from '../../common/services/gemini.service';
+import { parseAiJson } from '../../common/utils/parse-ai-json';
 
 @Injectable()
 export class EnrichmentAgentService {
@@ -111,45 +112,52 @@ Zwróć JSON:
 }
         `;
 
-        try {
-            const responseText = await this.geminiService.generateContent(systemPrompt);
-            const jsonString = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
-            const result = JSON.parse(jsonString);
+        const MAX_ENRICHMENT_RETRIES = 2;
+        for (let attempt = 0; attempt <= MAX_ENRICHMENT_RETRIES; attempt++) {
+            try {
+                const responseText = await this.geminiService.generateContent(systemPrompt);
+                const result = parseAiJson(responseText);
 
-            // Ensure domain data is consistent
-            if (result.enriched_data) {
-                // Don't overwrite website with portal/catalog URL — keep AI-deduced URL if available
-                const isPortal = this.isPortalUrl(targetDomain);
-                if (!isPortal) {
-                    result.enriched_data.website = targetDomain;
-                } else if (!result.enriched_data.website || result.enriched_data.website === targetDomain) {
-                    // AI didn't find a real URL either — keep portal as fallback
-                    result.enriched_data.website = targetDomain;
+                // Ensure domain data is consistent
+                if (result.enriched_data) {
+                    // Don't overwrite website with portal/catalog URL — keep AI-deduced URL if available
+                    const isPortal = this.isPortalUrl(targetDomain);
+                    if (!isPortal) {
+                        result.enriched_data.website = targetDomain;
+                    } else if (!result.enriched_data.website || result.enriched_data.website === targetDomain) {
+                        // AI didn't find a real URL either — keep portal as fallback
+                        result.enriched_data.website = targetDomain;
+                    }
+                    result.enriched_data.domain_display = isPortal
+                        ? this.extractDomainForDisplay(result.enriched_data.website || targetDomain)
+                        : targetDisplayDomain;
+                    // Always return empty emails — email generation is disabled
+                    result.enriched_data.contact_emails = [];
                 }
-                result.enriched_data.domain_display = isPortal
-                    ? this.extractDomainForDisplay(result.enriched_data.website || targetDomain)
-                    : targetDisplayDomain;
-                // Always return empty emails — email generation is disabled
-                result.enriched_data.contact_emails = [];
+
+                return result;
+            } catch (e) {
+                if (attempt < MAX_ENRICHMENT_RETRIES) {
+                    this.logger.warn(`Enrichment retry ${attempt + 1}/${MAX_ENRICHMENT_RETRIES}: ${e.message}`);
+                    await new Promise(r => setTimeout(r, 3000 * (attempt + 1)));
+                    continue;
+                }
+                this.logger.error('Failed to execute Enrichment Agent after retries', e);
+                return {
+                    enriched_data: {
+                        ...analystData,
+                        website: targetDomain,
+                        domain_display: targetDisplayDomain,
+                        domain_verified: false,
+                        contact_emails: []
+                    },
+                    verification: {
+                        is_verified_manufacturer: false,
+                        has_contact_email: false,
+                        confidence_score: 50
+                    }
+                };
             }
-
-            return result;
-        } catch (e) {
-            this.logger.error('Failed to execute Enrichment Agent', e);
-            return {
-                enriched_data: {
-                    ...analystData,
-                    website: targetDomain,
-                    domain_display: targetDisplayDomain,
-                    domain_verified: false,
-                    contact_emails: []
-                },
-                verification: {
-                    is_verified_manufacturer: false,
-                    has_contact_email: false,
-                    confidence_score: 50
-                }
-            };
         }
     }
 

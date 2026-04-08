@@ -23,6 +23,7 @@ export interface LogApiCallParams {
     service: 'gemini' | 'serper';
     endpoint?: string;
     userId?: string;
+    campaignId?: string;
     requestPayload?: string;
     status: 'success' | 'error';
     errorMessage?: string;
@@ -53,6 +54,7 @@ export class ApiUsageService {
                     service: params.service,
                     endpoint: params.endpoint,
                     userId: params.userId,
+                    campaignId: params.campaignId,
                     requestPayload: params.requestPayload?.substring(0, 500),
                     status: params.status,
                     errorMessage: params.errorMessage,

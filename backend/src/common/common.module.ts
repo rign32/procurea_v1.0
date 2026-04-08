@@ -8,6 +8,7 @@ import { HealthService } from './services/health.service';
 import { DatabaseExplorerService } from './services/database-explorer.service';
 import { ApiUsageService } from './services/api-usage.service';
 import { TranslationService } from './services/translation.service';
+import { VatValidationService } from './services/vat-validation.service';
 import { HealthController } from './controllers/health.controller';
 import { DatabaseExplorerController } from './controllers/database-explorer.controller';
 import { AdminGuard } from '../admin/admin.guard';
@@ -30,6 +31,7 @@ import { ObservabilityModule } from '../observability/observability.module';
         DatabaseExplorerService,
         NotificationService,
         TranslationService,
+        VatValidationService,
     ],
     exports: [
         ApiUsageService,
@@ -41,6 +43,7 @@ import { ObservabilityModule } from '../observability/observability.module';
         DatabaseExplorerService,
         NotificationService,
         TranslationService,
+        VatValidationService,
     ],
 })
 export class CommonModule { }

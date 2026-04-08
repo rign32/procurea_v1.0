@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { GeminiService } from '../../common/services/gemini.service';
+import { parseAiJson } from '../../common/utils/parse-ai-json';
 
 /**
  * Product context provided by the pipeline's Phase 0 analysis.
@@ -66,6 +67,8 @@ export class ScreenerAgentService {
             employee_count?: string;
         };
         mentioned_companies?: { name: string; url?: string }[];
+        website_trust_score?: number;
+        trust_signals?: any;
     }> {
         this.logger.log(`Executing Screener Agent for ${url}...`);
 
@@ -269,6 +272,16 @@ FORMAT WYJŚCIOWY (JSON Only):
   "reason": "Krótkie uzasadnienie screeningu",
   "capability_match_score": 0-100,
   "match_reason": "Zwięzłe uzasadnienie oceny dopasowania (1 zdanie).",
+  "website_trust_score": 0-100,
+  "trust_signals": {
+    "has_product_catalog": true,
+    "has_company_history": true,
+    "has_certifications_page": false,
+    "has_contact_form": true,
+    "content_depth": "rich|moderate|minimal",
+    "languages_count": 1,
+    "is_professional_design": true
+  },
   "risks": ["Ryzyko 1", "Ryzyko 2"],
   "extracted_data": {
     "company_name": "Pełna nazwa lub Domena (z dużej litery)",
@@ -287,6 +300,17 @@ FORMAT WYJŚCIOWY (JSON Only):
     {"name": "Nazwa Firmy", "url": "https://firmowa-strona.pl"}
   ]
 }
+
+=== WEBSITE TRUST SCORE (website_trust_score 0-100) ===
+Oceń WIARYGODNOŚĆ I PROFESJONALIZM strony firmy:
+- has_product_catalog (dedykowany katalog z parametrami/specyfikacjami): +20
+- has_company_history (sekcja "O nas"/"About Us" z historią firmy): +15
+- has_certifications_page (certyfikaty z numerami/datami ważności): +15
+- has_contact_form (formularz kontaktowy lub pełne dane: adres+tel+email): +10
+- content_depth rich (szczegółowe opisy produktów, dane techniczne): +15 / moderate: +8 / minimal: +3
+- languages_count >= 2 (strona w wielu językach = profesjonalizm): +15
+- is_professional_design (nowoczesny layout, responsive, czytelny): +10
+UWAGA: Nie karz za brak nowoczesnego designu — starsze strony firmowe mogą należeć do solidnych producentów.
 UWAGA: "mentioned_companies" zwracaj TYLKO gdy page_type = "Directory". W pozostałych przypadkach pomiń to pole.
 
 JĘZYK WYJŚCIA: Wszystkie pola tekstowe (reason, match_reason, risks, company_type_evidence,
@@ -296,8 +320,7 @@ Nazwy firm pozostaw oryginalne — NIE tłumacz nazw własnych.
 
         try {
             const responseText = await this.geminiService.generateContent(systemPrompt);
-            const jsonString = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
-            return JSON.parse(jsonString);
+            return parseAiJson(responseText);
         } catch (e) {
             this.logger.error('Failed to execute Screener Agent', e);
 
@@ -327,6 +350,10 @@ Nazwy firm pozostaw oryginalne — NIE tłumacz nazw własnych.
             const fallbackCompanyType = hasShopSignal ? 'HANDLOWIEC' as const
                 : (hasMfgSignal ? 'PRODUCENT' as const : 'NIEJASNY' as const);
 
+            // Score based on number of positive keyword hits (range 30-65) instead of flat 50
+            const matchCount = positiveKeywords.filter(k => contentLower.includes(k.toLowerCase())).length;
+            const fallbackScore = isRelevant ? Math.min(30 + matchCount * 8, 65) : 0;
+
             return {
                 company_type: fallbackCompanyType,
                 company_type_confidence: hasShopSignal || hasMfgSignal ? 60 : 20,
@@ -334,8 +361,9 @@ Nazwy firm pozostaw oryginalne — NIE tłumacz nazw własnych.
                 is_relevant: isRelevant,
                 page_type: isRelevant ? 'Manufacturer (Fallback)' : (hasNegative ? 'Wrong Product Manufacturer (Fallback)' : 'Irrelevant'),
                 reason: 'AI unavailable, fallback keyword match.',
-                capability_match_score: isRelevant ? 50 : 0,
-                match_reason: 'AI unavailable. Pre-qualified by keyword match.',
+                capability_match_score: fallbackScore,
+                match_reason: `AI unavailable. Fallback keyword match (${matchCount} signals, score=${fallbackScore}).`,
+                website_trust_score: 30,
                 risks: [],
                 extracted_data: {
                     company_name: 'Detected Supplier',
