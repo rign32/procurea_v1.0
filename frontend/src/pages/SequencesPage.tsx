@@ -18,6 +18,7 @@ import {
 import { EmailPreview } from '@/components/email/EmailPreview';
 import { t, isEN } from '@/i18n';
 import { useAuthStore } from '@/stores/auth.store';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import sequencesService from '@/services/sequences.service';
 import type { SequenceTemplate } from '@/services/sequences.service';
 import { toast } from 'sonner';
@@ -34,6 +35,7 @@ const itemVariants = {
 };
 
 export function SequencesPage() {
+    const { confirm, ConfirmDialogElement } = useConfirmDialog();
     const [templates, setTemplates] = useState<SequenceTemplate[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -103,7 +105,7 @@ export function SequencesPage() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm(t.sequences.deleteConfirm)) return;
+        if (!await confirm({ title: t.sequences.deleteConfirm, variant: 'destructive' })) return;
         try {
             await sequencesService.delete(id);
             await loadTemplates();
@@ -133,7 +135,7 @@ export function SequencesPage() {
     };
 
     const handleDeleteStep = async (stepId: string) => {
-        if (!confirm(t.sequences.deleteStepConfirm)) return;
+        if (!await confirm({ title: t.sequences.deleteStepConfirm, variant: 'destructive' })) return;
         try {
             await sequencesService.deleteStep(stepId);
             await loadTemplates();
@@ -188,6 +190,8 @@ export function SequencesPage() {
     }
 
     return (
+        <>
+        {ConfirmDialogElement}
         <motion.div
             variants={containerVariants}
             initial="hidden"
@@ -555,6 +559,7 @@ export function SequencesPage() {
                 </DialogContent>
             </Dialog>
         </motion.div>
+        </>
     );
 }
 

@@ -1,23 +1,25 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Globe, Loader2, Users, Download, Search, Check, X, FolderKanban } from 'lucide-react';
+import { Globe, Loader2, Users, Download, Search, Check, X, FolderKanban, XCircle, ShieldAlert, Upload, FileSpreadsheet, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { SearchInput } from '@/components/ui/search-input';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { SupplierCard } from '@/components/suppliers/SupplierCard';
 import { BlacklistDialog } from '@/components/suppliers/BlacklistDialog';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useCampaigns } from '@/hooks/useCampaigns';
 import { suppliersService } from '@/services/suppliers.service';
 import { apiClient } from '@/services/api.client';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { t } from '@/i18n';
+import { t, isEN } from '@/i18n';
 import { getCountryFlag } from '@/utils/normalize-country';
 import type { Supplier } from '@/types/supplier.types';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { analytics } from '@/lib/analytics';
 
 // EU country names — must match backend data (which uses Polish names)
@@ -51,6 +53,18 @@ export function SuppliersPage() {
 
   const [selectedCampaigns, setSelectedCampaigns] = useState<string[]>([]);
   const [campaignFilterOpen, setCampaignFilterOpen] = useState(false);
+
+  // Import dialog state
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importCampaignId, setImportCampaignId] = useState('');
+  const [importPreview, setImportPreview] = useState<Record<string, string>[]>([]);
+  const [importResult, setImportResult] = useState<{ imported: number; skipped: number; errors: string[] } | null>(null);
+  const importFileRef = useRef<HTMLInputElement>(null);
+
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const { confirm, ConfirmDialogElement } = useConfirmDialog();
 
   // Debounce search query (300ms) to avoid excessive API calls
   useEffect(() => {
@@ -108,6 +122,96 @@ export function SuppliersPage() {
     }
   });
 
+  // Bulk exclude mutation
+  const bulkExcludeMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const res = await apiClient.post('/suppliers/bulk/exclude', { ids });
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+      toast.success(isEN ? 'Suppliers excluded successfully' : 'Dostawcy wykluczeni pomyslnie');
+      setSelectedIds(new Set());
+    },
+    onError: () => {
+      toast.error(isEN ? 'Failed to exclude suppliers' : 'Nie udalo sie wykluczyc dostawcow');
+    },
+  });
+
+  // Bulk blacklist mutation
+  const bulkBlacklistMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const res = await apiClient.post('/suppliers/bulk/blacklist', { ids });
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+      toast.success(isEN ? 'Suppliers blacklisted successfully' : 'Dostawcy dodani do czarnej listy');
+      setSelectedIds(new Set());
+    },
+    onError: () => {
+      toast.error(isEN ? 'Failed to blacklist suppliers' : 'Nie udalo sie dodac do czarnej listy');
+    },
+  });
+
+  // Import mutation
+  const importMutation = useMutation({
+    mutationFn: async () => {
+      if (!importFile || !importCampaignId) throw new Error('Missing file or campaign');
+      return suppliersService.importSuppliers(importFile, importCampaignId);
+    },
+    onSuccess: (result) => {
+      setImportResult(result);
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+      if (result.imported > 0) {
+        toast.success(t.suppliers.import.success);
+      }
+    },
+    onError: () => {
+      toast.error(t.suppliers.import.failed);
+    },
+  });
+
+  // Handle file selection for import
+  const handleImportFileChange = (file: File | null) => {
+    setImportFile(file);
+    setImportResult(null);
+    if (!file) {
+      setImportPreview([]);
+      return;
+    }
+    // Parse preview using FileReader + simple CSV parse
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target?.result as string;
+        if (!text) return;
+        // Simple CSV preview (first 5 rows)
+        const lines = text.split('\n').filter(l => l.trim());
+        if (lines.length < 2) return;
+        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+        const preview: Record<string, string>[] = [];
+        for (let i = 1; i < Math.min(lines.length, 6); i++) {
+          const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+          const row: Record<string, string> = {};
+          headers.forEach((h, idx) => { row[h] = values[idx] || ''; });
+          preview.push(row);
+        }
+        setImportPreview(preview);
+      } catch {
+        setImportPreview([]);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const resetImportDialog = () => {
+    setImportFile(null);
+    setImportCampaignId('');
+    setImportPreview([]);
+    setImportResult(null);
+  };
+
   const countries = useMemo(() => {
     if (!suppliers.length) return [];
     const unique = new Set(
@@ -130,6 +234,58 @@ export function SuppliersPage() {
       selectedCountries.includes(supplier.country || '')
     );
   }, [suppliers, selectedCountries]);
+
+  // Selection handlers (must be after filteredSuppliers is defined)
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    setSelectedIds(prev => {
+      if (prev.size === filteredSuppliers.length && filteredSuppliers.length > 0) {
+        return new Set();
+      }
+      return new Set(filteredSuppliers.map((s: Supplier) => s.id));
+    });
+  }, [filteredSuppliers]);
+
+  const handleBulkExclude = useCallback(async () => {
+    const count = selectedIds.size;
+    const confirmed = await confirm({
+      title: isEN ? `Exclude ${count} suppliers?` : `Wykluczyc ${count} dostawcow?`,
+      description: isEN
+        ? 'These suppliers will be excluded from all campaigns. This action cannot be undone.'
+        : 'Ci dostawcy zostana wykluczeni ze wszystkich kampanii. Tej operacji nie mozna cofnac.',
+      confirmLabel: isEN ? 'Exclude' : 'Wyklucz',
+      variant: 'destructive',
+    });
+    if (confirmed) {
+      bulkExcludeMutation.mutate([...selectedIds]);
+    }
+  }, [selectedIds, confirm, bulkExcludeMutation]);
+
+  const handleBulkBlacklist = useCallback(async () => {
+    const count = selectedIds.size;
+    const confirmed = await confirm({
+      title: isEN ? `Blacklist ${count} suppliers?` : `Dodac ${count} dostawcow do czarnej listy?`,
+      description: isEN
+        ? 'These suppliers will be permanently blacklisted. This action cannot be undone.'
+        : 'Ci dostawcy zostana trwale dodani do czarnej listy. Tej operacji nie mozna cofnac.',
+      confirmLabel: isEN ? 'Blacklist' : 'Czarna lista',
+      variant: 'destructive',
+    });
+    if (confirmed) {
+      bulkBlacklistMutation.mutate([...selectedIds]);
+    }
+  }, [selectedIds, confirm, bulkBlacklistMutation]);
 
   const toggleCountry = (country: string) => {
     setSelectedCountries(prev =>
@@ -210,10 +366,16 @@ export function SuppliersPage() {
           <h1 className="text-3xl font-bold">{t.suppliers.title}</h1>
           <p className="text-muted-foreground mt-1">{t.suppliers.allSuppliers}</p>
         </div>
-        <Button variant="outline" onClick={handleExportCSV}>
-          <Download className="mr-2 h-4 w-4" />
-          {t.common.export}
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => { resetImportDialog(); setImportDialogOpen(true); }}>
+            <Upload className="mr-2 h-4 w-4" />
+            {isEN ? 'Import' : 'Importuj'}
+          </Button>
+          <Button variant="outline" onClick={handleExportCSV}>
+            <Download className="mr-2 h-4 w-4" />
+            {t.common.export}
+          </Button>
+        </div>
       </div>
 
       {/* Search & Filter Bar */}
@@ -433,9 +595,25 @@ export function SuppliersPage() {
         </Card>
       ) : (
         <>
-          <p className="text-sm text-muted-foreground">
-            {t.suppliers.page.showingOf.replace('{shown}', String(filteredSuppliers.length)).replace('{total}', String(serverTotal))}
-          </p>
+          {/* Summary bar with Select All */}
+          <div className="flex items-center gap-3">
+            <Checkbox
+              checked={
+                selectedIds.size === filteredSuppliers.length && filteredSuppliers.length > 0
+                  ? true
+                  : selectedIds.size > 0
+                    ? 'indeterminate'
+                    : false
+              }
+              onCheckedChange={toggleSelectAll}
+            />
+            <p className="text-sm text-muted-foreground">
+              {selectedIds.size > 0
+                ? `${selectedIds.size} ${isEN ? 'selected' : 'zaznaczonych'} / `
+                : ''}
+              {t.suppliers.page.showingOf.replace('{shown}', String(filteredSuppliers.length)).replace('{total}', String(serverTotal))}
+            </p>
+          </div>
 
           <motion.div
             variants={{
@@ -461,6 +639,8 @@ export function SuppliersPage() {
                   supplier={supplier}
                   onClick={() => navigate(`/suppliers/${supplier.id}`)}
                   onBlacklist={() => setSupplierToBlacklist(supplier)}
+                  selected={selectedIds.has(supplier.id)}
+                  onSelect={toggleSelect}
                 />
               </motion.div>
             ))}
@@ -468,7 +648,7 @@ export function SuppliersPage() {
 
           {/* Load more */}
           {hasNextPage && (
-            <div className="flex justify-center pt-4">
+            <div className="flex justify-center pt-4 pb-20">
               <Button
                 variant="outline"
                 size="sm"
@@ -485,6 +665,64 @@ export function SuppliersPage() {
         </>
       )}
 
+      {/* Bulk action toolbar */}
+      <AnimatePresence>
+        {selectedIds.size > 0 && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 rounded-xl border border-border/60 bg-background/80 backdrop-blur-xl shadow-2xl px-5 py-3"
+          >
+            <span className="text-sm font-medium whitespace-nowrap">
+              {selectedIds.size} {isEN ? 'selected' : 'zaznaczonych'}
+            </span>
+
+            <div className="h-5 w-px bg-border" />
+
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleBulkExclude}
+              disabled={bulkExcludeMutation.isPending}
+            >
+              {bulkExcludeMutation.isPending ? (
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <XCircle className="mr-1.5 h-3.5 w-3.5" />
+              )}
+              {isEN ? 'Exclude' : 'Wyklucz'}
+            </Button>
+
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleBulkBlacklist}
+              disabled={bulkBlacklistMutation.isPending}
+            >
+              {bulkBlacklistMutation.isPending ? (
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <ShieldAlert className="mr-1.5 h-3.5 w-3.5" />
+              )}
+              {isEN ? 'Blacklist' : 'Czarna lista'}
+            </Button>
+
+            <div className="h-5 w-px bg-border" />
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedIds(new Set())}
+            >
+              <X className="mr-1.5 h-3.5 w-3.5" />
+              {isEN ? 'Clear' : 'Wyczysc'}
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {supplierToBlacklist && (
         <BlacklistDialog
           isOpen={true}
@@ -494,6 +732,174 @@ export function SuppliersPage() {
           onConfirm={(reason) => blacklistMutation.mutate({ id: supplierToBlacklist.id, reason })}
         />
       )}
+
+      {ConfirmDialogElement}
+
+      {/* Import Dialog */}
+      <Dialog open={importDialogOpen} onOpenChange={(open) => { if (!open) resetImportDialog(); setImportDialogOpen(open); }}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileSpreadsheet className="h-5 w-5" />
+              {t.suppliers.import.title}
+            </DialogTitle>
+            <DialogDescription>
+              {t.suppliers.import.description}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Campaign selector */}
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">
+                {t.suppliers.import.selectCampaign}
+              </label>
+              <select
+                value={importCampaignId}
+                onChange={(e) => setImportCampaignId(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="">{t.suppliers.import.selectCampaignPlaceholder}</option>
+                {campaigns.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name?.replace(/^Kampania:\s*/i, '') || c.id}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* File upload zone */}
+            <div>
+              <input
+                ref={importFileRef}
+                type="file"
+                accept=".csv,.xlsx,.xls"
+                className="hidden"
+                onChange={(e) => handleImportFileChange(e.target.files?.[0] || null)}
+              />
+              <div
+                className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-colors"
+                onClick={() => importFileRef.current?.click()}
+                onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const file = e.dataTransfer.files?.[0];
+                  if (file) handleImportFileChange(file);
+                }}
+              >
+                {importFile ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <FileSpreadsheet className="h-5 w-5 text-primary" />
+                    <span className="text-sm font-medium">{importFile.name}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={(e) => { e.stopPropagation(); handleImportFileChange(null); }}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">{t.suppliers.import.dropzone}</p>
+                  </>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1.5">
+                {t.suppliers.import.columns}
+              </p>
+            </div>
+
+            {/* Preview table */}
+            {importPreview.length > 0 && !importResult && (
+              <div>
+                <p className="text-sm font-medium mb-2">
+                  {t.suppliers.import.preview.replace('{count}', String(importPreview.length))}
+                </p>
+                <div className="border rounded-md overflow-x-auto max-h-[200px]">
+                  <table className="w-full text-xs">
+                    <thead className="bg-muted/50">
+                      <tr>
+                        {Object.keys(importPreview[0]).map((h) => (
+                          <th key={h} className="px-2 py-1.5 text-left font-medium whitespace-nowrap">
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {importPreview.map((row, i) => (
+                        <tr key={i} className="border-t">
+                          {Object.values(row).map((v, j) => (
+                            <td key={j} className="px-2 py-1 whitespace-nowrap max-w-[150px] truncate">
+                              {v}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Import result */}
+            {importResult && (
+              <div className="rounded-lg border p-4 space-y-2">
+                <p className="font-medium flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  {t.suppliers.import.results}
+                </p>
+                <div className="text-sm space-y-1">
+                  <p>{t.suppliers.import.imported.replace('{count}', String(importResult.imported))}</p>
+                  <p>{t.suppliers.import.skipped.replace('{count}', String(importResult.skipped))}</p>
+                  {importResult.errors.length > 0 && (
+                    <div>
+                      <p className="flex items-center gap-1 text-destructive">
+                        <AlertCircle className="h-3.5 w-3.5" />
+                        {t.suppliers.import.errors} ({importResult.errors.length})
+                      </p>
+                      <ul className="text-xs text-muted-foreground mt-1 space-y-0.5 max-h-[100px] overflow-y-auto">
+                        {importResult.errors.map((err, i) => (
+                          <li key={i}>{err}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            {importResult ? (
+              <Button onClick={() => { resetImportDialog(); setImportDialogOpen(false); }}>
+                {t.common.close}
+              </Button>
+            ) : (
+              <Button
+                disabled={!importFile || !importCampaignId || importMutation.isPending}
+                onClick={() => importMutation.mutate()}
+              >
+                {importMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {t.suppliers.import.importing}
+                  </>
+                ) : (
+                  <>
+                    <Upload className="mr-2 h-4 w-4" />
+                    {t.suppliers.import.import}
+                  </>
+                )}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Loader2, Eye } from 'lucide-react';
+import { Loader2, Eye, Palette, RotateCcw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,6 +52,10 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
             setValue('footerPosition', data.footerPosition || user?.jobTitle || '');
             setValue('footerEmail', data.footerEmail || user?.email || '');
             setValue('footerPhone', data.footerPhone || user?.phone || '');
+            setValue('logoUrl', data.logoUrl || '');
+            setValue('primaryColor', data.primaryColor || '');
+            setValue('accentColor', data.accentColor || '');
+            setValue('portalWelcomeText', data.portalWelcomeText || '');
         } catch (error) {
             console.error('Failed to load organization:', error);
             toast.error(t.common.error);
@@ -217,6 +221,146 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
                                     </div>
                                 </div>
                             )}
+                        </div>
+
+                        {/* Branding Section */}
+                        <div className="border-t pt-6 mt-6">
+                            <div className="flex items-center gap-2 mb-4">
+                                <Palette className="h-5 w-5 text-primary" />
+                                <div>
+                                    <h3 className="text-lg font-medium">{(t.settings.organization as any).branding?.title || 'Branding'}</h3>
+                                    <p className="text-sm text-muted-foreground">{(t.settings.organization as any).branding?.subtitle || 'Customize the look of your app and supplier portal'}</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Logo URL */}
+                                <div className="space-y-2 md:col-span-2">
+                                    <Label htmlFor="logoUrl">{(t.settings.organization as any).branding?.logoUrl || 'Logo URL'}</Label>
+                                    <Input
+                                        id="logoUrl"
+                                        {...register('logoUrl')}
+                                        placeholder={(t.settings.organization as any).branding?.logoUrlPlaceholder || 'https://example.com/logo.png'}
+                                    />
+                                    <p className="text-xs text-muted-foreground">
+                                        {(t.settings.organization as any).branding?.logoUrlHint || 'Provide a URL to your organization logo (PNG, SVG).'}
+                                    </p>
+                                    {watchedValues.logoUrl && (
+                                        <div className="mt-2 p-3 border rounded-md bg-muted/50 inline-flex items-center gap-3">
+                                            <img
+                                                src={watchedValues.logoUrl}
+                                                alt="Logo preview"
+                                                className="h-10 w-10 object-contain rounded"
+                                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                            />
+                                            <span className="text-xs text-muted-foreground">Logo preview</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Primary Color */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="primaryColor">{(t.settings.organization as any).branding?.primaryColor || 'Primary color'}</Label>
+                                    <div className="flex items-center gap-2">
+                                        <Input
+                                            id="primaryColor"
+                                            {...register('primaryColor')}
+                                            placeholder="#5E8C8F"
+                                            className="flex-1"
+                                        />
+                                        {watchedValues.primaryColor && /^#[0-9A-Fa-f]{6}$/.test(watchedValues.primaryColor) && (
+                                            <div
+                                                className="h-10 w-10 rounded-md border shadow-sm shrink-0"
+                                                style={{ backgroundColor: watchedValues.primaryColor }}
+                                            />
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">
+                                        {(t.settings.organization as any).branding?.primaryColorHint || 'Color for buttons and UI elements (hex)'}
+                                    </p>
+                                </div>
+
+                                {/* Accent Color */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="accentColor">{(t.settings.organization as any).branding?.accentColor || 'Accent color'}</Label>
+                                    <div className="flex items-center gap-2">
+                                        <Input
+                                            id="accentColor"
+                                            {...register('accentColor')}
+                                            placeholder="#E8F0F0"
+                                            className="flex-1"
+                                        />
+                                        {watchedValues.accentColor && /^#[0-9A-Fa-f]{6}$/.test(watchedValues.accentColor) && (
+                                            <div
+                                                className="h-10 w-10 rounded-md border shadow-sm shrink-0"
+                                                style={{ backgroundColor: watchedValues.accentColor }}
+                                            />
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">
+                                        {(t.settings.organization as any).branding?.accentColorHint || 'Color for highlights and active elements (hex)'}
+                                    </p>
+                                </div>
+
+                                {/* Reset Colors Button */}
+                                <div className="flex items-end">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            setValue('primaryColor', '');
+                                            setValue('accentColor', '');
+                                        }}
+                                    >
+                                        <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+                                        {(t.settings.organization as any).branding?.resetColors || 'Reset to default'}
+                                    </Button>
+                                </div>
+
+                                {/* Color Preview */}
+                                {(watchedValues.primaryColor || watchedValues.accentColor) && (
+                                    <div className="md:col-span-2 space-y-2">
+                                        <Label className="flex items-center gap-2">
+                                            <Eye className="h-4 w-4" />
+                                            {(t.settings.organization as any).branding?.preview || 'Color preview'}
+                                        </Label>
+                                        <div className="border rounded-md p-4 bg-white dark:bg-zinc-900 flex items-center gap-4">
+                                            {watchedValues.primaryColor && /^#[0-9A-Fa-f]{6}$/.test(watchedValues.primaryColor) && (
+                                                <div className="flex items-center gap-2">
+                                                    <div className="rounded-md px-4 py-2 text-white text-sm font-medium" style={{ backgroundColor: watchedValues.primaryColor }}>
+                                                        Button
+                                                    </div>
+                                                    <span className="text-xs text-muted-foreground">{watchedValues.primaryColor}</span>
+                                                </div>
+                                            )}
+                                            {watchedValues.accentColor && /^#[0-9A-Fa-f]{6}$/.test(watchedValues.accentColor) && (
+                                                <div className="flex items-center gap-2">
+                                                    <div className="rounded-md px-4 py-2 text-sm font-medium border" style={{ backgroundColor: watchedValues.accentColor }}>
+                                                        Accent
+                                                    </div>
+                                                    <span className="text-xs text-muted-foreground">{watchedValues.accentColor}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Portal Welcome Text */}
+                                <div className="space-y-2 md:col-span-2">
+                                    <Label htmlFor="portalWelcomeText">{(t.settings.organization as any).branding?.portalWelcomeText || 'Portal welcome text'}</Label>
+                                    <textarea
+                                        id="portalWelcomeText"
+                                        {...register('portalWelcomeText')}
+                                        placeholder={(t.settings.organization as any).branding?.portalWelcomeTextPlaceholder || 'Welcome to our supplier portal...'}
+                                        rows={3}
+                                        className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    />
+                                    <p className="text-xs text-muted-foreground">
+                                        {(t.settings.organization as any).branding?.portalWelcomeTextHint || 'Displayed to suppliers at the top of the offer portal'}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
 
                         <div className="flex justify-end pt-4">

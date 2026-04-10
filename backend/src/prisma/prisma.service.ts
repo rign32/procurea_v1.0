@@ -148,6 +148,31 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
             `CREATE INDEX IF NOT EXISTS "UserSharingPreference_fromUserId_idx" ON "UserSharingPreference"("fromUserId")`,
             `CREATE INDEX IF NOT EXISTS "UserSharingPreference_toUserId_idx" ON "UserSharingPreference"("toUserId")`,
             `CREATE UNIQUE INDEX IF NOT EXISTS "UserSharingPreference_fromUserId_toUserId_key" ON "UserSharingPreference"("fromUserId", "toUserId")`,
+            // 20260410210000_add_documents
+            `CREATE TABLE IF NOT EXISTS "Document" (
+                "id" TEXT NOT NULL,
+                "uploadedById" TEXT NOT NULL,
+                "organizationId" TEXT,
+                "filename" TEXT NOT NULL,
+                "originalName" TEXT NOT NULL,
+                "mimeType" TEXT NOT NULL,
+                "sizeBytes" INTEGER NOT NULL,
+                "url" TEXT NOT NULL,
+                "category" TEXT,
+                "tags" JSONB,
+                "description" TEXT,
+                "entityType" TEXT,
+                "entityId" TEXT,
+                "version" INTEGER NOT NULL DEFAULT 1,
+                "parentId" TEXT,
+                "isLatest" BOOLEAN NOT NULL DEFAULT true,
+                "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT "Document_pkey" PRIMARY KEY ("id")
+            )`,
+            `CREATE INDEX IF NOT EXISTS "Document_uploadedById_idx" ON "Document"("uploadedById")`,
+            `CREATE INDEX IF NOT EXISTS "Document_organizationId_idx" ON "Document"("organizationId")`,
+            `CREATE INDEX IF NOT EXISTS "Document_entityType_entityId_idx" ON "Document"("entityType", "entityId")`,
+            `CREATE INDEX IF NOT EXISTS "Document_category_idx" ON "Document"("category")`,
         ];
 
         let applied = 0;

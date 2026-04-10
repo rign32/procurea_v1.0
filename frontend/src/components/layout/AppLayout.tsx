@@ -14,6 +14,12 @@ import {
     HelpCircle,
     Phone,
     Infinity as InfinityIcon,
+    BarChart3,
+    FlaskConical,
+    FolderOpen,
+    FileSignature,
+    ClipboardCheck,
+    FolderKanban,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { t, isEN } from "@/i18n"
@@ -22,6 +28,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuthStore } from "@/stores/auth.store"
 import { useUIStore } from "@/stores/ui.store"
 import { BillingModal } from "@/components/billing/BillingModal"
+import { FeedbackWidget } from "@/components/feedback/FeedbackWidget"
+import { WhatsNewModal } from "@/components/changelog/WhatsNewModal"
+import { useBranding } from "@/hooks/useBranding"
+import { usePendingApprovalsCount } from "@/hooks/useApprovals"
+import { NotificationBell } from "@/components/notifications/NotificationBell"
 
 interface AppLayoutProps {
     onLogout?: () => void
@@ -33,6 +44,7 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
     const location = useLocation()
     const [searchParams] = useSearchParams()
     const { user } = useAuthStore()
+    const { logoUrl } = useBranding()
 
     // Auto-open billing modal when Stripe redirects back with ?billing=success/canceled
     useEffect(() => {
@@ -43,19 +55,42 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
 
     const isFullPlan = user?.plan === 'full';
     const isUnlimited = user?.plan === 'unlimited' || (user as unknown as Record<string, unknown>)?.orgPlan === 'unlimited';
+    const isDemo = user?.isDemo ?? false;
+    const { data: pendingApprovalsCount } = usePendingApprovalsCount();
 
-    const navigation = [
+    const navigation: { name: string; href: string; icon: typeof LayoutDashboard; badge?: number }[] = [
         { name: t.nav.dashboard, href: "/", icon: LayoutDashboard },
         { name: t.nav.campaigns, href: "/campaigns", icon: Target },
         ...(isFullPlan ? [{ name: t.nav.rfqs, href: "/rfqs", icon: FileText }] : []),
         { name: t.nav.suppliers, href: "/suppliers", icon: Users },
         { name: t.nav.blacklist, href: "/blacklist", icon: ShieldAlert },
+        ...(isFullPlan ? [{ name: t.nav.contracts, href: "/contracts", icon: FileSignature }] : []),
+        ...(isFullPlan ? [{ name: t.nav.approvals, href: "/approvals", icon: ClipboardCheck, badge: pendingApprovalsCount }] : []),
+        ...(isFullPlan ? [{ name: t.nav.workspaces, href: "/workspaces", icon: FolderKanban }] : []),
+        { name: t.nav.analytics, href: "/analytics", icon: BarChart3 },
+        { name: t.nav.documents, href: "/documents", icon: FolderOpen },
         ...(isFullPlan ? [{ name: t.nav.sequences, href: "/sequences", icon: Mail }] : []),
         { name: t.nav.settings, href: "/settings", icon: Settings },
     ]
 
     return (
-        <div className="flex h-screen overflow-hidden bg-background">
+        <div className="flex h-screen overflow-hidden bg-background flex-col">
+            {/* Demo Mode Banner */}
+            {isDemo && (
+                <div className="flex items-center justify-center gap-2 bg-amber-500/10 border-b border-amber-500/20 px-4 py-1.5 text-xs font-medium text-amber-700 dark:text-amber-400 shrink-0">
+                    <FlaskConical className="h-3.5 w-3.5" />
+                    <span>
+                        {isEN ? 'Demo Mode — sample data, read-only. ' : 'Tryb Demo — dane przykładowe. '}
+                        <a
+                            href={isEN ? 'https://procurea.io' : 'https://procurea.pl'}
+                            className="underline hover:text-amber-900 dark:hover:text-amber-300 transition-colors"
+                        >
+                            {isEN ? 'Sign up for free' : 'Załóż darmowe konto'}
+                        </a>
+                    </span>
+                </div>
+            )}
+            <div className="flex flex-1 overflow-hidden">
             {/* Mobile sidebar backdrop */}
             {sidebarOpen && (
                 <div
@@ -71,17 +106,22 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
             )}>
                 <div className="flex h-14 items-center border-b px-4">
                     <Link to="/" className="flex items-center gap-2 font-semibold">
-                        <img src="/logo-procurea.png" alt="Procurea" className="h-8 w-8 rounded-lg" />
+                        <img src={logoUrl || "/logo-procurea.png"} alt="Procurea" className="h-8 w-8 rounded-lg object-contain" />
                         <span>Procurea</span>
                     </Link>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="ml-auto lg:hidden"
-                        onClick={() => setSidebarOpen(false)}
-                    >
-                        <X className="h-5 w-5" />
-                    </Button>
+                    <div className="ml-auto flex items-center gap-1">
+                        <div className="hidden lg:block">
+                            <NotificationBell />
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="lg:hidden"
+                            onClick={() => setSidebarOpen(false)}
+                        >
+                            <X className="h-5 w-5" />
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="flex flex-1 flex-col gap-1 overflow-y-auto p-2">
@@ -99,9 +139,15 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
                             >
                                 <item.icon className="h-4 w-4" />
                                 {item.name}
+                                {item.badge != null && item.badge > 0 && (
+                                    <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground">
+                                        {item.badge}
+                                    </span>
+                                )}
                             </Link>
                         )
                     })}
+                    <WhatsNewModal />
                 </div>
 
                 <div className="border-t p-3">
@@ -174,6 +220,9 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
                         <Menu className="h-5 w-5" />
                     </Button>
                     <span className="font-semibold">Procurea</span>
+                    <div className="ml-auto">
+                        <NotificationBell />
+                    </div>
                 </header>
 
                 <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-muted/10">
@@ -183,8 +232,12 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
                 </main>
             </div>
 
-            {/* Billing/Plan popup modal */}
-            <BillingModal open={billingModalOpen} onOpenChange={setBillingModalOpen} />
+            {/* Billing/Plan popup modal — hidden in demo mode */}
+            {!isDemo && <BillingModal open={billingModalOpen} onOpenChange={setBillingModalOpen} />}
+
+            {/* In-app feedback widget */}
+            <FeedbackWidget />
+            </div>{/* end flex-1 wrapper for demo banner layout */}
         </div>
     )
 }

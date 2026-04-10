@@ -94,6 +94,19 @@ export class SourcingController {
         return this.sourcingService.stopCampaign(id);
     }
 
+    @Post(':id/clone')
+    async cloneCampaign(@Param('id') id: string, @Req() req: any) {
+        const userId = req.user?.userId || req.user?.sub;
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { role: true, campaignAccess: true },
+        });
+        if (user?.campaignAccess === 'readonly' && user.role !== 'ADMIN') {
+            throw new ForbiddenException('Brak uprawnień do tworzenia kampanii');
+        }
+        return this.sourcingService.cloneCampaign(id, userId);
+    }
+
     @Delete(':id')
     deleteCampaign(@Param('id') id: string) {
         return this.sourcingService.softDelete(id);

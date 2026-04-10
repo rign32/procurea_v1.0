@@ -5,6 +5,7 @@ import { EmailService } from '../email/email.service';
 import { TranslationService } from '../common/services/translation.service';
 import { CurrencyService } from '../common/services/currency.service';
 import { getLanguageForCountry } from '../common/normalize-country';
+import { TenantContextService } from '../common/services/tenant-context.service';
 import * as crypto from 'crypto';
 
 // Valid RFQ status transitions
@@ -18,8 +19,9 @@ const RFQ_TRANSITIONS: Record<string, string[]> = {
 const OFFER_TRANSITIONS: Record<string, string[]> = {
     PENDING: ['VIEWED'],
     VIEWED: ['SUBMITTED'],
-    SUBMITTED: ['SHORTLISTED', 'REJECTED', 'ACCEPTED'],
-    SHORTLISTED: ['ACCEPTED', 'REJECTED'],
+    SUBMITTED: ['SHORTLISTED', 'REJECTED', 'ACCEPTED', 'COUNTER_OFFERED'],
+    SHORTLISTED: ['ACCEPTED', 'REJECTED', 'COUNTER_OFFERED'],
+    COUNTER_OFFERED: ['SUBMITTED'], // Supplier resubmits after counter
 };
 
 @Injectable()
@@ -32,6 +34,7 @@ export class RequestsService {
         private readonly emailService: EmailService,
         private readonly translationService: TranslationService,
         private readonly currencyService: CurrencyService,
+        private readonly tenantContext: TenantContextService,
     ) { }
 
     // --- Ownership helpers ---
@@ -67,26 +70,10 @@ export class RequestsService {
     async findAll(userId?: string) {
         const where: any = {};
 
-        // Organization isolation + sharing-aware filtering
+        // Organization isolation + sharing-aware filtering (via TenantContext)
         if (userId) {
-            const user = await this.prisma.user.findUnique({
-                where: { id: userId },
-                select: { organizationId: true },
-            });
-            if (user?.organizationId) {
-                const sharingWith = await this.prisma.userSharingPreference.findMany({
-                    where: { toUserId: userId, enabled: true },
-                    select: { fromUserId: true },
-                });
-                const visibleOwnerIds = [userId, ...sharingWith.map(s => s.fromUserId)];
-                // Show DRAFTs only for the owner, all other statuses for shared users
-                where.OR = [
-                    { ownerId: { in: visibleOwnerIds }, status: { not: 'DRAFT' } },
-                    { ownerId: userId }, // Owner sees all including DRAFT
-                ];
-            } else {
-                where.ownerId = userId;
-            }
+            const tenant = await this.tenantContext.resolve(userId);
+            where.OR = tenant.rfqOwnerFilter();
         }
 
         const rfqs = await this.prisma.rfqRequest.findMany({
@@ -405,6 +392,29 @@ export class RequestsService {
         return this.prisma.offer.update({
             where: { id: offerId },
             data: { status: 'SHORTLISTED' },
+            include: { supplier: true },
+        });
+    }
+
+    async counterOffer(offerId: string, terms: { price?: number; moq?: number; leadTime?: number; comments?: string }, userId?: string) {
+        const offer = await this.verifyOfferOwnership(offerId, userId!);
+        this.validateTransition(offer.status, 'COUNTER_OFFERED', OFFER_TRANSITIONS, 'Offer');
+
+        const historyEntry = {
+            action: 'COUNTER_OFFERED',
+            by: 'buyer',
+            terms,
+            timestamp: new Date().toISOString(),
+        };
+        const existingHistory = Array.isArray(offer.negotiationHistory) ? offer.negotiationHistory : [];
+
+        return this.prisma.offer.update({
+            where: { id: offerId },
+            data: {
+                status: 'COUNTER_OFFERED',
+                counterOfferTerms: terms as any,
+                negotiationHistory: [...existingHistory, historyEntry] as any,
+            },
             include: { supplier: true },
         });
     }

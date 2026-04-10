@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber, IsBoolean, IsArray, ValidateNested, Min, ArrayMinSize } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsBoolean, IsArray, ValidateNested, Min, ArrayMinSize, MaxLength, ArrayMaxSize } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class PriceTierDto {
@@ -14,6 +14,20 @@ class PriceTierDto {
     @IsNumber()
     @Min(0.001)
     unitPrice: number;
+}
+
+class AttachmentDto {
+    @IsString()
+    @MaxLength(500)
+    filename: string;
+
+    @IsString()
+    @MaxLength(500)
+    originalName: string;
+
+    @IsString()
+    @MaxLength(500)
+    url: string;
 }
 
 class AlternativeOfferDto {
@@ -93,4 +107,11 @@ export class SubmitOfferDto {
     @IsOptional()
     @IsString()
     submissionLanguage?: string;
+
+    @IsOptional()
+    @IsArray()
+    @ArrayMaxSize(5)
+    @ValidateNested({ each: true })
+    @Type(() => AttachmentDto)
+    attachments?: AttachmentDto[];
 }

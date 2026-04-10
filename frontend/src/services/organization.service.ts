@@ -14,6 +14,10 @@ export interface Organization {
   footerPosition?: string;
   footerEmail?: string;
   footerPhone?: string;
+  logoUrl?: string;
+  primaryColor?: string;
+  accentColor?: string;
+  portalWelcomeText?: string;
   locations: OrganizationLocation[];
   createdAt: string;
   updatedAt: string;
@@ -30,6 +34,10 @@ export interface UpdateOrganizationDto {
   footerPosition?: string;
   footerEmail?: string;
   footerPhone?: string;
+  logoUrl?: string;
+  primaryColor?: string;
+  accentColor?: string;
+  portalWelcomeText?: string;
 }
 
 export interface OrgMember {
@@ -117,6 +125,48 @@ export const organizationService = {
   leaveOrganization: async (orgId: string): Promise<void> => {
     await apiClient.post(`/organization/${orgId}/leave`);
   },
+
+  // --- Audit Logs ---
+
+  getAuditLogs: async (params: {
+    entityType?: string;
+    userId?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    page?: number;
+    pageSize?: number;
+  }): Promise<AuditLogResponse> => {
+    const query = new URLSearchParams();
+    if (params.entityType) query.set('entityType', params.entityType);
+    if (params.userId) query.set('userId', params.userId);
+    if (params.dateFrom) query.set('dateFrom', params.dateFrom);
+    if (params.dateTo) query.set('dateTo', params.dateTo);
+    if (params.page) query.set('page', String(params.page));
+    if (params.pageSize) query.set('pageSize', String(params.pageSize));
+    const { data } = await apiClient.get<AuditLogResponse>(`/organization/audit-logs/list?${query.toString()}`);
+    return data;
+  },
 };
+
+export interface AuditLogEntry {
+  id: string;
+  userId: string;
+  userName: string | null;
+  userEmail: string | null;
+  action: string;
+  entityType: string;
+  entityId: string;
+  changes: Record<string, unknown> | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export interface AuditLogResponse {
+  data: AuditLogEntry[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
 
 export default organizationService;

@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { AuthLogsService } from '../common/logger/auth-logs.service';
 import { TokensService } from './tokens.service';
+import { getPermissionsForLegacyRole } from '../common/permissions';
 import type { Response, CookieOptions } from 'express';
 
 // Cookie configuration for cross-domain auth
@@ -69,6 +70,15 @@ export class AuthController {
     /** Build safe user response object with org-level credits */
     private buildUserResponse(user: any) {
         const org = user.organization;
+
+        // Resolve permissions: RBAC role first, then legacy fallback
+        let permissions: string[];
+        if (user.rbacRole?.permissions && Array.isArray(user.rbacRole.permissions)) {
+            permissions = user.rbacRole.permissions as string[];
+        } else {
+            permissions = getPermissionsForLegacyRole(user.role);
+        }
+
         return {
             id: user.id,
             email: user.email,
@@ -80,6 +90,13 @@ export class AuthController {
             organizationId: user.organizationId,
             onboardingCompleted: user.onboardingCompleted,
             isPhoneVerified: user.isPhoneVerified,
+            // RBAC
+            permissions,
+            rbacRole: user.rbacRole ? {
+                id: user.rbacRole.id,
+                name: user.rbacRole.name,
+                displayName: user.rbacRole.displayName,
+            } : null,
             // Personal credits (purchased)
             personalCredits: user.searchCredits ?? 0,
             // Org shared pool
@@ -91,6 +108,7 @@ export class AuthController {
             searchCredits: (user.searchCredits ?? 0) + (org?.searchCredits ?? 0),
             trialCreditsUsed: org?.trialCreditsUsed ?? user.trialCreditsUsed ?? true,
             hasOrganization: !!user.organizationId,
+            isDemo: user.isDemo ?? false,
             organization: org ? {
                 id: org.id,
                 name: org.name,
@@ -1142,6 +1160,78 @@ export class AuthController {
             accessToken,
             refreshToken,
             user: this.buildUserResponse(user),
+        };
+    }
+
+    // ========== DEMO MODE ==========
+
+    /**
+     * Create a temporary demo session with seeded data.
+     * No authentication required — this is a public endpoint for prospects.
+     * Rate-limited to prevent abuse.
+     */
+    @Post('demo/create')
+    @Throttle({ default: { ttl: 60000, limit: 5 } })
+    async createDemoSession(@Res({ passthrough: true }) res: Response, @Req() req) {
+        const user = await this.authService.createDemoSession();
+
+        // Generate tokens with 24h expiry for demo
+        const accessToken = this.tokensService.generateAccessToken(user.id, user.email, user.role);
+        const refreshToken = await this.tokensService.generateRefreshToken(user.id);
+
+        // Set cookies (same pattern as other auth flows)
+        const isProduction = isProductionEnvironment();
+        res.cookie('procurea_token', accessToken, {
+            httpOnly: true,
+            secure: isProduction,
+            domain: getCookieDomain(req),
+            path: '/',
+            maxAge: 24 * 60 * 60 * 1000, // 24 hours
+            sameSite: 'lax',
+        });
+        res.cookie('procurea_refresh', refreshToken, {
+            httpOnly: true,
+            secure: isProduction,
+            domain: getCookieDomain(req),
+            path: '/',
+            maxAge: 24 * 60 * 60 * 1000, // 24 hours
+            sameSite: 'lax',
+        });
+
+        console.log(`[DEMO] Demo session created for ${user.email}`);
+
+        return {
+            success: true,
+            accessToken,
+            refreshToken,
+            user: this.buildUserResponse(user),
+        };
+    }
+
+    /**
+     * Cleanup demo sessions older than 24 hours.
+     * Protected by X-Cron-Secret header (for scheduled Cloud Scheduler / cron jobs).
+     */
+    @Post('demo/cleanup')
+    @Throttle({ default: { ttl: 60000, limit: 5 } })
+    async cleanupDemoSessions(@Req() req) {
+        const cronSecret = process.env.CRON_SECRET;
+        if (!cronSecret) {
+            throw new ForbiddenException('Cleanup not configured');
+        }
+
+        const providedSecret = req.headers['x-cron-secret'];
+        if (providedSecret !== cronSecret) {
+            throw new ForbiddenException('Invalid cron secret');
+        }
+
+        const result = await this.authService.cleanupDemoSessions();
+
+        console.log(`[DEMO] Cleanup completed: ${result.deletedUsers} users, ${result.deletedOrgs} orgs deleted`);
+
+        return {
+            success: true,
+            ...result,
         };
     }
 }

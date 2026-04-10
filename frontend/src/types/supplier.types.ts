@@ -39,6 +39,10 @@ export interface Supplier {
   needsManualClassification?: boolean;
   sourceType?: 'SEARCH' | 'PORTAL_MINE' | 'LEADER_DIRECT' | 'LEADER_SEARCH' | 'EXPANSION';
 
+  // Internal notes & tags
+  internalNotes?: string;
+  internalTags?: string[];
+
   // Metadata
   originLanguage?: string;
   originCountry?: string;
@@ -202,6 +206,66 @@ export interface RegistryFilters {
   isBlacklisted?: boolean;
   minUsageCount?: number;
   search?: string;
+}
+
+// Performance / Scorecard
+
+export interface SupplierPerformance {
+  // Registry metrics
+  responseRate: number | null;
+  avgResponseTime: number | null; // hours
+  rfqsSent: number;
+  rfqsResponded: number;
+  dataQualityScore: number | null; // 0-100
+  lastContactedAt: string | null;
+  lastResponseAt: string | null;
+  // Offer metrics
+  totalOffers: number;
+  acceptedCount: number;
+  rejectedCount: number;
+  submittedCount: number;
+  avgPrice: number | null;
+  winRate: number | null; // 0-1
+}
+
+// Recommendation Types
+
+export interface RecommendedSupplier {
+  id: string;
+  domain: string;
+  name?: string;
+  country?: string;
+  city?: string;
+  specialization?: string;
+  certificates?: string;
+  isVerified: boolean;
+  hasEmail: boolean;
+  matchScore: number;
+  scoreBreakdown: {
+    analysisScore: number;
+    responseRate: number;
+    dataQuality: number;
+    battleTested: number;
+    relevanceBonus: number;
+  };
+  stats: {
+    usageCount: number;
+    campaignsCount: number;
+    rfqsSent: number;
+    rfqsResponded: number;
+    responseRate: number | null;
+  };
+}
+
+export interface RecommendationsResponse {
+  recommendations: RecommendedSupplier[];
+  total: number;
+  criteria: {
+    productName?: string;
+    category?: string;
+    country?: string;
+    limit: number;
+  };
 }
 
 // Helper Types

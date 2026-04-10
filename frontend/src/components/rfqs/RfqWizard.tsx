@@ -15,12 +15,14 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/comp
 import { useCreateCampaign } from '@/hooks/useCampaigns';
 import { t, isEN } from '@/i18n';
 import { toast } from 'sonner';
+import { RecommendedSuppliers } from '@/components/suppliers/RecommendedSuppliers';
 import { EmailPreview } from '@/components/email/EmailPreview';
 import { sequencesService, type SequenceTemplate } from '@/services/sequences.service';
 import { organizationService } from '@/services/organization.service';
 import { useAuthStore } from '@/stores/auth.store';
 import { useUIStore } from '@/stores/ui.store';
 import { cn } from '@/lib/utils';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { analytics, startHesitationTracker } from '@/lib/analytics';
 import type { CreateCampaignDto, OrganizationLocation, Region } from '@/types/campaign.types';
 import { AVAILABLE_COUNTRIES } from '@/constants/countries';
@@ -103,10 +105,31 @@ interface RfqWizardProps {
   onComplete?: (campaignId: string) => void;
 }
 
+const WIZARD_STORAGE_KEY = 'procurea_wizard_draft';
+
+function loadWizardDraft(): { formData: Partial<CreateCampaignDto>; step: number; certificates: string[]; selectedCountries: string[]; excludedCountries: string[] } | null {
+  try {
+    const raw = sessionStorage.getItem(WIZARD_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed?.formData?.productName) return parsed;
+    return null;
+  } catch { return null; }
+}
+
+function saveWizardDraft(data: { formData: Partial<CreateCampaignDto>; step: number; certificates: string[]; selectedCountries: string[]; excludedCountries: string[] }) {
+  try { sessionStorage.setItem(WIZARD_STORAGE_KEY, JSON.stringify(data)); } catch { /* ignore */ }
+}
+
+function clearWizardDraft() {
+  try { sessionStorage.removeItem(WIZARD_STORAGE_KEY); } catch { /* ignore */ }
+}
+
 export function RfqWizard({ onComplete }: RfqWizardProps) {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<Partial<CreateCampaignDto>>({ supplierTypes: ['PRODUCENT'] });
+  const [showResumeDialog, setShowResumeDialog] = useState(false);
   const [sequences, setSequences] = useState<SequenceTemplate[]>([]);
   const [locations, setLocations] = useState<OrganizationLocation[]>([]);
   const [certificates, setCertificates] = useState<string[]>([]);
@@ -122,6 +145,39 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
 
   const createMutation = useCreateCampaign();
   const submittedRef = useRef(false);
+
+  // Check for saved wizard draft on mount
+  useEffect(() => {
+    const draft = loadWizardDraft();
+    if (draft) {
+      setShowResumeDialog(true);
+    }
+  }, []);
+
+  const handleResumeDraft = () => {
+    const draft = loadWizardDraft();
+    if (draft) {
+      setFormData(draft.formData);
+      setCurrentStep(draft.step);
+      setCertificates(draft.certificates || []);
+      setSelectedCountries(draft.selectedCountries || []);
+      setExcludedCountries(draft.excludedCountries || []);
+    }
+    setShowResumeDialog(false);
+  };
+
+  const handleStartFresh = () => {
+    clearWizardDraft();
+    setShowResumeDialog(false);
+  };
+
+  // Auto-save wizard state on changes
+  useEffect(() => {
+    if (submittedRef.current) return;
+    if (formData.productName) {
+      saveWizardDraft({ formData, step: currentStep, certificates, selectedCountries, excludedCountries });
+    }
+  }, [formData, currentStep, certificates, selectedCountries, excludedCountries]);
 
   // Track wizard start + abandonment on unmount
   useEffect(() => {
@@ -213,6 +269,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
       try {
         const result = await createMutation.mutateAsync(finalData as CreateCampaignDto);
         submittedRef.current = true;
+        clearWizardDraft();
         analytics.campaignCreated(newFormData.targetRegion);
         if (onComplete) {
           onComplete(result.id);
@@ -267,6 +324,29 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
   const displayCertificates = certificates.join(', ');
 
   return (
+    <>
+    {/* Resume draft dialog */}
+    <Dialog open={showResumeDialog} onOpenChange={setShowResumeDialog}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>{isEN ? 'Resume previous form?' : 'Wznowić poprzedni formularz?'}</DialogTitle>
+          <DialogDescription>
+            {isEN
+              ? 'You have an unfinished campaign form. Would you like to resume or start fresh?'
+              : 'Masz niedokończony formularz kampanii. Chcesz go wznowić czy zacząć od nowa?'}
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={handleStartFresh}>
+            {isEN ? 'Start fresh' : 'Zacznij od nowa'}
+          </Button>
+          <Button onClick={handleResumeDraft}>
+            {isEN ? 'Resume' : 'Wznów'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Progress */}
       <div className="space-y-2">
@@ -326,6 +406,16 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                   <label className="block text-sm font-medium mb-1.5">{t.campaigns.wizard.basicInfo.description} <span className="text-muted-foreground font-normal">({t.common.optional})</span></label>
                   <textarea {...form.register('description')} maxLength={1000} placeholder={t.campaigns.wizard.basicInfo.descriptionPlaceholder} rows={3} className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                 </div>
+
+                {/* AI Recommendations Hint — show when product name has 3+ chars */}
+                {(form.watch('productName') as string)?.length >= 3 && (
+                  <RecommendedSuppliers
+                    productName={form.watch('productName') as string}
+                    category={form.watch('material') as string}
+                    limit={5}
+                    compact
+                  />
+                )}
               </div>
             )}
 
@@ -825,6 +915,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
         </CardContent>
       </Card>
     </div>
+    </>
   );
 }
 

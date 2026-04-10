@@ -71,12 +71,22 @@ export interface PortalOfferView {
     footerPosition: string | null;
     footerEmail: string | null;
     footerPhone: string | null;
+    logoUrl: string | null;
+    primaryColor: string | null;
+    accentColor: string | null;
+    portalWelcomeText: string | null;
   } | null;
   supplier: {
     name: string | null;
     country: string | null;
   };
   portalLanguage: string;
+}
+
+export interface OfferAttachment {
+  filename: string;
+  originalName: string;
+  url: string;
 }
 
 export interface SubmitOfferDto {
@@ -106,6 +116,7 @@ export interface SubmitOfferDto {
     }>;
   };
   submissionLanguage?: string;
+  attachments?: OfferAttachment[];
 }
 
 export const portalService = {
@@ -116,6 +127,15 @@ export const portalService = {
 
   submitOffer: async (accessToken: string, dto: SubmitOfferDto): Promise<{ success: boolean; offerId: string; status: string }> => {
     const { data } = await apiClient.post(`/portal/offers/${accessToken}/submit`, dto);
+    return data;
+  },
+
+  uploadFile: async (accessToken: string, file: File): Promise<{ id: string; filename: string; storedFilename: string; url: string; size: number; mimeType: string }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const { data } = await apiClient.post(`/portal/offers/${accessToken}/upload`, formData, {
+      headers: { 'Content-Type': undefined },
+    });
     return data;
   },
 

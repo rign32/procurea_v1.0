@@ -2,6 +2,7 @@ import { Mail, Award, MapPin, ExternalLink, XCircle, Globe, ChevronRight, Shield
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import type { Supplier } from '@/types/supplier.types';
 import { t } from '@/i18n';
 import { normalizeCountry, getCountryFlag } from '@/utils/normalize-country';
@@ -13,6 +14,8 @@ interface SupplierCardProps {
   onSendRfq?: () => void;
   onExclude?: () => void;
   onBlacklist?: () => void;
+  selected?: boolean;
+  onSelect?: (id: string) => void;
 }
 
 export function SupplierCard({
@@ -22,6 +25,8 @@ export function SupplierCard({
   onSendRfq,
   onExclude,
   onBlacklist,
+  selected,
+  onSelect,
 }: SupplierCardProps) {
   const score = supplier.analysisScore ? Math.round(supplier.analysisScore * 10) : 0;
 
@@ -33,9 +38,22 @@ export function SupplierCard({
 
   return (
     <Card
-      className={`group hover:shadow-lg hover:border-primary/20 transition-all duration-300 flex flex-col h-full bg-gradient-to-b from-background to-muted/10 ${onClick ? 'cursor-pointer' : ''}`}
+      className={`relative group hover:shadow-lg hover:border-primary/20 transition-all duration-300 flex flex-col h-full bg-gradient-to-b from-background to-muted/10 ${onClick ? 'cursor-pointer' : ''} ${selected ? 'ring-2 ring-primary border-primary/30' : ''}`}
       onClick={onClick}
     >
+      {/* Selection checkbox — visible on hover or when selected */}
+      {onSelect && (
+        <div
+          className={`absolute top-2 left-2 z-10 transition-opacity ${selected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+        >
+          <Checkbox
+            checked={selected}
+            onCheckedChange={() => onSelect(supplier.id)}
+            onClick={(e) => e.stopPropagation()}
+            className="h-5 w-5 bg-background/80 backdrop-blur-sm shadow-sm border-2"
+          />
+        </div>
+      )}
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1.5 min-w-0">

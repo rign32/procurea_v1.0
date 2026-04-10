@@ -79,6 +79,16 @@ export interface PortalTranslations {
     of: string;
     poweredBy: string;
   };
+  upload: {
+    title: string;
+    subtitle: string;
+    dropzone: string;
+    uploading: string;
+    maxFiles: string;
+    fileTooLarge: string;
+    uploadError: string;
+    remove: string;
+  };
   errors: {
     priceRequired: string;
     minQtyRequired: string;
@@ -178,6 +188,16 @@ const pl: PortalTranslations = {
     step: 'Krok',
     of: 'z',
     poweredBy: 'Powered by Procurea',
+  },
+  upload: {
+    title: 'Dokumenty do oferty',
+    subtitle: 'Opcjonalnie dolacz pliki (maks. 5)',
+    dropzone: 'Przeciagnij pliki lub kliknij, aby wybrac',
+    uploading: 'Przesylanie...',
+    maxFiles: 'Mozna dodac jeszcze {remaining} plik(ow)',
+    fileTooLarge: 'Plik {name} jest zbyt duzy (maks. 10MB)',
+    uploadError: 'Blad przesylania pliku {name}',
+    remove: 'Usun',
   },
   errors: {
     priceRequired: 'Cena jest wymagana',
@@ -279,6 +299,16 @@ const en: PortalTranslations = {
     of: 'of',
     poweredBy: 'Powered by Procurea',
   },
+  upload: {
+    title: 'Supporting Documents',
+    subtitle: 'Optionally attach files to your offer (max 5)',
+    dropzone: 'Drag & drop files or click to browse',
+    uploading: 'Uploading...',
+    maxFiles: 'You can add {remaining} more file(s)',
+    fileTooLarge: 'File {name} is too large (max 10MB)',
+    uploadError: 'Failed to upload {name}',
+    remove: 'Remove',
+  },
   errors: {
     priceRequired: 'Price is required',
     minQtyRequired: 'Minimum quantity is required',
@@ -378,6 +408,16 @@ const de: PortalTranslations = {
     step: 'Schritt',
     of: 'von',
     poweredBy: 'Powered by Procurea',
+  },
+  upload: {
+    title: 'Begleitdokumente',
+    subtitle: 'Optional Dateien zum Angebot anhangen (max. 5)',
+    dropzone: 'Dateien hierher ziehen oder klicken',
+    uploading: 'Wird hochgeladen...',
+    maxFiles: 'Sie konnen noch {remaining} Datei(en) hinzufugen',
+    fileTooLarge: 'Datei {name} ist zu gross (max. 10MB)',
+    uploadError: 'Fehler beim Hochladen von {name}',
+    remove: 'Entfernen',
   },
   errors: {
     priceRequired: 'Preis ist erforderlich',
@@ -479,6 +519,16 @@ const fr: PortalTranslations = {
     of: 'sur',
     poweredBy: 'Powered by Procurea',
   },
+  upload: {
+    title: 'Documents justificatifs',
+    subtitle: 'Joindre des fichiers a votre offre (max 5)',
+    dropzone: 'Glissez-deposez ou cliquez pour parcourir',
+    uploading: 'Telechargement...',
+    maxFiles: 'Vous pouvez ajouter {remaining} fichier(s)',
+    fileTooLarge: 'Le fichier {name} est trop volumineux (max 10Mo)',
+    uploadError: 'Echec du telechargement de {name}',
+    remove: 'Supprimer',
+  },
   errors: {
     priceRequired: 'Le prix est requis',
     minQtyRequired: 'La quantité minimale est requise',
@@ -578,6 +628,16 @@ const es: PortalTranslations = {
     step: 'Paso',
     of: 'de',
     poweredBy: 'Powered by Procurea',
+  },
+  upload: {
+    title: 'Documentos de apoyo',
+    subtitle: 'Adjunte archivos a su oferta (max 5)',
+    dropzone: 'Arrastre archivos o haga clic para seleccionar',
+    uploading: 'Subiendo...',
+    maxFiles: 'Puede agregar {remaining} archivo(s) mas',
+    fileTooLarge: 'El archivo {name} es demasiado grande (max 10MB)',
+    uploadError: 'Error al subir {name}',
+    remove: 'Eliminar',
   },
   errors: {
     priceRequired: 'El precio es requerido',
@@ -679,6 +739,16 @@ const it: PortalTranslations = {
     of: 'di',
     poweredBy: 'Powered by Procurea',
   },
+  upload: {
+    title: 'Documenti di supporto',
+    subtitle: 'Allega file alla tua offerta (max 5)',
+    dropzone: 'Trascina i file o clicca per selezionare',
+    uploading: 'Caricamento...',
+    maxFiles: 'Puoi aggiungere ancora {remaining} file',
+    fileTooLarge: 'Il file {name} e troppo grande (max 10MB)',
+    uploadError: 'Errore nel caricamento di {name}',
+    remove: 'Rimuovi',
+  },
   errors: {
     priceRequired: 'Il prezzo è obbligatorio',
     minQtyRequired: 'La quantità minima è obbligatoria',
@@ -778,6 +848,16 @@ const zh: PortalTranslations = {
     step: '步骤',
     of: '/',
     poweredBy: 'Powered by Procurea',
+  },
+  upload: {
+    title: '支持文件',
+    subtitle: '可选择附加文件(最多5个)',
+    dropzone: '拖放文件或点击选择',
+    uploading: '上传中...',
+    maxFiles: '还可以添加 {remaining} 个文件',
+    fileTooLarge: '文件 {name} 太大(最大10MB)',
+    uploadError: '上传 {name} 失败',
+    remove: '删除',
   },
   errors: {
     priceRequired: '价格为必填项',

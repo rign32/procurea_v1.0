@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { TenantContextService } from '../common/services/tenant-context.service';
 import * as XLSX from 'xlsx';
 
 interface SupplierFilters {
@@ -14,7 +15,10 @@ interface SupplierFilters {
 
 @Injectable()
 export class SuppliersService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly tenantContext: TenantContextService,
+    ) { }
 
     async findAll(filters?: SupplierFilters, userId?: string, pagination?: { page: number; pageSize: number }) {
         const where: any = { deletedAt: null };
@@ -49,22 +53,10 @@ export class SuppliersService {
             }
         }
 
-        // Organization isolation + sharing-aware filtering
+        // Organization isolation + sharing-aware filtering (via TenantContext)
         if (userId) {
-            const user = await this.prisma.user.findUnique({
-                where: { id: userId },
-                select: { organizationId: true },
-            });
-            if (user?.organizationId) {
-                const sharingWith = await this.prisma.userSharingPreference.findMany({
-                    where: { toUserId: userId, enabled: true },
-                    select: { fromUserId: true },
-                });
-                const visibleOwnerIds = [userId, ...sharingWith.map(s => s.fromUserId)];
-                where.campaign = { rfqRequest: { ownerId: { in: visibleOwnerIds } } };
-            } else {
-                where.campaign = { rfqRequest: { ownerId: userId } };
-            }
+            const tenant = await this.tenantContext.resolve(userId);
+            where.campaign = tenant.supplierCampaignFilter();
         }
 
         const page = pagination?.page || 1;
@@ -98,6 +90,170 @@ export class SuppliersService {
                 documentChunks: true,
             },
         });
+    }
+
+    async getPerformance(id: string) {
+        const supplier = await this.prisma.supplier.findUnique({
+            where: { id },
+            select: { registryId: true },
+        });
+        if (!supplier) {
+            throw new NotFoundException('Supplier not found');
+        }
+
+        // Fetch CompanyRegistry metrics (if linked)
+        let registry: {
+            responseRate: number | null;
+            avgResponseTime: number | null;
+            rfqsSent: number;
+            rfqsResponded: number;
+            dataQualityScore: number | null;
+            lastContactedAt: Date | null;
+            lastResponseAt: Date | null;
+        } | null = null;
+
+        if (supplier.registryId) {
+            registry = await this.prisma.companyRegistry.findUnique({
+                where: { id: supplier.registryId },
+                select: {
+                    responseRate: true,
+                    avgResponseTime: true,
+                    rfqsSent: true,
+                    rfqsResponded: true,
+                    dataQualityScore: true,
+                    lastContactedAt: true,
+                    lastResponseAt: true,
+                },
+            });
+        }
+
+        // Aggregate offers for this supplier
+        const offers = await this.prisma.offer.findMany({
+            where: { supplierId: id },
+            select: { status: true, price: true },
+        });
+
+        const totalOffers = offers.length;
+        const acceptedCount = offers.filter(o => o.status === 'ACCEPTED').length;
+        const rejectedCount = offers.filter(o => o.status === 'REJECTED').length;
+        const submittedCount = offers.filter(o => o.status === 'SUBMITTED').length;
+        const offersWithPrice = offers.filter(o => o.price != null);
+        const avgPrice = offersWithPrice.length > 0
+            ? offersWithPrice.reduce((sum, o) => sum + (o.price as number), 0) / offersWithPrice.length
+            : null;
+        const winRate = totalOffers > 0 ? acceptedCount / totalOffers : null;
+
+        return {
+            // Registry metrics
+            responseRate: registry?.responseRate ?? null,
+            avgResponseTime: registry?.avgResponseTime ?? null,
+            rfqsSent: registry?.rfqsSent ?? 0,
+            rfqsResponded: registry?.rfqsResponded ?? 0,
+            dataQualityScore: registry?.dataQualityScore ?? null,
+            lastContactedAt: registry?.lastContactedAt ?? null,
+            lastResponseAt: registry?.lastResponseAt ?? null,
+            // Offer metrics
+            totalOffers,
+            acceptedCount,
+            rejectedCount,
+            submittedCount,
+            avgPrice,
+            winRate,
+        };
+    }
+
+    async updateNotes(id: string, body: { internalNotes?: string; internalTags?: string[] }) {
+        const supplier = await this.prisma.supplier.findUnique({ where: { id } });
+        if (!supplier) throw new NotFoundException('Supplier not found');
+
+        return this.prisma.supplier.update({
+            where: { id },
+            data: {
+                internalNotes: body.internalNotes !== undefined ? body.internalNotes : undefined,
+                internalTags: body.internalTags !== undefined ? body.internalTags : undefined,
+            },
+        });
+    }
+
+    async importSuppliers(file: any, campaignId: string): Promise<{ imported: number; skipped: number; errors: string[] }> {
+        const ext = file.originalname?.toLowerCase()?.split('.').pop();
+        if (!['xlsx', 'xls', 'csv'].includes(ext)) {
+            throw new BadRequestException('Unsupported file format. Use .xlsx, .xls or .csv');
+        }
+
+        // Verify campaign exists
+        const campaign = await this.prisma.campaign.findUnique({ where: { id: campaignId } });
+        if (!campaign) {
+            throw new BadRequestException('Campaign not found');
+        }
+
+        const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+
+        let imported = 0;
+        let skipped = 0;
+        const errors: string[] = [];
+
+        for (const [index, row] of rows.entries()) {
+            try {
+                // Support both English and Polish column headers
+                const name = String(row['name'] || row['Name'] || row['Nazwa'] || row['nazwa'] || '').trim();
+                const country = String(row['country'] || row['Country'] || row['Kraj'] || row['kraj'] || '').trim();
+                const city = String(row['city'] || row['City'] || row['Miasto'] || row['miasto'] || '').trim();
+                const website = String(row['website'] || row['Website'] || row['Strona WWW'] || row['strona'] || '').trim();
+                const specialization = String(row['specialization'] || row['Specialization'] || row['Specjalizacja'] || row['specjalizacja'] || '').trim();
+                const contactEmail = String(row['contactEmail'] || row['ContactEmail'] || row['Email'] || row['email'] || row['E-mail'] || '').trim();
+                const contactName = String(row['contactName'] || row['ContactName'] || row['Kontakt'] || row['kontakt'] || '').trim();
+
+                if (!name) {
+                    skipped++;
+                    continue;
+                }
+
+                // Build URL from website or name
+                const url = website || `manual-import://${name.toLowerCase().replace(/\s+/g, '-')}`;
+
+                await this.prisma.supplier.create({
+                    data: {
+                        campaignId,
+                        url,
+                        name,
+                        country: country || null,
+                        city: city || null,
+                        website: website || null,
+                        specialization: specialization || null,
+                        contactEmails: contactEmail || null,
+                        sourceType: 'SEARCH',
+                        sourceAgent: 'CSV_IMPORT',
+                    },
+                });
+
+                // If contact name or email provided, create a Contact record
+                if (contactName || contactEmail) {
+                    const supplier = await this.prisma.supplier.findFirst({
+                        where: { campaignId, url },
+                        orderBy: { id: 'desc' },
+                    });
+                    if (supplier) {
+                        await this.prisma.contact.create({
+                            data: {
+                                supplierId: supplier.id,
+                                name: contactName || null,
+                                email: contactEmail || null,
+                            },
+                        });
+                    }
+                }
+
+                imported++;
+            } catch (err: any) {
+                errors.push(`Row ${index + 2}: ${err.message}`);
+            }
+        }
+
+        return { imported, skipped, errors };
     }
 
     async update(id: string, data: any) {
@@ -148,6 +304,35 @@ export class SuppliersService {
         return { success: true };
     }
 
+    async bulkExclude(ids: string[], reason?: string) {
+        const result = await this.prisma.supplier.updateMany({
+            where: { id: { in: ids }, deletedAt: null },
+            data: {
+                deletedAt: new Date(),
+                analysisReason: reason || 'Wykluczony przez użytkownika (bulk)',
+            },
+        });
+        return { excluded: result.count };
+    }
+
+    async bulkBlacklist(ids: string[], reason?: string) {
+        const suppliers = await this.prisma.supplier.findMany({
+            where: { id: { in: ids } },
+            select: { registryId: true },
+        });
+        const registryIds = suppliers.map(s => s.registryId).filter(Boolean) as string[];
+        if (registryIds.length > 0) {
+            await this.prisma.companyRegistry.updateMany({
+                where: { id: { in: registryIds } },
+                data: {
+                    isBlacklisted: true,
+                    blacklistReason: reason || 'Zablokowany przez użytkownika (bulk)',
+                },
+            });
+        }
+        return { blacklisted: registryIds.length };
+    }
+
     async getBlacklist() {
         return this.prisma.companyRegistry.findMany({
             where: { isBlacklisted: true },
@@ -167,6 +352,148 @@ export class SuppliersService {
             where: { id: registryId },
             data: { blacklistReason: reason },
         });
+    }
+
+    async getRecommendations(params: {
+        productName?: string;
+        category?: string;
+        country?: string;
+        limit?: number;
+    }) {
+        const { productName, category, country, limit = 10 } = params;
+
+        const where: any = {
+            isBlacklisted: false,
+            isActive: true,
+        };
+
+        // Filter by country if provided
+        if (country) {
+            where.country = { equals: country, mode: 'insensitive' };
+        }
+
+        // Build OR conditions for text matching
+        const textFilters: any[] = [];
+        const keywords = [
+            ...(productName ? productName.split(/[\s,;]+/).filter(k => k.length >= 3) : []),
+            ...(category ? category.split(/[\s,;]+/).filter(k => k.length >= 3) : []),
+        ];
+
+        for (const keyword of keywords) {
+            textFilters.push(
+                { specialization: { contains: keyword, mode: 'insensitive' } },
+                { name: { contains: keyword, mode: 'insensitive' } },
+            );
+        }
+
+        if (textFilters.length > 0) {
+            where.OR = textFilters;
+        }
+
+        // Fetch candidates from CompanyRegistry — grab more than needed for scoring
+        const candidates = await this.prisma.companyRegistry.findMany({
+            where,
+            take: Math.min(limit * 5, 200),
+            orderBy: [
+                { lastAnalysisScore: 'desc' },
+                { usageCount: 'desc' },
+            ],
+            select: {
+                id: true,
+                domain: true,
+                name: true,
+                country: true,
+                city: true,
+                specialization: true,
+                certificates: true,
+                lastAnalysisScore: true,
+                dataQualityScore: true,
+                responseRate: true,
+                usageCount: true,
+                campaignsCount: true,
+                rfqsSent: true,
+                rfqsResponded: true,
+                isVerified: true,
+                contactEmails: true,
+                primaryEmail: true,
+            },
+        });
+
+        // Score and rank candidates
+        const lowerKeywords = keywords.map(k => k.toLowerCase());
+
+        const scored = candidates.map(c => {
+            // analysisScore: 0-10 scale -> normalize to 0-100
+            const analysisNorm = c.lastAnalysisScore != null
+                ? Math.min((c.lastAnalysisScore / 10) * 100, 100)
+                : 30; // default for unscored
+
+            // responseRate: 0-1 scale -> normalize to 0-100
+            const responseNorm = c.responseRate != null
+                ? Math.min(c.responseRate * 100, 100)
+                : 50; // neutral default if no data
+
+            // dataQualityScore: already 0-100
+            const qualityNorm = c.dataQualityScore ?? 30;
+
+            // Battle-tested: usageCount > 0 = 100, otherwise 0
+            const battleTested = c.usageCount > 0 ? 100 : 0;
+
+            // Weighted score
+            const totalScore = Math.round(
+                analysisNorm * 0.4 +
+                responseNorm * 0.3 +
+                qualityNorm * 0.2 +
+                battleTested * 0.1
+            );
+
+            // Keyword relevance boost (up to +10 points)
+            let relevanceBonus = 0;
+            if (lowerKeywords.length > 0 && c.specialization) {
+                const specLower = c.specialization.toLowerCase();
+                const matchCount = lowerKeywords.filter(k => specLower.includes(k)).length;
+                relevanceBonus = Math.min(Math.round((matchCount / lowerKeywords.length) * 10), 10);
+            }
+
+            const finalScore = Math.min(totalScore + relevanceBonus, 100);
+
+            return {
+                id: c.id,
+                domain: c.domain,
+                name: c.name,
+                country: c.country,
+                city: c.city,
+                specialization: c.specialization,
+                certificates: c.certificates,
+                isVerified: c.isVerified,
+                hasEmail: !!(c.contactEmails || c.primaryEmail),
+                matchScore: finalScore,
+                scoreBreakdown: {
+                    analysisScore: Math.round(analysisNorm),
+                    responseRate: Math.round(responseNorm),
+                    dataQuality: Math.round(qualityNorm),
+                    battleTested: Math.round(battleTested),
+                    relevanceBonus,
+                },
+                stats: {
+                    usageCount: c.usageCount,
+                    campaignsCount: c.campaignsCount,
+                    rfqsSent: c.rfqsSent,
+                    rfqsResponded: c.rfqsResponded,
+                    responseRate: c.responseRate,
+                },
+            };
+        });
+
+        // Sort by score descending, take top N
+        scored.sort((a, b) => b.matchScore - a.matchScore);
+        const results = scored.slice(0, limit);
+
+        return {
+            recommendations: results,
+            total: scored.length,
+            criteria: { productName, category, country, limit },
+        };
     }
 
     async exportCSV(filters?: Omit<SupplierFilters, 'campaignId'>) {

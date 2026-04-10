@@ -2,6 +2,15 @@ import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nest
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 
+export interface AuditLogFilters {
+    entityType?: string;
+    userId?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    page?: number;
+    pageSize?: number;
+}
+
 @Injectable()
 export class OrganizationService {
     private readonly logger = new Logger(OrganizationService.name);
@@ -35,6 +44,10 @@ export class OrganizationService {
         footerPosition?: string;
         footerEmail?: string;
         footerPhone?: string;
+        logoUrl?: string;
+        primaryColor?: string;
+        accentColor?: string;
+        portalWelcomeText?: string;
     }) {
         // Validate currency code if provided
         if (data.baseCurrency) {
@@ -42,6 +55,15 @@ export class OrganizationService {
             if (!SUPPORTED_CURRENCIES.includes(data.baseCurrency)) {
                 throw new Error(`Unsupported currency: ${data.baseCurrency}. Supported: ${SUPPORTED_CURRENCIES.join(', ')}`);
             }
+        }
+
+        // Validate hex color format if provided
+        const hexColorRegex = /^#[0-9A-Fa-f]{6}$/;
+        if (data.primaryColor && !hexColorRegex.test(data.primaryColor)) {
+            throw new Error('primaryColor must be a valid hex color (e.g. #5E8C8F)');
+        }
+        if (data.accentColor && !hexColorRegex.test(data.accentColor)) {
+            throw new Error('accentColor must be a valid hex color (e.g. #E8F0F0)');
         }
 
         return this.prisma.organization.update({
@@ -272,5 +294,84 @@ export class OrganizationService {
 
         this.logger.log(`User ${userId} left organization ${organizationId}`);
         return { success: true };
+    }
+
+    // --- Audit Log ---
+
+    async getAuditLogs(requestingUserId: string, filters: AuditLogFilters) {
+        // Look up requesting user to get their organization
+        const requestingUser = await this.prisma.user.findUnique({
+            where: { id: requestingUserId },
+            select: { organizationId: true, role: true },
+        });
+
+        if (!requestingUser?.organizationId) {
+            throw new ForbiddenException('You must belong to an organization to view audit logs');
+        }
+        if (requestingUser.role !== 'ADMIN') {
+            throw new ForbiddenException('Only organization admins can view audit logs');
+        }
+
+        const organizationId = requestingUser.organizationId;
+        const page = filters.page ?? 1;
+        const pageSize = Math.min(filters.pageSize ?? 20, 100);
+        const skip = (page - 1) * pageSize;
+
+        // Get all user IDs in this organization
+        const orgUsers = await this.prisma.user.findMany({
+            where: { organizationId },
+            select: { id: true },
+        });
+        const orgUserIds = orgUsers.map((u) => u.id);
+
+        // Build where clause
+        const where: any = {
+            userId: { in: orgUserIds },
+        };
+        if (filters.entityType) {
+            where.entityType = filters.entityType;
+        }
+        if (filters.userId && orgUserIds.includes(filters.userId)) {
+            where.userId = filters.userId;
+        }
+        if (filters.dateFrom || filters.dateTo) {
+            where.createdAt = {};
+            if (filters.dateFrom) where.createdAt.gte = new Date(filters.dateFrom);
+            if (filters.dateTo) where.createdAt.lte = new Date(filters.dateTo);
+        }
+
+        const [items, total] = await Promise.all([
+            this.prisma.auditLog.findMany({
+                where,
+                include: {
+                    user: {
+                        select: { id: true, name: true, email: true },
+                    },
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: pageSize,
+            }),
+            this.prisma.auditLog.count({ where }),
+        ]);
+
+        return {
+            data: items.map((log) => ({
+                id: log.id,
+                userId: log.userId,
+                userName: log.user?.name || null,
+                userEmail: log.user?.email || null,
+                action: log.action,
+                entityType: log.entityType,
+                entityId: log.entityId,
+                changes: log.changes ? JSON.parse(log.changes) : null,
+                metadata: log.metadata ? JSON.parse(log.metadata) : null,
+                createdAt: log.createdAt.toISOString(),
+            })),
+            total,
+            page,
+            pageSize,
+            totalPages: Math.ceil(total / pageSize),
+        };
     }
 }

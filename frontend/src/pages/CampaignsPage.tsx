@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Loader2, Trash2, Search } from 'lucide-react';
+import { Plus, Loader2, Trash2, Search, Copy } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -50,6 +51,18 @@ export function CampaignsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
       setDeleteId(null);
+    },
+  });
+
+  const cloneMutation = useMutation({
+    mutationFn: campaignsService.clone,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      toast.success(t.campaigns_clone.cloneSuccess);
+      navigate(`/campaigns/${data.id}`);
+    },
+    onError: () => {
+      toast.error(t.campaigns_clone.cloneError);
     },
   });
 
@@ -193,14 +206,24 @@ export function CampaignsPage() {
                   className="group hover:shadow-soft-xl transition-shadow cursor-pointer relative h-full flex flex-col"
                   onClick={() => navigate(`/campaigns/${campaign.id}`)}
                 >
-                  {/* Delete button on hover */}
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setDeleteId(campaign.id); }}
-                    className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
-                    title={t.campaigns.deleteCampaign}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  {/* Action buttons on hover */}
+                  <div className="absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); cloneMutation.mutate(campaign.id); }}
+                      className="p-1.5 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary"
+                      title={t.campaigns_clone.cloneCampaign}
+                      disabled={cloneMutation.isPending}
+                    >
+                      {cloneMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy className="h-4 w-4" />}
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setDeleteId(campaign.id); }}
+                      className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                      title={t.campaigns.deleteCampaign}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
 
                   <CardHeader>
                     <div className="flex items-start justify-between gap-2 pr-6">

@@ -14,18 +14,25 @@ import {
   ExternalLink,
   Loader2,
   ShieldAlert,
+  StickyNote,
+  ChevronDown,
+  Save,
 } from 'lucide-react';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { apiClient } from '@/services/api.client';
+import { suppliersService } from '@/services/suppliers.service';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { TagInput } from '@/components/ui/tag-input';
 import { BlacklistDialog } from '@/components/suppliers/BlacklistDialog';
+import { SupplierScorecard } from '@/components/suppliers/SupplierScorecard';
 import { useSupplier } from '@/hooks/useSuppliers';
 import { useAuthStore } from '@/stores/auth.store';
 import { t } from '@/i18n';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -37,15 +44,45 @@ const itemVariants = {
   show: { opacity: 1, y: 0 }
 };
 import type { Contact } from '@/types/supplier.types';
+import { CommentThread } from '@/components/collaboration/CommentThread';
+import { SupplierDocuments } from '@/components/suppliers/SupplierDocuments';
 
 export function SupplierDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isBlacklistDialogOpen, setIsBlacklistDialogOpen] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
+  const [internalNotes, setInternalNotes] = useState('');
+  const [internalTags, setInternalTags] = useState<string[]>([]);
+  const [notesDirty, setNotesDirty] = useState(false);
   const { data: supplier, isLoading, error } = useSupplier(id || '');
   const { user } = useAuthStore();
   const isFullPlan = user?.plan === 'full';
+
+  // Sync notes/tags from supplier data — adjust state during render
+  // (React-recommended pattern for deriving state from props/query)
+  const [lastSyncedId, setLastSyncedId] = useState<string | null>(null);
+  if (supplier && supplier.id !== lastSyncedId) {
+    setLastSyncedId(supplier.id);
+    setInternalNotes(supplier.internalNotes || '');
+    setInternalTags(Array.isArray(supplier.internalTags) ? supplier.internalTags : []);
+    setNotesDirty(false);
+  }
+
+  const notesMutation = useMutation({
+    mutationFn: () => suppliersService.updateNotes(id!, { internalNotes, internalTags }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['suppliers', id] });
+      toast.success(t.suppliers.detail.internalNotes.saved);
+      setNotesDirty(false);
+    },
+    onError: () => {
+      toast.error(t.suppliers.detail.internalNotes.saveFailed);
+    },
+  });
+
+  const TAG_SUGGESTIONS = ['preferred', 'quality-issues', 'backup', 'local', 'certified', 'new'];
 
   const blacklistMutation = useMutation({
     mutationFn: async (reason: string) => {
@@ -300,6 +337,11 @@ export function SupplierDetailPage() {
             </Card>
           </motion.div>
 
+          {/* Performance Scorecard */}
+          <motion.div variants={itemVariants}>
+            <SupplierScorecard supplierId={id!} />
+          </motion.div>
+
           {/* Contacts Card — only visible for full plan */}
           {isFullPlan && (
           <motion.div variants={itemVariants}>
@@ -385,6 +427,82 @@ export function SupplierDetailPage() {
             </Card>
           </motion.div>
           )}
+
+          {/* Internal Notes Card (collapsible) */}
+          <motion.div variants={itemVariants}>
+            <Card>
+              <CardHeader
+                className="cursor-pointer select-none"
+                onClick={() => setNotesOpen((v) => !v)}
+              >
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <StickyNote className="h-5 w-5" />
+                    {t.suppliers.detail.internalNotes.title}
+                    {(internalNotes || internalTags.length > 0) && (
+                      <Badge variant="secondary" className="text-xs ml-1">
+                        {internalTags.length > 0 ? internalTags.length : ''}
+                      </Badge>
+                    )}
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 text-muted-foreground transition-transform ${notesOpen ? 'rotate-180' : ''}`}
+                  />
+                </CardTitle>
+              </CardHeader>
+              <AnimatePresence initial={false}>
+                {notesOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <CardContent className="space-y-4">
+                      <Textarea
+                        value={internalNotes}
+                        onChange={(e) => {
+                          setInternalNotes(e.target.value);
+                          setNotesDirty(true);
+                        }}
+                        placeholder={t.suppliers.detail.internalNotes.notesPlaceholder}
+                        rows={4}
+                      />
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground mb-1.5 block">
+                          {t.suppliers.detail.internalNotes.tagsLabel}
+                        </label>
+                        <TagInput
+                          value={internalTags}
+                          onChange={(tags) => {
+                            setInternalTags(tags);
+                            setNotesDirty(true);
+                          }}
+                          placeholder={t.suppliers.detail.internalNotes.tagsPlaceholder}
+                          suggestions={TAG_SUGGESTIONS}
+                        />
+                      </div>
+                      <div className="flex justify-end">
+                        <Button
+                          size="sm"
+                          disabled={!notesDirty || notesMutation.isPending}
+                          onClick={() => notesMutation.mutate()}
+                        >
+                          {notesMutation.isPending ? (
+                            <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Save className="mr-2 h-3.5 w-3.5" />
+                          )}
+                          {t.suppliers.detail.internalNotes.save}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </Card>
+          </motion.div>
         </div>
 
         {/* Right Column - Sidebar */}
@@ -464,8 +582,22 @@ export function SupplierDetailPage() {
             </CardContent>
           </Card>
 
+          {/* Supplier Documents */}
+          {id && <SupplierDocuments supplierId={id} />}
+
         </motion.div>
       </div>
+
+      {/* Comments Section */}
+      {id && (
+        <motion.div variants={itemVariants}>
+          <Card>
+            <CardContent className="pt-6">
+              <CommentThread entityType="supplier" entityId={id} />
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {supplier && (
         <BlacklistDialog

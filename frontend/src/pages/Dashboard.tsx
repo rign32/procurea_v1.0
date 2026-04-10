@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Target, FileText, Users, Sparkles, ArrowRight, Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { RecommendedSuppliers } from '@/components/suppliers/RecommendedSuppliers';
 import { useCampaigns } from '@/hooks/useCampaigns';
 import { useAuthStore } from '@/stores/auth.store';
 import { useUIStore } from '@/stores/ui.store';
@@ -145,6 +146,18 @@ export default function Dashboard() {
           </motion.div>
         )}
       </div>
+
+      {/* AI Recommendations — show if user has campaigns */}
+      {campaigns && campaigns.length > 0 && (() => {
+        const latestWithProduct = campaigns.find(c => c.rfqRequest?.productName);
+        if (!latestWithProduct?.rfqRequest?.productName) return null;
+        return (
+          <RecommendedSuppliers
+            productName={latestWithProduct.rfqRequest.productName}
+            category={latestWithProduct.rfqRequest.category}
+          />
+        );
+      })()}
 
       {/* Recent Campaigns */}
       <Card>

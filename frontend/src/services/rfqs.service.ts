@@ -190,6 +190,14 @@ export const offersService = {
     const { data } = await apiClient.post(`/requests/offers/${offerId}/resend-email`);
     return data;
   },
+
+  /**
+   * Złóż kontrpropozycję do oferty
+   */
+  counterOffer: async (offerId: string, terms: { price?: number; moq?: number; leadTime?: number; comments?: string }) => {
+    const { data } = await apiClient.post(`/requests/offers/${offerId}/counter`, terms);
+    return data;
+  },
 };
 
 export default rfqsService;

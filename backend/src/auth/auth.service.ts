@@ -112,7 +112,10 @@ export class AuthService {
             include: {
                 organization: {
                     include: { locations: true }
-                }
+                },
+                rbacRole: {
+                    select: { id: true, name: true, displayName: true, permissions: true }
+                },
             }
         });
     }
@@ -372,7 +375,10 @@ export class AuthService {
             include: {
                 organization: {
                     include: { locations: true }
-                }
+                },
+                rbacRole: {
+                    select: { id: true, name: true, displayName: true, permissions: true }
+                },
             }
         });
 
@@ -788,7 +794,7 @@ export class AuthService {
 
             return this.prisma.user.findUnique({
                 where: { id: existing.id },
-                include: { organization: { include: { locations: true } } }
+                include: { organization: { include: { locations: true } }, rbacRole: { select: { id: true, name: true, displayName: true, permissions: true } } }
             });
         }
 
@@ -835,7 +841,10 @@ export class AuthService {
             include: {
                 organization: {
                     include: { locations: true }
-                }
+                },
+                rbacRole: {
+                    select: { id: true, name: true, displayName: true, permissions: true }
+                },
             }
         });
     }
@@ -901,7 +910,7 @@ export class AuthService {
 
             return this.prisma.user.findUnique({
                 where: { id: existing.id },
-                include: { organization: { include: { locations: true } } }
+                include: { organization: { include: { locations: true } }, rbacRole: { select: { id: true, name: true, displayName: true, permissions: true } } }
             });
         }
 
@@ -948,9 +957,340 @@ export class AuthService {
             include: {
                 organization: {
                     include: { locations: true }
+                },
+                rbacRole: {
+                    select: { id: true, name: true, displayName: true, permissions: true }
+                },
+            }
+        });
+    }
+
+    // --- DEMO MODE ---
+
+    /**
+     * Create a temporary demo user with seeded data (campaign, suppliers, RFQ, offers).
+     * Returns the user with organization included (same shape as autoLoginStaging).
+     */
+    async createDemoSession(): Promise<any> {
+        const demoId = crypto.randomUUID();
+        const demoEmail = `demo-${demoId}@demo.procurea.io`;
+
+        // 1. Create organization
+        const org = await this.prisma.organization.create({
+            data: {
+                name: 'Demo Corp',
+                domain: 'demo.procurea.io',
+                searchCredits: 99,
+                trialCreditsUsed: false,
+                plan: 'full',
+                locations: {
+                    create: [{
+                        name: 'HQ',
+                        address: 'ul. Demonstracyjna 1, 00-001 Warszawa',
+                        isDefault: true,
+                    }],
+                },
+            },
+            include: { locations: true },
+        });
+
+        // 2. Create demo user
+        const user = await this.prisma.user.create({
+            data: {
+                email: demoEmail,
+                name: 'Demo User',
+                role: 'USER',
+                ssoProvider: 'demo',
+                isPhoneVerified: true,
+                phoneVerifiedAt: new Date(),
+                onboardingCompleted: true,
+                companyName: 'Demo Corp',
+                jobTitle: 'Procurement Manager',
+                language: 'pl',
+                searchCredits: 0,
+                trialCreditsUsed: false,
+                plan: 'full',
+                isDemo: true,
+                organizationId: org.id,
+            },
+        });
+
+        // 3. Create a completed campaign with sample suppliers
+        const campaign = await this.prisma.campaign.create({
+            data: {
+                name: 'CNC Machining — Supplier Scouting',
+                status: 'COMPLETED',
+                stage: 'COMPLETED',
+                language: 'pl',
+                searchCriteria: JSON.stringify({
+                    category: 'CNC Machining',
+                    material: 'Aluminum 6061-T6',
+                    region: 'EU',
+                }),
+            },
+        });
+
+        // Sample supplier data
+        const supplierData = [
+            {
+                name: 'PrecisionParts GmbH',
+                country: 'Germany',
+                city: 'Stuttgart',
+                website: 'https://precisionparts.de',
+                url: 'https://precisionparts.de/cnc',
+                specialization: 'CNC Milling & Turning',
+                certificates: 'ISO 9001:2015, IATF 16949',
+                employeeCount: '120',
+                contactEmails: 'sales@precisionparts.de',
+                analysisScore: 92,
+                companyType: 'PRODUCENT',
+            },
+            {
+                name: 'Pol-Metal Obrobka',
+                country: 'Poland',
+                city: 'Katowice',
+                website: 'https://pol-metal.pl',
+                url: 'https://pol-metal.pl/oferta',
+                specialization: '5-axis CNC Machining',
+                certificates: 'ISO 9001:2015, ISO 14001',
+                employeeCount: '85',
+                contactEmails: 'biuro@pol-metal.pl',
+                analysisScore: 88,
+                companyType: 'PRODUCENT',
+            },
+            {
+                name: 'Alpine CNC Solutions',
+                country: 'Austria',
+                city: 'Graz',
+                website: 'https://alpine-cnc.at',
+                url: 'https://alpine-cnc.at/services',
+                specialization: 'Precision Grinding & Milling',
+                certificates: 'ISO 9001:2015, AS9100D',
+                employeeCount: '200',
+                contactEmails: 'info@alpine-cnc.at',
+                analysisScore: 95,
+                companyType: 'PRODUCENT',
+            },
+            {
+                name: 'CzechTurn s.r.o.',
+                country: 'Czech Republic',
+                city: 'Brno',
+                website: 'https://czechturn.cz',
+                url: 'https://czechturn.cz/capabilities',
+                specialization: 'CNC Turning, Anodizing',
+                certificates: 'ISO 9001:2015',
+                employeeCount: '45',
+                contactEmails: 'obchod@czechturn.cz',
+                analysisScore: 78,
+                companyType: 'PRODUCENT',
+            },
+            {
+                name: 'NordMetal AB',
+                country: 'Sweden',
+                city: 'Gothenburg',
+                website: 'https://nordmetal.se',
+                url: 'https://nordmetal.se/machining',
+                specialization: 'High-precision CNC, Titanium',
+                certificates: 'ISO 9001:2015, ISO 13485, NADCAP',
+                employeeCount: '310',
+                contactEmails: 'sales@nordmetal.se',
+                analysisScore: 97,
+                companyType: 'PRODUCENT',
+            },
+            {
+                name: 'SilesiaTech Sp. z o.o.',
+                country: 'Poland',
+                city: 'Gliwice',
+                website: 'https://silesiatech.pl',
+                url: 'https://silesiatech.pl/cnc-frezowanie',
+                specialization: 'CNC Milling, Surface Treatment',
+                certificates: 'ISO 9001:2015',
+                employeeCount: '65',
+                contactEmails: 'kontakt@silesiatech.pl',
+                analysisScore: 82,
+                companyType: 'PRODUCENT',
+            },
+            {
+                name: 'BavariaPräzision GmbH',
+                country: 'Germany',
+                city: 'Munich',
+                website: 'https://bavariaprazision.de',
+                url: 'https://bavariaprazision.de/leistungen',
+                specialization: 'Micro-machining, 5-axis',
+                certificates: 'ISO 9001:2015, IATF 16949, NADCAP',
+                employeeCount: '175',
+                contactEmails: 'anfrage@bavariaprazision.de',
+                analysisScore: 93,
+                companyType: 'PRODUCENT',
+            },
+        ];
+
+        const createdSuppliers = await Promise.all(
+            supplierData.map((s) =>
+                this.prisma.supplier.create({
+                    data: {
+                        campaignId: campaign.id,
+                        url: s.url,
+                        name: s.name,
+                        country: s.country,
+                        city: s.city,
+                        website: s.website,
+                        specialization: s.specialization,
+                        certificates: s.certificates,
+                        employeeCount: s.employeeCount,
+                        contactEmails: s.contactEmails,
+                        analysisScore: s.analysisScore,
+                        companyType: s.companyType,
+                        companyTypeConfidence: 85,
+                        sourceType: 'SEARCH',
+                    },
+                }),
+            ),
+        );
+
+        // 4. Create RFQ with offers from the first 4 suppliers
+        const rfq = await this.prisma.rfqRequest.create({
+            data: {
+                campaignId: campaign.id,
+                ownerId: user.id,
+                status: 'ACTIVE',
+                publicId: 'RFQ-DEMO-001',
+                productName: 'CNC Machined Housing — Aluminum 6061-T6',
+                partNumber: 'DEMO-HSG-001',
+                category: 'CNC Machining',
+                material: 'Aluminum 6061-T6',
+                description: 'Precision-machined housing for electronic enclosure. Tolerances: +/- 0.05mm. Surface finish Ra 1.6. Anodized.',
+                targetPrice: 12.50,
+                currency: 'EUR',
+                quantity: 5000,
+                eau: 20000,
+                unit: 'pcs',
+                incoterms: 'DDP',
+                paymentTerms: 'Net 60',
+                deliveryLocationId: org.locations[0]?.id,
+                offerDeadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
+            },
+        });
+
+        // Create offers from first 4 suppliers with varied statuses
+        const offerConfigs = [
+            { supplierIdx: 0, status: 'SUBMITTED', price: 11.80, leadTime: 6, moq: 1000 },
+            { supplierIdx: 1, status: 'SUBMITTED', price: 10.50, leadTime: 8, moq: 2000 },
+            { supplierIdx: 2, status: 'SUBMITTED', price: 13.20, leadTime: 4, moq: 500 },
+            { supplierIdx: 3, status: 'VIEWED', price: null, leadTime: null, moq: null },
+        ];
+
+        for (const oc of offerConfigs) {
+            await this.prisma.offer.create({
+                data: {
+                    rfqRequestId: rfq.id,
+                    supplierId: createdSuppliers[oc.supplierIdx].id,
+                    status: oc.status,
+                    price: oc.price,
+                    currency: 'EUR',
+                    leadTime: oc.leadTime,
+                    moq: oc.moq,
+                    incotermsConfirmed: oc.status === 'SUBMITTED',
+                    specsConfirmed: oc.status === 'SUBMITTED',
+                    viewedAt: new Date(),
+                    submittedAt: oc.status === 'SUBMITTED' ? new Date() : undefined,
+                },
+            });
+        }
+
+        // 5. Add some campaign logs for realism
+        const logMessages = [
+            { message: 'Strategy generated: 3 countries, 12 search queries', severity: 'info' },
+            { message: 'Scanning phase: 142 URLs collected from search results', severity: 'info' },
+            { message: 'Screening: 89 URLs passed relevance filter', severity: 'info' },
+            { message: 'Enrichment: 7 suppliers enriched with contact data', severity: 'info' },
+            { message: 'Audit: 7 suppliers approved, 0 rejected', severity: 'info' },
+            { message: 'Pipeline completed — 7 qualified suppliers found', severity: 'info' },
+        ];
+        await this.prisma.log.createMany({
+            data: logMessages.map((l) => ({
+                campaignId: campaign.id,
+                message: l.message,
+                severity: l.severity,
+            })),
+        });
+
+        console.log(`[DEMO] Created demo session: ${demoEmail}, org: ${org.id}, campaign: ${campaign.id}`);
+
+        // Return full user object with includes
+        return this.prisma.user.findUnique({
+            where: { id: user.id },
+            include: {
+                organization: { include: { locations: true } },
+                rbacRole: { select: { id: true, name: true, displayName: true, permissions: true } },
+            },
+        });
+    }
+
+    /**
+     * Cleanup demo users and all their associated data older than 24 hours.
+     */
+    async cleanupDemoSessions(): Promise<{ deletedUsers: number; deletedOrgs: number }> {
+        const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+        // Find demo users older than 24h
+        const demoUsers = await this.prisma.user.findMany({
+            where: {
+                isDemo: true,
+                createdAt: { lt: cutoff },
+            },
+            select: { id: true, email: true, organizationId: true },
+        });
+
+        if (demoUsers.length === 0) {
+            return { deletedUsers: 0, deletedOrgs: 0 };
+        }
+
+        const userIds = demoUsers.map((u) => u.id);
+        const orgIds = [...new Set(demoUsers.map((u) => u.organizationId).filter(Boolean))] as string[];
+
+        // Find campaigns owned by these demo users' orgs (through RFQ ownership)
+        // We need to find campaigns that have RFQs owned by demo users
+        const ownedRfqs = await this.prisma.rfqRequest.findMany({
+            where: { ownerId: { in: userIds } },
+            select: { id: true, campaignId: true },
+        });
+        const campaignIds = [...new Set(ownedRfqs.map((r) => r.campaignId).filter(Boolean))] as string[];
+        const rfqIds = ownedRfqs.map((r) => r.id);
+
+        // Delete in correct order (respecting foreign key constraints)
+        await this.prisma.$transaction(async (tx) => {
+            // Offers -> Suppliers -> Logs -> Campaigns
+            if (rfqIds.length > 0) {
+                await tx.offer.deleteMany({ where: { rfqRequestId: { in: rfqIds } } });
+                await tx.rfqRequest.deleteMany({ where: { id: { in: rfqIds } } });
+            }
+            if (campaignIds.length > 0) {
+                await tx.supplier.deleteMany({ where: { campaignId: { in: campaignIds } } });
+                await tx.log.deleteMany({ where: { campaignId: { in: campaignIds } } });
+                await tx.campaign.deleteMany({ where: { id: { in: campaignIds } } });
+            }
+            // Refresh tokens, credit transactions
+            await tx.refreshToken.deleteMany({ where: { userId: { in: userIds } } });
+            await tx.creditTransaction.deleteMany({ where: { userId: { in: userIds } } });
+            // Users
+            await tx.user.deleteMany({ where: { id: { in: userIds } } });
+            // Orgs (only demo orgs with domain demo.procurea.io)
+            if (orgIds.length > 0) {
+                // Check no non-demo users remain in these orgs
+                const remainingUsers = await tx.user.count({
+                    where: { organizationId: { in: orgIds }, isDemo: false },
+                });
+                if (remainingUsers === 0) {
+                    await tx.organizationLocation.deleteMany({ where: { organizationId: { in: orgIds } } });
+                    await tx.orgCreditTransaction.deleteMany({ where: { organizationId: { in: orgIds } } });
+                    await tx.organization.deleteMany({ where: { id: { in: orgIds } } });
                 }
             }
         });
+
+        console.log(`[DEMO] Cleanup: deleted ${demoUsers.length} demo users, ${orgIds.length} orgs`);
+        return { deletedUsers: demoUsers.length, deletedOrgs: orgIds.length };
     }
 
     // --- ADMIN: DELETE ALL USERS ---

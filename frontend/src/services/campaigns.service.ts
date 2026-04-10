@@ -192,6 +192,38 @@ export const campaignsService = {
     const { data } = await apiClient.get<any[]>('/contacts', { params });
     return data;
   },
+
+  createContact: async (dto: {
+    supplierId: string;
+    name: string;
+    role?: string;
+    email?: string;
+    phone?: string;
+  }): Promise<any> => {
+    const { data } = await apiClient.post('/contacts', dto);
+    return data;
+  },
+
+  updateContact: async (id: string, dto: {
+    name?: string;
+    role?: string;
+    email?: string;
+    phone?: string;
+  }): Promise<any> => {
+    const { data } = await apiClient.patch(`/contacts/${id}`, dto);
+    return data;
+  },
+
+  deleteContact: async (id: string): Promise<void> => {
+    await apiClient.delete(`/contacts/${id}`);
+  },
+
+  // --- Campaign Cloning ---
+
+  clone: async (id: string): Promise<{ id: string; status: string }> => {
+    const { data } = await apiClient.post<any>(`/campaigns/${id}/clone`);
+    return { id: data.id, status: data.status };
+  },
 };
 
 export default campaignsService;

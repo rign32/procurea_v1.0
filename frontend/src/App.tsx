@@ -1,8 +1,8 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'sonner'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Lock, Sparkles } from 'lucide-react'
 import AppLayout from './components/layout/AppLayout'
 import Login from './Login'
 import AuthCallbackPage from './pages/AuthCallbackPage'
@@ -25,6 +25,12 @@ const SequencesPage = lazy(() => import('./pages/SequencesPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 const BlacklistPage = lazy(() => import('./pages/BlacklistPage'))
 const ContactsPage = lazy(() => import('./pages/ContactsPage'))
+const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'))
+const DocumentsPage = lazy(() => import('./pages/DocumentsPage'))
+const StatusPage = lazy(() => import('./pages/StatusPage'))
+const ContractsPage = lazy(() => import('./pages/ContractsPage'))
+const ApprovalsPage = lazy(() => import('./pages/ApprovalsPage'))
+const WorkspacesPage = lazy(() => import('./pages/WorkspacesPage'))
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -40,9 +46,47 @@ const queryClient = new QueryClient({
   },
 })
 
-function PlanGuard({ children }: { children: React.ReactNode }) {
+function PlanGuard({ children, feature }: { children: React.ReactNode; feature?: string }) {
   const { user } = useAuthStore();
-  if (user?.plan !== 'full') return <Navigate to="/" />;
+  const navigate = useNavigate();
+  const isEN = (import.meta.env.VITE_LANGUAGE || 'pl') === 'en';
+
+  if (user?.plan !== 'full') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+          <Lock className="h-8 w-8 text-primary" />
+        </div>
+        <h2 className="text-2xl font-bold mb-2">
+          {isEN ? 'Premium Feature' : 'Funkcja Premium'}
+        </h2>
+        <p className="text-muted-foreground max-w-md mb-6">
+          {feature
+            ? (isEN
+              ? `${feature} is available on the Full plan. Upgrade to unlock all features.`
+              : `${feature} jest dostępna w planie Full. Przejdź na wyższy plan, aby odblokować wszystkie funkcje.`)
+            : (isEN
+              ? 'This feature is available on the Full plan. Upgrade to unlock all features.'
+              : 'Ta funkcja jest dostępna w planie Full. Przejdź na wyższy plan, aby odblokować wszystkie funkcje.')}
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={() => navigate(-1)}
+            className="px-4 py-2 text-sm border rounded-md hover:bg-accent transition-colors"
+          >
+            {isEN ? 'Go back' : 'Wróć'}
+          </button>
+          <button
+            onClick={() => navigate('/settings?tab=billing')}
+            className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors inline-flex items-center gap-2"
+          >
+            <Sparkles className="h-4 w-4" />
+            {isEN ? 'View plans' : 'Zobacz plany'}
+          </button>
+        </div>
+      </div>
+    );
+  }
   return <>{children}</>;
 }
 
@@ -305,8 +349,9 @@ function App() {
           {/* OAuth callback — public, handles token exchange */}
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
-          {/* Public Routes — Supplier Portal (no auth required) */}
+          {/* Public Routes — Supplier Portal + Status (no auth required) */}
           <Route path="/offers/:accessToken" element={<SupplierPortalPage />} />
+          <Route path="/status" element={<StatusPage />} />
 
           {/* Onboarding — authenticated but not yet onboarded */}
           {/* Beta: onboarding skipped — redirect to dashboard */}
@@ -322,13 +367,18 @@ function App() {
             <Route path="/campaigns" element={<CampaignsPage />} />
             <Route path="/campaigns/new" element={<RfqWizardPage />} />
             <Route path="/campaigns/:id" element={<CampaignDetailPage />} />
-            <Route path="/rfqs" element={<PlanGuard><RfqsPage /></PlanGuard>} />
-            <Route path="/rfqs/:id" element={<PlanGuard><RfqDetailPage /></PlanGuard>} />
+            <Route path="/rfqs" element={<PlanGuard feature="RFQ"><RfqsPage /></PlanGuard>} />
+            <Route path="/rfqs/:id" element={<PlanGuard feature="RFQ"><RfqDetailPage /></PlanGuard>} />
             <Route path="/suppliers" element={<SuppliersPage />} />
             <Route path="/suppliers/:id" element={<SupplierDetailPage />} />
             <Route path="/blacklist" element={<BlacklistPage />} />
-            <Route path="/contacts" element={<PlanGuard><ContactsPage /></PlanGuard>} />
-            <Route path="/sequences" element={<PlanGuard><SequencesPage /></PlanGuard>} />
+            <Route path="/contacts" element={<PlanGuard feature={((import.meta.env.VITE_LANGUAGE || 'pl') === 'en') ? 'Contacts' : 'Kontakty'}><ContactsPage /></PlanGuard>} />
+            <Route path="/sequences" element={<PlanGuard feature={((import.meta.env.VITE_LANGUAGE || 'pl') === 'en') ? 'Email Sequences' : 'Sekwencje email'}><SequencesPage /></PlanGuard>} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/documents" element={<DocumentsPage />} />
+            <Route path="/contracts" element={<PlanGuard feature={((import.meta.env.VITE_LANGUAGE || 'pl') === 'en') ? 'Contracts' : 'Kontrakty'}><ContractsPage /></PlanGuard>} />
+            <Route path="/approvals" element={<PlanGuard feature={((import.meta.env.VITE_LANGUAGE || 'pl') === 'en') ? 'Approvals' : 'Zatwierdzenia'}><ApprovalsPage /></PlanGuard>} />
+            <Route path="/workspaces" element={<PlanGuard feature={((import.meta.env.VITE_LANGUAGE || 'pl') === 'en') ? 'Workspaces' : 'Przestrzenie robocze'}><WorkspacesPage /></PlanGuard>} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
 

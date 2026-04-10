@@ -1,11 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Loader2, Search, Users, ExternalLink, Mail } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Loader2, Search, Users, ExternalLink, Mail, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter,
+  DialogHeader, DialogTitle,
+} from '@/components/ui/dialog';
+import { toast } from 'sonner';
 import campaignsService from '@/services/campaigns.service';
 import { t, isEN } from '@/i18n';
 import { getStatusConfig, getDisplayName, getDisplayRole } from '@/utils/contact-status';
@@ -13,9 +19,13 @@ import { getStatusConfig, getDisplayName, getDisplayRole } from '@/utils/contact
 type EmailFilter = 'all' | 'with_email' | 'without_email';
 
 export function ContactsPage() {
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter] = useState<string>('');
   const [emailFilter, setEmailFilter] = useState<EmailFilter>('with_email');
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [addForm, setAddForm] = useState({ supplierId: '', name: '', role: '', email: '', phone: '' });
+  const [saving, setSaving] = useState(false);
 
   const { data: contacts = [], isLoading } = useQuery({
     queryKey: ['contacts', searchQuery, statusFilter],
@@ -26,6 +36,39 @@ export function ContactsPage() {
       }),
     staleTime: 30000,
   });
+
+  // Get unique suppliers from contacts for the add dialog dropdown
+  const uniqueSuppliers = useMemo(() => {
+    const map = new Map<string, { id: string; name: string }>();
+    contacts.forEach((c: any) => {
+      if (c.supplier?.id && !map.has(c.supplier.id)) {
+        map.set(c.supplier.id, { id: c.supplier.id, name: c.supplier.name || c.supplier.id });
+      }
+    });
+    return Array.from(map.values());
+  }, [contacts]);
+
+  const handleAddContact = async () => {
+    if (!addForm.supplierId || !addForm.name.trim()) return;
+    setSaving(true);
+    try {
+      await campaignsService.createContact({
+        supplierId: addForm.supplierId,
+        name: addForm.name.trim(),
+        role: addForm.role.trim() || undefined,
+        email: addForm.email.trim() || undefined,
+        phone: addForm.phone.trim() || undefined,
+      });
+      toast.success(t.common.success);
+      setAddDialogOpen(false);
+      setAddForm({ supplierId: '', name: '', role: '', email: '', phone: '' });
+      queryClient.invalidateQueries({ queryKey: ['contacts'] });
+    } catch {
+      toast.error(t.common.error);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const statusConfig = useMemo(() => getStatusConfig(), []);
 
@@ -40,16 +83,72 @@ export function ContactsPage() {
 
   return (
     <div className="space-y-6 p-6">
+      {/* Add Contact Dialog */}
+      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{isEN ? 'Add Contact' : 'Dodaj kontakt'}</DialogTitle>
+            <DialogDescription>
+              {isEN ? 'Add a contact manually to an existing supplier.' : 'Dodaj kontakt ręcznie do istniejącego dostawcy.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label>{isEN ? 'Supplier' : 'Dostawca'} *</Label>
+              <select
+                value={addForm.supplierId}
+                onChange={(e) => setAddForm(prev => ({ ...prev, supplierId: e.target.value }))}
+                className="w-full mt-1 rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              >
+                <option value="">{isEN ? 'Select supplier...' : 'Wybierz dostawcę...'}</option>
+                {uniqueSuppliers.map(s => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label>{isEN ? 'Name' : 'Imię i nazwisko'} *</Label>
+              <Input value={addForm.name} onChange={(e) => setAddForm(prev => ({ ...prev, name: e.target.value }))} className="mt-1" />
+            </div>
+            <div>
+              <Label>{isEN ? 'Role / Title' : 'Stanowisko'}</Label>
+              <Input value={addForm.role} onChange={(e) => setAddForm(prev => ({ ...prev, role: e.target.value }))} className="mt-1" />
+            </div>
+            <div>
+              <Label>Email</Label>
+              <Input type="email" value={addForm.email} onChange={(e) => setAddForm(prev => ({ ...prev, email: e.target.value }))} className="mt-1" />
+            </div>
+            <div>
+              <Label>{isEN ? 'Phone' : 'Telefon'}</Label>
+              <Input value={addForm.phone} onChange={(e) => setAddForm(prev => ({ ...prev, phone: e.target.value }))} className="mt-1" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddDialogOpen(false)} disabled={saving}>{t.common.cancel}</Button>
+            <Button onClick={handleAddContact} disabled={saving || !addForm.supplierId || !addForm.name.trim()}>
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {t.common.save}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">{t.campaigns.detail.contactsTitle}</h1>
           <p className="text-muted-foreground mt-1">{t.campaigns.detail.contactsSubtitle}</p>
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-3">
+          <Button size="sm" onClick={() => setAddDialogOpen(true)}>
+            <Plus className="mr-1 h-4 w-4" />
+            {isEN ? 'Add Contact' : 'Dodaj kontakt'}
+          </Button>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Badge className="bg-green-100 text-green-800">{withEmailCount} {t.campaigns.detail.filterWithEmail}</Badge>
           <Badge variant="secondary">{withoutEmailCount} {t.campaigns.detail.filterWithout}</Badge>
           <Badge variant="outline">{contacts.length} {t.campaigns.detail.filterAll}</Badge>
+          </div>
         </div>
       </div>
 

@@ -123,7 +123,14 @@ export interface Offer {
   specsConfirmed?: boolean;
 
   // Status
-  status: 'PENDING' | 'VIEWED' | 'SUBMITTED' | 'REJECTED' | 'SHORTLISTED' | 'ACCEPTED';
+  status: 'PENDING' | 'VIEWED' | 'SUBMITTED' | 'REJECTED' | 'SHORTLISTED' | 'ACCEPTED' | 'COUNTER_OFFERED';
+
+  // Counter-offer terms (set by buyer)
+  counterPrice?: number;
+  counterMoq?: number;
+  counterLeadTime?: number;
+  counterComments?: string;
+  counterOfferedAt?: string;
 
   // Access
   accessToken?: string;
@@ -174,6 +181,14 @@ export interface User {
   plan?: 'research' | 'full' | 'pay_as_you_go' | 'unlimited';
   searchCredits?: number;
   trialCreditsUsed?: boolean;
+  isDemo?: boolean;
+  // RBAC permissions
+  permissions?: string[];
+  rbacRole?: {
+    id: string;
+    name: string;
+    displayName: string;
+  } | null;
   // Org-level credits (new)
   personalCredits?: number;
   orgCredits?: number;

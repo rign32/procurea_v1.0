@@ -3,8 +3,10 @@ import type {
   Supplier,
   UpdateSupplierDto,
   SupplierFilters,
+  SupplierPerformance,
   CompanyRegistry,
   RegistryFilters,
+  RecommendationsResponse,
 } from '../types/supplier.types';
 import type {
   GetSuppliersResponse,
@@ -69,10 +71,54 @@ export const suppliersService = {
   },
 
   /**
+   * Pobierz metryki wydajności dostawcy (scorecard)
+   */
+  getPerformance: async (id: string): Promise<SupplierPerformance> => {
+    const { data } = await apiClient.get<SupplierPerformance>(`/suppliers/${id}/performance`);
+    return data;
+  },
+
+  /**
    * Wyklucz dostawcę z kampanii (soft-delete)
    */
   exclude: async (id: string, reason?: string): Promise<Supplier> => {
     const { data } = await apiClient.post<Supplier>(`/suppliers/${id}/exclude`, { reason });
+    return data;
+  },
+
+  /**
+   * Pobierz rekomendowanych dostawców na podstawie kryteriów
+   */
+  getRecommendations: async (params: {
+    productName?: string;
+    category?: string;
+    country?: string;
+    limit?: number;
+  }): Promise<RecommendationsResponse> => {
+    const { data } = await apiClient.get<RecommendationsResponse>('/suppliers/recommendations', {
+      params,
+    });
+    return data;
+  },
+
+  /**
+   * Update supplier internal notes and tags
+   */
+  updateNotes: async (id: string, body: { internalNotes?: string; internalTags?: string[] }): Promise<Supplier> => {
+    const { data } = await apiClient.patch<Supplier>(`/suppliers/${id}/notes`, body);
+    return data;
+  },
+
+  /**
+   * Import suppliers from CSV/XLSX file
+   */
+  importSuppliers: async (file: File, campaignId: string): Promise<{ imported: number; skipped: number; errors: string[] }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('campaignId', campaignId);
+    const { data } = await apiClient.post('/suppliers/import', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return data;
   },
 

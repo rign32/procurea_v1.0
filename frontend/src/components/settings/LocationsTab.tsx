@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
     Dialog,
     DialogContent,
@@ -26,7 +27,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Checkbox } from '@/components/ui/checkbox';
-import { t } from '@/i18n';
+import { t, isEN } from '@/i18n';
 import organizationService from '@/services/organization.service';
 import type { OrganizationLocation } from '@/types/campaign.types';
 import { toast } from 'sonner';
@@ -60,6 +61,7 @@ const parseAddress = (address: string) => {
 };
 
 export function LocationsTab({ user }: LocationsTabProps) {
+    const { confirm, ConfirmDialogElement } = useConfirmDialog();
     const [locations, setLocations] = useState<OrganizationLocation[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -134,7 +136,7 @@ export function LocationsTab({ user }: LocationsTabProps) {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this location?')) return;
+        if (!await confirm({ title: isEN ? 'Are you sure you want to delete this location?' : 'Czy na pewno chcesz usunąć tę lokalizację?', variant: 'destructive' })) return;
         if (!user?.organizationId) return;
 
         try {
@@ -158,6 +160,8 @@ export function LocationsTab({ user }: LocationsTabProps) {
     }
 
     return (
+        <>
+        {ConfirmDialogElement}
         <motion.div variants={itemVariants} initial="hidden" animate="show">
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
@@ -316,5 +320,6 @@ export function LocationsTab({ user }: LocationsTabProps) {
                 </Dialog>
             </Card>
         </motion.div>
+        </>
     );
 }

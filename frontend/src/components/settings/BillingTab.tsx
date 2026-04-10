@@ -13,6 +13,7 @@ import apiClient from '@/services/api.client';
 import { useAuthStore } from '@/stores/auth.store';
 import { analytics, ecommerce, startHesitationTracker } from '@/lib/analytics';
 import { ThankYouOverlay } from '@/components/billing/ThankYouOverlay';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import type { User } from '@/types/campaign.types';
 
 const bt = t.settings.billing;
@@ -211,6 +212,7 @@ interface BillingTabProps {
 
 export function BillingTab({ user }: BillingTabProps) {
     const [searchParams, setSearchParams] = useSearchParams();
+    const { confirm, ConfirmDialogElement } = useConfirmDialog();
     const [billingInfo, setBillingInfo] = useState<BillingInfo | null>(null);
     const [loading, setLoading] = useState(true);
     const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
@@ -306,7 +308,7 @@ export function BillingTab({ user }: BillingTabProps) {
     }
 
     async function handleCancelSubscription() {
-        if (!window.confirm(bt.subscription.cancelConfirm)) return;
+        if (!await confirm({ title: bt.subscription.cancelConfirm, variant: 'destructive' })) return;
         setCancelLoading(true);
         try {
             await billingService.cancelSubscription();
@@ -334,6 +336,8 @@ export function BillingTab({ user }: BillingTabProps) {
     const transactions = billingInfo?.recentTransactions ?? [];
 
     return (
+        <>
+        {ConfirmDialogElement}
         <motion.div
             variants={containerVariants}
             initial="hidden"
@@ -719,5 +723,6 @@ export function BillingTab({ user }: BillingTabProps) {
             {/* Thank You celebration overlay */}
             <ThankYouOverlay open={showThankYou} onClose={() => setShowThankYou(false)} />
         </motion.div>
+        </>
     );
 }

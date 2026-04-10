@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronRight, Download, Loader2, AlertTriangle, Trash2, BarChart3, CheckCircle2, Mail, Clock, Send, FileDown, StopCircle, Monitor, Circle, X } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Download, Loader2, AlertTriangle, Trash2, BarChart3, CheckCircle2, Mail, Clock, Send, FileDown, StopCircle, Monitor, Circle, X, Search, Copy } from 'lucide-react';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ import { normalizeCountry } from '@/utils/normalize-country';
 import { StatusTabs } from '@/components/ui/status-tabs';
 import { getStatusConfig, getDisplayName, getDisplayRole } from '@/utils/contact-status';
 import { Progress } from '@/components/ui/progress';
+import { CommentThread } from '@/components/collaboration/CommentThread';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -58,10 +60,12 @@ export function CampaignDetailPage() {
 
   const exportMutation = useExportCampaign();
   const queryClient = useQueryClient();
+  const { confirm, ConfirmDialogElement } = useConfirmDialog();
   const [showDelete, setShowDelete] = useState(false);
   const [excludedIds, setExcludedIds] = useState<string[]>([]);
   const [excludingId, setExcludingId] = useState<string | null>(null);
   const [accepting, setAccepting] = useState(false);
+  const [supplierSearch, setSupplierSearch] = useState('');
   const [apolloContacts, setApolloContacts] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('overview');
   const { user } = useAuthStore();
@@ -74,6 +78,18 @@ export function CampaignDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
       navigate('/campaigns');
+    },
+  });
+
+  const cloneMutation = useMutation({
+    mutationFn: campaignsService.clone,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      toast.success(t.campaigns_clone.cloneSuccess);
+      navigate(`/campaigns/${data.id}`);
+    },
+    onError: () => {
+      toast.error(t.campaigns_clone.cloneError);
     },
   });
 
@@ -119,7 +135,7 @@ export function CampaignDetailPage() {
   };
 
   const handleStopCampaign = async () => {
-    if (!id || !window.confirm(t.campaigns.detail.stopConfirm)) return;
+    if (!id || !await confirm({ title: t.campaigns.detail.stopConfirm, variant: 'destructive' })) return;
     try {
       await apiClient.post(`/campaigns/${id}/stop`);
       analytics.campaignStopped();
@@ -182,7 +198,7 @@ export function CampaignDetailPage() {
   const handleAcceptAll = async () => {
     if (!id) return;
     const activeCount = suppliers.filter(s => !excludedIds.includes(s.id)).length;
-    if (!window.confirm(t.campaigns.detail.acceptConfirm.replace('{count}', String(activeCount)))) return;
+    if (!await confirm({ title: t.campaigns.detail.acceptConfirm.replace('{count}', String(activeCount)), variant: 'default' })) return;
 
     setAccepting(true);
     try {
@@ -203,7 +219,7 @@ export function CampaignDetailPage() {
 
   const handleExclude = async (supplierId: string) => {
     if (excludingId) return;
-    if (!window.confirm(t.suppliers.card.excludeConfirm)) return;
+    if (!await confirm({ title: t.suppliers.card.excludeConfirm, variant: 'destructive' })) return;
 
     setExcludingId(supplierId);
     try {
@@ -288,6 +304,8 @@ export function CampaignDetailPage() {
     : 0;
 
   return (
+    <>
+    {ConfirmDialogElement}
     <motion.div
       variants={containerVariants}
       initial="hidden"
@@ -326,6 +344,17 @@ export function CampaignDetailPage() {
                 {t.campaigns.detail.stopButton}
               </Button>
             )}
+            <Button
+              variant="outline"
+              onClick={() => id && cloneMutation.mutate(id)}
+              disabled={cloneMutation.isPending}
+            >
+              {cloneMutation.isPending
+                ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                : <Copy className="mr-2 h-4 w-4" />
+              }
+              {t.campaigns_clone.cloneCampaign}
+            </Button>
             <Button variant="outline" onClick={() => setShowDelete(true)} className="text-destructive hover:bg-destructive/10">
               <Trash2 className="mr-2 h-4 w-4" />
               {t.campaigns.deleteCampaign}
@@ -364,6 +393,7 @@ export function CampaignDetailPage() {
               { key: 'overview', label: t.campaigns.detail.tabOverview },
               { key: 'suppliers', label: t.campaigns.detail.tabSuppliers, count: suppliers.length },
               { key: 'contacts', label: t.campaigns.detail.tabContacts, count: apolloContacts.filter((c: any) => c.email).length },
+              { key: 'comments', label: t.collaboration.tabComments },
             ]}
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -841,7 +871,8 @@ export function CampaignDetailPage() {
       {(isRunning || activeTab === 'suppliers') && (
         <motion.div variants={isRunning ? itemVariants : tabItemVariants} initial={isRunning ? undefined : "hidden"} animate={isRunning ? undefined : "show"}>
           {(!isRunning || suppliers.length > 0) && (
-            <div className="flex items-center justify-between mb-3">
+            <div className="space-y-3 mb-3">
+            <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">{t.campaigns.detail.suppliersList} ({suppliers.length})</h2>
               <div className="flex gap-2">
                 {isFullPlan && isCompleted && !isAccepted && (
@@ -863,9 +894,31 @@ export function CampaignDetailPage() {
                 )}
               </div>
             </div>
+            {suppliers.length > 5 && (
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder={t.common.search + '...'}
+                  value={supplierSearch}
+                  onChange={(e) => setSupplierSearch(e.target.value)}
+                  className="w-full sm:w-72 pl-9 pr-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                />
+              </div>
+            )}
+            </div>
           )}
           <LiveSupplierFeed
-            suppliers={suppliers}
+            suppliers={supplierSearch.trim()
+              ? suppliers.filter(s => {
+                  const q = supplierSearch.toLowerCase();
+                  return (s.name || '').toLowerCase().includes(q)
+                    || (s.country || '').toLowerCase().includes(q)
+                    || (s.city || '').toLowerCase().includes(q)
+                    || (s.specialization || '').toLowerCase().includes(q)
+                    || (s.website || '').toLowerCase().includes(q);
+                })
+              : suppliers}
             campaignId={id}
             rfqRequestId={isFullPlan ? campaign?.rfqRequest?.id : undefined}
             isAccepted={isFullPlan ? isAccepted : false}
@@ -995,6 +1048,17 @@ export function CampaignDetailPage() {
         );
       })()}
 
+      {/* === TAB: COMMENTS === */}
+      {(isCompleted || isAccepted) && activeTab === 'comments' && id && (
+        <motion.div variants={tabItemVariants} initial="hidden" animate="show">
+          <Card>
+            <CardContent className="pt-6">
+              <CommentThread entityType="campaign" entityId={id} />
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
       {/* Delete Confirmation Dialog */}
       {showDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowDelete(false)}>
@@ -1016,6 +1080,7 @@ export function CampaignDetailPage() {
         </div>
       )}
     </motion.div>
+    </>
   );
 }
 

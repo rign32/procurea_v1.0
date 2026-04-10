@@ -343,7 +343,14 @@ export class BillingService {
             throw new BadRequestException('Invalid webhook signature');
         }
 
-        this.logger.log(`Webhook received: ${event.type}`);
+        this.logger.log(`Webhook received: ${event.type} (${event.id})`);
+
+        // Idempotency: check if this Stripe event was already processed
+        const existing = await this.prisma.stripeEventLog.findUnique({ where: { id: event.id } });
+        if (existing) {
+            this.logger.log(`Stripe event ${event.id} already processed at ${existing.processedAt.toISOString()}, skipping`);
+            return;
+        }
 
         switch (event.type) {
             case 'checkout.session.completed':
@@ -358,6 +365,11 @@ export class BillingService {
             default:
                 this.logger.log(`Unhandled event type: ${event.type}`);
         }
+
+        // Record successful processing for idempotency
+        await this.prisma.stripeEventLog.create({
+            data: { id: event.id, type: event.type },
+        }).catch(() => { /* ignore duplicate key on race condition */ });
     }
 
     private async handleCheckoutCompleted(session: Stripe.Checkout.Session): Promise<void> {

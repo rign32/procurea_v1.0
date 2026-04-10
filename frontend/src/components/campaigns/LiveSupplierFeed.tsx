@@ -5,6 +5,7 @@ import { SupplierCard } from '../suppliers/SupplierCard';
 import { rfqsService } from '@/services/rfqs.service';
 import type { Supplier } from '@/types/supplier.types';
 import { t } from '@/i18n';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 
 const MAX_SECONDS = 2 * 60; // 2 minutes
 
@@ -86,6 +87,7 @@ export function LiveSupplierFeed({
   onStop,
 }: LiveSupplierFeedProps) {
   const navigate = useNavigate();
+  const { confirm, ConfirmDialogElement } = useConfirmDialog();
   const [, setSendingTo] = useState<string | null>(null);
 
   const handleViewDetails = (supplierId: string) => {
@@ -97,7 +99,7 @@ export function LiveSupplierFeed({
       toast.error(t.feed.noLinkedRfq);
       return;
     }
-    if (!window.confirm(t.feed.sendRfqConfirm)) return;
+    if (!await confirm({ title: t.feed.sendRfqConfirm, variant: 'default' })) return;
 
     setSendingTo(supplierId);
     try {
@@ -123,6 +125,8 @@ export function LiveSupplierFeed({
   }
 
   return (
+    <>
+    {ConfirmDialogElement}
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {visibleSuppliers.map((supplier) => {
@@ -143,6 +147,7 @@ export function LiveSupplierFeed({
         })}
       </div>
     </div>
+    </>
   );
 }
 

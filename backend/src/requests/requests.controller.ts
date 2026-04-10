@@ -97,6 +97,15 @@ export class RequestsController {
         return this.requestsService.shortlistOffer(offerId, this.getUserId(req));
     }
 
+    @Post('offers/:offerId/counter')
+    counterOffer(
+        @Param('offerId') offerId: string,
+        @Body() body: { price?: number; moq?: number; leadTime?: number; comments?: string },
+        @Req() req: any,
+    ) {
+        return this.requestsService.counterOffer(offerId, body, this.getUserId(req));
+    }
+
     @Get('offers/:offerId/portal-link')
     async getPortalLink(@Param('offerId') offerId: string, @Req() req: any) {
         const offer = await this.requestsService.findOfferById(offerId, this.getUserId(req));

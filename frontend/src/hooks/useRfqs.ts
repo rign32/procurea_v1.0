@@ -193,6 +193,23 @@ export function useShortlistOffer() {
 }
 
 /**
+ * React Query hook - Kontrpropozycja do oferty
+ */
+export function useCounterOffer() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, terms }: { id: string; terms: { price?: number; moq?: number; leadTime?: number; comments?: string } }) =>
+      offersService.counterOffer(id, terms),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['rfqs', data.rfqRequestId] });
+      queryClient.invalidateQueries({ queryKey: ['rfqs'] });
+      queryClient.invalidateQueries({ queryKey: ['offers', data.id] });
+    },
+  });
+}
+
+/**
  * React Query hook - Porównaj oferty
  */
 export function useCompareOffers() {

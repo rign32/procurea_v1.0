@@ -27,6 +27,16 @@ import { BillingModule } from './billing/billing.module';
 import { SalesOpsModule } from './sales-ops/sales-ops.module';
 import { ObservabilityModule } from './observability/observability.module';
 import { MonitoringModule } from './monitoring/monitoring.module';
+import { FeedbackModule } from './feedback/feedback.module';
+import { CollaborationModule } from './collaboration/collaboration.module';
+import { ScheduledReportsModule } from './scheduled-reports/scheduled-reports.module';
+import { PublicApiModule } from './public-api/public-api.module';
+import { RolesModule } from './roles/roles.module';
+import { ApprovalsModule } from './approvals/approvals.module';
+import { DocumentsModule } from './documents/documents.module';
+import { ContractsModule } from './contracts/contracts.module';
+import { WorkspacesModule } from './workspaces/workspaces.module';
+import { NotificationsCenterModule } from './notifications-center/notifications-center.module';
 import { SentryModule } from '@sentry/nestjs/setup';
 
 @Module({
@@ -62,6 +72,16 @@ import { SentryModule } from '@sentry/nestjs/setup';
     SalesOpsModule,
     ObservabilityModule,
     MonitoringModule,
+    FeedbackModule,
+    CollaborationModule,
+    ScheduledReportsModule,
+    PublicApiModule,
+    RolesModule,
+    ApprovalsModule,
+    DocumentsModule,
+    ContractsModule,
+    WorkspacesModule,
+    NotificationsCenterModule,
   ],
   controllers: [AppController],
   providers: [

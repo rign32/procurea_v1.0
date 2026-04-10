@@ -36,15 +36,25 @@ export async function createTestUser(prisma: PrismaService, overrides: any = {})
 }
 
 export async function createTestCampaign(prisma: PrismaService, overrides: any = {}) {
-    return prisma.campaign.create({
+    // Campaign has no userId — ownership is via RfqRequest.ownerId
+    // If rfqRequestId provided, link to existing RFQ; otherwise create standalone
+    const { rfqRequestId, ...rest } = overrides;
+    const campaign = await prisma.campaign.create({
         data: {
-            name: overrides.name || `Campaign ${nextId()}`,
-            status: overrides.status || 'COMPLETED',
-            stage: overrides.stage || 'DONE',
-            userId: overrides.userId,
-            ...overrides,
+            name: rest.name || `Campaign ${nextId()}`,
+            status: rest.status || 'COMPLETED',
+            stage: rest.stage || 'DONE',
+            ...rest,
         },
     });
+    // Link RFQ to campaign if provided
+    if (rfqRequestId) {
+        await prisma.rfqRequest.update({
+            where: { id: rfqRequestId },
+            data: { campaignId: campaign.id },
+        });
+    }
+    return campaign;
 }
 
 export async function createTestSupplier(prisma: PrismaService, campaignId: string, overrides: any = {}) {

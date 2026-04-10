@@ -189,6 +189,128 @@ export class ReportsService {
     }
 
     /**
+     * Advanced analytics aggregation: funnel, costs, quality, activity timeline, top countries
+     */
+    async getAnalytics() {
+        // --- Funnel aggregation from CampaignMetrics ---
+        const metricsAgg = await this.prisma.campaignMetrics.aggregate({
+            _avg: {
+                urlsCollected: true,
+                urlsProcessed: true,
+                screenerPassed: true,
+                auditorApproved: true,
+                avgCapabilityScore: true,
+                avgTrustScore: true,
+                totalCost: true,
+                costPerSupplier: true,
+            },
+            _sum: {
+                urlsCollected: true,
+                urlsProcessed: true,
+                screenerPassed: true,
+                auditorApproved: true,
+                totalCost: true,
+                geminiCalls: true,
+                serperCalls: true,
+            },
+            _count: true,
+        });
+
+        const totalCampaigns = await this.prisma.campaign.count({ where: { deletedAt: null } });
+        const totalSuppliers = await this.prisma.supplier.count({ where: { deletedAt: null } });
+
+        // --- Funnel summary (aggregated across all campaign metrics) ---
+        const funnel = {
+            totalCampaigns,
+            totalUrlsCollected: metricsAgg._sum.urlsCollected ?? 0,
+            totalUrlsProcessed: metricsAgg._sum.urlsProcessed ?? 0,
+            totalScreenerPassed: metricsAgg._sum.screenerPassed ?? 0,
+            totalAuditorApproved: metricsAgg._sum.auditorApproved ?? 0,
+            avgUrlsPerCampaign: Math.round(metricsAgg._avg.urlsCollected ?? 0),
+            avgScreenerPassRate: metricsAgg._avg.urlsProcessed
+                ? Math.round(((metricsAgg._avg.screenerPassed ?? 0) / metricsAgg._avg.urlsProcessed) * 100)
+                : 0,
+            avgAuditorPassRate: metricsAgg._avg.screenerPassed
+                ? Math.round(((metricsAgg._avg.auditorApproved ?? 0) / metricsAgg._avg.screenerPassed) * 100)
+                : 0,
+        };
+
+        // --- Cost summary ---
+        const cost = {
+            totalCost: Math.round((metricsAgg._sum.totalCost ?? 0) * 100) / 100,
+            avgCostPerCampaign: Math.round((metricsAgg._avg.totalCost ?? 0) * 100) / 100,
+            avgCostPerSupplier: Math.round((metricsAgg._avg.costPerSupplier ?? 0) * 1000) / 1000,
+            totalGeminiCalls: metricsAgg._sum.geminiCalls ?? 0,
+            totalSerperCalls: metricsAgg._sum.serperCalls ?? 0,
+        };
+
+        // --- Quality summary ---
+        const quality = {
+            avgCapabilityScore: Math.round((metricsAgg._avg.avgCapabilityScore ?? 0) * 10) / 10,
+            avgTrustScore: Math.round((metricsAgg._avg.avgTrustScore ?? 0) * 10) / 10,
+            totalSuppliers,
+        };
+
+        // --- Activity timeline: campaigns per month (last 6 months) ---
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        sixMonthsAgo.setDate(1);
+        sixMonthsAgo.setHours(0, 0, 0, 0);
+
+        const recentCampaigns = await this.prisma.campaign.findMany({
+            where: {
+                deletedAt: null,
+                createdAt: { gte: sixMonthsAgo },
+            },
+            select: { createdAt: true },
+        });
+
+        // Group by year-month
+        const monthlyMap: Record<string, number> = {};
+        for (let i = 0; i < 6; i++) {
+            const d = new Date();
+            d.setMonth(d.getMonth() - i);
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            monthlyMap[key] = 0;
+        }
+        for (const c of recentCampaigns) {
+            const key = `${c.createdAt.getFullYear()}-${String(c.createdAt.getMonth() + 1).padStart(2, '0')}`;
+            if (key in monthlyMap) {
+                monthlyMap[key]++;
+            }
+        }
+
+        const activityTimeline = Object.entries(monthlyMap)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([month, count]) => ({ month, count }));
+
+        // --- Top countries: top 10 supplier countries by count ---
+        const suppliers = await this.prisma.supplier.findMany({
+            where: { deletedAt: null, country: { not: null } },
+            select: { country: true },
+        });
+
+        const countryMap: Record<string, number> = {};
+        for (const s of suppliers) {
+            const c = normalizeCountry(s.country);
+            if (c) countryMap[c] = (countryMap[c] || 0) + 1;
+        }
+
+        const topCountries = Object.entries(countryMap)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10)
+            .map(([country, count]) => ({ country, count }));
+
+        return {
+            funnel,
+            cost,
+            quality,
+            activityTimeline,
+            topCountries,
+        };
+    }
+
+    /**
      * Global funnel: campaigns → RFQ sent → viewed → responses → accepted
      */
     async getFunnel() {

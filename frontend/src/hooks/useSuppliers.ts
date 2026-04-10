@@ -26,6 +26,18 @@ export function useSupplier(id: string, enabled: boolean = true) {
 }
 
 /**
+ * React Query hook - Pobierz metryki wydajności dostawcy (scorecard)
+ */
+export function useSupplierPerformance(id: string, enabled: boolean = true) {
+  return useQuery({
+    queryKey: ['suppliers', id, 'performance'],
+    queryFn: () => suppliersService.getPerformance(id),
+    enabled: enabled && !!id,
+    staleTime: 60000, // 60 seconds — performance data changes slowly
+  });
+}
+
+/**
  * React Query hook - Aktualizuj dostawcę
  */
 export function useUpdateSupplier() {
@@ -88,6 +100,21 @@ export function useExportSuppliers() {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     },
+  });
+}
+
+/**
+ * React Query hook - Pobierz rekomendowanych dostawców
+ */
+export function useRecommendedSuppliers(
+  params: { productName?: string; category?: string; country?: string; limit?: number },
+  enabled: boolean = true,
+) {
+  return useQuery({
+    queryKey: ['suppliers', 'recommendations', params],
+    queryFn: () => suppliersService.getRecommendations(params),
+    enabled: enabled && !!(params.productName || params.category),
+    staleTime: 120000, // 2 minutes — recommendations change slowly
   });
 }
 

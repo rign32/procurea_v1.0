@@ -1,4 +1,4 @@
-import { Controller, Get, Body, Patch, Post, Delete, Param, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Body, Patch, Post, Delete, Param, Query, UseGuards, Req } from '@nestjs/common';
 import { OrganizationService } from './organization.service';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -6,6 +6,29 @@ import { AuthGuard } from '@nestjs/passport';
 @UseGuards(AuthGuard('jwt'))
 export class OrganizationController {
     constructor(private readonly organizationService: OrganizationService) { }
+
+    // --- Audit Logs (must be before :id routes to avoid param collision) ---
+
+    @Get('audit-logs/list')
+    async getAuditLogs(
+        @Req() req: any,
+        @Query('entityType') entityType?: string,
+        @Query('userId') userId?: string,
+        @Query('dateFrom') dateFrom?: string,
+        @Query('dateTo') dateTo?: string,
+        @Query('page') page?: string,
+        @Query('pageSize') pageSize?: string,
+    ) {
+        const requestingUserId = req.user?.userId || req.user?.sub;
+        return this.organizationService.getAuditLogs(requestingUserId, {
+            entityType: entityType || undefined,
+            userId: userId || undefined,
+            dateFrom: dateFrom || undefined,
+            dateTo: dateTo || undefined,
+            page: page ? parseInt(page, 10) : 1,
+            pageSize: pageSize ? parseInt(pageSize, 10) : 20,
+        });
+    }
 
     @Get(':id')
     async getOrganization(@Param('id') id: string) {
@@ -23,6 +46,10 @@ export class OrganizationController {
         footerPosition?: string;
         footerEmail?: string;
         footerPhone?: string;
+        logoUrl?: string;
+        primaryColor?: string;
+        accentColor?: string;
+        portalWelcomeText?: string;
     }) {
         return this.organizationService.updateOrganization(id, body);
     }

@@ -11,17 +11,23 @@ import {
   FileText,
   ChevronRight,
   Globe,
+  Upload,
+  FileIcon,
+  Paperclip,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { usePortalOffer, useSubmitPortalOffer, usePortalTranslations } from '@/hooks/usePortal';
+import portalService from '@/services/portal.service';
+import type { OfferAttachment } from '@/services/portal.service';
 import {
   getPortalTranslations,
   SUPPORTED_PORTAL_LANGUAGES,
   type PortalTranslations,
 } from '@/i18n/portal-translations';
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePortalBranding } from '@/hooks/useBranding';
 
 const INPUT_CLASS =
   'w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
@@ -172,6 +178,9 @@ export function SupplierPortalPage() {
   const { data, isLoading, error } = usePortalOffer(accessToken || '');
   const submitMutation = useSubmitPortalOffer();
 
+  // Apply organization branding (colors) to portal
+  usePortalBranding(data?.organization);
+
   // Language
   const [langCode, setLangCode] = useState<string | null>(null);
   const effectiveLang = langCode || data?.portalLanguage || 'en';
@@ -208,6 +217,12 @@ export function SupplierPortalPage() {
     comments: '',
     tiers: [emptyTier()],
   });
+
+  // File attachments
+  const [attachments, setAttachments] = useState<OfferAttachment[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Confirm form
   const [specsConfirmed, setSpecsConfirmed] = useState(false);
@@ -281,6 +296,44 @@ export function SupplierPortalPage() {
     setStep((s) => Math.max(s - 1, 0));
   };
 
+  const MAX_ATTACHMENTS = 5;
+  const ALLOWED_EXTENSIONS = '.pdf,.dxf,.step,.stp,.jpg,.jpeg,.png';
+  const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+  const handleFileUpload = async (files: FileList | File[]) => {
+    if (!accessToken) return;
+    setUploadError('');
+    const arr = Array.from(files);
+    const remaining = MAX_ATTACHMENTS - attachments.length;
+    if (arr.length > remaining) {
+      setUploadError(t.upload.maxFiles.replace('{remaining}', String(remaining)));
+      return;
+    }
+
+    setUploading(true);
+    for (const file of arr) {
+      if (file.size > MAX_FILE_SIZE) {
+        setUploadError(t.upload.fileTooLarge.replace('{name}', file.name));
+        continue;
+      }
+      try {
+        const result = await portalService.uploadFile(accessToken, file);
+        setAttachments((prev) => [
+          ...prev,
+          { filename: result.storedFilename, originalName: result.filename, url: result.url },
+        ]);
+      } catch {
+        setUploadError(t.upload.uploadError.replace('{name}', file.name));
+      }
+    }
+    setUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async () => {
     setFormError('');
     if (!accessToken) return;
@@ -321,6 +374,7 @@ export function SupplierPortalPage() {
           priceTiers,
           alternative,
           submissionLanguage: effectiveLang,
+          attachments: attachments.length > 0 ? attachments : undefined,
         },
       });
       setSubmitted(true);
@@ -382,7 +436,10 @@ export function SupplierPortalPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         <header className="bg-white border-b shadow-sm">
           <div className="max-w-3xl mx-auto px-4 py-4 flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-primary">Procurea</h1>
+            {organization?.logoUrl && (
+              <img src={organization.logoUrl} alt={organization.name} className="h-8 w-8 object-contain rounded" />
+            )}
+            <h1 className="text-2xl font-bold text-primary">{organization?.name || 'Procurea'}</h1>
           </div>
         </header>
         <main className="max-w-3xl mx-auto px-4 py-12">
@@ -895,6 +952,77 @@ export function SupplierPortalPage() {
                       placeholder={t.confirm.commentsPlaceholder}
                       className={`${INPUT_CLASS} resize-none`}
                     />
+                  </div>
+
+                  {/* File Attachments */}
+                  <div className="pt-4 border-t">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Paperclip className="h-4 w-4 text-muted-foreground" />
+                      <label className="text-sm font-medium">{t.upload.title}</label>
+                      <Badge variant="outline" className="text-xs font-normal">{t.common.optional}</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-3">{t.upload.subtitle}</p>
+
+                    {attachments.length < MAX_ATTACHMENTS && (
+                      <div
+                        className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-5 cursor-pointer transition-colors hover:border-primary/50 ${
+                          uploading ? 'opacity-50 pointer-events-none' : 'border-input'
+                        }`}
+                        onClick={() => fileInputRef.current?.click()}
+                        onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (e.dataTransfer.files.length) handleFileUpload(e.dataTransfer.files);
+                        }}
+                      >
+                        {uploading ? (
+                          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                        ) : (
+                          <Upload className="h-6 w-6 text-muted-foreground" />
+                        )}
+                        <p className="text-sm text-muted-foreground mt-2">
+                          {uploading ? t.upload.uploading : t.upload.dropzone}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          PDF, DXF, STEP, JPG, PNG — max 10MB
+                        </p>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept={ALLOWED_EXTENSIONS}
+                          multiple
+                          onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
+                          className="hidden"
+                        />
+                      </div>
+                    )}
+
+                    {uploadError && (
+                      <p className="text-sm text-destructive mt-2">{uploadError}</p>
+                    )}
+
+                    {attachments.length > 0 && (
+                      <div className="space-y-2 mt-3">
+                        {attachments.map((att, i) => (
+                          <div key={i} className="flex items-center gap-3 rounded-md border p-2 text-sm bg-slate-50">
+                            <FileIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+                            <span className="flex-1 truncate">{att.originalName}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeAttachment(i)}
+                              className="text-muted-foreground hover:text-destructive transition-colors"
+                              title={t.upload.remove}
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                        {attachments.length >= MAX_ATTACHMENTS && (
+                          <p className="text-xs text-muted-foreground">{t.upload.maxFiles.replace('{remaining}', '0')}</p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>

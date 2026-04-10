@@ -13,6 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { t, isEN } from '@/i18n';
 import organizationService from '@/services/organization.service';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { billingService } from '@/services/billing.service';
 import type { TeamMember } from '@/services/organization.service';
 import type { User } from '@/types/campaign.types';
@@ -23,6 +24,7 @@ interface TeamTabProps {
 }
 
 export function TeamTab({ user }: TeamTabProps) {
+    const { confirm, ConfirmDialogElement } = useConfirmDialog();
     const [members, setMembers] = useState<TeamMember[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [togglingId, setTogglingId] = useState<string | null>(null);
@@ -65,7 +67,7 @@ export function TeamTab({ user }: TeamTabProps) {
 
     const handleLeaveOrg = async () => {
         if (!user?.organizationId) return;
-        if (!confirm(t.settings.team.leaveConfirm)) return;
+        if (!await confirm({ title: t.settings.team.leaveConfirm, variant: 'destructive' })) return;
 
         try {
             await organizationService.leaveOrganization(user.organizationId);
@@ -114,6 +116,8 @@ export function TeamTab({ user }: TeamTabProps) {
     }
 
     return (
+        <>
+        {ConfirmDialogElement}
         <motion.div variants={itemVariants} initial="hidden" animate="show">
             <Card>
                 <CardHeader>
@@ -250,5 +254,6 @@ export function TeamTab({ user }: TeamTabProps) {
                 </CardContent>
             </Card>
         </motion.div>
+        </>
     );
 }

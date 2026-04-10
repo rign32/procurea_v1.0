@@ -15,16 +15,19 @@ import {
   Layers,
   Link2,
   Mail,
+  Repeat,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useRfq, useOffers, useAcceptOffer, useRejectOffer, useShortlistOffer, useCompareOffers } from '@/hooks/useRfqs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { useRfq, useOffers, useAcceptOffer, useRejectOffer, useShortlistOffer, useCompareOffers, useCounterOffer } from '@/hooks/useRfqs';
 import { offersService } from '@/services/rfqs.service';
 import { t, isEN } from '@/i18n';
 import type { Offer, OfferPriceTier } from '@/types/campaign.types';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { CommentThread } from '@/components/collaboration/CommentThread';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -43,6 +46,7 @@ const STATUS_BADGE: Record<string, { variant: 'default' | 'secondary' | 'destruc
   SHORTLISTED: { variant: 'default', label: t.rfqs.offer.shortlisted },
   ACCEPTED: { variant: 'default', label: t.rfqs.offer.accepted },
   REJECTED: { variant: 'destructive', label: t.rfqs.offer.rejected },
+  COUNTER_OFFERED: { variant: 'outline', label: t.rfqs.offer.counterOffered },
 };
 
 // Find the price for a specific quantity from tiers
@@ -145,12 +149,15 @@ export function RfqDetailPage() {
   const rejectMutation = useRejectOffer();
   const shortlistMutation = useShortlistOffer();
   const compareMutation = useCompareOffers();
+  const counterOfferMutation = useCounterOffer();
 
   const [selectedOffers, setSelectedOffers] = useState<Set<string>>(new Set());
   const [rejectDialogId, setRejectDialogId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [acceptDialogId, setAcceptDialogId] = useState<string | null>(null);
   const [comparisonResult, setComparisonResult] = useState<any>(null);
+  const [counterDialogId, setCounterDialogId] = useState<string | null>(null);
+  const [counterForm, setCounterForm] = useState<{ price: string; moq: string; leadTime: string; comments: string }>({ price: '', moq: '', leadTime: '', comments: '' });
 
   const toggleOfferSelection = (offerId: string) => {
     setSelectedOffers(prev => {
@@ -220,6 +227,30 @@ export function RfqDetailPage() {
     }
   };
 
+  const openCounterDialog = (offerId: string) => {
+    setCounterDialogId(offerId);
+    setCounterForm({ price: '', moq: '', leadTime: '', comments: '' });
+  };
+
+  const handleCounterOffer = async () => {
+    if (!counterDialogId) return;
+    const terms: { price?: number; moq?: number; leadTime?: number; comments?: string } = {};
+    if (counterForm.price) terms.price = Number(counterForm.price);
+    if (counterForm.moq) terms.moq = Number(counterForm.moq);
+    if (counterForm.leadTime) terms.leadTime = Number(counterForm.leadTime);
+    if (counterForm.comments.trim()) terms.comments = counterForm.comments.trim();
+
+    if (Object.keys(terms).length === 0) return;
+
+    try {
+      await counterOfferMutation.mutateAsync({ id: counterDialogId, terms });
+      setCounterDialogId(null);
+      toast.success(t.rfqs.offer.counterOfferSuccess);
+    } catch {
+      toast.error(t.rfqs.offer.counterOfferError);
+    }
+  };
+
   const formatCurrency = (price?: number | null, currency?: string | null) => {
     if (price == null) return '—';
     return new Intl.NumberFormat('pl-PL', {
@@ -250,7 +281,8 @@ export function RfqDetailPage() {
   const getStatusBadge = (status: string) => {
     const info = STATUS_BADGE[status] || { variant: 'secondary' as const, label: status };
     const extraClass = status === 'SHORTLISTED' ? 'bg-amber-100 text-amber-800 border-amber-200' :
-      status === 'ACCEPTED' ? 'bg-green-100 text-green-800 border-green-200' : '';
+      status === 'ACCEPTED' ? 'bg-green-100 text-green-800 border-green-200' :
+      status === 'COUNTER_OFFERED' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' : '';
     return <Badge variant={info.variant} className={extraClass}>{info.label}</Badge>;
   };
 
@@ -621,6 +653,48 @@ export function RfqDetailPage() {
                           <AlternativeOfferCard key={alt.id} alt={alt} unit={rfqUnit} />
                         ))
                       )}
+
+                      {/* Counter-offer terms display */}
+                      {offer.status === 'COUNTER_OFFERED' && (
+                        <div className="mt-3 pt-3 border-t border-dashed">
+                          <div className="rounded-md border border-yellow-200 bg-yellow-50 p-3">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Repeat className="h-3.5 w-3.5 text-yellow-700" />
+                              <span className="text-xs font-semibold text-yellow-800">{t.rfqs.offer.counterTerms}</span>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                              {offer.counterPrice != null && (
+                                <div>
+                                  <p className="text-muted-foreground text-xs">{t.rfqs.offer.counterPrice}</p>
+                                  <p className="font-medium text-xs">{formatCurrency(offer.counterPrice, offer.currency)}</p>
+                                </div>
+                              )}
+                              {offer.counterMoq != null && (
+                                <div>
+                                  <p className="text-muted-foreground text-xs">{t.rfqs.offer.counterMoq}</p>
+                                  <p className="font-medium text-xs">{offer.counterMoq}</p>
+                                </div>
+                              )}
+                              {offer.counterLeadTime != null && (
+                                <div>
+                                  <p className="text-muted-foreground text-xs">{t.rfqs.offer.counterLeadTime}</p>
+                                  <p className="font-medium text-xs">{offer.counterLeadTime} {t.rfqs.detail.weeks}</p>
+                                </div>
+                              )}
+                              {offer.counterComments && (
+                                <div className="col-span-2 md:col-span-4">
+                                  <p className="text-muted-foreground text-xs">{t.rfqs.offer.counterComments}</p>
+                                  <p className="font-medium text-xs">{offer.counterComments}</p>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1.5 mt-2">
+                              <Clock className="h-3 w-3 text-yellow-600 animate-pulse" />
+                              <span className="text-xs text-yellow-700">{t.rfqs.offer.counterWaiting}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Actions */}
@@ -649,6 +723,15 @@ export function RfqDetailPage() {
                         )}
                         <Button
                           size="sm"
+                          variant="outline"
+                          onClick={() => openCounterDialog(offer.id)}
+                          disabled={counterOfferMutation.isPending}
+                        >
+                          <Repeat className="mr-1 h-3.5 w-3.5" />
+                          {t.rfqs.offer.counterOffer}
+                        </Button>
+                        <Button
+                          size="sm"
                           variant="destructive"
                           onClick={() => setRejectDialogId(offer.id)}
                           disabled={rejectMutation.isPending}
@@ -666,6 +749,17 @@ export function RfqDetailPage() {
         </div>
       )
       }
+
+      {/* Comments Section */}
+      {id && (
+        <motion.div variants={itemVariants}>
+          <Card>
+            <CardContent className="pt-6">
+              <CommentThread entityType="rfq" entityId={id} />
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Reject Dialog */}
       {
@@ -738,6 +832,80 @@ export function RfqDetailPage() {
           </div>
         )
       }
+
+      {/* Counter-Offer Dialog */}
+      <Dialog open={!!counterDialogId} onOpenChange={(open) => { if (!open) setCounterDialogId(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t.rfqs.offer.counterOfferTitle}</DialogTitle>
+            <DialogDescription>{t.rfqs.offer.counterOfferDesc}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <label className="block text-sm font-medium mb-1">{t.rfqs.offer.counterPrice}</label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={counterForm.price}
+                onChange={(e) => setCounterForm(prev => ({ ...prev, price: e.target.value }))}
+                placeholder="0.00"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">{t.rfqs.offer.counterMoq}</label>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={counterForm.moq}
+                onChange={(e) => setCounterForm(prev => ({ ...prev, moq: e.target.value }))}
+                placeholder="0"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">{t.rfqs.offer.counterLeadTime}</label>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={counterForm.leadTime}
+                onChange={(e) => setCounterForm(prev => ({ ...prev, leadTime: e.target.value }))}
+                placeholder="0"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">{t.rfqs.offer.counterComments}</label>
+              <textarea
+                rows={3}
+                value={counterForm.comments}
+                onChange={(e) => setCounterForm(prev => ({ ...prev, comments: e.target.value }))}
+                placeholder={t.rfqs.offer.counterCommentsPlaceholder}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCounterDialogId(null)}>
+              {t.common.cancel}
+            </Button>
+            <Button
+              onClick={handleCounterOffer}
+              disabled={counterOfferMutation.isPending || (!counterForm.price && !counterForm.moq && !counterForm.leadTime && !counterForm.comments.trim())}
+            >
+              {counterOfferMutation.isPending ? (
+                <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+              ) : (
+                <Repeat className="mr-1 h-4 w-4" />
+              )}
+              {t.rfqs.offer.counterOfferSend}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </motion.div >
   );
 }

@@ -9,9 +9,11 @@ import { DatabaseExplorerService } from './services/database-explorer.service';
 import { ApiUsageService } from './services/api-usage.service';
 import { TranslationService } from './services/translation.service';
 import { VatValidationService } from './services/vat-validation.service';
+import { TenantContextService } from './services/tenant-context.service';
 import { HealthController } from './controllers/health.controller';
 import { DatabaseExplorerController } from './controllers/database-explorer.controller';
 import { AdminGuard } from '../admin/admin.guard';
+import { PermissionsGuard } from './guards/permissions.guard';
 import { EmailModule } from '../email/email.module';
 import { AuthModule } from '../auth/auth.module';
 import { ObservabilityModule } from '../observability/observability.module';
@@ -22,6 +24,7 @@ import { ObservabilityModule } from '../observability/observability.module';
     controllers: [HealthController, DatabaseExplorerController],
     providers: [
         AdminGuard,
+        PermissionsGuard,
         ApiUsageService,
         CurrencyService,
         GeminiService,
@@ -31,9 +34,11 @@ import { ObservabilityModule } from '../observability/observability.module';
         DatabaseExplorerService,
         NotificationService,
         TranslationService,
+        TenantContextService,
         VatValidationService,
     ],
     exports: [
+        PermissionsGuard,
         ApiUsageService,
         CurrencyService,
         GeminiService,
@@ -43,6 +48,7 @@ import { ObservabilityModule } from '../observability/observability.module';
         DatabaseExplorerService,
         NotificationService,
         TranslationService,
+        TenantContextService,
         VatValidationService,
     ],
 })

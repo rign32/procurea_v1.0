@@ -55,6 +55,21 @@ export class SuppliersController {
         res.send(csv);
     }
 
+    @Get('recommendations')
+    getRecommendations(
+        @Query('productName') productName?: string,
+        @Query('category') category?: string,
+        @Query('country') country?: string,
+        @Query('limit') limit?: string,
+    ) {
+        return this.suppliersService.getRecommendations({
+            productName,
+            category,
+            country,
+            limit: limit ? Math.min(parseInt(limit, 10), 50) : 10,
+        });
+    }
+
     @Get('blacklist/all')
     getBlacklist() {
         return this.suppliersService.getBlacklist();
@@ -90,9 +105,37 @@ export class SuppliersController {
         return this.suppliersService.updateBlacklistReason(id, body.reason);
     }
 
+    @Get(':id/performance')
+    getPerformance(@Param('id') id: string) {
+        return this.suppliersService.getPerformance(id);
+    }
+
     @Get(':id')
     findOne(@Param('id') id: string) {
         return this.suppliersService.findOne(id);
+    }
+
+    @Patch(':id/notes')
+    updateNotes(
+        @Param('id') id: string,
+        @Body() body: { internalNotes?: string; internalTags?: string[] },
+    ) {
+        return this.suppliersService.updateNotes(id, body);
+    }
+
+    @Post('import')
+    @UseInterceptors(FileInterceptor('file'))
+    importSuppliers(
+        @UploadedFile() file: any,
+        @Body() body: { campaignId: string },
+    ) {
+        if (!file) {
+            throw new BadRequestException('No file uploaded');
+        }
+        if (!body.campaignId) {
+            throw new BadRequestException('campaignId is required');
+        }
+        return this.suppliersService.importSuppliers(file, body.campaignId);
     }
 
     @Patch(':id')
@@ -113,5 +156,17 @@ export class SuppliersController {
     @Post(':id/blacklist')
     blacklist(@Param('id') id: string, @Body() body: { reason?: string }) {
         return this.suppliersService.blacklist(id, body.reason);
+    }
+
+    @Post('bulk/exclude')
+    bulkExclude(@Body() body: { ids: string[]; reason?: string }) {
+        if (!body.ids?.length) throw new BadRequestException('ids array required');
+        return this.suppliersService.bulkExclude(body.ids, body.reason);
+    }
+
+    @Post('bulk/blacklist')
+    bulkBlacklist(@Body() body: { ids: string[]; reason?: string }) {
+        if (!body.ids?.length) throw new BadRequestException('ids array required');
+        return this.suppliersService.bulkBlacklist(body.ids, body.reason);
     }
 }

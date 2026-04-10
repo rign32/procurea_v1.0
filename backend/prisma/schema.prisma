@@ -24,18 +24,22 @@ model User {
   passwordHash  String?   // Nullable for SSO users
   name          String?
   phone         String?   @unique
-  role          String    @default("USER") // formerly UserRole enum
-  
+  role          String    @default("USER") // Legacy role field (backward compat)
+
+  // RBAC Role
+  rbacRoleId    String?
+  rbacRole      Role?     @relation(fields: [rbacRoleId], references: [id])
+
   // Security
   ssoProvider   String?   // "google", "microsoft", "email"
   ssoId         String?   // Provider's unique ID
   pendingPhone  String?   // Temporarily store here during verification
-  
+
   isEmailVerified Boolean @default(false)
   isPhoneVerified Boolean @default(false)
   phoneVerifiedAt DateTime?
   twoFactorEnabled Boolean @default(false)
-  
+
   // Onboarding
   onboardingCompleted Boolean @default(false)
   companyName   String?
@@ -72,6 +76,9 @@ model User {
   // Trial
   trialCreditsUsed  Boolean @default(false)
 
+  // Demo Mode
+  isDemo        Boolean   @default(false)
+
   // Admin Controls
   isBlocked     Boolean   @default(false)
   blockedAt     DateTime?
@@ -83,6 +90,34 @@ model User {
   // Sharing Preferences (democratic team model)
   sharingFrom UserSharingPreference[] @relation("SharingFrom") // Preferences I set for others
   sharingTo   UserSharingPreference[] @relation("SharingTo")   // Preferences others set for me
+
+  // In-app Feedback
+  feedbacks   Feedback[]
+
+  // Collaboration
+  comments    Comment[]
+
+  // Scheduled Reports
+  scheduledReports ScheduledReport[]
+
+  // Approvals
+  approvalRequests  ApprovalRequest[] @relation("ApprovalRequester")
+  approvalApprovals ApprovalRequest[] @relation("ApprovalApprover")
+
+  // API Keys
+  apiKeys     ApiKey[]
+
+  // Documents
+  documents   Document[]
+
+  // Contracts
+  contracts   Contract[]
+
+  // Workspaces
+  workspaceMembers WorkspaceMember[]
+
+  // Notifications
+  notifications Notification[]
 }
 
 // Refresh Token Model for secure session management
@@ -119,6 +154,12 @@ model Organization {
   footerEmail      String?
   footerPhone      String?
 
+  // Branding
+  logoUrl           String?
+  primaryColor      String?   // Hex color e.g. "#5E8C8F"
+  accentColor       String?
+  portalWelcomeText String?   // Custom welcome text for supplier portal
+
   // Currency Settings
   baseCurrency String @default("PLN") // ISO 4217 currency code
 
@@ -135,9 +176,32 @@ model Organization {
   users       User[]
   locations   OrganizationLocation[]
   orgCreditTransactions OrgCreditTransaction[]
+  roles       Role[]
+  workspaces  Workspace[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// --- RBAC (Role-Based Access Control) ---
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   // "owner" | "admin" | "manager" | "member" | "viewer" or custom
+  displayName String
+  permissions Json     // Array of permission strings (e.g. ["campaigns.create", "rfqs.send"])
+  isSystem    Boolean  @default(false) // System roles can't be deleted
+
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+
+  users       User[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([name, organizationId])
+  @@index([organizationId])
 }
 
 model OrganizationLocation {
@@ -294,6 +358,10 @@ model Supplier {
   companyTypeConfidence      Int?      @default(0)
   needsManualClassification  Boolean   @default(false)
   sourceType                String?   @default("SEARCH")    // SEARCH, PORTAL_MINE, LEADER_DIRECT, LEADER_SEARCH, EXPANSION
+
+  // Internal notes & tags (private per organization)
+  internalNotes  String?
+  internalTags   Json?     // Array of string tags like ["preferred", "quality-issues", "local"]
 
   // Soft Delete
   deletedAt DateTime?
@@ -588,6 +656,16 @@ model Offer {
 
   // Language used by supplier in portal
   submissionLanguage String?
+
+  // Supplier-uploaded attachments (JSON array of { filename, originalName, url })
+  attachments Json?
+
+  // Counter-offer / Negotiation
+  counterOfferTerms Json?    // Buyer's counter: { price?, moq?, leadTime?, comments? }
+  negotiationHistory Json?   // Array of { action, by, terms, timestamp }
+
+  // Contracts
+  contracts   Contract[]
 }
 
 // Price tier for quantity-based pricing
@@ -607,10 +685,10 @@ model OfferPriceTier {
 
 model AuditLog {
   id          String   @id @default(uuid())
-  
+
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   action      String   // CREATE, UPDATE, DELETE
   entityType  String   // Supplier, Campaign, User
   entityId    String
@@ -767,7 +845,190 @@ model ObservabilityEvent {
   @@index([type, createdAt])
 }
 
+// --- STRIPE EVENT LOG (webhook deduplication) ---
+
+model StripeEventLog {
+  id          String   @id // Stripe event ID (evt_xxx)
+  type        String   // checkout.session.completed, customer.subscription.updated, etc.
+  processedAt DateTime @default(now())
+
+  @@index([type, processedAt])
+}
+
 // --- MONITORING INCIDENTS ---
+
+// --- IN-APP FEEDBACK ---
+
+model Feedback {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // "bug" | "feature" | "other"
+  message   String
+  page      String?  // current page URL
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([type, createdAt])
+}
+
+// --- COLLABORATION ---
+
+model Comment {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  entityType String   // "campaign" | "supplier" | "rfq"
+  entityId   String
+
+  content    String
+  mentions   Json?    // Array of mentioned user IDs
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([entityType, entityId])
+  @@index([userId])
+}
+
+// --- SCHEDULED REPORTS ---
+
+model ScheduledReport {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name        String
+  frequency   String    // "daily" | "weekly" | "monthly"
+  reportType  String    // "campaign_summary" | "analytics" | "supplier_performance"
+  recipients  Json      // Array of email addresses
+  filters     Json?     // Optional filters
+  enabled     Boolean   @default(true)
+  lastRunAt   DateTime?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([enabled, frequency])
+}
+
+// --- PUBLIC API KEYS ---
+
+model ApiKey {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name        String    // User-friendly name
+  hashedKey   String    @unique // SHA256 hash of the raw API key
+  prefix      String    // First 10 chars for display (pk_xxxxx...)
+  scopes      Json      // Array of allowed scopes: ["read", "write", "campaigns", "suppliers"]
+  enabled     Boolean   @default(true)
+  expiresAt   DateTime?
+  lastUsedAt  DateTime?
+
+  createdAt   DateTime  @default(now())
+
+  @@index([userId])
+}
+
+// --- APPROVAL WORKFLOWS ---
+
+model ApprovalRequest {
+  id          String    @id @default(uuid())
+
+  requesterId String
+  requester   User      @relation("ApprovalRequester", fields: [requesterId], references: [id])
+
+  approverId  String
+  approver    User      @relation("ApprovalApprover", fields: [approverId], references: [id])
+
+  entityType  String    // "rfq" | "offer_accept" | "campaign_delete"
+  entityId    String
+
+  status      String    @default("PENDING") // PENDING | APPROVED | REJECTED
+  reason      String?   // Why approval was requested
+  comments    String?   // Approver's comments
+
+  resolvedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([approverId, status])
+  @@index([requesterId])
+  @@index([entityType, entityId])
+}
+
+// --- DOCUMENT MANAGEMENT ---
+
+model Document {
+  id             String    @id @default(uuid())
+
+  // Ownership
+  uploadedById   String
+  uploadedBy     User      @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  organizationId String?
+
+  // File info
+  filename       String    // Stored filename (UUID-based)
+  originalName   String    // Original filename
+  mimeType       String
+  sizeBytes      Int
+  url            String    // Download URL path
+
+  // Organization
+  category       String?   // "certificate" | "drawing" | "nda" | "spec" | "quality_report" | "contract" | "other"
+  tags           Json?     // Array of string tags
+  description    String?
+
+  // Entity linking (polymorphic)
+  entityType     String?   // "supplier" | "rfq" | "offer" | "campaign"
+  entityId       String?
+
+  // Versioning
+  version        Int       @default(1)
+  parentId       String?   // Previous version
+  parent         Document? @relation("DocumentVersions", fields: [parentId], references: [id])
+  versions       Document[] @relation("DocumentVersions")
+  isLatest       Boolean   @default(true)
+
+  createdAt      DateTime  @default(now())
+
+  @@index([uploadedById])
+  @@index([organizationId])
+  @@index([entityType, entityId])
+  @@index([category])
+}
+
+// --- CONTRACT MANAGEMENT ---
+
+model Contract {
+  id              String    @id @default(uuid())
+
+  offerId         String
+  offer           Offer     @relation(fields: [offerId], references: [id])
+
+  createdById     String
+  createdBy       User      @relation(fields: [createdById], references: [id])
+
+  organizationId  String?
+
+  title           String
+  terms           String?   // Contract terms text
+  status          String    @default("DRAFT") // DRAFT | UNDER_REVIEW | SIGNED | ACTIVE | EXPIRED | TERMINATED
+
+  startDate       DateTime?
+  endDate         DateTime?
+  signedAt        DateTime?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([createdById])
+  @@index([organizationId])
+  @@index([status])
+}
 
 model MonitoringIncident {
   id          String    @id @default(uuid())
@@ -784,4 +1045,56 @@ model MonitoringIncident {
 
   @@index([serviceId, status])
   @@index([status, startedAt])
+}
+
+// --- WORKSPACES (Team Project Isolation) ---
+
+model Workspace {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+
+  members         WorkspaceMember[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([organizationId])
+}
+
+// --- IN-APP NOTIFICATIONS ---
+
+model Notification {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type       String   // "approval_request" | "offer_submitted" | "campaign_completed" | "comment_mention"
+  title      String
+  message    String?
+  entityType String?  // "campaign" | "supplier" | "rfq" | "approval"
+  entityId   String?
+
+  read       Boolean  @default(false)
+
+  createdAt  DateTime @default(now())
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+}
+
+model WorkspaceMember {
+  id          String    @id @default(uuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        String    @default("member") // "admin" | "member" | "viewer"
+
+  createdAt   DateTime  @default(now())
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
 }

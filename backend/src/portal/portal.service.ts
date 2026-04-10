@@ -1,4 +1,5 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationService } from '../common/services/notification.service';
 import { getLanguageForCountry } from '../common/normalize-country';
@@ -7,6 +8,12 @@ interface PriceTierDto {
     minQty: number;
     maxQty?: number;
     unitPrice: number;
+}
+
+interface AttachmentDto {
+    filename: string;
+    originalName: string;
+    url: string;
 }
 
 interface SubmitOfferDto {
@@ -28,6 +35,7 @@ interface SubmitOfferDto {
         priceTiers: PriceTierDto[];
     };
     submissionLanguage?: string;
+    attachments?: AttachmentDto[];
 }
 
 @Injectable()
@@ -110,6 +118,7 @@ export class PortalService {
                 incotermsConfirmed: offer.incotermsConfirmed,
                 viewedAt: offer.viewedAt || new Date(),
                 submittedAt: offer.submittedAt,
+                attachments: (offer as any).attachments || [],
                 priceTiers: offer.priceTiers.map(t => ({
                     id: t.id,
                     minQty: t.minQty,
@@ -161,6 +170,10 @@ export class PortalService {
                 footerPosition: org.footerPosition,
                 footerEmail: org.footerEmail,
                 footerPhone: org.footerPhone,
+                logoUrl: org.logoUrl,
+                primaryColor: org.primaryColor,
+                accentColor: org.accentColor,
+                portalWelcomeText: org.portalWelcomeText,
             } : null,
             supplier: {
                 name: offer.supplier?.name,
@@ -168,6 +181,47 @@ export class PortalService {
             },
             portalLanguage: lang.code,
         };
+    }
+
+    async getOrganizationBranding(orgId: string) {
+        const org = await this.prisma.organization.findUnique({
+            where: { id: orgId },
+            select: {
+                id: true,
+                name: true,
+                logoUrl: true,
+                primaryColor: true,
+                accentColor: true,
+                portalWelcomeText: true,
+            },
+        });
+
+        if (!org) {
+            throw new NotFoundException('Organization not found');
+        }
+
+        return org;
+    }
+
+    async validateTokenForUpload(accessToken: string) {
+        const offer = await this.prisma.offer.findUnique({
+            where: { accessToken },
+            select: { id: true, status: true, tokenExpiresAt: true },
+        });
+
+        if (!offer) {
+            throw new NotFoundException('Offer not found');
+        }
+
+        if (offer.tokenExpiresAt && offer.tokenExpiresAt < new Date()) {
+            throw new BadRequestException('This link has expired.');
+        }
+
+        if (!['PENDING', 'VIEWED', 'COUNTER_OFFERED'].includes(offer.status)) {
+            throw new BadRequestException('Offer has already been submitted');
+        }
+
+        return offer;
     }
 
     async submitOffer(accessToken: string, dto: SubmitOfferDto) {
@@ -211,7 +265,7 @@ export class PortalService {
             throw new BadRequestException('This link has expired. Please contact the buyer for a new invitation.');
         }
 
-        if (!['PENDING', 'VIEWED'].includes(offer.status)) {
+        if (!['PENDING', 'VIEWED', 'COUNTER_OFFERED'].includes(offer.status)) {
             throw new BadRequestException('Offer has already been submitted or processed');
         }
 
@@ -234,6 +288,9 @@ export class PortalService {
                     specsConfirmed: dto.specsConfirmed ?? false,
                     incotermsConfirmed: dto.incotermsConfirmed ?? false,
                     submissionLanguage: dto.submissionLanguage,
+                    attachments: dto.attachments && dto.attachments.length > 0
+                        ? (dto.attachments as unknown as Prisma.InputJsonValue)
+                        : undefined,
                 },
             });
 

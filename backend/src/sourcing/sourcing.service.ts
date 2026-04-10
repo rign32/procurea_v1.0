@@ -20,6 +20,7 @@ import { SalesOpsService } from '../sales-ops/sales-ops.service';
 import { ApolloEnrichmentAgent } from './agents/apollo-enrichment.agent';
 import { ConfigService } from '@nestjs/config';
 import { VatValidationService } from '../common/services/vat-validation.service';
+import { TenantContextService } from '../common/services/tenant-context.service';
 import { v4 as uuidv4 } from 'uuid';
 import pLimit = require('p-limit');
 import * as XLSX from 'xlsx';
@@ -265,6 +266,7 @@ export class SourcingService {
         private readonly apolloEnrichment: ApolloEnrichmentAgent,
         private readonly configService: ConfigService,
         @Optional() private readonly vatValidation: VatValidationService,
+        private readonly tenantContext: TenantContextService,
     ) { }
 
     /**
@@ -495,23 +497,10 @@ export class SourcingService {
             where.name = { contains: filters.search, mode: 'insensitive' };
         }
 
-        // Organization isolation + sharing-aware filtering
+        // Organization isolation + sharing-aware filtering (via TenantContext)
         if (userId) {
-            const user = await this.prisma.user.findUnique({
-                where: { id: userId },
-                select: { organizationId: true },
-            });
-            if (user?.organizationId) {
-                // Get users who share with current user
-                const sharingWith = await this.prisma.userSharingPreference.findMany({
-                    where: { toUserId: userId, enabled: true },
-                    select: { fromUserId: true },
-                });
-                const visibleOwnerIds = [userId, ...sharingWith.map(s => s.fromUserId)];
-                where.rfqRequest = { ownerId: { in: visibleOwnerIds } };
-            } else {
-                where.rfqRequest = { ownerId: userId };
-            }
+            const tenant = await this.tenantContext.resolve(userId);
+            where.rfqRequest = tenant.campaignOwnerFilter();
         }
 
         const page = pagination?.page || 1;
@@ -715,6 +704,32 @@ export class SourcingService {
             where: { id },
             data,
         });
+    }
+
+    /**
+     * Clone a campaign: copies searchCriteria + RFQ product details, then auto-starts a new campaign.
+     */
+    async cloneCampaign(campaignId: string, userId?: string) {
+        const source = await this.prisma.campaign.findUnique({
+            where: { id: campaignId },
+            include: { rfqRequest: true },
+        });
+        if (!source) throw new NotFoundException('Campaign not found');
+
+        const searchCriteria = source.searchCriteria
+            ? JSON.parse(JSON.stringify(source.searchCriteria))
+            : undefined;
+
+        // Reconstruct the DTO that `create()` expects
+        const cloneDto: CreateCampaignDto = {
+            name: `${source.name} (copy)`,
+            language: source.language || 'pl',
+            sequenceTemplateId: source.sequenceTemplateId || undefined,
+            searchCriteria,
+        };
+
+        // Delegate to the regular create method which handles credit checks, RFQ creation, and pipeline launch
+        return this.create(cloneDto, userId);
     }
 
     async softDelete(id: string) {

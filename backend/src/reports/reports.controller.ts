@@ -33,6 +33,11 @@ export class ReportsController {
         res.send(buffer);
     }
 
+    @Get('analytics')
+    getAnalytics() {
+        return this.reportsService.getAnalytics();
+    }
+
     @Get('funnel')
     getFunnel() {
         return this.reportsService.getFunnel();
