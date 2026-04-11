@@ -119,8 +119,10 @@ export class SuppliersController {
     updateNotes(
         @Param('id') id: string,
         @Body() body: { internalNotes?: string; internalTags?: string[] },
+        @Req() req?: any,
     ) {
-        return this.suppliersService.updateNotes(id, body);
+        const userId = req?.user?.userId || req?.user?.sub;
+        return this.suppliersService.updateNotes(id, body, userId);
     }
 
     @Post('import')

@@ -25,7 +25,6 @@ const SequencesPage = lazy(() => import('./pages/SequencesPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 const BlacklistPage = lazy(() => import('./pages/BlacklistPage'))
 const ContactsPage = lazy(() => import('./pages/ContactsPage'))
-const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'))
 const DocumentsPage = lazy(() => import('./pages/DocumentsPage'))
 const StatusPage = lazy(() => import('./pages/StatusPage'))
 const ContractsPage = lazy(() => import('./pages/ContractsPage'))
@@ -374,7 +373,6 @@ function App() {
             <Route path="/blacklist" element={<BlacklistPage />} />
             <Route path="/contacts" element={<PlanGuard feature={((import.meta.env.VITE_LANGUAGE || 'pl') === 'en') ? 'Contacts' : 'Kontakty'}><ContactsPage /></PlanGuard>} />
             <Route path="/sequences" element={<PlanGuard feature={((import.meta.env.VITE_LANGUAGE || 'pl') === 'en') ? 'Email Sequences' : 'Sekwencje email'}><SequencesPage /></PlanGuard>} />
-            <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/documents" element={<DocumentsPage />} />
             <Route path="/contracts" element={<PlanGuard feature={((import.meta.env.VITE_LANGUAGE || 'pl') === 'en') ? 'Contracts' : 'Kontrakty'}><ContractsPage /></PlanGuard>} />
             <Route path="/approvals" element={<PlanGuard feature={((import.meta.env.VITE_LANGUAGE || 'pl') === 'en') ? 'Approvals' : 'Zatwierdzenia'}><ApprovalsPage /></PlanGuard>} />

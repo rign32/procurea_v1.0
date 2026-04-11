@@ -137,10 +137,12 @@ export const documentsService = {
   },
 
   /**
-   * Get download URL
+   * Get download URL — always construct from filename to avoid double /api prefix
    */
   getDownloadUrl: (doc: DocumentRecord): string => {
-    return `/api${doc.url}`;
+    // Extract the stored filename from the URL (last path segment)
+    const filename = doc.filename || doc.url.split('/').pop() || '';
+    return `/api/uploads/${filename}`;
   },
 };
 

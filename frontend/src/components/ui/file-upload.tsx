@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { Upload, X, FileIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import apiClient from '@/services/api.client';
+import { documentsService } from '@/services/documents.service';
 import { t } from '@/i18n';
 
 interface UploadedFile {
@@ -16,6 +17,12 @@ interface FileUploadProps {
     onChange: (files: UploadedFile[]) => void;
     className?: string;
     maxFiles?: number;
+    /** When true, uploads via /documents API creating a Document record */
+    createDocumentRecord?: boolean;
+    /** Entity type to link the document to (used when createDocumentRecord is true) */
+    entityType?: string;
+    /** Entity ID to link the document to (used when createDocumentRecord is true) */
+    entityId?: string;
 }
 
 const ALLOWED = '.pdf,.dxf,.step,.stp,.jpg,.jpeg,.png';
@@ -27,7 +34,7 @@ function formatSize(bytes: number) {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function FileUpload({ value, onChange, className, maxFiles = 5 }: FileUploadProps) {
+export function FileUpload({ value, onChange, className, maxFiles = 5, createDocumentRecord, entityType, entityId }: FileUploadProps) {
     const [uploading, setUploading] = useState(false);
     const [dragOver, setDragOver] = useState(false);
     const [error, setError] = useState('');
@@ -38,9 +45,24 @@ export function FileUpload({ value, onChange, className, maxFiles = 5 }: FileUpl
             setError(t.campaigns.wizard.upload.fileTooLarge.replace('{name}', file.name));
             return null;
         }
-        const formData = new FormData();
-        formData.append('file', file);
         try {
+            if (createDocumentRecord) {
+                // Upload via Documents API — creates a Document record
+                const doc = await documentsService.upload({
+                    file,
+                    entityType,
+                    entityId,
+                });
+                return {
+                    id: doc.id,
+                    filename: doc.originalName,
+                    url: doc.url,
+                    size: doc.sizeBytes,
+                } as UploadedFile;
+            }
+            // Standard upload via /uploads
+            const formData = new FormData();
+            formData.append('file', file);
             const { data } = await apiClient.post('/uploads', formData, {
                 headers: { 'Content-Type': undefined },
             });
@@ -54,7 +76,7 @@ export function FileUpload({ value, onChange, className, maxFiles = 5 }: FileUpl
                 : t.campaigns.wizard.upload.uploadError.replace('{name}', file.name));
             return null;
         }
-    }, []);
+    }, [createDocumentRecord, entityType, entityId]);
 
     const handleFiles = useCallback(async (files: FileList | File[]) => {
         setError('');

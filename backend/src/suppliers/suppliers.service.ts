@@ -162,8 +162,13 @@ export class SuppliersService {
         };
     }
 
-    async updateNotes(id: string, body: { internalNotes?: string; internalTags?: string[] }) {
-        const supplier = await this.prisma.supplier.findUnique({ where: { id } });
+    async updateNotes(id: string, body: { internalNotes?: string; internalTags?: string[] }, userId?: string) {
+        const where: any = { id, deletedAt: null };
+        if (userId) {
+            const tenant = await this.tenantContext.resolve(userId);
+            where.campaign = tenant.supplierCampaignFilter();
+        }
+        const supplier = await this.prisma.supplier.findFirst({ where });
         if (!supplier) throw new NotFoundException('Supplier not found');
 
         return this.prisma.supplier.update({

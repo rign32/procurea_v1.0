@@ -67,7 +67,11 @@ export function CampaignDetailPage() {
   const [accepting, setAccepting] = useState(false);
   const [supplierSearch, setSupplierSearch] = useState('');
   const [apolloContacts, setApolloContacts] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(() => {
+    // For completed/accepted campaigns, default to suppliers tab
+    if (campaign && ['COMPLETED', 'ACCEPTED', 'DONE'].includes(campaign.status)) return 'suppliers';
+    return 'overview';
+  });
   const { user } = useAuthStore();
   const isFullPlan = user?.plan === 'full';
   const { activeCampaign } = useCampaignsStore();

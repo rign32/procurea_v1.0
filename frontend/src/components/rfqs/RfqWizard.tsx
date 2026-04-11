@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ArrowLeft, ArrowRight, Loader2, Mail, HelpCircle, Globe2, X, Search } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Loader2, Mail, HelpCircle, Globe2, X, Search, FileText, Check, Library } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -11,6 +11,7 @@ import { TagInput } from '@/components/ui/tag-input';
 import { FileUpload } from '@/components/ui/file-upload';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { useCreateCampaign } from '@/hooks/useCampaigns';
 import { t, isEN } from '@/i18n';
@@ -19,6 +20,8 @@ import { RecommendedSuppliers } from '@/components/suppliers/RecommendedSupplier
 import { EmailPreview } from '@/components/email/EmailPreview';
 import { sequencesService, type SequenceTemplate } from '@/services/sequences.service';
 import { organizationService } from '@/services/organization.service';
+import { documentsService } from '@/services/documents.service';
+import type { DocumentRecord } from '@/services/documents.service';
 import { useAuthStore } from '@/stores/auth.store';
 import { useUIStore } from '@/stores/ui.store';
 import { cn } from '@/lib/utils';
@@ -135,6 +138,8 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
   const [certificates, setCertificates] = useState<string[]>([]);
   const [selectedIncoterms, setSelectedIncoterms] = useState<string[]>([]);
   const [attachments, setAttachments] = useState<{ id: string; filename: string; url: string; size: number }[]>([]);
+  const [selectedDocs, setSelectedDocs] = useState<DocumentRecord[]>([]);
+  const [docPickerOpen, setDocPickerOpen] = useState(false);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [countrySearch, setCountrySearch] = useState('');
   const [excludedCountries, setExcludedCountries] = useState<string[]>([]);
@@ -263,7 +268,12 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
         incoterms: selectedIncoterms.join(','),
         targetCountries: newFormData.targetRegion === 'CUSTOM' ? selectedCountries : undefined,
         excludedCountries: (excludedCountries.length > 0 && newFormData.targetRegion !== 'CUSTOM' && !SINGLE_COUNTRY_REGIONS.has(newFormData.targetRegion as string)) ? excludedCountries : undefined,
-        ...(attachments.length > 0 ? { attachments: JSON.stringify(attachments) } : {}),
+        ...((attachments.length > 0 || selectedDocs.length > 0) ? {
+          attachments: JSON.stringify([
+            ...attachments,
+            ...selectedDocs.map((d) => ({ id: d.id, filename: d.originalName, url: d.url, size: d.sizeBytes })),
+          ]),
+        } : {}),
       };
 
       try {
@@ -400,7 +410,42 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1.5">{t.campaigns.wizard.upload.title}</label>
-                  <FileUpload value={attachments} onChange={setAttachments} />
+
+                  {/* Selected documents from library */}
+                  {selectedDocs.length > 0 && (
+                    <div className="space-y-1.5 mb-3">
+                      <p className="text-xs font-medium text-muted-foreground">{t.documents.selectedDocuments}:</p>
+                      {selectedDocs.map((doc) => (
+                        <div key={doc.id} className="flex items-center gap-2 rounded-md border p-2 text-sm bg-muted/30">
+                          <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <span className="flex-1 truncate">{doc.originalName}</span>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedDocs((prev) => prev.filter((d) => d.id !== doc.id))}
+                            className="text-muted-foreground hover:text-destructive"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Pick from library button */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mb-3"
+                    onClick={() => setDocPickerOpen(true)}
+                  >
+                    <Library className="h-4 w-4 mr-2" />
+                    {t.documents.pickDocuments}
+                  </Button>
+
+                  {/* Upload new files (existing flow) */}
+                  <p className="text-xs text-muted-foreground mb-1.5">{t.documents.orUploadNew}:</p>
+                  <FileUpload value={attachments} onChange={setAttachments} createDocumentRecord entityType="campaign" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1.5">{t.campaigns.wizard.basicInfo.description} <span className="text-muted-foreground font-normal">({t.common.optional})</span></label>
@@ -875,10 +920,13 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
                   </div>
 
                   {/* Attachments summary */}
-                  {attachments.length > 0 && (
+                  {(attachments.length > 0 || selectedDocs.length > 0) && (
                     <div className="border-t pt-4 mt-4">
-                      <h4 className="text-sm font-medium mb-2">{t.campaigns.wizard.summary.attachments} ({attachments.length})</h4>
+                      <h4 className="text-sm font-medium mb-2">{t.campaigns.wizard.summary.attachments} ({attachments.length + selectedDocs.length})</h4>
                       <div className="space-y-1">
+                        {selectedDocs.map((doc) => (
+                          <p key={doc.id} className="text-xs text-muted-foreground font-sans">{'\u{1F4CE}'} {doc.originalName}</p>
+                        ))}
                         {attachments.map((file) => (
                           <p key={file.id} className="text-xs text-muted-foreground font-sans">{'\u{1F4CE}'} {file.filename}</p>
                         ))}
@@ -915,8 +963,156 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
         </CardContent>
       </Card>
     </div>
+
+    {/* Document Picker Dialog */}
+    <DocumentPickerDialog
+      open={docPickerOpen}
+      onOpenChange={setDocPickerOpen}
+      selectedIds={selectedDocs.map((d) => d.id)}
+      onSelect={(docs) => setSelectedDocs(docs)}
+    />
     </>
   );
+}
+
+/* ---------- Document Picker Dialog ---------- */
+
+function DocumentPickerDialog({
+  open,
+  onOpenChange,
+  selectedIds,
+  onSelect,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  selectedIds: string[];
+  onSelect: (docs: DocumentRecord[]) => void;
+}) {
+  const [search, setSearch] = useState('');
+  const [docs, setDocs] = useState<DocumentRecord[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [localSelected, setLocalSelected] = useState<DocumentRecord[]>([]);
+
+  // Load docs when opened
+  useEffect(() => {
+    if (!open) return;
+    const loadDocs = async () => {
+      setLoading(true);
+      try {
+        const res = await documentsService.list({ search: search || undefined, limit: 50 });
+        setDocs(res.data);
+        // Pre-fill local selection from parent
+        if (selectedIds.length > 0) {
+          setLocalSelected(res.data.filter((d: DocumentRecord) => selectedIds.includes(d.id)));
+        } else {
+          setLocalSelected([]);
+        }
+      } catch {
+        setDocs([]);
+        setLocalSelected([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadDocs();
+  }, [open, search, selectedIds]);
+
+  const toggleDoc = useCallback((doc: DocumentRecord) => {
+    setLocalSelected((prev) => {
+      const exists = prev.find((d) => d.id === doc.id);
+      if (exists) return prev.filter((d) => d.id !== doc.id);
+      return [...prev, doc];
+    });
+  }, []);
+
+  const handleConfirm = () => {
+    onSelect(localSelected);
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>{t.documents.documentLibrary}</DialogTitle>
+          <DialogDescription>{t.documents.selectFromExisting}</DialogDescription>
+        </DialogHeader>
+
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t.documents.searchDocuments}
+            className="pl-9"
+          />
+        </div>
+
+        {/* Documents list */}
+        <div className="flex-1 overflow-y-auto min-h-[200px] max-h-[400px] space-y-1.5">
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : docs.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">
+              {t.documents.noDocumentsYet}
+            </p>
+          ) : (
+            docs.map((doc) => {
+              const isSelected = localSelected.some((d) => d.id === doc.id);
+              return (
+                <button
+                  key={doc.id}
+                  type="button"
+                  onClick={() => toggleDoc(doc)}
+                  className={cn(
+                    'w-full flex items-center gap-3 rounded-md border p-2.5 text-left text-sm transition-colors',
+                    isSelected
+                      ? 'border-primary bg-primary/5'
+                      : 'hover:bg-accent',
+                  )}
+                >
+                  <div className={cn(
+                    'w-5 h-5 rounded border flex items-center justify-center shrink-0 transition-colors',
+                    isSelected ? 'bg-primary border-primary text-primary-foreground' : 'border-input',
+                  )}>
+                    {isSelected && <Check className="h-3 w-3" />}
+                  </div>
+                  <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="truncate font-medium">{doc.originalName}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {doc.category ? `${doc.category} — ` : ''}
+                      {formatDocSize(doc.sizeBytes)}
+                    </p>
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            {t.common.cancel}
+          </Button>
+          <Button onClick={handleConfirm}>
+            {localSelected.length > 0
+              ? `${isEN ? 'Select' : 'Wybierz'} (${localSelected.length})`
+              : t.common.save}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function formatDocSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export default RfqWizard;

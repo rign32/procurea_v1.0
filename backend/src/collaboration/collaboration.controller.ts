@@ -30,6 +30,21 @@ export class CollaborationController {
 
   constructor(private readonly prisma: PrismaService) {}
 
+  private async verifyEntityAccess(entityType: string, entityId: string, userId: string): Promise<boolean> {
+    try {
+      switch (entityType) {
+        case 'supplier':
+          return !!(await this.prisma.supplier.findFirst({ where: { id: entityId, deletedAt: null } }));
+        case 'campaign':
+          return !!(await this.prisma.campaign.findFirst({ where: { id: entityId, deletedAt: null } }));
+        case 'rfq':
+          return !!(await this.prisma.rfqRequest.findFirst({ where: { id: entityId, deletedAt: null } }));
+        default:
+          return false;
+      }
+    } catch { return false; }
+  }
+
   /**
    * GET /comments?entityType=campaign&entityId=xxx
    * List comments for a given entity.
@@ -86,6 +101,12 @@ export class CollaborationController {
       throw new BadRequestException(
         `entityType must be one of: ${allowedTypes.join(', ')}`,
       );
+    }
+
+    // Verify entity exists and user has access
+    const entityExists = await this.verifyEntityAccess(dto.entityType, dto.entityId, userId);
+    if (!entityExists) {
+      throw new NotFoundException('Entity not found or access denied');
     }
 
     const comment = await this.prisma.comment.create({
