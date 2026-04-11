@@ -1268,6 +1268,25 @@ export const EN: Translations = {
     supplierDocuments: 'Supplier Documents',
     noSupplierDocs: 'No documents for this supplier.',
     addSupplierDoc: 'Add document',
+    // Preview modal
+    preview: 'Preview',
+    openInNewTab: 'Open in new tab',
+    fileInfo: 'File info',
+    type: 'Type',
+    // Action tooltips
+    tooltipDownload: 'Download',
+    tooltipEdit: 'Edit metadata',
+    tooltipNewVersion: 'New version',
+    tooltipVersionHistory: 'Version history',
+    tooltipDelete: 'Delete',
+    // Document picker
+    selectFromExisting: 'Select from existing documents',
+    orUploadNew: 'Or upload new',
+    noDocumentsYet: 'No documents yet. Upload a new file below.',
+    searchDocuments: 'Search documents...',
+    selectedDocuments: 'Selected documents',
+    pickDocuments: 'Pick from library',
+    documentLibrary: 'Document library',
   },
 
   notifications: {

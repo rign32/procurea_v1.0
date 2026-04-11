@@ -1266,6 +1266,25 @@ export const PL = {
     supplierDocuments: 'Dokumenty dostawcy',
     noSupplierDocs: 'Brak dokumentów dla tego dostawcy.',
     addSupplierDoc: 'Dodaj dokument',
+    // Preview modal
+    preview: 'Podgląd',
+    openInNewTab: 'Otwórz w nowej karcie',
+    fileInfo: 'Informacje o pliku',
+    type: 'Typ',
+    // Action tooltips
+    tooltipDownload: 'Pobierz',
+    tooltipEdit: 'Edytuj metadane',
+    tooltipNewVersion: 'Nowa wersja',
+    tooltipVersionHistory: 'Historia wersji',
+    tooltipDelete: 'Usuń',
+    // Document picker
+    selectFromExisting: 'Wybierz z istniejących dokumentów',
+    orUploadNew: 'Lub dodaj nowy plik',
+    noDocumentsYet: 'Brak dokumentów. Prześlij nowy plik poniżej.',
+    searchDocuments: 'Szukaj dokumentów...',
+    selectedDocuments: 'Wybrane dokumenty',
+    pickDocuments: 'Wybierz z biblioteki',
+    documentLibrary: 'Biblioteka dokumentów',
   },
 
   notifications: {

@@ -14,6 +14,8 @@ import {
   X,
   Plus,
   ChevronDown,
+  ExternalLink,
+  Eye,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { t } from '@/i18n';
@@ -23,6 +25,12 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { EmptyState } from '@/components/ui/empty-state';
 import { TagInput } from '@/components/ui/tag-input';
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from '@/components/ui/tooltip';
 import {
   Dialog,
   DialogContent,
@@ -107,6 +115,7 @@ export function DocumentsPage() {
   const [deleteDoc, setDeleteDoc] = useState<DocumentRecord | null>(null);
   const [versionsDoc, setVersionsDoc] = useState<DocumentRecord | null>(null);
   const [versionUploadDoc, setVersionUploadDoc] = useState<DocumentRecord | null>(null);
+  const [previewDoc, setPreviewDoc] = useState<DocumentRecord | null>(null);
 
   const { data: result, isLoading } = useQuery({
     queryKey: ['documents', { search, categoryFilter, entityTypeFilter, page }],
@@ -218,6 +227,7 @@ export function DocumentsPage() {
               <DocumentCard
                 key={doc.id}
                 doc={doc}
+                onPreview={() => setPreviewDoc(doc)}
                 onEdit={() => setEditDoc(doc)}
                 onDelete={() => setDeleteDoc(doc)}
                 onVersions={() => setVersionsDoc(doc)}
@@ -312,6 +322,14 @@ export function DocumentsPage() {
           onClose={() => setVersionUploadDoc(null)}
         />
       )}
+
+      {/* Preview Dialog */}
+      {previewDoc && (
+        <PreviewDialog
+          doc={previewDoc}
+          onClose={() => setPreviewDoc(null)}
+        />
+      )}
     </div>
   );
 }
@@ -320,12 +338,14 @@ export function DocumentsPage() {
 
 function DocumentCard({
   doc,
+  onPreview,
   onEdit,
   onDelete,
   onVersions,
   onUploadVersion,
 }: {
   doc: DocumentRecord;
+  onPreview: () => void;
   onEdit: () => void;
   onDelete: () => void;
   onVersions: () => void;
@@ -334,13 +354,13 @@ function DocumentCard({
   return (
     <Card className="group hover:shadow-md transition-shadow">
       <CardContent className="p-4 space-y-3">
-        {/* File icon + name */}
-        <div className="flex items-start gap-3">
+        {/* File icon + name — click opens preview */}
+        <div className="flex items-start gap-3 cursor-pointer" onClick={onPreview}>
           <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
             {getFileIcon(doc.mimeType, "h-5 w-5 text-muted-foreground")}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate" title={doc.originalName}>
+            <p className="text-sm font-medium truncate hover:text-primary transition-colors" title={doc.originalName}>
               {doc.originalName}
             </p>
             <div className="flex items-center gap-2 mt-0.5">
@@ -393,42 +413,72 @@ function DocumentCard({
           </div>
         )}
 
-        {/* Actions */}
-        <div className="flex gap-1.5 pt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <a
-            href={documentsService.getDownloadUrl(doc)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs hover:bg-accent transition-colors"
-          >
-            <Download className="h-3 w-3" />
-            {t.documents.download}
-          </a>
-          <button
-            onClick={onEdit}
-            className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs hover:bg-accent transition-colors"
-          >
-            <Pencil className="h-3 w-3" />
-          </button>
-          <button
-            onClick={onUploadVersion}
-            className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs hover:bg-accent transition-colors"
-          >
-            <Upload className="h-3 w-3" />
-          </button>
-          <button
-            onClick={onVersions}
-            className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs hover:bg-accent transition-colors"
-          >
-            <History className="h-3 w-3" />
-          </button>
-          <button
-            onClick={onDelete}
-            className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs hover:bg-accent text-destructive transition-colors ml-auto"
-          >
-            <Trash2 className="h-3 w-3" />
-          </button>
-        </div>
+        {/* Actions — with tooltips and text labels */}
+        <TooltipProvider delayDuration={300}>
+          <div className="flex flex-wrap gap-1.5 pt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <a
+                  href={documentsService.getDownloadUrl(doc)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs hover:bg-accent transition-colors"
+                >
+                  <Download className="h-3 w-3" />
+                  {t.documents.download}
+                </a>
+              </TooltipTrigger>
+              <TooltipContent>{t.documents.tooltipDownload}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={onEdit}
+                  className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs hover:bg-accent transition-colors"
+                >
+                  <Pencil className="h-3 w-3" />
+                  {t.documents.tooltipEdit}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>{t.documents.tooltipEdit}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={onUploadVersion}
+                  className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs hover:bg-accent transition-colors"
+                >
+                  <Upload className="h-3 w-3" />
+                  {t.documents.tooltipNewVersion}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>{t.documents.tooltipNewVersion}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={onVersions}
+                  className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs hover:bg-accent transition-colors"
+                >
+                  <History className="h-3 w-3" />
+                  {t.documents.tooltipVersionHistory}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>{t.documents.tooltipVersionHistory}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={onDelete}
+                  className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs hover:bg-accent text-destructive transition-colors ml-auto"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>{t.documents.tooltipDelete}</TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
       </CardContent>
     </Card>
   );
@@ -942,6 +992,92 @@ function VersionUploadDialog({
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
             )}
             {t.documents.upload}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ---------- Preview Dialog ---------- */
+
+function PreviewDialog({
+  doc,
+  onClose,
+}: {
+  doc: DocumentRecord;
+  onClose: () => void;
+}) {
+  const downloadUrl = documentsService.getDownloadUrl(doc);
+  const isImage = doc.mimeType.startsWith('image/');
+  const isPdf = doc.mimeType === 'application/pdf';
+
+  return (
+    <Dialog open={true} onOpenChange={() => onClose()}>
+      <DialogContent className={isImage ? 'max-w-2xl' : 'max-w-md'}>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Eye className="h-4 w-4" />
+            {t.documents.preview}
+          </DialogTitle>
+          <DialogDescription>{doc.originalName}</DialogDescription>
+        </DialogHeader>
+
+        {isImage ? (
+          <div className="flex justify-center bg-muted/30 rounded-lg p-2 max-h-[60vh] overflow-auto">
+            <img
+              src={downloadUrl}
+              alt={doc.originalName}
+              className="max-w-full max-h-[55vh] object-contain rounded"
+            />
+          </div>
+        ) : isPdf ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 rounded-md border p-4">
+              <FileText className="h-8 w-8 text-red-500 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{doc.originalName}</p>
+                <p className="text-xs text-muted-foreground">{formatBytes(doc.sizeBytes)}</p>
+              </div>
+            </div>
+            <a
+              href={downloadUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 w-full"
+            >
+              <Button className="w-full" variant="outline">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                {t.documents.openInNewTab}
+              </Button>
+            </a>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 rounded-md border p-4">
+              {getFileIcon(doc.mimeType, 'h-8 w-8 text-muted-foreground shrink-0')}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{doc.originalName}</p>
+                <div className="text-xs text-muted-foreground space-y-0.5 mt-1">
+                  <p>{t.documents.type}: {doc.mimeType}</p>
+                  <p>{t.documents.size}: {formatBytes(doc.sizeBytes)}</p>
+                  <p>{t.documents.uploadedAt}: {formatDate(doc.createdAt)}</p>
+                  {doc.version > 1 && <p>{t.documents.version}: {doc.version}</p>}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <DialogFooter className="gap-2 sm:gap-0">
+          <a href={downloadUrl} target="_blank" rel="noopener noreferrer">
+            <Button variant="outline">
+              <Download className="h-4 w-4 mr-2" />
+              {t.documents.download}
+            </Button>
+          </a>
+          <Button variant="outline" onClick={onClose}>
+            {t.common.close}
           </Button>
         </DialogFooter>
       </DialogContent>
