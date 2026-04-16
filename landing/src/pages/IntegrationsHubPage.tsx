@@ -1,41 +1,36 @@
 import { Link } from "react-router-dom"
-import { CheckCircle2, Clock, Sparkles, ArrowRight } from "lucide-react"
+import { ArrowRight, Check } from "lucide-react"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { pathFor } from "@/i18n/paths"
 import { INTEGRATIONS, integrationsCopy, type Integration } from "@/content/integrations"
+import { IntegrationsLogosCarousel } from "@/components/sections/IntegrationsLogosCarousel"
 
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
 const isEN = LANG === 'en'
 
-function StatusBadge({ status, eta }: { status: Integration['status']; eta?: string }) {
-  if (status === 'pilot') {
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] font-bold text-emerald-800 uppercase tracking-wider">
-        <CheckCircle2 className="h-3 w-3" />
-        {integrationsCopy.statusPilotLabel}
-      </span>
-    )
-  }
-  if (status === 'roadmap') {
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-[11px] font-bold text-amber-800 uppercase tracking-wider">
-        <Clock className="h-3 w-3" />
-        {eta || integrationsCopy.statusRoadmapLabel}
-      </span>
-    )
-  }
+function IntegrationTypeBadge({ type }: { type: Integration['integrationType'] }) {
+  const label = integrationsCopy.integrationTypeLabel[type]
+  const className =
+    type === 'native'
+      ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+      : 'bg-slate-100 border-slate-200 text-slate-700'
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-      <Sparkles className="h-3 w-3" />
-      {integrationsCopy.statusCustomLabel}
+    <span
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-bold uppercase tracking-wider ${className}`}
+    >
+      {label}
     </span>
   )
 }
 
 function IntegrationCard({ integration }: { integration: Integration }) {
+  const dataFlow = isEN ? integration.dataFlowEn : integration.dataFlowPl
+  const capabilities = isEN ? integration.capabilitiesEn : integration.capabilitiesPl
+  const customization = isEN ? integration.customizationEn : integration.customizationPl
+
   return (
     <div className="rounded-2xl border border-black/[0.08] bg-white p-6 hover:shadow-md hover:border-black/[0.12] transition-all flex flex-col">
       <div className="flex items-start justify-between mb-4">
@@ -44,19 +39,56 @@ function IntegrationCard({ integration }: { integration: Integration }) {
             {integration.logo}
           </div>
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{integration.category}</div>
+            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              {integration.category}
+            </div>
             <h3 className="text-base font-bold leading-tight">{integration.name}</h3>
           </div>
         </div>
       </div>
 
       <div className="mb-4">
-        <StatusBadge status={integration.status} eta={integration.eta} />
+        <IntegrationTypeBadge type={integration.integrationType} />
       </div>
 
-      <p className="text-sm text-muted-foreground leading-relaxed mb-4 flex-1">
+      <p className="text-sm text-muted-foreground leading-relaxed mb-5 flex-1">
         {isEN ? integration.descEn : integration.descPl}
       </p>
+
+      <div className="mb-4 pt-3 border-t border-black/[0.06]">
+        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
+          {integrationsCopy.dataFlowLabel}
+        </div>
+        <ul className="space-y-1">
+          {dataFlow.map((item) => (
+            <li key={item} className="text-xs text-foreground/80 leading-relaxed flex gap-1.5">
+              <span className="text-muted-foreground mt-0.5">·</span>
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="mb-4">
+        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
+          {integrationsCopy.capabilitiesLabel}
+        </div>
+        <ul className="space-y-1">
+          {capabilities.map((item) => (
+            <li key={item} className="text-xs text-foreground/80 leading-relaxed flex gap-1.5">
+              <Check className="h-3 w-3 text-emerald-600 shrink-0 mt-0.5" />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="mb-4">
+        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
+          {integrationsCopy.customizationLabel}
+        </div>
+        <p className="text-xs text-foreground/80 leading-relaxed">{customization}</p>
+      </div>
 
       <div className="text-xs text-muted-foreground mb-4 pt-3 border-t border-black/[0.06]">
         <span className="font-semibold text-foreground">{integrationsCopy.tierLabel}: </span>
@@ -115,6 +147,21 @@ export function IntegrationsHubPage() {
               <IntegrationCard key={integration.slug} integration={integration} />
             ))}
           </div>
+        </section>
+
+        {/* Logos carousel — 50+ other ERP/CRM systems */}
+        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-20">
+          <RevealOnScroll>
+            <div className="text-center mb-10">
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">
+                {integrationsCopy.logosSectionTitle}
+              </h2>
+              <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto">
+                {integrationsCopy.logosSectionBody}
+              </p>
+            </div>
+          </RevealOnScroll>
+          <IntegrationsLogosCarousel />
         </section>
 
         {/* Final CTA */}

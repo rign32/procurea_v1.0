@@ -74,6 +74,8 @@ export default {
         "float-delayed": "float 6s ease-in-out 2s infinite",
         "float-slow": "float 8s ease-in-out 1s infinite",
         "shimmer": "shimmer 2s linear infinite",
+        "scroll-left": "scroll-left 60s linear infinite",
+        "scroll-right": "scroll-right 60s linear infinite",
       },
       keyframes: {
         "gradient-x": {
@@ -87,6 +89,14 @@ export default {
         "shimmer": {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
+        },
+        "scroll-left": {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+        "scroll-right": {
+          "0%": { transform: "translateX(-50%)" },
+          "100%": { transform: "translateX(0)" },
         },
       },
     },

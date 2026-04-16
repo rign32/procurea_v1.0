@@ -17,6 +17,11 @@ import {
   Settings,
   LayoutDashboard,
   Search,
+  Mail,
+  FileText,
+  CheckCircle2,
+  Clock,
+  Shield as ShieldBlacklist,
   ArrowLeft,
   Loader2,
 } from "lucide-react"
@@ -29,7 +34,8 @@ const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 const statIcons = [Zap, Users, TrendingDown]
 const statColors = ["text-amber-500", "text-brand-500", "text-emerald-500"]
 
-const sidebarIcons = [LayoutDashboard, Search, Building2, BookOpen, Settings]
+const sidebarIcons = [LayoutDashboard, Search, Mail, Building2, ShieldBlacklist, FileText, CheckCircle2, Users, BookOpen, Clock, Settings]
+const fullPlanItems = new Set(['rfqs', 'contracts', 'approvals', 'workspaces', 'sequences'])
 
 const agentColors = [
   { color: "bg-emerald-500", iconBg: "bg-emerald-100", iconColor: "text-emerald-600" },
@@ -38,9 +44,16 @@ const agentColors = [
   { color: "bg-emerald-500", iconBg: "bg-emerald-100", iconColor: "text-emerald-600" },
 ]
 
-const supplierFlags = ["🇩🇪", "🇵🇱", "🇳🇱"]
-const supplierScores = [91, 85, 78]
-const supplierCerts = [["ISO 14001", "FSC", "BRC"], ["ISO 9001", "FSC"], ["ISO 14001", "PEFC"]]
+const supplierFlags = ["🇩🇪", "🇵🇱", "🇳🇱", "🇮🇹", "🇫🇷", "🇨🇿"]
+const supplierScores = [93, 89, 82, 78, 76, 74]
+const supplierCerts = [
+  ["ISO 14001", "FSC", "BRC"],
+  ["ISO 9001", "FSC"],
+  ["ISO 14001", "PEFC"],
+  ["FSC", "PEFC"],
+  ["BRC", "ISO 22000"],
+  ["ISO 9001"],
+]
 
 export function HeroSection() {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
@@ -56,8 +69,8 @@ export function HeroSection() {
     return () => window.removeEventListener("mousemove", handleMouseMove)
   }, [])
 
-  const sidebarKeys = ['dashboard', 'campaigns', 'suppliers', 'registry', 'settings'] as const
-  const sidebarActive = [false, true, false, false, false]
+  const sidebarKeys = ['dashboard', 'campaigns', 'rfqs', 'suppliers', 'blacklist', 'contracts', 'approvals', 'workspaces', 'documents', 'sequences', 'settings'] as const
+  const sidebarActive = [false, true, false, false, false, false, false, false, false, false, false]
 
   return (
     <section className="relative overflow-hidden pt-16">
@@ -206,26 +219,36 @@ export function HeroSection() {
             {/* App content */}
             <div className="flex">
               {/* Sidebar */}
-              <div className="hidden lg:flex flex-col w-48 border-r border-border/50 bg-gray-50/50 py-4 px-3 shrink-0">
+              <div className="hidden lg:flex flex-col w-56 border-r border-border/50 bg-gray-50/50 py-4 px-3 shrink-0">
                 <div className="flex items-center gap-2 px-2 mb-5">
                   <img src="/logo-procurea.png" alt="P" className="h-7 w-7 rounded-lg" />
                   <span className="text-sm font-semibold text-foreground">Procurea</span>
                 </div>
 
                 <nav className="flex flex-col gap-0.5">
-                  {sidebarKeys.map((key, i) => (
-                    <div
-                      key={key}
-                      className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs ${
-                        sidebarActive[i]
-                          ? "bg-brand-50 text-brand-700 font-medium"
-                          : "text-muted-foreground"
-                      }`}
-                    >
-                      {(() => { const Icon = sidebarIcons[i]; return <Icon className="h-3.5 w-3.5" /> })()}
-                      {t.hero.sidebar[key]}
-                    </div>
-                  ))}
+                  {sidebarKeys.map((key, i) => {
+                    const Icon = sidebarIcons[i]
+                    const isFull = fullPlanItems.has(key)
+                    return (
+                      <div
+                        key={key}
+                        className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs ${
+                          sidebarActive[i]
+                            ? "bg-brand-50 text-brand-700 font-medium"
+                            : "text-muted-foreground"
+                        }`}
+                      >
+                        <Icon className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">{t.hero.sidebar[key]}</span>
+                        {key === 'approvals' && (
+                          <span className="ml-auto text-[9px] font-bold leading-none rounded-full px-1.5 py-0.5 bg-red-500 text-white">3</span>
+                        )}
+                        {key !== 'approvals' && isFull && (
+                          <span className="ml-auto text-[8px] font-bold uppercase tracking-wider text-amber-700 bg-amber-100 rounded px-1 py-0.5 leading-none">Full</span>
+                        )}
+                      </div>
+                    )
+                  })}
                 </nav>
               </div>
 
@@ -275,7 +298,7 @@ export function HeroSection() {
                       >
                         <Loader2 className="h-4 w-4 text-brand-500 animate-spin" />
                         <span className="text-xs text-muted-foreground flex-1">{t.hero.mockup.progressLabel}</span>
-                        <span className="text-lg font-bold text-brand-600">3</span>
+                        <span className="text-lg font-bold text-brand-600">183</span>
                       </motion.div>
                     </div>
 
@@ -290,10 +313,10 @@ export function HeroSection() {
                         <span className="text-xs font-semibold text-foreground">{t.hero.mockup.statsLabel}</span>
                       </div>
                       <div className="text-[11px] text-muted-foreground mb-1">{t.hero.mockup.suppliersFound}</div>
-                      <div className="text-3xl font-bold bg-gradient-to-r from-brand-700 to-brand-500 bg-clip-text text-transparent">3</div>
+                      <div className="text-3xl font-bold bg-gradient-to-r from-brand-700 to-brand-500 bg-clip-text text-transparent">183</div>
                       <div className="mt-3 pt-3 border-t border-border/50">
                         <div className="text-[11px] text-muted-foreground mb-1">{t.hero.mockup.duration}</div>
-                        <div className="text-sm font-semibold text-foreground">2m 34s</div>
+                        <div className="text-sm font-semibold text-foreground">18m 12s</div>
                       </div>
                     </motion.div>
                   </div>

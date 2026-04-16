@@ -1,3 +1,4 @@
+import type { ComponentType } from "react"
 import { Link, useParams } from "react-router-dom"
 import { ArrowRight, Check, ChevronRight } from "lucide-react"
 import { Navbar } from "@/components/layout/Navbar"
@@ -9,6 +10,18 @@ import { appendUtm } from "@/lib/utm"
 import { trackCtaClick } from "@/lib/analytics"
 import { pathFor, pathMappings, type PathKey } from "@/i18n/paths"
 import { getFeature, resolveFeatureSlug } from "@/content/features"
+import { AiSourcingMockup } from "@/components/feature-mockups/AiSourcingMockup"
+import { EmailOutreachMockup } from "@/components/feature-mockups/EmailOutreachMockup"
+import { SupplierPortalMockup } from "@/components/feature-mockups/SupplierPortalMockup"
+import { OfferComparisonMockup } from "@/components/feature-mockups/OfferComparisonMockup"
+
+// Keyed by canonical (PL) slug returned by resolveFeatureSlug()
+const MOCKUPS: Record<string, ComponentType> = {
+  'ai-sourcing': AiSourcingMockup,
+  'outreach-mailowy': EmailOutreachMockup,
+  'supplier-portal': SupplierPortalMockup,
+  'porownywarka-ofert': OfferComparisonMockup,
+}
 
 const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
@@ -70,6 +83,8 @@ export function FeaturePage() {
       />
     )
   }
+
+  const Mockup = MOCKUPS[resolvedSlug]
 
   return (
     <div className="min-h-screen">
@@ -133,6 +148,13 @@ export function FeaturePage() {
             </div>
           </div>
         </section>
+
+        {/* Feature-specific dashboard mockup */}
+        {Mockup && (
+          <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 -mt-8 mb-16">
+            <Mockup />
+          </section>
+        )}
 
         {/* How it works */}
         <section className="py-16 md:py-20">
