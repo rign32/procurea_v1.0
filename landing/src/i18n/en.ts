@@ -7,6 +7,8 @@ export const EN: LandingTranslations = {
     description: 'AI-powered supplier sourcing tool. First results in 2-3 minutes, full list in 20 minutes. For any industry, in 26 languages.',
   },
   nav: {
+    product: 'Product',
+    company: 'Company',
     howItWorks: 'How it works',
     features: 'Features',
     audience: 'Industries',
@@ -14,7 +16,7 @@ export const EN: LandingTranslations = {
     pricing: 'Pricing',
     faq: 'FAQ',
     login: 'Sign in',
-    cta: 'Start free',
+    cta: 'Book demo',
     openMenu: 'Open menu',
     closeMenu: 'Close menu',
   },
@@ -29,13 +31,13 @@ export const EN: LandingTranslations = {
   hero: {
     badge: 'AI-native procurement platform',
     headlinePart1: 'Procurement',
-    headlineHighlight: 'powered by AI',
-    headlinePart2: ' — from sourcing to contract',
-    subheadline: 'Find vendors, send RFQs, collect offers, compare and negotiate — all in one AI-native platform. 50–250 verified suppliers in 20 minutes, RFQ in 26 languages, magic-link supplier portal.',
-    ctaPrimary: 'Start free',
+    headlineHighlight: 'on autopilot',
+    headlinePart2: '.',
+    subheadline: 'AI pipeline finds 250 vendors in 20 minutes. AI workflow runs RFQ, collects offers, compares and negotiates — all in one platform.',
+    ctaPrimary: 'Book demo',
     ctaSecondary: 'See pricing',
     trustFreeAccess: '10 free credits',
-    trustNoCreditCard: 'No credit card required',
+    trustNoCreditCard: 'No credit card',
     trustBeta: 'Integrates with your ERP',
     stats: [
       { value: '2-3 min', label: 'first results' },
@@ -276,6 +278,117 @@ export const EN: LandingTranslations = {
       'AI sourcing automation platform',
     ],
   },
+  homeTrustBar: {
+    heading: 'Trusted by procurement teams across 8+ industries',
+    industries: {
+      manufacturing: 'Manufacturing',
+      events: 'Events',
+      construction: 'Construction',
+      retail: 'Retail & E-com',
+      healthcare: 'Healthcare',
+      logistics: 'Logistics',
+      horeca: 'HoReCa',
+      mro: 'MRO',
+    },
+  },
+  moduleOverview: {
+    sectionLabel: 'CHOOSE YOUR MODULE',
+    heading: 'Pay only for what you run',
+    subheading:
+      'Credit-based, pay-as-you-go. Start free with AI Sourcing, add Procurement when ready, or go Bundle for 15% savings.',
+    bestValueLink: 'Learn more',
+    modules: [
+      {
+        iconName: 'search',
+        title: 'AI Sourcing',
+        tagline: 'Find 50–250 vendors in 20 minutes',
+        price: 'From $89 / 10 credits',
+        linkLabel: 'Learn more',
+        href: '/pricing?product=sourcing',
+        highlight: false,
+      },
+      {
+        iconName: 'workflow',
+        title: 'AI Procurement',
+        tagline: 'Full RFQ workflow, AI-assisted',
+        price: 'From $349 / 10 credits',
+        linkLabel: 'Learn more',
+        href: '/pricing?product=procurement',
+        highlight: false,
+      },
+      {
+        iconName: 'layers',
+        title: 'Bundle',
+        tagline: 'End-to-end, save 15%',
+        price: 'From $399 / 10 credits',
+        linkLabel: 'Best value',
+        href: '/pricing?product=bundle',
+        highlight: true,
+      },
+      {
+        iconName: 'sparkles',
+        title: 'Enterprise Custom',
+        tagline: 'Unlimited, dedicated instance, custom ERP',
+        price: 'From $25k / year',
+        linkLabel: 'Book demo',
+        href: '/contact?interest=enterprise_custom',
+        highlight: false,
+      },
+    ],
+  },
+  testimonial: {
+    quote:
+      'Procurea replaced 3 separate SaaS tools and compressed our sourcing campaigns from 6 weeks to 2 days. The multilingual outreach is a game-changer for diversifying beyond China.',
+    authorRole: 'Procurement Lead',
+    authorContext: 'European manufacturer · Early access beta',
+    authorInitials: 'PL',
+  },
+  homeFaq: {
+    sectionLabel: 'FREQUENTLY ASKED',
+    heading: 'Questions we get asked',
+    items: [
+      {
+        q: 'How does AI Sourcing find suppliers?',
+        a: 'AI Sourcing combines Google search (via Serper.dev) with Gemini 2.0 Flash scoring. You describe what you need in plain language — e.g. "aluminum CNC parts manufacturers in Europe with ISO 9001" — and our pipeline generates a search strategy in 26 languages, scrapes and verifies supplier websites, validates fit, and returns 50–250 qualified companies with contact data in 20 minutes. No keyword crafting, no need to know foreign markets — the AI picks countries and queries for you.',
+      },
+      {
+        q: 'What is the difference between AI Sourcing and AI Procurement?',
+        a: 'AI Sourcing is the discovery and qualification module — it finds suppliers and builds your vendor base. AI Procurement is the full operational workflow: RFQs to suppliers, quote collection via Supplier Portal, offer comparison with AI Insights, auto follow-ups, and multilingual communication. You can use AI Sourcing standalone (if your ERP handles the rest), AI Procurement standalone (if you already have a vendor base), or Bundle for full end-to-end. Pricing and details: /pricing.',
+      },
+      {
+        q: 'How do credits work?',
+        a: '1 credit = 1 sourcing campaign (AI Sourcing) or 1 RFQ cycle (AI Procurement). You buy credits in packs starting from 10, valid for 12 months, no subscription. Unused credits only expire after a year. Every new account also gets 3 free sourcing credits — no card, no time-limited trial. You pay for what you actually use, no seat fees or unused-capacity overhead.',
+      },
+      {
+        q: 'Which ERP/CRM systems do you integrate with?',
+        a: 'Native: SAP S/4HANA, Oracle NetSuite, Oracle Fusion Cloud, Microsoft Dynamics 365 Business Central, Microsoft Dynamics 365 F&O, Salesforce. Via Merge.dev we also cover 100+ accounting, ERP and CRM systems (QuickBooks, Xero, Sage, HubSpot, Pipedrive, Zoho, and more). Full list: /integrations. Integrations sync suppliers, POs, invoices and master data bidirectionally — no manual CSV exports.',
+      },
+      {
+        q: 'How fast is implementation?',
+        a: 'Self-serve (Sourcing, Procurement, Bundle): sign up and run your first campaign in 5 minutes, no onboarding required. Enterprise Custom: dedicated implementation manager, typical 4–8 week SOW covering ERP integration, workflow setup, category mapping, team training and migration of your existing supplier base. For most SMB customers, the first real outreach campaign runs the same day they sign up.',
+      },
+      {
+        q: 'Is there a free trial?',
+        a: 'Yes. Every new account gets 3 free AI Sourcing credits — enough to test 3 full campaigns (50–250 suppliers each). No credit card, no auto-renewal, no time limit. After that you buy credit packs starting from 10. AI Procurement and Bundle do not have a free trial — they start at $349 / $399, but you can book a walkthrough demo: /contact.',
+      },
+      {
+        q: 'Where is my data stored?',
+        a: 'Google Cloud Platform, europe-central2 region (Warsaw). Customer data is isolated per organization in PostgreSQL. Encryption at-rest (AES-256) and in-transit (TLS 1.3). Compliance: GDPR, ISO 27001 (certification in progress). We do not use your data to train AI models. Full policy: /privacy and /gdpr. Enterprise Custom customers can get a dedicated instance in the GCP region of their choice.',
+      },
+      {
+        q: 'Which industries work best?',
+        a: 'Procurea is industry-agnostic — we work with manufacturing (CNC, OEM, components), events (AV, catering, decor), construction (materials, prefab, subcontractors), retail and e-commerce (private label, packaging), HoReCa, healthcare (medical supplies, lab equipment), logistics, and MRO. Full industry profiles and case studies: /industries. The more fragmented your supplier base and the broader your international scope, the more time you save — AI Sourcing compresses 6 weeks of research into 20 minutes.',
+      },
+      {
+        q: "What if my ERP isn't listed?",
+        a: 'Two paths. (1) If your system is in the Merge.dev catalog (100+ systems), integration works out-of-the-box with no extra code — we activate it under the standard Procurement or Bundle plan. (2) If your system is niche or on-prem, Enterprise Custom builds a dedicated adapter (REST/SOAP/file-based) as part of your SOW, typically 2–4 weeks. Book a technical call: /contact.',
+      },
+      {
+        q: 'When should I choose Enterprise Custom?',
+        a: 'Enterprise Custom makes sense when: (a) you run 500+ sourcing campaigns per year (unlimited is cheaper than credits at that volume), (b) you need a custom ERP adapter not in Merge.dev, (c) you require a dedicated instance (isolated database, private VPC), (d) you have strict compliance needs (ISO 27001 audit, DPA with regional residency), (e) you want SSO/SAML, custom SLA and a dedicated CSM. Pricing from $25k/year, typical contracts $40–120k. Book a demo: /contact.',
+      },
+    ],
+  },
   footer: {
     brand: 'Procurement automation for global teams. AI Sourcing + full procurement workflow.',
     product: 'Product',
@@ -314,5 +427,57 @@ export const EN: LandingTranslations = {
   legal: {
     backToHome: 'Back to homepage',
     lastUpdatedPrefix: 'Last updated:',
+  },
+  homeFeatures: {
+    'ai-sourcing': {
+      sectionLabel: 'AI SOURCING',
+      title: 'Find 250 vendors in 20 minutes',
+      subtitle: 'Describe what you need in plain language. Our 4-agent AI pipeline crawls 26 languages, verifies registry data, and delivers a shortlist while you grab coffee.',
+      bullets: [
+        '50–250 verified vendors per campaign',
+        '26-language search across EU + global',
+        'One-click Excel export with full data',
+      ],
+    },
+    'email-outreach': {
+      sectionLabel: 'EMAIL OUTREACH',
+      title: 'RFQ to 200 suppliers, one click',
+      subtitle: 'Bulk outreach localized per supplier country. Track deliveries, opens, and responses in real-time. Auto follow-up sequences built in.',
+      bullets: [
+        'Localized per country (26 languages)',
+        'Auto follow-up (+3d, +7d, +14d)',
+        'Real-time delivery tracking',
+      ],
+    },
+    'supplier-portal': {
+      sectionLabel: 'SUPPLIER PORTAL',
+      title: 'Magic-link offers, no login needed',
+      subtitle: 'Suppliers submit structured quotes via personalized link. No account creation. Price tiers, MOQ, attachments — all in a standard format.',
+      bullets: [
+        'Magic link, 30-day validity',
+        'Auto-translated supplier UI',
+        'Mobile-responsive (40% mobile submissions)',
+      ],
+    },
+    'offer-comparison': {
+      sectionLabel: 'OFFER COMPARISON',
+      title: 'End spreadsheet comparison forever',
+      subtitle: 'Side-by-side ranked offers. Weighted criteria (price, lead time, certs). One-click PDF/PPTX export for board or tender committee.',
+      bullets: [
+        'Weighted ranking by your priorities',
+        'Quantity-break price comparison',
+        'PDF / PPTX board-ready export',
+      ],
+    },
+    'ai-insights': {
+      sectionLabel: 'AI INSIGHTS',
+      title: 'Procurement reports that write themselves',
+      subtitle: 'Gemini analyzes every campaign: spend breakdown, vendor concentration risk, negotiation leverage. Export-ready PDF / PPTX for CFO.',
+      bullets: [
+        'Gemini 2.0 Flash analysis per campaign',
+        'Vendor concentration + supply chain risk scoring',
+        'Negotiation leverage identification',
+      ],
+    },
   },
 } as const;

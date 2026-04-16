@@ -59,6 +59,10 @@ export default {
           200: '#B5ADBA',
           500: '#8E8396',
         },
+        slate: {
+          925: '#0F172B',
+          975: '#060913',
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -67,6 +71,17 @@ export default {
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
+        display: ['"Inter Tight"', "Inter", "system-ui", "-apple-system", "sans-serif"],
+      },
+      letterSpacing: {
+        tightest: "-0.04em",
+        tight: "-0.02em",
+        "extra-tight": "-0.035em",
+      },
+      boxShadow: {
+        xs: "0 1px 2px 0 rgb(0 0 0 / 0.04)",
+        premium: "0 4px 16px -2px rgb(0 0 0 / 0.04), 0 8px 32px -4px rgb(0 0 0 / 0.06)",
+        "premium-lg": "0 8px 32px -4px rgb(0 0 0 / 0.08), 0 16px 64px -8px rgb(0 0 0 / 0.08)",
       },
       animation: {
         "gradient-x": "gradient-x 8s ease infinite",

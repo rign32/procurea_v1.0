@@ -26,10 +26,7 @@ import {
   Loader2,
 } from "lucide-react"
 import { trackCtaClick } from "@/lib/analytics"
-import { appendUtm } from "@/lib/utm"
 import { t } from "@/i18n"
-
-const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 
 const statIcons = [Zap, Users, TrendingDown]
 const statColors = ["text-amber-500", "text-brand-500", "text-emerald-500"]
@@ -127,7 +124,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             transition={{ duration: 0.7, delay: 0.15 }}
-            className="text-4xl sm:text-5xl lg:text-[3.5rem] xl:text-6xl font-extrabold tracking-tight leading-[1.08] mb-6"
+            className="font-display text-4xl sm:text-5xl lg:text-[3.5rem] xl:text-6xl font-extrabold tracking-extra-tight leading-[1.04] mb-6"
           >
             {t.hero.headlinePart1}
             <br />
@@ -154,12 +151,12 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.5 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8"
           >
-            <a href={appendUtm(APP_URL, 'hero_primary')} target="_blank" rel="noopener noreferrer" onClick={() => trackCtaClick('hero_primary')}>
+            <Link to={pathFor('contact')} onClick={() => trackCtaClick('hero_primary')}>
               <Button size="lg" className="group text-base px-8 py-4 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 transition-all">
                 {t.hero.ctaPrimary}
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
-            </a>
+            </Link>
             <Link to={pathFor('pricing')} onClick={() => trackCtaClick('hero_pricing')}>
               <Button variant="secondary" size="lg" className="text-base px-8 py-4">
                 {t.hero.ctaSecondary}

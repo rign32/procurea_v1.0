@@ -2,7 +2,6 @@ import { useState } from "react"
 import { Link } from "react-router-dom"
 import { useScrollProgress } from "@/hooks/useScrollProgress"
 import { MobileMenu } from "./MobileMenu"
-import { NavDropdown, type DropdownSection } from "./NavDropdown"
 import { Menu } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { trackCtaClick } from "@/lib/analytics"
@@ -11,52 +10,16 @@ import { t } from "@/i18n"
 import { pathFor } from "@/i18n/paths"
 
 const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
-const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
-const isEN = LANG === 'en'
 
-// Mega-menu sections for Funkcje / Features
-const featuresSections: DropdownSection[] = [
-  {
-    label: 'AI Sourcing',
-    items: [
-      { label: 'AI Sourcing', to: pathFor('fAiSourcing'), description: isEN ? '50–250 vendors per campaign, 26 languages' : '50–250 dostawców na kampanię, 26 języków' },
-      { label: 'Company Registry', to: pathFor('fCompanyRegistry'), description: isEN ? 'VAT / EORI / financial verification' : 'Weryfikacja VAT / EORI / finanse' },
-    ],
-    footer: { label: isEN ? 'All Sourcing features' : 'Wszystkie funkcje Sourcing', to: pathFor('featuresHub') },
-  },
-  {
-    label: 'AI Procurement',
-    items: [
-      { label: 'Email Outreach', to: pathFor('fEmailOutreach'), description: isEN ? 'Bulk RFQ in local language' : 'Bulk RFQ w języku lokalnym' },
-      { label: 'Supplier Portal', to: pathFor('fSupplierPortal'), description: isEN ? 'Magic-link offer collection' : 'Zbieranie ofert przez magic-link' },
-      { label: isEN ? 'Offer Comparison' : 'Porównywarka Ofert', to: pathFor('fOfferComparison'), description: isEN ? 'Side-by-side with PDF/PPTX export' : 'Side-by-side z eksportem PDF/PPTX' },
-      { label: 'AI Insights', to: pathFor('fAiInsights'), description: isEN ? 'Auto-generated executive reports' : 'Auto-generowane raporty dla zarządu' },
-    ],
-    footer: { label: isEN ? 'All Procurement features' : 'Wszystkie funkcje Procurement', to: pathFor('featuresHub') },
-  },
-]
+type NavLink =
+  | { label: string; href: string; to?: never }
+  | { label: string; to: string; href?: never }
 
-// Mega-menu sections for Dla kogo / Industries
-const industriesSections: DropdownSection[] = [
-  {
-    label: isEN ? 'Available now' : 'Dostępne teraz',
-    items: [
-      { label: isEN ? 'Manufacturing' : 'Produkcja', to: pathFor('iManufacturing'), description: isEN ? 'Raw materials, components, MRO' : 'Surowce, komponenty, MRO' },
-      { label: isEN ? 'Events' : 'Eventy', to: pathFor('iEvents'), description: isEN ? 'Catering, AV, scenography — 48h sourcing' : 'Catering, AV, scenografia — sourcing 48h' },
-      { label: isEN ? 'Construction' : 'Budownictwo', to: pathFor('iConstruction'), description: isEN ? 'Subcontractors + materials' : 'Podwykonawcy + materiały' },
-      { label: 'Retail & E-commerce', to: pathFor('iRetail'), description: isEN ? 'Private label manufacturers' : 'Producenci private label' },
-    ],
-    footer: { label: isEN ? 'All industries' : 'Wszystkie branże', to: pathFor('industriesHub') },
-  },
-  {
-    label: isEN ? 'Coming next' : 'Wkrótce',
-    items: [
-      { label: 'HoReCa', to: pathFor('industriesHub'), badge: 'Soon' },
-      { label: isEN ? 'Healthcare' : 'Ochrona zdrowia', to: pathFor('industriesHub'), badge: 'Soon' },
-      { label: isEN ? 'Logistics' : 'Logistyka', to: pathFor('industriesHub'), badge: 'Soon' },
-      { label: 'MRO', to: pathFor('industriesHub'), badge: 'Soon' },
-    ],
-  },
+const navLinks: NavLink[] = [
+  { label: t.nav.product, href: '/#product' },
+  { label: t.nav.pricing, to: pathFor('pricing') },
+  { label: t.nav.integrations, to: pathFor('integrationsHub') },
+  { label: t.nav.company, to: pathFor('about') },
 ]
 
 export function Navbar() {
@@ -86,20 +49,25 @@ export function Navbar() {
 
             {/* Desktop nav — visible only at lg (1024px) and up to prevent overlap */}
             <div className="hidden lg:flex items-center gap-1">
-              <NavDropdown label={t.nav.features} sections={featuresSections} columns={2} />
-              <NavDropdown label={t.nav.audience} sections={industriesSections} columns={2} />
-              <Link
-                to={pathFor('integrationsHub')}
-                className="px-3.5 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-black/[0.03]"
-              >
-                {t.nav.integrations}
-              </Link>
-              <Link
-                to={pathFor('pricing')}
-                className="px-3.5 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-black/[0.03]"
-              >
-                {t.nav.pricing}
-              </Link>
+              {navLinks.map((link) =>
+                link.href ? (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    className="px-3.5 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-black/[0.03]"
+                  >
+                    {link.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={link.label}
+                    to={link.to!}
+                    className="px-3.5 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-black/[0.03]"
+                  >
+                    {link.label}
+                  </Link>
+                )
+              )}
             </div>
 
             {/* Desktop CTA — visible at lg and up */}
@@ -113,15 +81,13 @@ export function Navbar() {
               >
                 {t.nav.login}
               </a>
-              <a
-                href={appendUtm(APP_URL, 'navbar_cta')}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                to={pathFor('contact')}
                 onClick={() => trackCtaClick('navbar_cta')}
                 className="inline-flex items-center px-5 py-2 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all duration-200 hover:shadow-md"
               >
                 {t.nav.cta}
-              </a>
+              </Link>
             </div>
 
             {/* Mobile hamburger — visible below lg (anything under 1024px) */}

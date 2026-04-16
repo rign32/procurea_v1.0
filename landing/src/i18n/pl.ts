@@ -15,6 +15,8 @@ export const PL = {
     description: 'Narzędzie AI do sourcingu dostawców. Pierwsze wyniki w 2-3 minuty, pełna lista w 20 minut. Dla każdej branży, w 26 językach.',
   },
   nav: {
+    product: 'Produkt',
+    company: 'Firma',
     howItWorks: 'Jak to działa',
     features: 'Funkcje',
     audience: 'Dla kogo',
@@ -22,7 +24,7 @@ export const PL = {
     pricing: 'Cennik',
     faq: 'FAQ',
     login: 'Zaloguj się',
-    cta: 'Rozpocznij za darmo',
+    cta: 'Umów demo',
     openMenu: 'Otwórz menu',
     closeMenu: 'Zamknij menu',
   },
@@ -35,15 +37,15 @@ export const PL = {
     demo: 'demo',
   },
   hero: {
-    badge: 'AI-native procurement platform',
+    badge: 'AI-native platforma procurement',
     headlinePart1: 'Procurement',
-    headlineHighlight: 'napędzany AI',
-    headlinePart2: ' — od sourcingu po kontrakt',
-    subheadline: 'Znajduj dostawców, wysyłaj RFQ, zbieraj oferty, porównuj i negocjuj — wszystko w jednej platformie AI-native. 50–250 zweryfikowanych dostawców w 20 minut, RFQ w 26 językach, supplier portal bez logowania.',
-    ctaPrimary: 'Rozpocznij za darmo',
+    headlineHighlight: 'na autopilocie',
+    headlinePart2: '.',
+    subheadline: 'AI pipeline znajduje 250 dostawców w 20 minut. AI workflow uruchamia RFQ, zbiera oferty, porównuje i negocjuje — wszystko w jednej platformie.',
+    ctaPrimary: 'Umów demo',
     ctaSecondary: 'Zobacz cennik',
     trustFreeAccess: '10 darmowych kredytów',
-    trustNoCreditCard: 'Bez karty kredytowej',
+    trustNoCreditCard: 'Bez karty',
     trustBeta: 'Integruje się z Twoim ERP',
     stats: [
       { value: '2-3 min', label: 'pierwsze wyniki' },
@@ -284,6 +286,117 @@ export const PL = {
       'Platforma AI do automatyzacji sourcingu',
     ],
   },
+  homeTrustBar: {
+    heading: 'Zaufały nam zespoły procurement z 8+ branż',
+    industries: {
+      manufacturing: 'Produkcja',
+      events: 'Eventy',
+      construction: 'Budownictwo',
+      retail: 'Retail & E-com',
+      healthcare: 'Ochrona zdrowia',
+      logistics: 'Logistyka',
+      horeca: 'HoReCa',
+      mro: 'MRO',
+    },
+  },
+  moduleOverview: {
+    sectionLabel: 'WYBIERZ SWÓJ MODUŁ',
+    heading: 'Płać tylko za to co uruchamiasz',
+    subheading:
+      'Model credit-based, pay-as-you-go. Zacznij za darmo od AI Sourcing, dodaj Procurement gdy jesteś gotowy, lub weź Bundle z oszczędnością 15%.',
+    bestValueLink: 'Zobacz więcej',
+    modules: [
+      {
+        iconName: 'search',
+        title: 'AI Sourcing',
+        tagline: 'Znajdź 50–250 dostawców w 20 minut',
+        price: 'Od $89 / 10 kredytów',
+        linkLabel: 'Zobacz więcej',
+        href: '/cennik?product=sourcing',
+        highlight: false,
+      },
+      {
+        iconName: 'workflow',
+        title: 'AI Procurement',
+        tagline: 'Pełen workflow RFQ, wspierany przez AI',
+        price: 'Od $349 / 10 kredytów',
+        linkLabel: 'Zobacz więcej',
+        href: '/cennik?product=procurement',
+        highlight: false,
+      },
+      {
+        iconName: 'layers',
+        title: 'Bundle',
+        tagline: 'End-to-end, oszczędzasz 15%',
+        price: 'Od $399 / 10 kredytów',
+        linkLabel: 'Best value',
+        href: '/cennik?product=bundle',
+        highlight: true,
+      },
+      {
+        iconName: 'sparkles',
+        title: 'Enterprise Custom',
+        tagline: 'Unlimited, dedykowana instancja, custom ERP',
+        price: 'Od $25k / rok',
+        linkLabel: 'Umów demo',
+        href: '/kontakt?interest=enterprise_custom',
+        highlight: false,
+      },
+    ],
+  },
+  testimonial: {
+    quote:
+      'Procurea zastąpiło 3 narzędzia SaaS i skróciło nasze kampanie sourcingowe z 6 tygodni do 2 dni. Multilingual outreach to game-changer dla dywersyfikacji poza Chiny.',
+    authorRole: 'Procurement Lead',
+    authorContext: 'Europejski producent · Early access beta',
+    authorInitials: 'PL',
+  },
+  homeFaq: {
+    sectionLabel: 'CZĘSTE PYTANIA',
+    heading: 'Pytania które dostajemy',
+    items: [
+      {
+        q: 'Jak AI Sourcing znajduje dostawców?',
+        a: 'AI Sourcing łączy wyszukiwanie w Google (Serper.dev) z oceną Gemini 2.0 Flash. Opisujesz czego szukasz językiem naturalnym — np. „producenci części CNC z aluminium w Europie z certyfikacją ISO 9001" — a nasz pipeline generuje strategię wyszukiwania w 26 językach, scrapuje i weryfikuje strony dostawców, waliduje dopasowanie, i zwraca 50–250 zakwalifikowanych firm z danymi kontaktowymi w 20 minut. Nie potrzebujesz frazy kluczowej ani znajomości rynków zagranicznych — AI dobiera kraje i queries za Ciebie.',
+      },
+      {
+        q: 'Czym różni się AI Sourcing od AI Procurement?',
+        a: 'AI Sourcing to moduł wyszukiwania i kwalifikacji — znajduje dostawców i buduje Twoją bazę. AI Procurement to pełny workflow operacyjny: RFQ do dostawców, zbieranie ofert przez Supplier Portal, porównywarka ofert z AI Insights, auto follow-upy i komunikacja wielojęzyczna. Możesz używać AI Sourcing standalone (jeśli masz własny ERP do reszty), AI Procurement standalone (jeśli bazę już masz), albo Bundle dla pełnego end-to-end. Cennik i detale: /cennik.',
+      },
+      {
+        q: 'Jak działają kredyty?',
+        a: '1 kredyt = 1 kampania sourcingowa (AI Sourcing) lub 1 cykl RFQ (AI Procurement). Kredyty kupujesz w pakietach od 10 w górę, ważne 12 miesięcy, bez subskrypcji. Nie wykorzystane przepadają dopiero po roku. Dodatkowo każde konto startuje z 3 darmowymi kredytami sourcingu — bez karty, bez trialu czasowego. Kupujesz tyle kredytów ile realnie zużyjesz, bez narzutów za nieużywany seat fee.',
+      },
+      {
+        q: 'Z jakimi systemami ERP/CRM się integrujecie?',
+        a: 'Natywnie: SAP S/4HANA, Oracle NetSuite, Oracle Fusion Cloud, Microsoft Dynamics 365 Business Central, Microsoft Dynamics 365 F&O, Salesforce. Dodatkowo przez Merge.dev pokrywamy 100+ systemów księgowych, ERP i CRM (QuickBooks, Xero, Sage, HubSpot, Pipedrive, Zoho itd.). Pełna lista: /integracje. Integracja synchronizuje dostawców, PO, faktury i master data — dwukierunkowo, bez ręcznego exportu CSV.',
+      },
+      {
+        q: 'Jak szybkie jest wdrożenie?',
+        a: 'Self-serve (Sourcing, Procurement, Bundle): rejestracja → pierwsza kampania w 5 minut, bez onboardingu. Enterprise Custom: dedykowany wdrożeniowiec, typowy SOW 4–8 tygodni obejmuje integrację ERP, konfigurację workflow, mapowanie kategorii, szkolenie zespołu i migrację istniejącej bazy dostawców. Dla większości klientów SMB pierwsza realna kampania z outreach do dostawców działa tego samego dnia.',
+      },
+      {
+        q: 'Czy jest darmowy trial?',
+        a: 'Tak. Każde nowe konto dostaje 3 darmowe kredyty AI Sourcing — wystarczą do przetestowania 3 pełnych kampanii (50–250 dostawców każda). Bez karty kredytowej, bez automatycznego przedłużenia, bez limitu czasowego. Po wyczerpaniu kupujesz pakiety od 10 kredytów. AI Procurement i Bundle nie mają free trial — start od $349 / $399, ale można umówić demo: /kontakt.',
+      },
+      {
+        q: 'Gdzie przechowywane są moje dane?',
+        a: 'Google Cloud Platform, region europe-central2 (Warszawa). Dane klientów są izolowane per-organizacja w PostgreSQL. Szyfrowanie at-rest (AES-256) i in-transit (TLS 1.3). Zgodność: RODO/GDPR, ISO 27001 (w procesie certyfikacji). Nie używamy Twoich danych do trenowania modeli AI. Pełna polityka: /polityka-prywatnosci oraz /rodo. Enterprise Custom — możliwość dedykowanej instancji w wybranym regionie GCP.',
+      },
+      {
+        q: 'Które branże działają najlepiej?',
+        a: 'Procurea jest industry-agnostic — pracujemy z produkcją (CNC, OEM, komponenty), eventami (AV, catering, decor), budownictwem (materiały, prefabrykaty, subkontraktorzy), retail/e-com (private label, packaging), HoReCa, ochroną zdrowia (medical supplies, lab equipment), logistyką i MRO. Pełne opisy i case-studies: /dla-kogo. Im bardziej fragmentowana dostawcza baza i międzynarodowy scope, tym większa oszczędność czasu — AI Sourcing przekłada 6 tygodni researchu na 20 minut.',
+      },
+      {
+        q: 'Co jeśli mojego ERP nie ma na liście?',
+        a: 'Dwie ścieżki. (1) Jeśli Twój system jest w katalogu Merge.dev (100+ systemów) — integracja działa out-of-the-box bez dodatkowego kodu, aktywujemy w ramach standardowego planu Procurement lub Bundle. (2) Jeśli system jest niszowy lub on-prem — Enterprise Custom buduje dedykowany adapter (REST/SOAP/file-based) w ramach SOW, typowo 2–4 tygodnie. Umów rozmowę techniczną: /kontakt.',
+      },
+      {
+        q: 'Kiedy wybrać Enterprise Custom?',
+        a: 'Enterprise Custom ma sens gdy: (a) robisz 500+ kampanii sourcingowych rocznie (wtedy unlimited taniej niż kredyty), (b) potrzebujesz custom ERP adapter którego nie ma Merge.dev, (c) wymagasz dedykowanej instancji (izolowana baza, własny VPC), (d) masz ścisłe wymagania compliance (ISO 27001 audit, DPA z regionalnym residency), (e) chcesz SSO/SAML, custom SLA i dedykowanego CSM. Cena od $25k/rok, typowe kontrakty $40–120k. Umów demo: /kontakt.',
+      },
+    ],
+  },
   footer: {
     brand: 'Automatyzacja zaopatrzenia dla globalnych zespołów. AI Sourcing + pełen workflow procurement.',
     product: 'Produkt',
@@ -322,5 +435,57 @@ export const PL = {
   legal: {
     backToHome: 'Powrót do strony głównej',
     lastUpdatedPrefix: 'Ostatnia aktualizacja:',
+  },
+  homeFeatures: {
+    'ai-sourcing': {
+      sectionLabel: 'AI SOURCING',
+      title: 'Znajdź 250 dostawców w 20 minut',
+      subtitle: 'Opisz czego potrzebujesz zwykłym językiem. Pipeline 4 agentów AI przeszukuje internet w 26 językach, weryfikuje dane rejestrowe i dostarcza gotową listę dostawców — zanim zdążysz wypić kawę.',
+      bullets: [
+        '50–250 zweryfikowanych dostawców na kampanię',
+        'Wyszukiwanie w 26 językach EU + global',
+        'Eksport do Excela jednym kliknięciem',
+      ],
+    },
+    'email-outreach': {
+      sectionLabel: 'EMAIL OUTREACH',
+      title: 'RFQ do 200 dostawców, jednym kliknięciem',
+      subtitle: 'Masowa wysyłka zapytań, lokalizowana pod kraj dostawcy. Śledź dostarczenia, otwarcia i odpowiedzi w czasie rzeczywistym. Automatyczne sekwencje follow-up wbudowane.',
+      bullets: [
+        'Lokalizacja per kraj (26 języków)',
+        'Automatyczny follow-up (+3d, +7d, +14d)',
+        'Śledzenie dostarczeń w czasie rzeczywistym',
+      ],
+    },
+    'supplier-portal': {
+      sectionLabel: 'SUPPLIER PORTAL',
+      title: 'Magic-link oferty, bez logowania',
+      subtitle: 'Dostawcy składają ustrukturyzowane oferty przez spersonalizowany link. Bez zakładania konta. Progi cenowe, MOQ, załączniki — wszystko w jednym standardowym formacie.',
+      bullets: [
+        'Magic link, ważność 30 dni',
+        'UI dostawcy automatycznie tłumaczone',
+        'Mobile-responsive (40% ofert z telefonu)',
+      ],
+    },
+    'offer-comparison': {
+      sectionLabel: 'PORÓWNYWARKA OFERT',
+      title: 'Koniec porównywania w Excelu',
+      subtitle: 'Oferty obok siebie z rankingiem. Kryteria ważone (cena, lead time, certyfikaty). Eksport PDF / PPTX jednym kliknięciem — gotowy dla zarządu lub komitetu przetargowego.',
+      bullets: [
+        'Ranking ważony według Twoich priorytetów',
+        'Porównanie cen przy progach ilościowych',
+        'Eksport PDF / PPTX gotowy dla zarządu',
+      ],
+    },
+    'ai-insights': {
+      sectionLabel: 'AI INSIGHTS',
+      title: 'Raporty procurement, które same się piszą',
+      subtitle: 'Gemini analizuje każdą kampanię: breakdown wydatków, ryzyko koncentracji dostawców, potencjał negocjacyjny. Gotowy PDF / PPTX dla CFO.',
+      bullets: [
+        'Analiza Gemini 2.0 Flash per kampania',
+        'Scoring koncentracji dostawców i ryzyka łańcucha',
+        'Identyfikacja dźwigni negocjacyjnej',
+      ],
+    },
   },
 } as const;

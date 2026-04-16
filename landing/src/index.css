@@ -33,6 +33,15 @@
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  h1, h2, h3 {
+    @apply font-display;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
+    letter-spacing: -0.02em;
+  }
+  h1 {
+    letter-spacing: -0.035em;
   }
   html {
     scroll-behavior: smooth;
