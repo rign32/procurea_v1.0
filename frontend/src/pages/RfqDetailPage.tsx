@@ -16,6 +16,8 @@ import {
   Link2,
   Mail,
   Repeat,
+  FileSignature,
+  Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +25,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useRfq, useOffers, useAcceptOffer, useRejectOffer, useShortlistOffer, useCompareOffers, useCounterOffer } from '@/hooks/useRfqs';
 import { offersService } from '@/services/rfqs.service';
+import { contractsService, type ContractDraft, type ContractDraftSource } from '@/services/contracts.service';
 import { t, isEN } from '@/i18n';
 import type { Offer, OfferPriceTier } from '@/types/campaign.types';
 import { motion } from 'framer-motion';
@@ -159,6 +162,14 @@ export function RfqDetailPage() {
   const [counterDialogId, setCounterDialogId] = useState<string | null>(null);
   const [counterForm, setCounterForm] = useState<{ price: string; moq: string; leadTime: string; comments: string }>({ price: '', moq: '', leadTime: '', comments: '' });
 
+  // Contract auto-fill from accepted offer (AI-powered)
+  const [generatingContractOfferId, setGeneratingContractOfferId] = useState<string | null>(null);
+  const [contractDraft, setContractDraft] = useState<ContractDraft | null>(null);
+  const [contractDraftSource, setContractDraftSource] = useState<ContractDraftSource | null>(null);
+  const [showContractModal, setShowContractModal] = useState(false);
+  const [contractForm, setContractForm] = useState<{ title: string; terms: string; startDate: string; endDate: string }>({ title: '', terms: '', startDate: '', endDate: '' });
+  const [savingContract, setSavingContract] = useState(false);
+
   const toggleOfferSelection = (offerId: string) => {
     setSelectedOffers(prev => {
       const next = new Set(prev);
@@ -257,6 +268,55 @@ export function RfqDetailPage() {
       style: 'currency',
       currency: currency || 'EUR',
     }).format(price);
+  };
+
+  // --- Contract auto-fill from accepted offer (AI-powered) ---
+  const handleGenerateContractFromOffer = async (offerId: string) => {
+    try {
+      setGeneratingContractOfferId(offerId);
+      const { draft, source } = await contractsService.generateFromOffer(offerId);
+      setContractDraft(draft);
+      setContractDraftSource(source);
+      setContractForm({
+        title: draft.title || '',
+        terms: draft.terms || '',
+        startDate: draft.startDate || '',
+        endDate: draft.endDate || '',
+      });
+      setShowContractModal(true);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || (isEN ? 'Failed to generate contract' : 'Nie udało się wygenerować kontraktu');
+      toast.error(isEN ? `Failed to generate contract: ${msg}` : `Nie udało się wygenerować kontraktu: ${msg}`);
+    } finally {
+      setGeneratingContractOfferId(null);
+    }
+  };
+
+  const handleSaveContract = async () => {
+    if (!contractDraft) return;
+    if (!contractForm.title.trim()) {
+      toast.error(isEN ? 'Title is required' : 'Tytuł jest wymagany');
+      return;
+    }
+    try {
+      setSavingContract(true);
+      await contractsService.create({
+        offerId: contractDraft.offerId,
+        title: contractForm.title.trim(),
+        terms: contractForm.terms.trim() || undefined,
+        startDate: contractForm.startDate || undefined,
+        endDate: contractForm.endDate || undefined,
+      });
+      toast.success(isEN ? 'Contract created' : 'Kontrakt utworzony');
+      setShowContractModal(false);
+      setContractDraft(null);
+      setContractDraftSource(null);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || (isEN ? 'Failed to save contract' : 'Nie udało się zapisać kontraktu');
+      toast.error(isEN ? `Failed to save contract: ${msg}` : `Nie udało się zapisać kontraktu: ${msg}`);
+    } finally {
+      setSavingContract(false);
+    }
   };
 
   if (rfqLoading || offersLoading) {
@@ -741,6 +801,31 @@ export function RfqDetailPage() {
                         </Button>
                       </div>
                     )}
+
+                    {/* Accepted offer: AI contract generation */}
+                    {offer.status === 'ACCEPTED' && (
+                      <div className="flex flex-col gap-1.5 shrink-0">
+                        <Button
+                          size="sm"
+                          variant="default"
+                          className="bg-indigo-600 hover:bg-indigo-700"
+                          onClick={() => handleGenerateContractFromOffer(offer.id)}
+                          disabled={generatingContractOfferId === offer.id}
+                        >
+                          {generatingContractOfferId === offer.id ? (
+                            <>
+                              <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                              {isEN ? 'Generating…' : 'Generuję…'}
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="mr-1 h-3.5 w-3.5" />
+                              {isEN ? 'Generate contract from this offer' : 'Generuj kontrakt z tej oferty'}
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -832,6 +917,135 @@ export function RfqDetailPage() {
           </div>
         )
       }
+
+      {/* Contract Auto-Fill Modal (AI-generated draft from accepted offer) */}
+      <Dialog
+        open={showContractModal}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowContractModal(false);
+            setContractDraft(null);
+            setContractDraftSource(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileSignature className="h-5 w-5" />
+              {isEN ? 'New contract from offer' : 'Nowy kontrakt z oferty'}
+            </DialogTitle>
+            <DialogDescription>
+              {isEN
+                ? 'AI has pre-filled the contract draft. Review and edit before saving.'
+                : 'AI wypełniło wstępny kontrakt. Sprawdź i edytuj przed zapisem.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          {contractDraftSource && (
+            <div className="rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <div>
+                  <p className="text-[11px] uppercase tracking-wide">{isEN ? 'Product' : 'Produkt'}</p>
+                  <p className="font-medium text-foreground">{contractDraftSource.productName}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] uppercase tracking-wide">{isEN ? 'Supplier' : 'Dostawca'}</p>
+                  <p className="font-medium text-foreground">{contractDraftSource.supplierName}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] uppercase tracking-wide">{isEN ? 'Price' : 'Cena'}</p>
+                  <p className="font-medium text-foreground">
+                    {formatCurrency(contractDraftSource.price, contractDraftSource.currency)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] uppercase tracking-wide">Incoterms</p>
+                  <p className="font-medium text-foreground">{contractDraftSource.incoterms || '—'}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-4 py-2">
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                {isEN ? 'Title' : 'Tytuł'} <span className="text-destructive">*</span>
+              </label>
+              <input
+                type="text"
+                value={contractForm.title}
+                onChange={(e) => setContractForm((prev) => ({ ...prev, title: e.target.value }))}
+                maxLength={200}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  {isEN ? 'Start date' : 'Data rozpoczęcia'}
+                </label>
+                <input
+                  type="date"
+                  value={contractForm.startDate}
+                  onChange={(e) => setContractForm((prev) => ({ ...prev, startDate: e.target.value }))}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  {isEN ? 'End date' : 'Data zakończenia'}
+                </label>
+                <input
+                  type="date"
+                  value={contractForm.endDate}
+                  onChange={(e) => setContractForm((prev) => ({ ...prev, endDate: e.target.value }))}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                {isEN ? 'Terms (markdown)' : 'Treść kontraktu (markdown)'}
+              </label>
+              <textarea
+                rows={16}
+                value={contractForm.terms}
+                onChange={(e) => setContractForm((prev) => ({ ...prev, terms: e.target.value }))}
+                maxLength={5000}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-xs leading-relaxed ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-y"
+              />
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                {isEN
+                  ? 'Replace [PLACEHOLDER] markers with actual values where needed.'
+                  : 'Zastąp znaczniki [PLACEHOLDER] właściwymi wartościami, gdzie to konieczne.'}
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowContractModal(false);
+                setContractDraft(null);
+                setContractDraftSource(null);
+              }}
+              disabled={savingContract}
+            >
+              {t.common.cancel}
+            </Button>
+            <Button onClick={handleSaveContract} disabled={savingContract || !contractForm.title.trim()}>
+              {savingContract ? (
+                <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+              ) : (
+                <FileSignature className="mr-1 h-4 w-4" />
+              )}
+              {isEN ? 'Save contract' : 'Zapisz kontrakt'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Counter-Offer Dialog */}
       <Dialog open={!!counterDialogId} onOpenChange={(open) => { if (!open) setCounterDialogId(null); }}>
