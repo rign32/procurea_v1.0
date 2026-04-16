@@ -1,10 +1,11 @@
 import type { ComponentType } from "react"
 import { Link, useParams } from "react-router-dom"
-import { ArrowRight, Check, ChevronRight } from "lucide-react"
+import { ArrowRight, Check, ChevronRight, Sparkles } from "lucide-react"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
+import { AccordionItem } from "@/components/ui/AccordionItem"
 import { PagePlaceholder } from "@/components/layout/PagePlaceholder"
 import { appendUtm } from "@/lib/utm"
 import { trackCtaClick } from "@/lib/analytics"
@@ -156,7 +157,30 @@ export function FeaturePage() {
           </section>
         )}
 
-        {/* How it works */}
+        {/* Problem narrative (optional — flagship feature pages only) */}
+        {feature.problemSection && (
+          <section className="py-16 md:py-20 bg-gradient-to-b from-white to-slate-50/40">
+            <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+              <RevealOnScroll>
+                <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-10 leading-tight">
+                  {feature.problemSection.heading}
+                </h2>
+              </RevealOnScroll>
+              <div className="space-y-5">
+                {feature.problemSection.paragraphs.map((para, idx) => (
+                  <p
+                    key={idx}
+                    className="text-base md:text-lg text-muted-foreground leading-relaxed"
+                  >
+                    {para}
+                  </p>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* How it works — uses detailedSteps if available (5-step flagship layout), else howItWorks (3-step) */}
         <section className="py-16 md:py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <RevealOnScroll>
@@ -164,50 +188,213 @@ export function FeaturePage() {
                 {isEN ? 'How it works' : 'Jak to działa'}
               </h2>
               <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
-                {isEN ? 'Three steps, zero spreadsheets.' : 'Trzy kroki, zero arkuszy kalkulacyjnych.'}
+                {feature.detailedSteps
+                  ? (isEN ? 'Inside the AI pipeline — step by step.' : 'Wewnątrz AI pipeline — krok po kroku.')
+                  : (isEN ? 'Three steps, zero spreadsheets.' : 'Trzy kroki, zero arkuszy kalkulacyjnych.')}
               </p>
             </RevealOnScroll>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {feature.howItWorks.map((step) => (
-                <div
-                  key={step.step}
-                  className="rounded-2xl border border-black/[0.08] bg-white p-6"
-                >
-                  <div className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-primary text-primary-foreground font-bold mb-4">
-                    {step.step}
+            {feature.detailedSteps ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {feature.detailedSteps.map((step) => (
+                  <div
+                    key={step.step}
+                    className="rounded-2xl border border-black/[0.08] bg-white p-6 flex flex-col"
+                  >
+                    <div className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-primary text-primary-foreground font-bold mb-4">
+                      {step.step}
+                    </div>
+                    <h3 className="text-lg font-bold mb-3">{step.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed mb-4">{step.body}</p>
+                    {step.techDetail && (
+                      <div className="mt-auto flex items-start gap-2 pt-4 border-t border-black/[0.06]">
+                        <Sparkles className="h-3.5 w-3.5 shrink-0 mt-0.5 text-primary" />
+                        <span className="text-xs text-muted-foreground leading-relaxed italic">
+                          {step.techDetail}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  <h3 className="text-lg font-bold mb-3">{step.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{step.body}</p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {feature.howItWorks.map((step) => (
+                  <div
+                    key={step.step}
+                    className="rounded-2xl border border-black/[0.08] bg-white p-6"
+                  >
+                    <div className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-primary text-primary-foreground font-bold mb-4">
+                      {step.step}
+                    </div>
+                    <h3 className="text-lg font-bold mb-3">{step.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{step.body}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
-        {/* Highlights */}
+        {/* Highlights — uses capabilityGroups when available (grouped flagship layout), else flat highlights */}
         <section className="py-16 md:py-20 bg-slate-50/50">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <RevealOnScroll>
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-12">
                 {isEN ? 'Key capabilities' : 'Kluczowe możliwości'}
               </h2>
             </RevealOnScroll>
 
-            <div className="rounded-2xl border border-black/[0.08] bg-white p-8 md:p-10">
-              <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {feature.highlights.map((h) => (
-                  <li key={h} className="flex items-start gap-3">
-                    <div className="flex items-center justify-center h-5 w-5 rounded-full bg-emerald-100 shrink-0 mt-0.5">
-                      <Check className="h-3 w-3 text-emerald-700" />
+            {feature.capabilityGroups ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {feature.capabilityGroups.map((group) => (
+                  <div
+                    key={group.groupLabel}
+                    className="rounded-2xl border border-black/[0.08] bg-white p-6 md:p-7"
+                  >
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-[11px] font-bold text-primary uppercase tracking-wider mb-4">
+                      {group.groupLabel}
                     </div>
-                    <span className="text-sm leading-relaxed">{h}</span>
-                  </li>
+                    <ul className="space-y-3">
+                      {group.items.map((item) => (
+                        <li key={item} className="flex items-start gap-3">
+                          <div className="flex items-center justify-center h-5 w-5 rounded-full bg-emerald-100 shrink-0 mt-0.5">
+                            <Check className="h-3 w-3 text-emerald-700" />
+                          </div>
+                          <span className="text-sm leading-relaxed">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ))}
-              </ul>
-            </div>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-black/[0.08] bg-white p-8 md:p-10 max-w-5xl mx-auto">
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {feature.highlights.map((h) => (
+                    <li key={h} className="flex items-start gap-3">
+                      <div className="flex items-center justify-center h-5 w-5 rounded-full bg-emerald-100 shrink-0 mt-0.5">
+                        <Check className="h-3 w-3 text-emerald-700" />
+                      </div>
+                      <span className="text-sm leading-relaxed">{h}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </section>
+
+        {/* Use cases by industry (optional) */}
+        {feature.useCasesByIndustry && feature.useCasesByIndustry.length > 0 && (
+          <section className="py-16 md:py-20">
+            <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <RevealOnScroll>
+                <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-3">
+                  {isEN ? 'What it looks like in your industry' : 'Jak to wygląda w Twojej branży'}
+                </h2>
+                <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
+                  {isEN
+                    ? 'Real scenarios, real numbers — before and after Procurea.'
+                    : 'Realne scenariusze, realne liczby — przed i po Procurea.'}
+                </p>
+              </RevealOnScroll>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {feature.useCasesByIndustry.map((uc) => {
+                  const link = getIndustryLink(uc.industrySlug)
+                  return (
+                    <div
+                      key={uc.industrySlug}
+                      className="rounded-2xl border border-black/[0.08] bg-white p-6 md:p-7 flex flex-col"
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-[11px] font-bold text-amber-900 uppercase tracking-wider">
+                          {uc.industry}
+                        </div>
+                        {link && (
+                          <Link
+                            to={link.to}
+                            className="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-1"
+                          >
+                            {isEN ? 'See industry page' : 'Zobacz branżę'}
+                            <ArrowRight className="h-3 w-3" />
+                          </Link>
+                        )}
+                      </div>
+                      <p className="text-sm font-semibold mb-5 leading-relaxed">{uc.scenario}</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-auto">
+                        <div className="rounded-xl border border-black/[0.06] bg-slate-50/80 p-4">
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                            {isEN ? 'Before' : 'Przed'}
+                          </div>
+                          <p className="text-xs text-muted-foreground leading-relaxed">{uc.before}</p>
+                        </div>
+                        <div className="rounded-xl border border-emerald-200/60 bg-emerald-50/60 p-4">
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 mb-2">
+                            {isEN ? 'After' : 'Po'}
+                          </div>
+                          <p className="text-xs text-emerald-950/80 leading-relaxed">{uc.after}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Integrations highlight (optional) */}
+        {feature.integrationsHighlight && (
+          <section className="py-16 md:py-20 bg-slate-50/50">
+            <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+              <RevealOnScroll>
+                <div className="rounded-3xl border border-black/[0.08] bg-white p-8 md:p-12">
+                  <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-4 leading-tight">
+                    {feature.integrationsHighlight.heading}
+                  </h2>
+                  <p className="text-base text-muted-foreground leading-relaxed mb-8 max-w-3xl">
+                    {feature.integrationsHighlight.body}
+                  </p>
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {feature.integrationsHighlight.bullets.map((b) => (
+                      <li key={b} className="flex items-start gap-3">
+                        <div className="flex items-center justify-center h-5 w-5 rounded-full bg-primary/10 shrink-0 mt-0.5">
+                          <Check className="h-3 w-3 text-primary" />
+                        </div>
+                        <span className="text-sm leading-relaxed">{b}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </RevealOnScroll>
+            </div>
+          </section>
+        )}
+
+        {/* FAQ (optional) */}
+        {feature.faq && feature.faq.length > 0 && (
+          <section className="py-16 md:py-20">
+            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+              <RevealOnScroll>
+                <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-3">
+                  {isEN ? 'Frequently asked questions' : 'Najczęściej zadawane pytania'}
+                </h2>
+                <p className="text-center text-muted-foreground mb-10">
+                  {isEN
+                    ? 'Answers to what procurement teams ask before their first campaign.'
+                    : 'Odpowiedzi na pytania, które zespoły procurement zadają przed pierwszą kampanią.'}
+                </p>
+              </RevealOnScroll>
+              <div className="rounded-2xl border border-black/[0.08] bg-white px-6 md:px-8">
+                {feature.faq.map((item) => (
+                  <AccordionItem key={item.q} question={item.q} answer={item.a} />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Used by / industries */}
         <section className="py-16 md:py-20">

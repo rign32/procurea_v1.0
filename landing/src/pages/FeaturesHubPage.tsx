@@ -62,10 +62,22 @@ const copy = {
   sourcingDesc: isEN
     ? 'Find qualified vendors. Self-serve, credit-based.'
     : 'Znajduj zweryfikowanych dostawców. Self-serve, credit-based.',
+  sourcingIntro: isEN
+    ? "Most teams start here. AI Sourcing replaces the weeks you'd spend Googling vendors, filtering directories, and verifying certifications. Describe what you need in plain language — the AI pipeline runs 4 specialized agents across 26 languages, cross-checks supplier data against official registries, and delivers a verified shortlist of 50–250 qualified vendors in under 20 minutes."
+    : 'Większość zespołów zaczyna tutaj. AI Sourcing zastępuje tygodnie szukania dostawców w Google, filtrowania katalogów i weryfikacji certyfikatów. Opisz czego potrzebujesz zwykłym językiem — pipeline AI uruchamia 4 wyspecjalizowane agenty w 26 językach, krzyżowo weryfikuje dane firm z oficjalnymi rejestrami i dostarcza zweryfikowaną shortlistę 50–250 dostawców w mniej niż 20 minut.',
+  sourcingValueProps: isEN
+    ? ['26 languages', 'Company Registry', 'Excel export']
+    : ['26 języków', 'Company Registry', 'Eksport Excel'],
   procurementHeading: 'AI Procurement',
   procurementDesc: isEN
     ? 'Full RFQ workflow with AI-assisted outreach, offers, and insights.'
     : 'Pełny workflow RFQ z outreach AI, ofertami i insights.',
+  procurementIntro: isEN
+    ? "Once your shortlist is ready, AI Procurement automates everything that follows. Send RFQs to 200+ suppliers in their local language. Collect structured offers via a magic-link Supplier Portal — no login, no PDF parsing. Compare side-by-side with AI-weighted ranking. Export board-ready reports. It's the end-to-end procurement workflow that replaces 3 different SaaS tools."
+    : 'Gdy shortlista jest gotowa, AI Procurement automatyzuje wszystko co następuje. Wysyłaj RFQ do 200+ dostawców w ich lokalnym języku. Zbieraj strukturalne oferty przez magic-link Supplier Portal — bez logowania, bez parsowania PDF. Porównuj side-by-side z rankingiem ważonym przez AI. Eksportuj raporty gotowe dla zarządu. To end-to-end workflow procurement, który zastępuje 3 różne narzędzia SaaS.',
+  procurementValueProps: isEN
+    ? ['Localized outreach', 'Magic-link portal', 'AI-weighted comparison']
+    : ['Lokalizowany outreach', 'Magic-link portal', 'Porównanie ważone AI'],
   outreachHeading: 'Outreach',
   offersHeading: isEN ? 'Offers' : 'Oferty',
   insightsHeading: 'AI Insights',
@@ -124,7 +136,7 @@ export function FeaturesHubPage() {
         </section>
 
         {/* AI Sourcing module */}
-        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-16">
+        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-20">
           <RevealOnScroll>
             <div className="mb-8">
               <div className="flex items-center gap-3 mb-2">
@@ -138,15 +150,31 @@ export function FeaturesHubPage() {
               </div>
             </div>
           </RevealOnScroll>
+          <RevealOnScroll>
+            <div className="max-w-3xl mx-auto text-center mb-8">
+              <p className="text-base md:text-lg text-muted-foreground leading-relaxed">{copy.sourcingIntro}</p>
+              <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-5 text-sm font-medium text-emerald-700">
+                {copy.sourcingValueProps.map((prop, i) => (
+                  <span key={prop} className="inline-flex items-center gap-2">
+                    {i > 0 && <span className="text-muted-foreground/40">·</span>}
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      {prop}
+                    </span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          </RevealOnScroll>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {sourcingFeatures.map((f) => <FeatureCard key={f.title} feature={f} variant="sourcing" />)}
           </div>
         </section>
 
         {/* AI Procurement module — 3 subgroups */}
-        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-16">
+        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-20">
           <RevealOnScroll>
-            <div className="mb-10">
+            <div className="mb-8">
               <div className="flex items-center gap-3 mb-2">
                 <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
                   <Sparkles className="h-5 w-5" />
@@ -155,6 +183,22 @@ export function FeaturesHubPage() {
                   <h2 className="text-2xl md:text-3xl font-bold tracking-tight">{copy.procurementHeading}</h2>
                   <p className="text-sm text-muted-foreground">{copy.procurementDesc}</p>
                 </div>
+              </div>
+            </div>
+          </RevealOnScroll>
+          <RevealOnScroll>
+            <div className="max-w-3xl mx-auto text-center mb-10">
+              <p className="text-base md:text-lg text-muted-foreground leading-relaxed">{copy.procurementIntro}</p>
+              <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-5 text-sm font-medium text-primary">
+                {copy.procurementValueProps.map((prop, i) => (
+                  <span key={prop} className="inline-flex items-center gap-2">
+                    {i > 0 && <span className="text-muted-foreground/40">·</span>}
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                      {prop}
+                    </span>
+                  </span>
+                ))}
               </div>
             </div>
           </RevealOnScroll>

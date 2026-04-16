@@ -1,6 +1,16 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { useEffect } from "react"
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom"
 import { pathMappings } from "@/i18n/paths"
 import { t } from "@/i18n"
+
+// Scroll to top on every route change (React Router v7 preserves scroll by default).
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+  return null
+}
 
 // Home (migrated from inline LandingPage in this file)
 import { HomePage } from "@/pages/HomePage"
@@ -42,6 +52,7 @@ const featuresHubPath = p('featuresHub')
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         {/* Home */}
         <Route path={p('home')} element={<HomePage />} />

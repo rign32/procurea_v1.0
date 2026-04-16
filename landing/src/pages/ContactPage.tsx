@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react"
 import { useSearchParams } from "react-router-dom"
-import { CheckCircle2, AlertCircle, Loader2, Mail, CalendarClock } from "lucide-react"
+import { CheckCircle2, AlertCircle, Loader2, Mail } from "lucide-react"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
@@ -167,6 +167,21 @@ export function ContactPage() {
             </p>
           </div>
 
+          {/* Cal.com embed — right under the header */}
+          <div className="mb-12">
+            <CalEmbed />
+          </div>
+
+          {/* Separator */}
+          <div className="flex items-center gap-3 mb-8">
+            <div className="h-px flex-1 bg-black/[0.06]" />
+            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              <Mail className="h-4 w-4" />
+              {isEN ? 'Or give us a heads up' : 'Albo napisz do nas'}
+            </span>
+            <div className="h-px flex-1 bg-black/[0.06]" />
+          </div>
+
           <form onSubmit={handleSubmit} className="rounded-2xl border border-black/[0.08] bg-white p-6 md:p-8 shadow-sm">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
@@ -269,20 +284,8 @@ export function ContactPage() {
             </div>
           </form>
 
-          {/* Or book directly */}
-          <div className="mt-12">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="h-px flex-1 bg-black/[0.06]" />
-              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                <CalendarClock className="h-4 w-4" />
-                {isEN ? 'Or book a 15-min call directly' : 'Lub umów 15-minutowe spotkanie bezpośrednio'}
-              </span>
-              <div className="h-px flex-1 bg-black/[0.06]" />
-            </div>
-            <CalEmbed />
-          </div>
-
-          <div className="mt-8 text-sm text-muted-foreground text-center">
+          {/* Alt contact method */}
+          <div className="mt-10 text-sm text-muted-foreground text-center">
             <Mail className="inline h-4 w-4 mr-1.5 text-primary" />
             {isEN ? 'Prefer email? ' : 'Wolisz mail? '}
             <a href={`mailto:${SALES_EMAIL}`} className="text-primary hover:underline font-medium">

@@ -157,10 +157,30 @@ function App() {
   }, [hydrated, initialSearch, setUser, setImpersonated, markSessionValidated]);
 
   // Handle staging auto-login — always refresh session on staging to pick up backend fixes
+  // IMPORTANT: Only attempt auto-login if VITE_STAGING_SECRET is set at build time.
+  // If the secret is missing/empty, skip entirely and fall through to normal login flow.
+  // This prevents infinite redirect loops when the secret is misconfigured (403 from backend).
   const [stagingRefreshed, setStagingRefreshed] = useState(false);
   useEffect(() => {
     if (!hydrated || impersonating || stagingRefreshed) return;
     if (import.meta.env.VITE_STAGING_MODE !== 'true') return;
+
+    const stagingSecret = (import.meta.env.VITE_STAGING_SECRET || '').trim();
+    if (!stagingSecret) {
+      // Secret not set at build time — skip auto-login bypass, let user log in normally.
+      // This is intentional: when VITE_STAGING_SECRET is unset, staging acts like production
+      // login-wise (Google SSO / Microsoft SSO / email code), just against the staging backend.
+      console.log('[Staging] VITE_STAGING_SECRET not set — skipping auto-login, use normal login.');
+      // Clear any persisted session from previous staging builds that had the secret,
+      // because those tokens will be stale/invalid and would cause infinite redirect loops
+      // via the axios 401 interceptor (window.location.href = '/login').
+      if (isAuthenticated) {
+        console.log('[Staging] Clearing stale persisted session from previous staging build.');
+        logout();
+      }
+      setStagingRefreshed(true);
+      return;
+    }
 
     const stagingAutoLogin = async () => {
       try {
@@ -169,7 +189,7 @@ function App() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-Staging-Secret': import.meta.env.VITE_STAGING_SECRET || '',
+            'X-Staging-Secret': stagingSecret,
           },
           body: JSON.stringify({ language: import.meta.env.VITE_LANGUAGE || 'pl' }),
           credentials: 'include',
@@ -187,14 +207,22 @@ function App() {
           console.log('[Staging] Auto-login successful:', data.user.email);
         }
       } catch (err: unknown) {
+        // Single attempt — do NOT retry. Fall through to normal login screen.
         console.error('[Staging] Auto-login failed:', err instanceof Error ? err.message : err);
+        console.log('[Staging] Falling back to normal login flow.');
+        // Clear any persisted session so the user lands on /login cleanly instead of
+        // hitting the 401 interceptor redirect loop with a stale token.
+        if (isAuthenticated) {
+          logout();
+        }
       } finally {
+        // ALWAYS set refreshed=true so the effect never re-runs, preventing infinite loops.
         setStagingRefreshed(true);
       }
     };
 
     stagingAutoLogin();
-  }, [hydrated, impersonating, stagingRefreshed, setUser, markSessionValidated]);
+  }, [hydrated, impersonating, stagingRefreshed, setUser, markSessionValidated, isAuthenticated, logout]);
 
   // Handle dev auto-login — local development with plan='full'
   const [devRefreshed, setDevRefreshed] = useState(false);
