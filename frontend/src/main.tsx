@@ -20,11 +20,16 @@ Sentry.init({
   replaysOnErrorSampleRate: 1.0, // If you're not already sampling the entire session, change the sample rate to 100% when sampling sessions where errors occur.
 });
 
-// Register service worker for PWA support
+// PWA service worker was removed — previous implementation (cache-first in
+// public/sw.js) trapped users on stale builds by never revalidating cached
+// assets. The replacement public/sw.js now self-destructs and unregisters on
+// activation for any browser that still has the old SW installed.
+// We explicitly unregister here too, in case the browser loaded a cached copy
+// of this module bundle that predates the SW removal but still happens to run.
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
-  });
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    registrations.forEach((reg) => reg.unregister());
+  }).catch(() => {});
 }
 
 createRoot(document.getElementById('root')!).render(
