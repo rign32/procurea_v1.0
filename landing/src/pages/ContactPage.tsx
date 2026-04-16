@@ -19,16 +19,10 @@ const API_URL = import.meta.env.VITE_API_URL || '/api'
 const SALES_EMAIL = 'r.ignaczak1@gmail.com'
 
 const INTEREST_OPTIONS: { value: string; labelEn: string; labelPl: string }[] = [
-  { value: 'sourcing_starter', labelEn: 'AI Sourcing — Starter ($199/mo)', labelPl: 'AI Sourcing — Starter ($199/mies)' },
-  { value: 'sourcing_professional', labelEn: 'AI Sourcing — Professional ($499/mo)', labelPl: 'AI Sourcing — Professional ($499/mies)' },
-  { value: 'sourcing_enterprise', labelEn: 'AI Sourcing — Enterprise ($999/mo)', labelPl: 'AI Sourcing — Enterprise ($999/mies)' },
-  { value: 'procurement_starter', labelEn: 'Starter +Procurement ($448/mo)', labelPl: 'Starter +Procurement ($448/mies)' },
-  { value: 'procurement_professional', labelEn: 'Professional +Procurement ($948/mo)', labelPl: 'Professional +Procurement ($948/mies)' },
-  { value: 'procurement_enterprise', labelEn: 'Enterprise +Procurement ($1648/mo)', labelPl: 'Enterprise +Procurement ($1648/mies)' },
-  { value: 'full_starter', labelEn: 'Starter Full Workflow ($399/mo)', labelPl: 'Starter Full Workflow ($399/mies)' },
-  { value: 'full_professional', labelEn: 'Professional Full Workflow ($849/mo)', labelPl: 'Professional Full Workflow ($849/mies)' },
-  { value: 'full_enterprise', labelEn: 'Enterprise Full Workflow ($1499/mo)', labelPl: 'Enterprise Full Workflow ($1499/mies)' },
-  { value: 'enterprise_custom', labelEn: 'Enterprise Custom (From $25k/year)', labelPl: 'Enterprise Custom (od $25k/rok)' },
+  { value: 'ai_sourcing', labelEn: 'AI Sourcing (self-serve credits — from $89)', labelPl: 'AI Sourcing (self-serve credits — od $89)' },
+  { value: 'ai_procurement', labelEn: 'AI Procurement (outreach + offers + insights)', labelPl: 'AI Procurement (outreach + oferty + insights)' },
+  { value: 'bundle', labelEn: 'Bundle (Sourcing + Procurement — save 15%)', labelPl: 'Bundle (Sourcing + Procurement — oszczędność 15%)' },
+  { value: 'enterprise_custom', labelEn: 'Enterprise Custom (from $25k / year)', labelPl: 'Enterprise Custom (od $25k / rok)' },
   { value: 'integration_sap', labelEn: 'SAP integration', labelPl: 'Integracja SAP' },
   { value: 'integration_oracle', labelEn: 'Oracle integration (NetSuite / Fusion)', labelPl: 'Integracja Oracle (NetSuite / Fusion)' },
   { value: 'integration_dynamics', labelEn: 'Microsoft Dynamics integration', labelPl: 'Integracja Microsoft Dynamics' },

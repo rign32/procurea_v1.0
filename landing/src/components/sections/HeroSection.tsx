@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/Button"
+import { pathFor } from "@/i18n/paths"
 import {
   ArrowRight,
   CheckCircle,
@@ -145,11 +147,11 @@ export function HeroSection() {
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
             </a>
-            <a href={`#${t.sectionIds.demo}`} onClick={() => trackCtaClick('hero_demo')}>
+            <Link to={pathFor('pricing')} onClick={() => trackCtaClick('hero_pricing')}>
               <Button variant="secondary" size="lg" className="text-base px-8 py-4">
                 {t.hero.ctaSecondary}
               </Button>
-            </a>
+            </Link>
           </motion.div>
 
           {/* Trust line */}

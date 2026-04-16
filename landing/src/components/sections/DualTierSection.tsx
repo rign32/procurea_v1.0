@@ -10,163 +10,142 @@ const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
 const isEN = LANG === 'en'
 
 const copy = {
-  sectionLabel: isEN ? 'TWO WAYS TO START' : 'DWA SPOSOBY NA START',
-  heading: isEN ? 'Research now, automate later' : 'Research teraz, automatyzacja potem',
+  sectionLabel: isEN ? 'TWO WAYS TO BUY' : 'DWIE OPCJE ZAKUPU',
+  heading: isEN ? 'Research only, or full workflow' : 'Tylko research, lub pełen workflow',
   subheading: isEN
-    ? 'Start with AI Sourcing self-serve (10 free credits). When you are ready to send RFQs, collect offers, and close deals — upgrade to the full workflow.'
-    : 'Zacznij od AI Sourcingu (10 darmowych kredytów). Gdy chcesz wysyłać RFQ, zbierać oferty i zamykać kontrakty — dodaj pełen workflow procurement.',
+    ? 'Pay for what you use. AI Sourcing alone, AI Procurement workflow, or Bundle them for end-to-end campaigns with 15% savings.'
+    : 'Płacisz za to co używasz. Samo AI Sourcing, pełny workflow AI Procurement, lub Bundle dla kampanii end-to-end z 15% oszczędnością.',
 
-  sourcingLabel: isEN ? 'AI Sourcing' : 'AI Sourcing',
-  sourcingPrice: isEN ? 'Free · then from $199/mo' : 'Darmowo · potem od $199/mies',
+  sourcingLabel: 'AI Sourcing',
+  sourcingPrice: isEN ? 'From $89 / 10 credits' : 'Od $89 / 10 kredytów',
   sourcingDesc: isEN
-    ? 'Describe what you need. AI delivers a verified supplier shortlist in minutes. Perfect for teams that still run negotiations via email.'
-    : 'Opisz czego szukasz. AI dostarcza zweryfikowaną listę dostawców w minutach. Idealne dla zespołów prowadzących negocjacje mailem.',
+    ? 'Find 50–250 verified vendors per campaign in 26 languages. Excel export. Self-serve.'
+    : 'Znajdź 50–250 zweryfikowanych dostawców na kampanię w 26 językach. Eksport Excel. Self-serve.',
   sourcingFeatures: isEN ? [
+    'AI pipeline — 50–250 vendors per campaign',
+    '26-language research + Company Registry',
+    'One-click Excel export',
     '10 free credits on signup',
-    'Verified supplier shortlist (up to 200 per campaign)',
-    'AI classification + scoring',
-    'CSV export',
-    'Contact enrichment (from Professional)',
-    '26-language research (from Professional)',
   ] : [
+    'AI pipeline — 50–250 dostawców na kampanię',
+    'Wielojęzyczny research (26 j.) + Company Registry',
+    'Eksport Excel jednym kliknięciem',
     '10 darmowych kredytów po rejestracji',
-    'Zweryfikowana lista dostawców (do 200 na kampanię)',
-    'AI klasyfikacja i scoring',
-    'Eksport CSV',
-    'Enrichment kontaktów (od Professional)',
-    'Wielojęzyczny research, 26 języków (od Professional)',
   ],
-  sourcingCta: isEN ? 'Start free research' : 'Rozpocznij za darmo',
-  sourcingNote: isEN ? 'No credit card required' : 'Bez karty kredytowej',
+  sourcingCta: isEN ? 'Start free' : 'Rozpocznij za darmo',
 
-  fullLabel: isEN ? 'Full Workflow' : 'Pełen Workflow',
-  fullBadge: isEN ? 'Contact sales' : 'Porozmawiaj z nami',
-  fullPrice: isEN ? 'Bundle from $399/mo' : 'Bundle od $399/mies',
+  fullLabel: isEN ? 'Full Workflow (Bundle)' : 'Pełen Workflow (Bundle)',
+  fullBadge: isEN ? 'Save 15%' : 'Oszczędzasz 15%',
+  fullPrice: isEN ? 'From $399 / 10 full campaigns' : 'Od $399 / 10 pełnych kampanii',
   fullDesc: isEN
-    ? 'Everything in Sourcing, plus: send RFQs in bulk, supplier portal, offer comparison, auto follow-ups, multilingual outreach, PDF/PPTX reports. Integrates with SAP, Oracle, Dynamics, Salesforce.'
-    : 'Wszystko ze Sourcingu + wysyłka RFQ, portal dostawcy, porównywarka ofert, auto follow-upy, wielojęzyczny outreach, raporty PDF/PPTX. Integruje się z SAP, Oracle, Dynamics, Salesforce.',
+    ? 'AI Sourcing + AI Procurement together. Outreach in local language, supplier portal, offer comparison, AI Insights. Contact sales to set up.'
+    : 'AI Sourcing + AI Procurement razem. Outreach w języku lokalnym, supplier portal, porównanie ofert, AI Insights. Contact sales do uruchomienia.',
   fullFeatures: isEN ? [
     'Everything in AI Sourcing',
-    'Email outreach — bulk RFQ to 200+ suppliers',
-    'Supplier Portal — magic link, no login',
-    'Offer comparison — price, MOQ, lead time',
-    'Auto follow-up sequences',
-    'Multilingual outreach (Gemini translation)',
-    'PDF/PPTX reports export',
-    'ERP/CRM integrations (Dynamics · Salesforce · Oracle · SAP)',
+    'Bulk RFQ outreach — 26 languages',
+    'Supplier Portal + structured offers',
+    'AI Insights reports (PDF / PPTX)',
   ] : [
-    'Wszystko z AI Sourcingu',
-    'Email outreach — RFQ do 200+ dostawców',
-    'Supplier Portal — magic link, bez logowania',
-    'Porównywarka ofert — cena, MOQ, lead time',
-    'Sekwencje auto follow-up',
-    'Wielojęzyczny outreach (tłumaczenie Gemini)',
-    'Eksport raportów PDF/PPTX',
-    'Integracje ERP/CRM (Dynamics · Salesforce · Oracle · SAP)',
+    'Wszystko z AI Sourcing',
+    'Bulk RFQ outreach — 26 języków',
+    'Supplier Portal + strukturalne oferty',
+    'Raporty AI Insights (PDF / PPTX)',
   ],
-  fullCta: isEN ? 'Talk to sales' : 'Umów demo',
-  fullNote: isEN ? '30-min intro call · reply within 24h' : '30-minutowe intro · odpowiadamy w 24h',
+  fullCta: isEN ? 'Talk to sales' : 'Porozmawiaj z nami',
 
-  pricingCta: isEN ? 'See full pricing' : 'Zobacz pełen cennik',
+  pricingCta: isEN ? 'See full pricing — 4 products' : 'Zobacz pełen cennik — 4 produkty',
 }
 
 export function DualTierSection() {
   return (
-    <section className="relative py-20 md:py-28 bg-gradient-to-b from-white to-slate-50/50" data-track-section="dual-tier">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section className="relative py-14 md:py-20 bg-gradient-to-b from-white to-slate-50/50" data-track-section="dual-tier">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <RevealOnScroll>
-          <div className="text-center mb-14 md:mb-20">
-            <span className="inline-block text-xs font-bold uppercase tracking-[0.15em] text-primary mb-3">
+          <div className="text-center mb-8 md:mb-10">
+            <span className="inline-block text-xs font-bold uppercase tracking-[0.15em] text-primary mb-2">
               {copy.sectionLabel}
             </span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-3">
               {copy.heading}
             </h2>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               {copy.subheading}
             </p>
           </div>
         </RevealOnScroll>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
-          {/* Sourcing tier */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {/* Sourcing — compact */}
           <RevealOnScroll>
-            <div className="rounded-3xl bg-white border border-black/[0.08] p-7 md:p-10 shadow-sm h-full flex flex-col">
-              <div className="mb-6">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] font-bold text-emerald-800 uppercase tracking-wider mb-4">
+            <div className="rounded-2xl bg-white border border-black/[0.08] p-6 md:p-7 shadow-sm h-full flex flex-col">
+              <div className="flex items-center gap-2 mb-3">
+                <h3 className="text-xl md:text-2xl font-bold">{copy.sourcingLabel}</h3>
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
                   Self-serve
-                </div>
-                <h3 className="text-2xl md:text-3xl font-bold mb-2">{copy.sourcingLabel}</h3>
-                <div className="text-sm font-semibold text-primary mb-3">{copy.sourcingPrice}</div>
-                <p className="text-muted-foreground leading-relaxed">{copy.sourcingDesc}</p>
+                </span>
               </div>
+              <div className="text-sm font-semibold text-primary mb-2">{copy.sourcingPrice}</div>
+              <p className="text-sm text-muted-foreground mb-4">{copy.sourcingDesc}</p>
 
-              <ul className="space-y-3 mb-8 flex-1">
+              <ul className="space-y-2 mb-6 flex-1">
                 {copy.sourcingFeatures.map((f) => (
-                  <li key={f} className="flex items-start gap-2.5 text-sm">
+                  <li key={f} className="flex items-start gap-2 text-sm">
                     <Check className="h-4 w-4 mt-0.5 text-emerald-600 shrink-0" />
                     <span>{f}</span>
                   </li>
                 ))}
               </ul>
 
-              <div>
-                <a
-                  href={appendUtm(APP_URL, 'dual_tier_sourcing')}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => trackCtaClick('dual_tier_sourcing')}
-                  className="inline-flex items-center justify-center w-full px-6 py-3.5 text-base font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm hover:shadow-md transition-all"
-                >
-                  {copy.sourcingCta}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </a>
-                <p className="text-xs text-center text-muted-foreground mt-2">{copy.sourcingNote}</p>
-              </div>
+              <a
+                href={appendUtm(APP_URL, 'dual_tier_sourcing')}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackCtaClick('dual_tier_sourcing')}
+                className="inline-flex items-center justify-center w-full px-5 py-3 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all"
+              >
+                {copy.sourcingCta}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </a>
             </div>
           </RevealOnScroll>
 
-          {/* Full Workflow tier */}
+          {/* Full Workflow — compact */}
           <RevealOnScroll>
-            <div className="rounded-3xl bg-gradient-to-br from-slate-900 to-slate-800 text-white border border-amber-400/20 p-7 md:p-10 shadow-2xl h-full flex flex-col relative overflow-hidden">
-              {/* Decoration */}
-              <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-amber-400/5 blur-3xl" />
+            <div className="rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white p-6 md:p-7 shadow-xl h-full flex flex-col relative overflow-hidden">
+              <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-amber-400/5 blur-2xl pointer-events-none" />
 
-              <div className="mb-6 relative">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/30 text-[11px] font-bold text-amber-300 uppercase tracking-wider mb-4">
+              <div className="relative flex items-center gap-2 mb-3">
+                <h3 className="text-xl md:text-2xl font-bold">{copy.fullLabel}</h3>
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-amber-950 bg-amber-400 rounded-full px-2 py-0.5">
                   <Sparkles className="h-3 w-3" />
                   {copy.fullBadge}
-                </div>
-                <h3 className="text-2xl md:text-3xl font-bold mb-2">{copy.fullLabel}</h3>
-                <div className="text-sm font-semibold text-amber-300 mb-3">{copy.fullPrice}</div>
-                <p className="text-white/80 leading-relaxed">{copy.fullDesc}</p>
+                </span>
               </div>
+              <div className="relative text-sm font-semibold text-amber-300 mb-2">{copy.fullPrice}</div>
+              <p className="relative text-sm text-white/80 mb-4">{copy.fullDesc}</p>
 
-              <ul className="space-y-3 mb-8 flex-1 relative">
+              <ul className="relative space-y-2 mb-6 flex-1">
                 {copy.fullFeatures.map((f) => (
-                  <li key={f} className="flex items-start gap-2.5 text-sm">
+                  <li key={f} className="flex items-start gap-2 text-sm">
                     <Check className="h-4 w-4 mt-0.5 text-amber-300 shrink-0" />
                     <span className="text-white/90">{f}</span>
                   </li>
                 ))}
               </ul>
 
-              <div className="relative">
-                <Link
-                  to={`${pathFor('contact')}?interest=full_professional`}
-                  onClick={() => trackCtaClick('dual_tier_full')}
-                  className="inline-flex items-center justify-center w-full px-6 py-3.5 text-base font-semibold rounded-xl bg-amber-400 text-amber-950 hover:bg-amber-300 shadow-lg transition-all"
-                >
-                  {copy.fullCta}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-                <p className="text-xs text-center text-white/60 mt-2">{copy.fullNote}</p>
-              </div>
+              <Link
+                to={`${pathFor('contact')}?interest=bundle`}
+                onClick={() => trackCtaClick('dual_tier_full')}
+                className="relative inline-flex items-center justify-center w-full px-5 py-3 text-sm font-semibold rounded-lg bg-amber-400 text-amber-950 hover:bg-amber-300 shadow-lg transition-all"
+              >
+                {copy.fullCta}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </div>
           </RevealOnScroll>
         </div>
 
-        <div className="text-center mt-10">
+        <div className="text-center mt-6">
           <Link
             to={pathFor('pricing')}
             className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:gap-2.5 transition-all"

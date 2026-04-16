@@ -29,7 +29,7 @@ export type PathKey =
   | 'fOfferCollection'
   | 'fAutoFollowUp'
   | 'fMultilingualOutreach'
-  | 'fPdfReports'
+  | 'fAiInsights'
   // Industries (MVP P0)
   | 'iManufacturing'
   | 'iEvents'
@@ -79,7 +79,7 @@ export const pathMappings: Record<PathKey, { pl: string; en: string }> = {
   fOfferCollection: { pl: '/funkcje/zbieranie-ofert', en: '/features/offer-collection' },
   fAutoFollowUp: { pl: '/funkcje/auto-follow-up', en: '/features/auto-follow-up' },
   fMultilingualOutreach: { pl: '/funkcje/wielojezyczny-outreach', en: '/features/multilingual-outreach' },
-  fPdfReports: { pl: '/funkcje/raporty-pdf-pptx', en: '/features/pdf-reports' },
+  fAiInsights: { pl: '/funkcje/ai-insights', en: '/features/ai-insights' },
 
   // Industries — MVP P0
   iManufacturing: { pl: '/dla-kogo/produkcja', en: '/industries/manufacturing' },
@@ -130,5 +130,5 @@ export const featureSlugs: PathKey[] = [
   'fOfferCollection',
   'fAutoFollowUp',
   'fMultilingualOutreach',
-  'fPdfReports',
+  'fAiInsights',
 ]

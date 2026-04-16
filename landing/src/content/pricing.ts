@@ -1,219 +1,248 @@
 // Pricing page content — single source of truth for /cennik and /pricing
-// Binding values from landing/docs/pricing-model.md
-
-export type Module = 'sourcing' | 'procurement' | 'full'
-export type Tier = 'starter' | 'professional' | 'enterprise'
-
-// Monthly prices in USD. Annual = 20% discount.
-export const PRICES: Record<Tier, Record<Module, number | null>> = {
-  starter: { sourcing: 199, procurement: 249, full: 399 },
-  professional: { sourcing: 499, procurement: 449, full: 849 },
-  enterprise: { sourcing: 999, procurement: 649, full: 1499 },
-}
-
-// Campaigns per month per tier (same across modules)
-export const CAMPAIGNS: Record<Tier, number> = {
-  starter: 20,
-  professional: 60,
-  enterprise: 100,
-}
-
-// Annual discount
-export const ANNUAL_DISCOUNT = 0.2
-
-export function annualPrice(monthly: number): number {
-  return Math.round(monthly * 12 * (1 - ANNUAL_DISCOUNT))
-}
-
-export function annualSavings(monthly: number): number {
-  return Math.round(monthly * 12 * ANNUAL_DISCOUNT)
-}
-
-// Procurement is not self-serve — contact sales
-export function isContactSales(tier: Tier, module: Module): boolean {
-  return module !== 'sourcing' // only Sourcing alone is self-serve; Procurement and Full require sales
-}
+// Model: credit-based pay-as-you-go for 3 self-serve products + Enterprise Custom.
+//
+// Three separate self-serve products (customer can buy any combination):
+//   1. AI Sourcing credits — cheap ($) — run AI pipeline to find 50-250 qualified vendors
+//   2. AI Procurement credits — expensive ($$$) — contact enrichment, email outreach in local
+//      language, auto follow-up, supplier portal (magic link), offer collection/comparison,
+//      AI insights reports
+//   3. Bundle — same credit count across both modules, ~15% discount vs buying separately.
+//      One bundle credit = one end-to-end campaign (sourcing → outreach → offers).
+//   4. Enterprise Custom — unlimited, personalized onboarding, per-client ERP integration
+//      (dedicated instance or on-premise), dedicated support.
+//
+// Pricing basis (provided by product owner 2026-04-16):
+//   - AI Sourcing credit cost to us: ~2-5 PLN. Retail ~$89 for 10 credits (current Stripe packs).
+//   - AI Procurement credit cost to us: ~15-20 PLN (5x higher — data enrichment, email infra,
+//     portal hosting). Retail ~$349 for 10 credits.
+//   - Bundle: ~15% discount vs buying separately at same volume.
+//
+// Values below are PROPOSED. Sourcing matches current Stripe packs in
+// backend/src/billing/billing.service.ts (pack_10 $89, pack_25 $199, pack_50 $299).
+// Procurement + Bundle require new Stripe products — backend task tracked separately.
 
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
 const isEN = LANG === 'en'
 
+export type Product = 'sourcing' | 'procurement' | 'bundle' | 'enterprise'
+
+export interface CreditPack {
+  credits: number
+  price: number       // USD, net
+  perCredit: number
+  label: string
+}
+
+export interface ProductDefinition {
+  key: Product
+  name: string
+  tagline: string
+  description: string
+  packs: CreditPack[] // empty for enterprise (contact-sales only)
+  features: string[]
+  cta: 'self-serve' | 'contact-sales'
+  ctaLabel: string
+  interestTag: string
+  accent: 'neutral' | 'primary' | 'bundle' | 'enterprise'
+  badge?: string
+}
+
+export function formatUSD(amount: number): string {
+  return `$${amount.toLocaleString('en-US')}`
+}
+
+export const PRODUCTS: Record<Product, ProductDefinition> = {
+  sourcing: {
+    key: 'sourcing',
+    name: 'AI Sourcing',
+    tagline: isEN
+      ? 'Find qualified suppliers. Pay per campaign.'
+      : 'Znajduj zweryfikowanych dostawców. Płać za kampanię.',
+    description: isEN
+      ? 'AI pipeline scouts 50–250 qualified vendors per campaign across 26 languages. One-click export to Excel. Perfect for teams that already have their own outreach process.'
+      : 'AI pipeline wyszukuje 50–250 zweryfikowanych dostawców na kampanię w 26 językach. Eksport do Excela jednym kliknięciem. Idealne dla zespołów z własnym procesem outreach.',
+    packs: [
+      { credits: 10, price: 89, perCredit: 8.9, label: '10 ' + (isEN ? 'campaigns' : 'kampanii') },
+      { credits: 25, price: 199, perCredit: 7.96, label: '25 ' + (isEN ? 'campaigns' : 'kampanii') },
+      { credits: 50, price: 299, perCredit: 5.98, label: '50 ' + (isEN ? 'campaigns' : 'kampanii') },
+    ],
+    features: isEN ? [
+      'AI pipeline: 50–250 verified vendors per campaign',
+      '26-language research across EU and global markets',
+      'Company Registry (VAT, EORI, financial data)',
+      'One-click Excel export of full supplier list',
+      'Deduplication against your existing vendor base',
+      '10 free credits on signup (no credit card)',
+    ] : [
+      'AI pipeline: 50–250 zweryfikowanych dostawców na kampanię',
+      'Wielojęzyczny research w 26 językach (UE + globalnie)',
+      'Company Registry (VAT, EORI, dane finansowe)',
+      'Eksport pełnej listy do Excela jednym kliknięciem',
+      'Deduplikacja wobec istniejącej bazy dostawców',
+      '10 darmowych kredytów po rejestracji (bez karty)',
+    ],
+    cta: 'self-serve',
+    ctaLabel: isEN ? 'Start free' : 'Rozpocznij za darmo',
+    interestTag: 'ai_sourcing',
+    accent: 'neutral',
+  },
+  procurement: {
+    key: 'procurement',
+    name: 'AI Procurement',
+    tagline: isEN
+      ? 'Run full RFQ campaigns with AI-assisted outreach.'
+      : 'Prowadź pełne kampanie RFQ z outreach AI.',
+    description: isEN
+      ? 'Everything that happens after you have a supplier list: contact enrichment, bulk email outreach in each supplier\'s local language, auto follow-up sequences, magic-link Supplier Portal for structured offer collection, AI-powered offer comparison and insight reports.'
+      : 'Wszystko co dzieje się po otrzymaniu listy dostawców: enrichment kontaktów, masowa wysyłka RFQ w języku lokalnym dostawcy, automatyczne sekwencje follow-up, Supplier Portal z magic-link do strukturalnego zbierania ofert, porównanie ofert i AI insights.',
+    packs: [
+      { credits: 10, price: 349, perCredit: 34.9, label: '10 ' + (isEN ? 'campaigns' : 'kampanii') },
+      { credits: 25, price: 799, perCredit: 31.96, label: '25 ' + (isEN ? 'campaigns' : 'kampanii') },
+      { credits: 50, price: 1299, perCredit: 25.98, label: '50 ' + (isEN ? 'campaigns' : 'kampanii') },
+    ],
+    features: isEN ? [
+      'Contact enrichment — decision-maker emails, phones, LinkedIn',
+      'Email outreach localized per supplier country (26 languages)',
+      'Auto follow-up sequences on your schedule',
+      'Supplier Portal (magic link — no login needed for suppliers)',
+      'Structured offer collection (quantity breaks, MOQ, lead time)',
+      'Side-by-side offer comparison with weighted ranking',
+      'AI Insights PDF/PPTX reports — ready for your CFO',
+      'Counter-offer negotiation workflow',
+    ] : [
+      'Enrichment kontaktów — emaile decydentów, telefony, LinkedIn',
+      'Email outreach zlokalizowany per kraj dostawcy (26 języków)',
+      'Sekwencje auto follow-up na Twoim harmonogramie',
+      'Supplier Portal (magic link — dostawcy bez logowania)',
+      'Strukturalne zbieranie ofert (quantity breaks, MOQ, lead time)',
+      'Porównanie ofert side-by-side z rankingiem ważonym',
+      'Raporty AI Insights PDF/PPTX — gotowe dla CFO',
+      'Workflow negocjacyjny counter-offer',
+    ],
+    cta: 'contact-sales',
+    ctaLabel: isEN ? 'Talk to sales' : 'Porozmawiaj z nami',
+    interestTag: 'ai_procurement',
+    accent: 'primary',
+  },
+  bundle: {
+    key: 'bundle',
+    name: 'Bundle',
+    tagline: isEN
+      ? 'End-to-end campaigns with 15% savings.'
+      : 'Kampanie end-to-end z 15% oszczędnością.',
+    description: isEN
+      ? 'Same credit count across both modules — one credit runs a full campaign from AI sourcing through outreach to offer collection. Best value for teams running procurement end-to-end.'
+      : 'Ta sama liczba kredytów w obu modułach — jeden kredyt uruchamia pełną kampanię od AI sourcingu przez outreach do zbierania ofert. Najlepsza wartość dla zespołów prowadzących pełen procurement.',
+    packs: [
+      { credits: 10, price: 399, perCredit: 39.9, label: '10 ' + (isEN ? 'full campaigns' : 'pełnych kampanii') },
+      { credits: 25, price: 899, perCredit: 35.96, label: '25 ' + (isEN ? 'full campaigns' : 'pełnych kampanii') },
+      { credits: 50, price: 1399, perCredit: 27.98, label: '50 ' + (isEN ? 'full campaigns' : 'pełnych kampanii') },
+    ],
+    features: isEN ? [
+      'Everything in AI Sourcing',
+      'Everything in AI Procurement',
+      'Same credit count across both modules',
+      '~15% savings vs buying separately',
+      'One credit = one end-to-end campaign',
+      'Best for recurring sourcing needs',
+    ] : [
+      'Wszystko z AI Sourcing',
+      'Wszystko z AI Procurement',
+      'Ta sama liczba kredytów w obu modułach',
+      'Oszczędność ~15% vs zakup osobno',
+      'Jeden kredyt = jedna pełna kampania end-to-end',
+      'Najlepsze dla powtarzalnych kampanii sourcingowych',
+    ],
+    cta: 'contact-sales',
+    ctaLabel: isEN ? 'Talk to sales' : 'Porozmawiaj z nami',
+    interestTag: 'bundle',
+    accent: 'bundle',
+    badge: isEN ? 'Save 15%' : 'Oszczędzasz 15%',
+  },
+  enterprise: {
+    key: 'enterprise',
+    name: 'Enterprise Custom',
+    tagline: isEN
+      ? 'Unlimited usage, dedicated instance, custom ERP integration.'
+      : 'Bez limitu, dedicated instance, custom integracja ERP.',
+    description: isEN
+      ? 'For procurement teams with 10+ users, regulated industries, or complex ERP landscapes. Personalized onboarding, per-client integration build (SAP S/4HANA, Oracle Fusion, Dynamics F&O — native or on-premise), dedicated support with SLA.'
+      : 'Dla zespołów procurement z 10+ użytkownikami, branż regulowanych lub złożonych landscape\'ów ERP. Personalizowany onboarding, integracja budowana per-klient (SAP S/4HANA, Oracle Fusion, Dynamics F&O — natywnie lub on-premise), dedicated support z SLA.',
+    packs: [],
+    features: isEN ? [
+      'Unlimited campaigns (no per-credit pricing)',
+      'Dedicated instance (cloud or on-premise)',
+      'Personalized onboarding (2–4 week implementation)',
+      'Per-client ERP/CRM integration — SAP, Oracle, Dynamics, Salesforce',
+      'Custom AI models tuned to your category data',
+      'White-label Supplier Portal',
+      'Dedicated support engineer + SLA',
+      'Custom legal / compliance review + contract terms',
+    ] : [
+      'Bez limitu kampanii (brak pricingu per-kredyt)',
+      'Dedicated instance (cloud lub on-premise)',
+      'Personalizowany onboarding (2–4 tygodnie wdrożenia)',
+      'Integracja ERP/CRM per-klient — SAP, Oracle, Dynamics, Salesforce',
+      'Custom modele AI dostrojone do Twoich danych kategorii',
+      'White-label Supplier Portal',
+      'Dedykowany inżynier wsparcia + SLA',
+      'Custom przegląd legal/compliance + warunki kontraktu',
+    ],
+    cta: 'contact-sales',
+    ctaLabel: isEN ? 'Contact us' : 'Skontaktuj się',
+    interestTag: 'enterprise_custom',
+    accent: 'enterprise',
+    badge: isEN ? 'From $25k / year' : 'Od $25k / rok',
+  },
+}
+
+export const ORDERED_PRODUCTS: Product[] = ['sourcing', 'procurement', 'bundle', 'enterprise']
+
 export const copy = {
-  heroTitle: isEN ? 'Simple pricing that scales with you' : 'Przejrzysty cennik, który skaluje się z Tobą',
+  heroTitle: isEN
+    ? 'Transparent credit-based pricing'
+    : 'Przejrzysty pricing credit-based',
   heroSubtitle: isEN
-    ? 'Start with AI Sourcing self-serve. Add Procurement workflow when you are ready to send RFQs, collect offers and close deals.'
-    : 'Zacznij od AI Sourcingu — dostępny od razu po rejestracji. Dodaj Procurement workflow kiedy chcesz wysyłać RFQ, zbierać oferty i zamykać kontrakty.',
+    ? 'Buy what you need. AI Sourcing to find vendors. AI Procurement for full RFQ + offer workflow. Bundle runs both at once with 15% savings. Enterprise Custom for teams at scale.'
+    : 'Kupuj to czego potrzebujesz. AI Sourcing do wyszukiwania dostawców. AI Procurement do pełnego workflow RFQ + ofert. Bundle prowadzi oba naraz z 15% oszczędnością. Enterprise Custom dla zespołów na skalę.',
 
-  billingMonthly: isEN ? 'Monthly' : 'Miesięcznie',
-  billingAnnually: isEN ? 'Annually' : 'Rocznie',
-  saveBadge: isEN ? 'Save 20%' : 'Oszczędzasz 20%',
+  packLabel: isEN ? 'Credit packs' : 'Pakiety kredytów',
+  perCreditLabel: isEN ? '/credit' : '/kredyt',
+  fromLabel: isEN ? 'from' : 'od',
 
-  moduleSourcing: isEN ? 'AI Sourcing' : 'AI Sourcing',
-  moduleProcurement: isEN ? '+ Procurement' : '+ Procurement',
-  moduleFull: isEN ? 'Full Workflow' : 'Pełen Workflow',
-  moduleFullBadge: isEN ? 'Save up to $149/mo' : 'Oszczędzasz do $149/mies',
+  howItWorksTitle: isEN ? 'How credits work' : 'Jak działają kredyty',
+  howItWorksPoints: isEN ? [
+    '1 credit = 1 AI Sourcing campaign (or 1 full Bundle campaign)',
+    'Credits never expire',
+    'Pay as you go — no subscription commitment',
+    'Larger packs = lower per-credit cost',
+    'Upgrade to Enterprise Custom when you need unlimited',
+  ] : [
+    '1 kredyt = 1 kampania AI Sourcingowa (lub 1 pełna kampania Bundle)',
+    'Kredyty nigdy nie wygasają',
+    'Pay-as-you-go — bez zobowiązania subskrypcji',
+    'Większe pakiety = niższa cena per kredyt',
+    'Upgrade do Enterprise Custom gdy potrzebujesz unlimited',
+  ],
 
-  sourcingDesc: isEN ? 'Verified supplier shortlist. Self-serve.' : 'Zweryfikowana lista dostawców. Self-serve.',
-  procurementDesc: isEN ? 'RFQ + portal + offers. Requires Sourcing.' : 'RFQ + portal + oferty. Wymaga Sourcingu.',
-  fullDesc: isEN ? 'Complete workflow at a bundle discount.' : 'Kompletny workflow w cenie pakietu.',
-
-  campaignsLabel: isEN ? 'campaigns / month' : 'kampanii / mies',
-  monthlyLabel: isEN ? '/mo' : '/mies',
-  annuallyLabel: isEN ? '/yr' : '/rok',
-  perMonthBilled: isEN ? 'per month, billed annually' : 'miesięcznie, rozliczane rocznie',
-
-  ctaSelfServe: isEN ? 'Start free research' : 'Rozpocznij za darmo',
-  ctaContactSales: isEN ? 'Talk to sales' : 'Porozmawiaj z nami',
-  ctaEnterpriseCustom: isEN ? 'Contact us' : 'Skontaktuj się',
-  freeCreditsNote: isEN ? '10 free credits on signup' : '10 darmowych kredytów po rejestracji',
-
-  // Tier cards
-  starterName: 'Starter',
-  starterDescSourcing: isEN ? 'For small teams doing ad-hoc sourcing' : 'Dla małych zespołów robiących ad-hoc sourcing',
-  starterDescFull: isEN ? 'Starter plan with full procurement workflow' : 'Starter z pełnym workflow procurement',
-
-  professionalName: 'Professional',
-  professionalDescSourcing: isEN ? 'For procurement managers running campaigns weekly' : 'Dla kierowników zakupów prowadzących kampanie co tydzień',
-  professionalDescFull: isEN ? 'Pro plan with full procurement + sequences + multilingual' : 'Pro z pełnym procurementem + sekwencje + wielojęzyczność',
-  professionalBadge: isEN ? 'Most popular' : 'Najpopularniejszy',
-
-  enterpriseName: 'Enterprise',
-  enterpriseDescSourcing: isEN ? 'For procurement teams with API + priority processing' : 'Dla zespołów zakupowych z API + priority processing',
-  enterpriseDescFull: isEN ? 'Enterprise with SLA, custom branding, dedicated support' : 'Enterprise z SLA, custom branding, dedicated support',
-
-  enterpriseCustomName: 'Enterprise Custom',
-  enterpriseCustomPrice: isEN ? 'From $25k / year' : 'Od $25k / rok',
-  enterpriseCustomDesc: isEN
-    ? 'Unlimited, dedicated instance, custom AI, white-label, SAP/Oracle native integrations.'
-    : 'Unlimited, dedicated instance, custom AI, white-label, natywne integracje SAP/Oracle.',
-  enterpriseCustomCampaigns: isEN ? 'Unlimited campaigns' : 'Bez limitu kampanii',
-
-  // Comparison
-  comparisonTitle: isEN ? 'Compare all features' : 'Porównaj wszystkie funkcje',
-  comparisonSubtitle: isEN
-    ? 'Every feature across tiers and modules, side by side.'
-    : 'Wszystkie funkcje per tier i moduł, obok siebie.',
-
-  // FAQ
   faqTitle: isEN ? 'Pricing FAQ' : 'FAQ o cennik',
   faq: isEN ? [
-    { q: 'How do free credits work?', a: 'Every new user signs up with 10 free credits. Each credit runs one AI sourcing campaign. Business-email organizations share a pool of 10 credits; joining teammates add +3 bonus credits each. When credits run out, buy a pack or upgrade to a monthly plan.' },
-    { q: 'Can I buy Procurement add-on without a Sourcing subscription?', a: 'No — Procurement (RFQ, portal, offers, comparison) operates on suppliers discovered via Sourcing. You need an active Sourcing plan at the same tier, or buy a Full Workflow Bundle.' },
-    { q: 'Why is Procurement contact-sales only?', a: 'Procurement plans require workflow configuration — email templates, sequences, RFQ branding, supplier portal customization. We set this up together in a 30-minute onboarding call so you get value from day one.' },
-    { q: 'What happens if I exceed my monthly campaign limit?', a: 'Soft overage — you pay a small per-campaign fee, and we suggest upgrading to the next tier if you hit the limit regularly. No hard blocks.' },
-    { q: 'Can I cancel anytime?', a: 'All self-serve plans (Starter / Professional / Enterprise) are month-to-month. Cancel from your dashboard, no questions asked. Enterprise Custom is annual.' },
-    { q: 'Do you offer annual discounts?', a: 'Yes — 20% off when paid annually. Applies to all self-serve plans.' },
+    { q: 'What is a credit?', a: 'One AI Sourcing credit runs one campaign — describe what you need, AI finds 50–250 verified vendors, you get a full list with contacts and certifications. One Procurement credit runs one RFQ + offer collection workflow. Bundle credits do both end-to-end.' },
+    { q: 'What are the free credits?', a: 'Every new user gets 10 free AI Sourcing credits on signup. Organizations with business email share a pool of 10 credits; teammates joining add +3 bonus each. No credit card required — use your free credits as long as you want.' },
+    { q: 'Why is Procurement more expensive than Sourcing?', a: 'Procurement runs contact enrichment (third-party data lookups), sends emails via paid infrastructure, hosts Supplier Portal sessions, and uses more AI inference for translation and offer analysis. Our cost per credit is ~5x higher than Sourcing, so retail pricing reflects that.' },
+    { q: 'Can I buy Procurement credits without Sourcing?', a: 'Yes — you can buy any module independently. But Procurement campaigns need suppliers to target, so most customers buy Sourcing first (or buy Bundle credits for end-to-end workflow).' },
+    { q: 'Why is Bundle cheaper than buying separately?', a: 'Bundle assumes you run Sourcing + Procurement together in every campaign. We pre-commit capacity on both modules, pass ~15% savings to you. If you only need one module occasionally, buy that one — Bundle is for predictable end-to-end volume.' },
+    { q: 'Do credits expire?', a: 'No. Buy 50 credits today, use them over 12 months — no expiration.' },
+    { q: 'When do I need Enterprise Custom?', a: 'When you need unlimited usage, native SAP/Oracle/Dynamics integration, dedicated instance (or on-premise), custom SLA, or regulatory compliance review. Typically 10+ users or 500+ campaigns/year.' },
     { q: 'Do prices include VAT?', a: 'Prices shown are in USD, net. VAT/taxes added per your jurisdiction for EU and Polish customers.' },
-    { q: 'Which ERPs and CRMs do you integrate with?', a: 'Dynamics 365 Business Central is in pilot. Salesforce, Oracle NetSuite, Oracle Fusion Cloud and SAP S/4HANA are on roadmap (Q3–Q4 2026). Merge.dev covers 50+ additional systems. See /integrations for live status.' },
   ] : [
-    { q: 'Jak działają darmowe kredyty?', a: 'Każdy nowy użytkownik otrzymuje 10 darmowych kredytów po rejestracji. Jeden kredyt = jedna kampania sourcingowa AI. Organizacje z biznesowym e-mailem dzielą wspólną pulę 10 kredytów; każdy kolejny członek zespołu dodaje +3 bonusowe kredyty. Gdy kredyty się skończą, kup pakiet lub upgrade do planu miesięcznego.' },
-    { q: 'Czy mogę kupić Procurement add-on bez subskrypcji Sourcingu?', a: 'Nie — Procurement (RFQ, portal, oferty, porównywarka) działa na dostawcach znalezionych przez Sourcing. Potrzebujesz aktywnego planu Sourcing na tym samym tierze, lub Full Workflow Bundle.' },
-    { q: 'Dlaczego Procurement jest tylko contact-sales?', a: 'Plany Procurement wymagają konfiguracji workflow — szablony maili, sekwencje, branding RFQ, customizacja portalu dostawcy. Ustawiamy to razem w 30-minutowym onboardingu, żebyś miał wartość od pierwszego dnia.' },
-    { q: 'Co się dzieje gdy przekroczę miesięczny limit kampanii?', a: 'Soft overage — płacisz małą opłatę per dodatkowa kampania, i sugerujemy upgrade do wyższego tieru jeśli regularnie osiągasz limit. Brak hard blocków.' },
-    { q: 'Czy mogę anulować w każdej chwili?', a: 'Wszystkie plany self-serve (Starter / Professional / Enterprise) są miesięczne. Anuluj z dashboardu, bez pytań. Enterprise Custom jest roczny.' },
-    { q: 'Czy oferujecie rabaty roczne?', a: 'Tak — 20% zniżki przy płatności rocznej. Dotyczy wszystkich planów self-serve.' },
+    { q: 'Czym jest kredyt?', a: 'Jeden kredyt AI Sourcing uruchamia jedną kampanię — opisujesz czego szukasz, AI znajduje 50–250 zweryfikowanych dostawców, dostajesz pełną listę z kontaktami i certyfikatami. Jeden kredyt Procurement uruchamia jeden workflow RFQ + zbieranie ofert. Kredyty Bundle robią oba end-to-end.' },
+    { q: 'Co to są darmowe kredyty?', a: 'Każdy nowy użytkownik dostaje 10 darmowych kredytów AI Sourcing po rejestracji. Organizacje z biznesowym mailem dzielą pulę 10 kredytów; każdy dodatkowy członek dodaje +3 bonusowe. Bez karty kredytowej — używaj darmowych kredytów tak długo jak chcesz.' },
+    { q: 'Dlaczego Procurement jest droższy niż Sourcing?', a: 'Procurement uruchamia enrichment kontaktów (third-party data lookup), wysyła maile przez płatną infrastrukturę, hostuje sesje Supplier Portal, używa więcej AI inference do tłumaczenia i analizy ofert. Nasz koszt per kredyt jest ~5x wyższy, więc retail pricing to odzwierciedla.' },
+    { q: 'Czy mogę kupić kredyty Procurement bez Sourcingu?', a: 'Tak — możesz kupić każdy moduł niezależnie. Ale kampanie Procurement potrzebują dostawców do zatargetowania, więc większość klientów najpierw kupuje Sourcing (lub kupuje kredyty Bundle dla workflow end-to-end).' },
+    { q: 'Dlaczego Bundle jest tańszy niż osobno?', a: 'Bundle zakłada że prowadzisz Sourcing + Procurement razem w każdej kampanii. Pre-commitujemy moce w obu modułach, przekazujemy ~15% oszczędności Tobie. Jeśli tylko czasami potrzebujesz jednego modułu — kup ten jeden; Bundle jest dla przewidywalnego end-to-end volumenu.' },
+    { q: 'Czy kredyty wygasają?', a: 'Nie. Kup 50 kredytów dziś, używaj przez 12 miesięcy — bez wygasania.' },
+    { q: 'Kiedy potrzebuję Enterprise Custom?', a: 'Gdy potrzebujesz bez-limitowego użycia, natywnej integracji SAP/Oracle/Dynamics, dedicated instance (lub on-premise), custom SLA lub przeglądu compliance regulacyjnego. Typowo 10+ użytkowników lub 500+ kampanii rocznie.' },
     { q: 'Czy ceny zawierają VAT?', a: 'Ceny pokazane są w USD, netto. VAT/podatki dodawane zgodnie z Twoją jurysdykcją dla klientów z UE i Polski.' },
-    { q: 'Z jakimi systemami ERP i CRM się integrujecie?', a: 'Dynamics 365 Business Central jest w pilocie. Salesforce, Oracle NetSuite, Oracle Fusion Cloud i SAP S/4HANA na roadmapie (Q3-Q4 2026). Merge.dev pokrywa 50+ dodatkowych systemów. Status live na /integracje.' },
   ],
 }
-
-// Feature comparison matrix
-export interface ComparisonRow {
-  label: string
-  // per column: true (included), false (not), string (custom value)
-  values: [boolean | string, boolean | string, boolean | string, boolean | string] // [Starter, Pro, Enterprise, Enterprise Custom]
-}
-
-export interface ComparisonSection {
-  label: string
-  rows: ComparisonRow[]
-}
-
-export const comparisonEN: ComparisonSection[] = [
-  {
-    label: 'AI Sourcing (base module)',
-    rows: [
-      { label: 'Campaigns per month', values: ['20', '60', '100', 'Unlimited'] },
-      { label: 'AI supplier shortlist', values: [true, true, true, true] },
-      { label: 'AI classification & scoring', values: [true, true, true, true] },
-      { label: 'CSV export', values: [true, true, true, true] },
-      { label: 'Contact enrichment', values: [false, true, true, true] },
-      { label: 'Multilingual research (26 languages)', values: [false, true, true, true] },
-      { label: 'Company Registry (VAT, EORI, financials)', values: [false, true, true, true] },
-      { label: 'Priority processing', values: [false, false, true, true] },
-      { label: 'Custom filters', values: [false, false, true, true] },
-      { label: 'REST API access', values: [false, false, true, true] },
-    ],
-  },
-  {
-    label: 'Procurement (add-on or included in Full bundle)',
-    rows: [
-      { label: 'RFQ email outreach', values: [true, true, true, true] },
-      { label: 'Supplier Portal (magic link)', values: [true, true, true, true] },
-      { label: 'Structured offer collection', values: [true, true, true, true] },
-      { label: 'Offer comparison reports', values: [false, true, true, true] },
-      { label: 'Auto follow-up sequences', values: [false, true, true, true] },
-      { label: 'Multilingual outreach (Gemini translation)', values: [false, true, true, true] },
-      { label: 'PDF / PPTX report export', values: [true, true, true, true] },
-      { label: 'Counter-offer negotiation', values: [true, true, true, true] },
-      { label: 'Custom portal branding', values: [false, false, true, true] },
-      { label: 'Dedicated support', values: [false, false, true, true] },
-      { label: 'SLA', values: [false, false, true, true] },
-    ],
-  },
-  {
-    label: 'Enterprise Custom only',
-    rows: [
-      { label: 'Dedicated instance', values: [false, false, false, true] },
-      { label: 'Custom AI models', values: [false, false, false, true] },
-      { label: 'White-label', values: [false, false, false, true] },
-      { label: 'Native SAP / Oracle integration', values: [false, false, false, true] },
-      { label: 'Custom contract + legal review', values: [false, false, false, true] },
-    ],
-  },
-]
-
-export const comparisonPL: ComparisonSection[] = [
-  {
-    label: 'AI Sourcing (moduł podstawowy)',
-    rows: [
-      { label: 'Kampanie miesięcznie', values: ['20', '60', '100', 'Bez limitu'] },
-      { label: 'AI lista dostawców', values: [true, true, true, true] },
-      { label: 'AI klasyfikacja i scoring', values: [true, true, true, true] },
-      { label: 'Eksport CSV', values: [true, true, true, true] },
-      { label: 'Enrichment kontaktów', values: [false, true, true, true] },
-      { label: 'Wielojęzyczny research (26 języków)', values: [false, true, true, true] },
-      { label: 'Company Registry (VAT, EORI, finanse)', values: [false, true, true, true] },
-      { label: 'Priority processing', values: [false, false, true, true] },
-      { label: 'Custom filtry', values: [false, false, true, true] },
-      { label: 'REST API', values: [false, false, true, true] },
-    ],
-  },
-  {
-    label: 'Procurement (add-on lub w Full bundle)',
-    rows: [
-      { label: 'Email outreach RFQ', values: [true, true, true, true] },
-      { label: 'Supplier Portal (magic link)', values: [true, true, true, true] },
-      { label: 'Strukturalne zbieranie ofert', values: [true, true, true, true] },
-      { label: 'Raporty porównawcze ofert', values: [false, true, true, true] },
-      { label: 'Sekwencje auto follow-up', values: [false, true, true, true] },
-      { label: 'Wielojęzyczny outreach (Gemini)', values: [false, true, true, true] },
-      { label: 'Eksport raportów PDF / PPTX', values: [true, true, true, true] },
-      { label: 'Counter-offer negocjacje', values: [true, true, true, true] },
-      { label: 'Custom branding portalu', values: [false, false, true, true] },
-      { label: 'Dedicated support', values: [false, false, true, true] },
-      { label: 'SLA', values: [false, false, true, true] },
-    ],
-  },
-  {
-    label: 'Tylko Enterprise Custom',
-    rows: [
-      { label: 'Dedicated instance', values: [false, false, false, true] },
-      { label: 'Custom modele AI', values: [false, false, false, true] },
-      { label: 'White-label', values: [false, false, false, true] },
-      { label: 'Natywna integracja SAP / Oracle', values: [false, false, false, true] },
-      { label: 'Custom kontrakt + legal review', values: [false, false, false, true] },
-    ],
-  },
-]
-
-export const comparison = isEN ? comparisonEN : comparisonPL
