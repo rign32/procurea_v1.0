@@ -118,6 +118,9 @@ model User {
 
   // Notifications
   notifications Notification[]
+
+  // Purchase Orders created by this user (Sprint 4)
+  createdPurchaseOrders PurchaseOrder[] @relation("PurchaseOrderCreatedBy")
 }
 
 // Refresh Token Model for secure session management
@@ -184,6 +187,9 @@ model Organization {
   roles       Role[]
   workspaces  Workspace[]
   integrationConnections IntegrationConnection[]
+
+  // Purchase Orders (Sprint 4)
+  purchaseOrders PurchaseOrder[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -372,8 +378,13 @@ model Supplier {
   // Procurea Connect: matches against customer's ERP
   externalMatches SupplierMatch[]
 
+  // Supplier quality score 0-100 (Sprint 3) — computed from response rate, offer completeness, CompanyRegistry signals
+  qualityScore   Float?
+
   // Soft Delete
   deletedAt DateTime?
+
+  @@index([qualityScore])
 }
 
 model Contact {
@@ -642,6 +653,9 @@ model Offer {
   accessToken  String     @unique @default(uuid())
   tokenExpiresAt DateTime?
 
+  // Resend outbound email_id — used to match incoming replies via In-Reply-To header (Sprint 1)
+  resendEmailId String?   @unique
+
   // Audit
   viewedAt     DateTime?
   submittedAt  DateTime?
@@ -675,6 +689,10 @@ model Offer {
 
   // Contracts
   contracts   Contract[]
+
+  // Inbound email replies (Sprint 1) + Purchase Orders (Sprint 4)
+  replies         OfferReply[]
+  purchaseOrders  PurchaseOrder[]
 }
 
 // Price tier for quantity-based pricing
@@ -1034,6 +1052,9 @@ model Contract {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
+  // Purchase Orders generated from this contract (Sprint 4)
+  purchaseOrders  PurchaseOrder[]
+
   @@index([createdById])
   @@index([organizationId])
   @@index([status])
@@ -1274,4 +1295,116 @@ model SupplierMatch {
   @@index([supplierId, status])
   @@index([externalSupplierId, status])
   @@index([status, confidence])
+}
+
+// =====================================================================
+// SPRINT 1 — Resend Inbound Email Reply Capture
+// =====================================================================
+
+// Captures inbound email replies from suppliers, classified by AI triage.
+// Replies arrive via Resend Inbound webhook → email-triage.service.ts → this table.
+model OfferReply {
+  id              String    @id @default(uuid())
+  offerId         String
+  offer           Offer     @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  resendEmailId   String    @unique   // Resend inbound email_id from webhook payload
+
+  fromAddress     String
+  fromName        String?
+  subject         String
+  textBody        String?   @db.Text
+  htmlBody        String?   @db.Text
+
+  headers         Json                // parsed headers: In-Reply-To, References, Message-ID
+  attachments     Json?               // Resend attachment metadata array
+
+  // AI Triage
+  category        String              // "FORWARD" | "STORE_ONLY" | "BLOCK"
+  aiAnalysis      Json                // { sentiment, extractedTerms, summary, confidence, reason }
+
+  // Forwarding tracking
+  forwardedAt     DateTime?
+  forwardedTo     String?             // email address we forwarded to (user's verified email)
+
+  receivedAt      DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+
+  @@index([offerId])
+  @@index([category])
+  @@index([receivedAt])
+}
+
+// Webhook event deduplication — mirrors StripeEventLog pattern.
+// Prevents processing the same email.received event twice.
+model ResendEventLog {
+  id            String   @id @default(uuid())
+  eventId       String   @unique            // Resend's unique event identifier
+  eventType     String                       // "email.received" etc.
+  payload       Json
+  processedAt   DateTime @default(now())
+
+  @@index([eventType])
+}
+
+// =====================================================================
+// SPRINT 4 — Purchase Order Module
+// =====================================================================
+
+// Generated from a SIGNED Contract; optionally synced to ERP via Merge.dev.
+model PurchaseOrder {
+  id              String              @id @default(uuid())
+  poNumber        String?             @unique    // auto-generated e.g. "PO-2026-001"
+
+  contractId      String
+  contract        Contract            @relation(fields: [contractId], references: [id])
+
+  offerId         String
+  offer           Offer               @relation(fields: [offerId], references: [id])
+
+  organizationId  String
+  organization    Organization        @relation(fields: [organizationId], references: [id])
+
+  status          String              @default("DRAFT") // DRAFT | SUBMITTED | CONFIRMED | DELIVERED | INVOICED | CANCELLED
+
+  totalAmount     Float?
+  currency        String?
+  deliveryDate    DateTime?
+  notes           String?             @db.Text
+
+  lines           PurchaseOrderLine[]
+
+  // Merge.dev ERP sync (Sprint 4 Faza 3)
+  externalId      String?                        // Merge.dev PO ID after sync
+  externalSystem  String?                        // "netsuite" | "quickbooks-online" | "xero" | etc.
+  syncedAt        DateTime?
+
+  createdById     String
+  createdBy       User                @relation("PurchaseOrderCreatedBy", fields: [createdById], references: [id])
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([contractId])
+  @@index([offerId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([createdById])
+}
+
+model PurchaseOrderLine {
+  id                String         @id @default(uuid())
+  purchaseOrderId   String
+  purchaseOrder     PurchaseOrder  @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+
+  description       String
+  quantity          Float
+  unit              String?
+  unitPrice         Float
+  totalPrice        Float
+  deliveryDate      DateTime?
+  notes             String?        @db.Text
+  sortOrder         Int            @default(0)
+
+  @@index([purchaseOrderId])
 }
