@@ -38,10 +38,11 @@ export const PL = {
   },
   hero: {
     badge: 'AI-native platforma procurement',
-    headlinePart1: 'Procurement',
-    headlineHighlight: 'na autopilocie',
+    savingsPill: 'Średnio 4,6% oszczędności na zakupach',
+    headlinePart1: 'Agentyczna AI',
+    headlineHighlight: 'w zakupach',
     headlinePart2: '.',
-    subheadline: 'AI pipeline znajduje 250 dostawców w 20 minut. AI workflow uruchamia RFQ, zbiera oferty, porównuje i negocjuje — wszystko w jednej platformie.',
+    subheadline: '4 wyspecjalizowane agenty AI wyszukują, negocjują i weryfikują dostawców — generując średnio 4,6% oszczędności na każdym zapytaniu.',
     ctaPrimary: 'Umów demo',
     ctaSecondary: 'Zobacz cennik',
     trustFreeAccess: '10 darmowych kredytów',
@@ -172,15 +173,15 @@ export const PL = {
     heading: 'Mierzalne rezultaty',
     headingSub: 'dla Twojego zespołu',
     metrics: [
-      { label: 'Szybciej niż ręcznie' },
-      { label: 'Tańsze oferty średnio' },
-      { label: 'Języków wyszukiwania' },
-      { label: 'Więcej dostawców' },
+      { label: 'Szybciej niż ręcznie', sublabel: '' },
+      { label: 'średnie oszczędności na zapytaniu', sublabel: 'zakres 3–6% w zależności od kategorii' },
+      { label: 'Języków wyszukiwania', sublabel: '' },
+      { label: 'Więcej dostawców', sublabel: '' },
     ],
     cards: [
       {
         title: 'Więcej ofert = lepsza cena',
-        description: 'Docierasz do dostawców, do których normalnie byś nie trafił. Większy zasięg i automatyczne wzbogacanie danych oznaczają większą bazę dostawców i lepszą pozycję negocjacyjną — średnio 6% niższe ceny.',
+        description: 'Docierasz do dostawców, do których normalnie byś nie trafił. Większy zasięg i automatyczne wzbogacanie danych oznaczają większą bazę dostawców i lepszą pozycję negocjacyjną — średnio 4,6% niższe ceny.',
       },
       {
         title: '30 godzin → 1 godzina',
@@ -396,6 +397,79 @@ export const PL = {
         a: 'Enterprise Custom ma sens gdy: (a) robisz 500+ kampanii sourcingowych rocznie (wtedy unlimited taniej niż kredyty), (b) potrzebujesz custom ERP adapter którego nie ma Merge.dev, (c) wymagasz dedykowanej instancji (izolowana baza, własny VPC), (d) masz ścisłe wymagania compliance (ISO 27001 audit, DPA z regionalnym residency), (e) chcesz SSO/SAML, custom SLA i dedykowanego CSM. Cena od $25k/rok, typowe kontrakty $40–120k. Umów demo: /kontakt.',
       },
     ],
+  },
+  calculator: {
+    title: 'Oblicz swoje oszczędności w zakupach',
+    subtitle: 'W oparciu o średnio 4,6% oszczędności w naszych kampaniach pilotażowych',
+    inputLabel: 'Roczny budżet zakupowy',
+    annualSavings: 'Oszczędności rocznie',
+    monthlySavings: 'Oszczędności miesięcznie',
+    roiLabel: 'Zwrot z planu Bundle',
+    roiSuffix: 'dni',
+    roiNotReached: '—',
+    cta: 'Zacznij oszczędzać',
+    pricingTitle: 'Zobacz jak Procurea zwróci się w kilka tygodni',
+    pricingSubtitle: 'Suwak: Twój roczny budżet zakupowy. Wynik: oszczędności i czas zwrotu planu Bundle ($899/mies).',
+  },
+  pricing: {
+    creditPacks: {
+      title: 'Pakiety kredytów',
+      subtitle: 'Kupuj hurtowo — im większy pakiet, tym niższa cena za kredyt',
+      helper: '1 kredyt = 1 kampania. Kredyty nigdy nie wygasają. Kupuj teraz, używaj kiedy chcesz.',
+      tiers: [
+        { name: 'Starter', credits: '10 kredytów', badge: '' },
+        { name: 'Growth', credits: '25 kredytów', badge: 'Najpopularniejsze' },
+        { name: 'Scale', credits: '50 kredytów', badge: '' },
+      ],
+      productLabels: { sourcing: 'AI Sourcing', procurement: 'AI Procurement', bundle: 'Bundle' },
+    },
+    compare: {
+      title: 'Porównaj plany',
+      subtitle: 'Pełne zestawienie funkcji każdego planu',
+      plans: { sourcing: 'AI Sourcing', procurement: 'AI Procurement', bundle: 'Bundle', enterprise: 'Enterprise' },
+      groups: [
+        {
+          name: 'Sourcing',
+          rows: [
+            { label: 'Dostawców na kampanię', sourcing: '50–250', procurement: '—', bundle: '50–250', enterprise: 'Bez limitu' },
+            { label: 'Języków wyszukiwania', sourcing: '26', procurement: '—', bundle: '26', enterprise: '26' },
+            { label: 'Krajów (EU / Global)', sourcing: '✓', procurement: '—', bundle: '✓', enterprise: '✓' },
+            { label: 'Enrichment kontaktów', sourcing: 'Podstawowy', procurement: '✓', bundle: '✓', enterprise: '✓' },
+            { label: 'Manual review dostawców', sourcing: '—', procurement: '—', bundle: '✓', enterprise: '✓' },
+          ],
+        },
+        {
+          name: 'Procurement',
+          rows: [
+            { label: 'Szablony RFQ', sourcing: '—', procurement: '✓', bundle: '✓', enterprise: 'Custom' },
+            { label: 'Supplier Portal', sourcing: '—', procurement: '✓', bundle: '✓', enterprise: 'White-label' },
+            { label: 'Komunikacja z dostawcami', sourcing: '—', procurement: '✓', bundle: '✓', enterprise: '✓' },
+            { label: 'Porównanie ofert', sourcing: '—', procurement: '✓', bundle: '✓', enterprise: '✓' },
+            { label: 'Raporty AI Insights', sourcing: '—', procurement: '✓', bundle: '✓', enterprise: '✓' },
+          ],
+        },
+        {
+          name: 'Integracje',
+          rows: [
+            { label: 'ERP (Merge.dev, 100+ systemów)', sourcing: '—', procurement: '✓', bundle: '✓', enterprise: 'Custom adapter' },
+            { label: 'CRM (HubSpot, Salesforce, Pipedrive)', sourcing: '—', procurement: '✓', bundle: '✓', enterprise: '✓' },
+            { label: 'Email (Gmail, Outlook)', sourcing: '✓', procurement: '✓', bundle: '✓', enterprise: '✓' },
+            { label: 'Webhooks', sourcing: '—', procurement: '✓', bundle: '✓', enterprise: '✓' },
+            { label: 'Public API', sourcing: '—', procurement: '—', bundle: '—', enterprise: '✓' },
+          ],
+        },
+        {
+          name: 'Wsparcie',
+          rows: [
+            { label: 'Wsparcie email', sourcing: '✓', procurement: '✓', bundle: '✓', enterprise: '✓' },
+            { label: 'Wsparcie priorytetowe', sourcing: '—', procurement: '✓', bundle: '✓', enterprise: '✓' },
+            { label: 'Dedykowany CSM', sourcing: '—', procurement: '—', bundle: '—', enterprise: '✓' },
+            { label: 'SLA', sourcing: '—', procurement: '—', bundle: '—', enterprise: 'Custom' },
+            { label: 'Custom onboarding', sourcing: '—', procurement: '—', bundle: '—', enterprise: '✓' },
+          ],
+        },
+      ],
+    },
   },
   footer: {
     brand: 'Automatyzacja zaopatrzenia dla globalnych zespołów. AI Sourcing + pełen workflow procurement.',

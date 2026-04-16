@@ -6,6 +6,7 @@ import { HeroSection } from "@/components/sections/HeroSection"
 import { IndustryTrustBar } from "@/components/sections/IndustryTrustBar"
 import { ModuleOverview } from "@/components/sections/ModuleOverview"
 import { BenefitsSection } from "@/components/sections/BenefitsSection"
+import { SavingsCalculator } from "@/components/sections/SavingsCalculator"
 import { FeatureShowcase } from "@/components/sections/FeatureShowcase"
 import { IntegrationsLogosCarousel } from "@/components/sections/IntegrationsLogosCarousel"
 import { IndustriesGridSection } from "@/components/sections/IndustriesGridSection"
@@ -50,6 +51,7 @@ export function HomePage() {
         <div data-track-section="industry-trust"><IndustryTrustBar /></div>
         <div data-track-section="modules"><ModuleOverview /></div>
         <div data-track-section="benefits"><BenefitsSection /></div>
+        <div data-track-section="calculator"><SavingsCalculator /></div>
 
         <section id="product" data-track-section="product">
           <FeatureShowcase number="01" slug="ai-sourcing" reverse={false} />

@@ -7,7 +7,7 @@ import { t } from "@/i18n"
 
 const metricConfigs = [
   { target: 30, suffix: "x", icon: Zap, color: "text-amber-500", bg: "bg-amber-50", ring: "ring-amber-100", gradient: "from-amber-500 to-orange-500" },
-  { target: 6, suffix: "%", icon: TrendingDown, color: "text-emerald-500", bg: "bg-emerald-50", ring: "ring-emerald-100", gradient: "from-emerald-500 to-teal-500" },
+  { target: 4.6, suffix: "%", decimals: 1, icon: TrendingDown, color: "text-emerald-500", bg: "bg-emerald-50", ring: "ring-emerald-100", gradient: "from-emerald-500 to-teal-500" },
   { target: 26, suffix: "", icon: Globe, color: "text-brand-500", bg: "bg-brand-50", ring: "ring-brand-100", gradient: "from-brand-500 to-brand-700" },
   { target: 3, suffix: "x", icon: Users, color: "text-brand-gray-500", bg: "bg-brand-gray-50", ring: "ring-brand-gray-100", gradient: "from-brand-gray-500 to-brand-900" },
 ]
@@ -18,11 +18,11 @@ const cardStyles = [
 ]
 
 function CounterItem({
-  target, suffix, label, icon: Icon, color, bg, ring, gradient,
-}: { target: number; suffix: string; label: string; icon: any; color: string; bg: string; ring: string; gradient: string }) {
+  target, suffix, label, sublabel, icon: Icon, color, bg, ring, gradient, decimals,
+}: { target: number; suffix: string; label: string; sublabel?: string; icon: any; color: string; bg: string; ring: string; gradient: string; decimals?: number }) {
   const ref = useRef<HTMLDivElement>(null)
   const [isVisible, setIsVisible] = useState(false)
-  const count = useAnimatedCounter(target, 2000, isVisible)
+  const count = useAnimatedCounter(target, 2000, isVisible, decimals ?? 0)
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -33,16 +33,19 @@ function CounterItem({
     return () => observer.disconnect()
   }, [])
 
+  const displayCount = decimals && decimals > 0 ? count.toFixed(decimals) : count
+
   return (
     <div ref={ref} className="text-center group">
       <div className={`inline-flex items-center justify-center h-14 w-14 rounded-2xl ${bg} ${color} mb-4 transition-transform duration-200 group-hover:scale-110 ring-1 ${ring}`}>
         <Icon className="h-6 w-6" />
       </div>
       <div className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight tabular-nums mb-2">
-        <span className={`bg-gradient-to-r ${gradient} bg-clip-text text-transparent`}>{count}</span>
+        <span className={`bg-gradient-to-r ${gradient} bg-clip-text text-transparent`}>{displayCount}</span>
         <span className="text-muted-foreground/30">{suffix}</span>
       </div>
       <p className="text-sm sm:text-base text-muted-foreground font-medium">{label}</p>
+      {sublabel && <p className="text-xs text-muted-foreground/70 mt-0.5">{sublabel}</p>}
     </div>
   )
 }
@@ -79,7 +82,7 @@ export function BenefitsSection() {
               key={t.benefits.metrics[idx].label}
               variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }}
             >
-              <CounterItem {...config} label={t.benefits.metrics[idx].label} />
+              <CounterItem {...config} label={t.benefits.metrics[idx].label} sublabel={t.benefits.metrics[idx].sublabel} />
             </motion.div>
           ))}
         </motion.div>

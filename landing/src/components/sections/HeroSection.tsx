@@ -119,6 +119,19 @@ export function HeroSection() {
             {t.hero.badge}
           </motion.div>
 
+          {/* Savings pill */}
+          <div>
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] font-bold text-emerald-700 uppercase tracking-wider mb-4"
+            >
+              <TrendingDown className="h-3 w-3" />
+              {t.hero.savingsPill}
+            </motion.div>
+          </div>
+
           {/* Headline */}
           <motion.h1
             initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}

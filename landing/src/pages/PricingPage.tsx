@@ -1,5 +1,6 @@
+import { Fragment } from "react"
 import { Link } from "react-router-dom"
-import { Check, Sparkles } from "lucide-react"
+import { Check, Sparkles, Search, Workflow, Layers, type LucideIcon } from "lucide-react"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
@@ -8,6 +9,8 @@ import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { appendUtm } from "@/lib/utm"
 import { trackCtaClick } from "@/lib/analytics"
 import { pathFor } from "@/i18n/paths"
+import { t } from "@/i18n"
+import { SavingsCalculator } from "@/components/sections/SavingsCalculator"
 import {
   PRODUCTS,
   ORDERED_PRODUCTS,
@@ -21,6 +24,13 @@ const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
 const isEN = LANG === 'en'
 
+const PRODUCT_ICONS: Record<Product, LucideIcon> = {
+  sourcing: Search,
+  procurement: Workflow,
+  bundle: Layers,
+  enterprise: Sparkles,
+}
+
 function accentClasses(accent: ProductDefinition['accent']) {
   switch (accent) {
     case 'primary':
@@ -28,26 +38,53 @@ function accentClasses(accent: ProductDefinition['accent']) {
         card: 'bg-white border border-primary/20 shadow-md',
         badge: 'bg-primary/10 text-primary border-primary/20',
         cta: 'bg-primary text-primary-foreground hover:bg-primary/90',
+        iconWrap: 'bg-primary/10 text-primary',
       }
     case 'bundle':
       return {
         card: 'bg-primary text-primary-foreground shadow-2xl ring-2 ring-primary/30 lg:scale-[1.02]',
         badge: 'bg-amber-400 text-amber-950',
         cta: 'bg-white text-primary hover:bg-white/90',
+        iconWrap: 'bg-white/15 text-white',
       }
     case 'enterprise':
       return {
         card: 'bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-2xl border border-amber-400/20',
         badge: 'bg-amber-400/10 border border-amber-400/30 text-amber-300',
         cta: 'bg-amber-400 text-amber-950 hover:bg-amber-300',
+        iconWrap: 'bg-amber-400/15 text-amber-300',
       }
     default:
       return {
         card: 'bg-white border border-black/[0.08] shadow-sm',
         badge: 'bg-emerald-50 border border-emerald-200 text-emerald-800',
         cta: 'bg-primary text-primary-foreground hover:bg-primary/90',
+        iconWrap: 'bg-slate-100 text-slate-700',
       }
   }
+}
+
+function headlinePrice(product: ProductDefinition): string {
+  if (product.packs.length > 0) {
+    const first = product.packs[0]
+    return `${isEN ? 'From' : 'Od'} ${formatUSD(first.price)}`
+  }
+  // Enterprise
+  return isEN ? 'From $25k / year' : 'Od $25k / rok'
+}
+
+function headlineSub(product: ProductDefinition): string {
+  if (product.packs.length > 0) {
+    const first = product.packs[0]
+    return `${first.credits} ${isEN ? 'campaigns' : 'kampanii'} · $${first.perCredit.toFixed(2)}${copy.perCreditLabel}`
+  }
+  return isEN ? 'Unlimited · custom contract' : 'Bez limitu · custom kontrakt'
+}
+
+function trimTagline(tagline: string): string {
+  // keep first sentence only
+  const firstSentence = tagline.split('.')[0]
+  return firstSentence.length > 0 ? firstSentence + '.' : tagline
 }
 
 function ProductCard({ product }: { product: ProductDefinition }) {
@@ -55,6 +92,9 @@ function ProductCard({ product }: { product: ProductDefinition }) {
   const isBundle = product.accent === 'bundle'
   const isEnterprise = product.accent === 'enterprise'
   const isDark = isBundle || isEnterprise
+  const Icon = PRODUCT_ICONS[product.key]
+
+  const topFeatures = product.features.slice(0, 4)
 
   const ctaElement = product.cta === 'self-serve' ? (
     <a
@@ -78,12 +118,17 @@ function ProductCard({ product }: { product: ProductDefinition }) {
 
   return (
     <div className={`relative rounded-2xl p-6 md:p-7 flex flex-col h-full ${styles.card}`}>
-      {product.badge && (
+      {isBundle && (
         <span className={`absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${styles.badge}`}>
-          {isBundle && <Sparkles className="h-3 w-3" />}
-          {product.badge}
+          <Sparkles className="h-3 w-3" />
+          {isEN ? 'Most popular' : 'Najpopularniejsze'}
         </span>
       )}
+
+      {/* Icon */}
+      <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl mb-4 ${styles.iconWrap}`}>
+        <Icon className="h-5 w-5" />
+      </div>
 
       {/* Header */}
       <div className="mb-5">
@@ -91,45 +136,23 @@ function ProductCard({ product }: { product: ProductDefinition }) {
           {product.name}
         </h3>
         <p className={`text-sm leading-relaxed ${isDark ? 'text-white/80' : 'text-muted-foreground'}`}>
-          {product.tagline}
+          {trimTagline(product.tagline)}
         </p>
       </div>
 
-      {/* Price area */}
-      {product.packs.length > 0 ? (
-        <div className={`mb-6 rounded-xl p-4 border ${isDark ? 'border-white/10 bg-white/5' : 'border-black/[0.06] bg-slate-50/60'}`}>
-          <div className={`text-[10px] font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-white/70' : 'text-muted-foreground'}`}>
-            {copy.packLabel}
-          </div>
-          <ul className="space-y-1.5">
-            {product.packs.map((pack) => (
-              <li key={pack.credits} className="flex items-baseline justify-between text-sm">
-                <span className={isDark ? 'text-white/90' : 'text-foreground'}>{pack.label}</span>
-                <span className={`font-semibold ${isDark ? 'text-white' : 'text-foreground'}`}>
-                  {formatUSD(pack.price)}
-                  <span className={`ml-1 text-[11px] font-normal ${isDark ? 'text-white/60' : 'text-muted-foreground'}`}>
-                    · ${pack.perCredit.toFixed(2)}{copy.perCreditLabel}
-                  </span>
-                </span>
-              </li>
-            ))}
-          </ul>
+      {/* Price — single headline */}
+      <div className={`mb-6 rounded-xl p-4 border ${isDark ? 'border-white/10 bg-white/5' : 'border-black/[0.06] bg-slate-50/60'}`}>
+        <div className={`text-2xl md:text-3xl font-bold ${isDark ? 'text-white' : 'text-foreground'}`}>
+          {headlinePrice(product)}
         </div>
-      ) : (
-        <div className="mb-6">
-          <div className="text-3xl md:text-4xl font-bold text-white mb-1">{product.badge}</div>
-          <div className="text-sm text-white/80">{isEN ? 'Unlimited · custom contract' : 'Bez limitu · custom kontrakt'}</div>
+        <div className={`text-xs mt-1 ${isDark ? 'text-white/70' : 'text-muted-foreground'}`}>
+          {headlineSub(product)}
         </div>
-      )}
+      </div>
 
-      {/* Description */}
-      <p className={`text-sm leading-relaxed mb-5 ${isDark ? 'text-white/80' : 'text-muted-foreground'}`}>
-        {product.description}
-      </p>
-
-      {/* Features */}
+      {/* Features — top 4 only */}
       <ul className="space-y-2.5 mb-6 flex-1">
-        {product.features.map((feature) => (
+        {topFeatures.map((feature) => (
           <li key={feature} className="flex items-start gap-2 text-sm">
             <Check className={`h-4 w-4 mt-0.5 shrink-0 ${isDark ? 'text-amber-300' : 'text-emerald-600'}`} />
             <span className={isDark ? 'text-white/90' : 'text-foreground'}>
@@ -145,6 +168,155 @@ function ProductCard({ product }: { product: ProductDefinition }) {
   )
 }
 
+function CreditPacksSection() {
+  const section = t.pricing.creditPacks
+  const sourcing = PRODUCTS.sourcing.packs
+  const procurement = PRODUCTS.procurement.packs
+  const bundle = PRODUCTS.bundle.packs
+  const labels = section.productLabels
+
+  // 3 tiers correspond to pack index 0/1/2 (10/25/50 credits)
+  const tiers = section.tiers.map((tier, idx) => ({
+    ...tier,
+    sourcing: sourcing[idx],
+    procurement: procurement[idx],
+    bundle: bundle[idx],
+  }))
+
+  return (
+    <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mb-24">
+      <RevealOnScroll>
+        <div className="text-center mb-10">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">{section.title}</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">{section.subtitle}</p>
+        </div>
+      </RevealOnScroll>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {tiers.map((tier, idx) => {
+          const isFeatured = idx === 1
+          return (
+            <div
+              key={tier.name}
+              className={`relative rounded-2xl p-6 border flex flex-col ${
+                isFeatured
+                  ? 'bg-white border-primary/30 shadow-lg ring-1 ring-primary/20'
+                  : 'bg-white border-black/[0.08] shadow-sm'
+              }`}
+            >
+              {tier.badge && (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
+                  {tier.badge}
+                </span>
+              )}
+              <div className="mb-5">
+                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
+                  {tier.name}
+                </div>
+                <div className="text-2xl font-bold">{tier.credits}</div>
+              </div>
+              <div className="space-y-3 mb-2 flex-1">
+                <div className="flex items-baseline justify-between py-2 border-b border-black/[0.06]">
+                  <span className="text-sm text-muted-foreground">{labels.sourcing}</span>
+                  <div className="text-right">
+                    <div className="font-semibold">{formatUSD(tier.sourcing.price)}</div>
+                    <div className="text-[11px] text-muted-foreground">${tier.sourcing.perCredit.toFixed(2)}{copy.perCreditLabel}</div>
+                  </div>
+                </div>
+                <div className="flex items-baseline justify-between py-2 border-b border-black/[0.06]">
+                  <span className="text-sm text-muted-foreground">{labels.procurement}</span>
+                  <div className="text-right">
+                    <div className="font-semibold">{formatUSD(tier.procurement.price)}</div>
+                    <div className="text-[11px] text-muted-foreground">${tier.procurement.perCredit.toFixed(2)}{copy.perCreditLabel}</div>
+                  </div>
+                </div>
+                <div className="flex items-baseline justify-between py-2">
+                  <span className="text-sm font-semibold text-primary">{labels.bundle}</span>
+                  <div className="text-right">
+                    <div className="font-bold text-primary">{formatUSD(tier.bundle.price)}</div>
+                    <div className="text-[11px] text-muted-foreground">${tier.bundle.perCredit.toFixed(2)}{copy.perCreditLabel}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <p className="text-center text-sm text-muted-foreground mt-8 max-w-2xl mx-auto">
+        {section.helper}
+      </p>
+    </section>
+  )
+}
+
+function renderCell(value: string, highlight = false) {
+  if (value === '✓') {
+    return <Check className={`h-4 w-4 mx-auto ${highlight ? 'text-primary' : 'text-emerald-600'}`} />
+  }
+  if (value === '—') {
+    return <span className="text-muted-foreground/50">—</span>
+  }
+  return <span className={highlight ? 'font-semibold text-primary' : ''}>{value}</span>
+}
+
+function ComparePlansSection() {
+  const section = t.pricing.compare
+  const plans = section.plans
+
+  return (
+    <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mb-24">
+      <RevealOnScroll>
+        <div className="text-center mb-10">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">{section.title}</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">{section.subtitle}</p>
+        </div>
+      </RevealOnScroll>
+
+      <div className="rounded-2xl border border-black/[0.08] bg-white overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="border-b border-black/[0.08]">
+                <th className="sticky left-0 bg-white text-left font-semibold px-4 py-4 min-w-[200px] z-10">
+                  <span className="sr-only">{isEN ? 'Feature' : 'Funkcja'}</span>
+                </th>
+                <th className="text-center font-semibold px-4 py-4 min-w-[130px]">{plans.sourcing}</th>
+                <th className="text-center font-semibold px-4 py-4 min-w-[130px]">{plans.procurement}</th>
+                <th className="text-center font-semibold px-4 py-4 min-w-[130px] bg-primary/5 text-primary">{plans.bundle}</th>
+                <th className="text-center font-semibold px-4 py-4 min-w-[130px]">{plans.enterprise}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {section.groups.map((group) => (
+                <Fragment key={group.name}>
+                  <tr className="bg-slate-50">
+                    <td
+                      colSpan={5}
+                      className="sticky left-0 bg-slate-50 px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-700"
+                    >
+                      {group.name}
+                    </td>
+                  </tr>
+                  {group.rows.map((row) => (
+                    <tr key={`${group.name}-${row.label}`} className="border-b border-black/[0.04] last:border-b-0">
+                      <td className="sticky left-0 bg-white px-4 py-3 text-left">{row.label}</td>
+                      <td className="text-center px-4 py-3">{renderCell(row.sourcing)}</td>
+                      <td className="text-center px-4 py-3">{renderCell(row.procurement)}</td>
+                      <td className="text-center px-4 py-3 bg-primary/[0.03]">{renderCell(row.bundle, true)}</td>
+                      <td className="text-center px-4 py-3">{renderCell(row.enterprise)}</td>
+                    </tr>
+                  ))}
+                </Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export function PricingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50/50">
@@ -152,17 +324,24 @@ export function PricingPage() {
       <Navbar />
 
       <main className="pt-32 pb-24">
-        {/* Hero */}
-        <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center mb-14">
+        {/* Hero — compact */}
+        <section className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center mb-14">
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-5">
             {copy.heroTitle}
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
-            {copy.heroSubtitle}
+            {isEN
+              ? 'Buy only what you need. Start free, scale on demand.'
+              : 'Kupuj tylko to czego potrzebujesz. Zacznij za darmo, skaluj kiedy chcesz.'}
           </p>
         </section>
 
-        {/* Product cards — 4 columns on desktop, 2 on tablet, 1 on mobile */}
+        {/* Savings calculator */}
+        <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mb-24">
+          <SavingsCalculator variant="pricing" />
+        </section>
+
+        {/* Product cards — 4 simplified */}
         <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-24">
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
             {ORDERED_PRODUCTS.map((key: Product) => (
@@ -171,26 +350,11 @@ export function PricingPage() {
           </div>
         </section>
 
-        {/* How credits work */}
-        <section className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 mb-24">
-          <RevealOnScroll>
-            <div className="rounded-2xl border border-black/[0.08] bg-white p-8 md:p-10">
-              <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-6 text-center">
-                {copy.howItWorksTitle}
-              </h2>
-              <ul className="space-y-3">
-                {copy.howItWorksPoints.map((point, idx) => (
-                  <li key={point} className="flex items-start gap-3">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm shrink-0">
-                      {idx + 1}
-                    </div>
-                    <span className="text-sm leading-relaxed pt-0.5">{point}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </RevealOnScroll>
-        </section>
+        {/* Credit packs */}
+        <CreditPacksSection />
+
+        {/* Compare plans */}
+        <ComparePlansSection />
 
         {/* FAQ */}
         <section className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 mb-24">
