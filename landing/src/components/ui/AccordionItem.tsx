@@ -31,7 +31,7 @@ export function AccordionItem({ question, answer }: AccordionItemProps) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.21, 0.47, 0.32, 0.98] }}
+            transition={{ duration: 0.3, ease: [0.21, 0.47, 0.32, 0.98] as const }}
             className="overflow-hidden"
           >
             <p className="pb-5 text-sm sm:text-[0.925rem] text-muted-foreground leading-relaxed">

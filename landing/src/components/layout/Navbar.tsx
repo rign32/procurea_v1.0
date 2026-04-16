@@ -7,14 +7,16 @@ import { cn } from "@/lib/utils"
 import { trackCtaClick } from "@/lib/analytics"
 import { appendUtm } from "@/lib/utm"
 import { t } from "@/i18n"
+import { pathFor } from "@/i18n/paths"
 
 const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 
+// Internal navigation — routes to new sub-pages
 const navLinks = [
-  { label: t.nav.howItWorks, href: `#${t.sectionIds.howItWorks}` },
-  { label: t.nav.features, href: `#${t.sectionIds.features}` },
-  { label: t.nav.audience, href: `#${t.sectionIds.audience}` },
-  { label: t.nav.faq, href: `#${t.sectionIds.faq}` },
+  { label: t.nav.features, to: pathFor('featuresHub') },
+  { label: t.nav.audience, to: pathFor('industriesHub') },
+  { label: t.nav.integrations, to: pathFor('integrationsHub') },
+  { label: t.nav.pricing, to: pathFor('pricing') },
 ]
 
 export function Navbar() {
@@ -34,7 +36,7 @@ export function Navbar() {
         <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2.5 group">
+            <Link to={pathFor('home')} className="flex items-center gap-2.5 group">
               <img src="/logo-procurea.png" alt="Procurea" className="h-8 w-8 rounded-lg transition-transform duration-200 group-hover:scale-105" />
               <span className="text-lg font-bold tracking-tight">Procurea</span>
               <span className="ml-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
@@ -45,13 +47,13 @@ export function Navbar() {
             {/* Desktop Nav */}
             <div className="hidden md:flex items-center gap-1">
               {navLinks.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
+                <Link
+                  key={link.to}
+                  to={link.to}
                   className="px-3.5 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-black/[0.03]"
                 >
                   {link.label}
-                </a>
+                </Link>
               ))}
             </div>
 

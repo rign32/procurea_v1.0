@@ -178,7 +178,7 @@ export function HeroSection() {
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.8, ease: [0.21, 0.47, 0.32, 0.98] }}
+          transition={{ duration: 0.9, delay: 0.8, ease: [0.21, 0.47, 0.32, 0.98] as const }}
           className="relative max-w-5xl mx-auto pb-20 lg:pb-28"
         >
           <div className="absolute -inset-6 bg-gradient-to-b from-brand-500/[0.08] via-brand-900/[0.06] to-brand-500/[0.03] rounded-3xl blur-3xl pointer-events-none" />

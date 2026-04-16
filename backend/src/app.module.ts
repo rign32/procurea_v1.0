@@ -37,6 +37,8 @@ import { DocumentsModule } from './documents/documents.module';
 import { ContractsModule } from './contracts/contracts.module';
 import { WorkspacesModule } from './workspaces/workspaces.module';
 import { NotificationsCenterModule } from './notifications-center/notifications-center.module';
+import { LeadsModule } from './leads/leads.module';
+import { IntegrationsModule } from './integrations/integrations.module';
 import { SentryModule } from '@sentry/nestjs/setup';
 
 @Module({
@@ -82,6 +84,8 @@ import { SentryModule } from '@sentry/nestjs/setup';
     ContractsModule,
     WorkspacesModule,
     NotificationsCenterModule,
+    LeadsModule,
+    IntegrationsModule,
   ],
   controllers: [AppController],
   providers: [

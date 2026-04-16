@@ -173,11 +173,17 @@ model Organization {
   stripeSubscriptionId          String? @unique
   subscriptionCancelAtPeriodEnd Boolean @default(false)
 
+  // Procurea Connect (ERP/CRM integrations add-on)
+  hasConnectAddon      Boolean   @default(false)
+  connectTrialStartedAt DateTime?
+  connectTrialEndsAt    DateTime?
+
   users       User[]
   locations   OrganizationLocation[]
   orgCreditTransactions OrgCreditTransaction[]
   roles       Role[]
   workspaces  Workspace[]
+  integrationConnections IntegrationConnection[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -362,6 +368,9 @@ model Supplier {
   // Internal notes & tags (private per organization)
   internalNotes  String?
   internalTags   Json?     // Array of string tags like ["preferred", "quality-issues", "local"]
+
+  // Procurea Connect: matches against customer's ERP
+  externalMatches SupplierMatch[]
 
   // Soft Delete
   deletedAt DateTime?
@@ -1097,4 +1106,172 @@ model WorkspaceMember {
 
   @@unique([workspaceId, userId])
   @@index([userId])
+}
+
+// --- INBOUND LEADS (landing page contact forms) ---
+//
+// Captures pre-registration inquiries from procurea.pl/.io contact pages.
+// Not tied to User (lead may never register). Used by sales for qualification.
+model Lead {
+  id        String   @id @default(uuid())
+  name      String
+  company   String?
+  email     String
+  phone     String?
+  // Intent signal — maps to pricing/integration interest dropdown on the form
+  interest  String   // e.g. "sourcing_starter" | "full_bundle" | "enterprise_custom" | "integration_sap" | "other"
+  message   String?
+  // Where the form was submitted from (e.g. "contact_page", "pricing_page_enterprise", "integrations_hub")
+  source    String   @default("contact_page")
+  language  String   @default("en") // "pl" | "en"
+  // Qualification lifecycle
+  status    String   @default("new") // "new" | "contacted" | "qualified" | "closed_won" | "closed_lost"
+  notes     String?
+
+  ipAddress String?
+  userAgent String?
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([status, createdAt])
+  @@index([createdAt])
+}
+
+// --- PROCUREA CONNECT: ERP/CRM INTEGRATIONS ---
+//
+// Three-model integration layer built on Merge.dev as the first adapter.
+// IntegrationConnection = customer connected their ERP (OAuth/credentials via Merge Link)
+// ExternalSupplier     = cached suppliers pulled from that ERP (synced daily)
+// SupplierMatch        = dedup result linking a Procurea Supplier to an ExternalSupplier
+
+model IntegrationConnection {
+  id              String   @id @default(uuid())
+
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Who set it up (for audit and support)
+  connectedByUserId String?
+
+  // Provider abstraction — "merge_dev" for MVP, future: "sap_native", "netsuite_native"
+  provider        String   @default("merge_dev")
+
+  // Identifier in the provider's system (Merge's Linked Account ID)
+  providerAccountId String
+
+  // Auth secret for this connection (Merge's X-Account-Token value).
+  // Separate from providerAccountId because Merge treats them distinctly.
+  // TODO: encrypt at rest via KMS before first production customer.
+  providerAccountToken String?
+
+  // What kind of system this is
+  integrationCategory String   // "accounting" | "crm" | "hris"
+  platformSlug        String   // Merge's slug: "netsuite" | "quickbooks-online" | "salesforce" | "dynamics-365-business-central"
+  platformName        String   // Human-readable: "NetSuite", "QuickBooks Online"
+
+  // Lifecycle
+  status          String   @default("connecting") // "connecting" | "active" | "error" | "disconnected"
+  statusMessage   String?  // Last error or status detail
+
+  // Capabilities snapshot (what this specific connection can do)
+  // Example: { "contacts": { "read": true, "write": true }, "purchaseOrders": { "read": true, "write": false } }
+  capabilities    Json?
+
+  // Sync state
+  lastSyncedAt        DateTime?
+  lastSyncSupplierCount Int     @default(0)
+  nextSyncScheduledAt DateTime?
+
+  // Relations
+  externalSuppliers ExternalSupplier[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  disconnectedAt  DateTime?
+
+  @@unique([organizationId, providerAccountId])
+  @@index([organizationId, status])
+  @@index([provider, platformSlug])
+}
+
+model ExternalSupplier {
+  id              String   @id @default(uuid())
+
+  connectionId    String
+  connection      IntegrationConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  // Identifier of this supplier in the source ERP (as returned by Merge)
+  externalId      String
+
+  // Core identity fields — used for matching against Procurea Supplier
+  name            String
+  taxNumber       String?  // NIP / VAT ID / EIN — highest-confidence match signal
+  website         String?  // Used for domain-based matching
+  primaryEmail    String?
+
+  // Additional data (kept structured for UI and future matching signals)
+  emails          Json?    // string[]
+  phoneNumbers    Json?    // string[]
+  addresses       Json?    // array of { city, country, postalCode, addressLine1 }
+  currency        String?
+
+  // Merge Contact model mixes customers + vendors — we track the role
+  isSupplier      Boolean  @default(true)
+  isActive        Boolean  @default(true)
+
+  // Full raw payload for future-proofing new matching signals without reschema
+  rawData         Json?
+
+  // Sync metadata
+  lastSyncedAt    DateTime @default(now())
+  firstSeenAt     DateTime @default(now())
+
+  // Relations
+  matches         SupplierMatch[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([connectionId, externalId])
+  @@index([connectionId, isActive])
+  @@index([taxNumber])
+  @@index([website])
+  @@index([name])
+}
+
+model SupplierMatch {
+  id                 String   @id @default(uuid())
+
+  supplierId         String
+  supplier           Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  externalSupplierId String
+  externalSupplier   ExternalSupplier @relation(fields: [externalSupplierId], references: [id], onDelete: Cascade)
+
+  // Quality of match
+  confidence         Float    // 0.0 – 1.0
+  matchType          String   // "exact_tax" | "exact_domain" | "fuzzy_name" | "composite" | "manual"
+
+  // Signals that drove the match (for UI explanation and debugging)
+  // Example: { "taxMatch": true, "domainMatch": false, "nameSimilarity": 0.87 }
+  signals            Json?
+
+  // Lifecycle — suggestions become confirmed/rejected by user
+  status             String   @default("suggested") // "suggested" | "confirmed" | "rejected"
+  confirmedByUserId  String?
+  confirmedAt        DateTime?
+  rejectedReason     String?
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@unique([supplierId, externalSupplierId])
+  @@index([supplierId, status])
+  @@index([externalSupplierId, status])
+  @@index([status, confidence])
 }

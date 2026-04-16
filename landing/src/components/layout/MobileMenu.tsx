@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion"
 import { X } from "lucide-react"
+import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/Button"
 import { trackCtaClick } from "@/lib/analytics"
 import { appendUtm } from "@/lib/utm"
@@ -8,7 +9,7 @@ import { t } from "@/i18n"
 interface MobileMenuProps {
   open: boolean
   onClose: () => void
-  links: { label: string; href: string }[]
+  links: { label: string; to: string }[]
   appUrl: string
 }
 
@@ -49,14 +50,14 @@ export function MobileMenu({ open, onClose, links, appUrl }: MobileMenuProps) {
               {/* Links */}
               <nav className="flex flex-col gap-1 mt-6">
                 {links.map((link) => (
-                  <a
-                    key={link.href}
-                    href={link.href}
+                  <Link
+                    key={link.to}
+                    to={link.to}
                     onClick={onClose}
                     className="px-4 py-3 text-base font-medium text-foreground rounded-lg hover:bg-accent transition-colors"
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 ))}
               </nav>
 

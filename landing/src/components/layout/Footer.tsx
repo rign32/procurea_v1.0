@@ -2,12 +2,34 @@ import { Link } from "react-router-dom"
 import { t } from "@/i18n"
 import { CookieConsent } from "@/lib/cookieconsent"
 
+type FooterLink = { label: string; to?: string; external?: string }
+
+function FooterLinks({ links }: { links: readonly FooterLink[] }) {
+  return (
+    <ul className="space-y-2.5">
+      {links.map((link) => (
+        <li key={link.label}>
+          {link.external ? (
+            <a href={link.external} className="text-sm text-gray-400 hover:text-white transition-colors">
+              {link.label}
+            </a>
+          ) : link.to ? (
+            <Link to={link.to} className="text-sm text-gray-400 hover:text-white transition-colors">
+              {link.label}
+            </Link>
+          ) : null}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 export function Footer() {
   return (
     <footer className="bg-gray-950 text-gray-300">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
-          {/* Brand */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-10">
+          {/* Brand — 2 cols mobile, 1 col desktop */}
           <div className="col-span-2 md:col-span-1">
             <Link to="/" className="flex items-center gap-2.5 mb-4">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-gray-900">
@@ -25,37 +47,23 @@ export function Footer() {
             <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 text-gray-500">
               {t.footer.product}
             </h3>
-            <ul className="space-y-2.5">
-              {t.footer.productLinks.map((link) => (
-                <li key={link.label}>
-                  <a
-                    href={link.href}
-                    className="text-sm text-gray-400 hover:text-white transition-colors"
-                  >
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
+            <FooterLinks links={t.footer.productLinks} />
           </div>
 
-          {/* Company */}
+          {/* Industries */}
           <div>
             <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 text-gray-500">
-              {t.footer.company}
+              {t.footer.industries}
             </h3>
-            <ul className="space-y-2.5">
-              {t.footer.companyLinks.map((link) => (
-                <li key={link.label}>
-                  <a
-                    href={link.href}
-                    className="text-sm text-gray-400 hover:text-white transition-colors"
-                  >
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
+            <FooterLinks links={t.footer.industryLinks} />
+          </div>
+
+          {/* Integrations & Company */}
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 text-gray-500">
+              {t.footer.integrationsCompany}
+            </h3>
+            <FooterLinks links={t.footer.companyLinks} />
           </div>
 
           {/* Legal */}
@@ -66,10 +74,7 @@ export function Footer() {
             <ul className="space-y-2.5">
               {t.footer.legalLinks.map((link) => (
                 <li key={link.label}>
-                  <Link
-                    to={link.to}
-                    className="text-sm text-gray-400 hover:text-white transition-colors"
-                  >
+                  <Link to={link.to} className="text-sm text-gray-400 hover:text-white transition-colors">
                     {link.label}
                   </Link>
                 </li>
