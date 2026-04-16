@@ -6,7 +6,7 @@
 // This gives social crawlers (FB/LinkedIn/Twitter) and Google unique
 // meta per URL without needing full SSR.
 //
-// Usage: node scripts/prerender.mjs [--mode=production|production-en]
+// Usage: node scripts/prerender.mjs [--mode=production|production-en|staging|staging-en]
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
 import { join, dirname } from 'node:path'
@@ -16,9 +16,17 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
 
 const mode = process.argv.find(a => a.startsWith('--mode='))?.split('=')[1] || 'production'
-const isEN = mode === 'production-en'
-const DIST = isEN ? join(ROOT, 'dist-en') : join(ROOT, 'dist')
-const SITE = isEN ? 'https://procurea.io' : 'https://procurea.pl'
+const isEN = mode === 'production-en' || mode === 'staging-en'
+const isStaging = mode === 'staging' || mode === 'staging-en'
+
+let DIST, SITE
+if (isStaging) {
+  DIST = isEN ? join(ROOT, 'dist-staging-en') : join(ROOT, 'dist-staging')
+  SITE = isEN ? 'https://procurea-landing-staging-en.web.app' : 'https://procurea-landing-staging.web.app'
+} else {
+  DIST = isEN ? join(ROOT, 'dist-en') : join(ROOT, 'dist')
+  SITE = isEN ? 'https://procurea.io' : 'https://procurea.pl'
+}
 const LANG = isEN ? 'en' : 'pl'
 
 // Mirror of routesMeta.ts (lightweight — we can't import TS here).
@@ -110,11 +118,21 @@ function escapeHtml(s) {
 function transformHtml(template, path, meta) {
   const canonical = `${SITE}${path}`
   const altPath = ALT_MAP[path] || '/'
-  const altSite = isEN ? 'https://procurea.pl' : 'https://procurea.io'
+  const altSite = isStaging
+    ? (isEN ? 'https://procurea-landing-staging.web.app' : 'https://procurea-landing-staging-en.web.app')
+    : (isEN ? 'https://procurea.pl' : 'https://procurea.io')
   const altLang = isEN ? 'pl' : 'en'
   const currentLang = isEN ? 'en' : 'pl'
 
   let html = template
+
+  // Staging: inject noindex meta right after <head>
+  if (isStaging && !html.includes('name="robots"')) {
+    html = html.replace(
+      '<head>',
+      '<head>\n    <meta name="robots" content="noindex, nofollow" />'
+    )
+  }
 
   // Title
   html = html.replace(/<title>[^<]*<\/title>/, `<title>${escapeHtml(meta.title)}</title>`)
@@ -177,6 +195,22 @@ function main() {
   }
 
   console.log(`[prerender] generated ${count} HTML files in ${DIST} (lang=${LANG})`)
+
+  // Staging: replace robots.txt and sitemap.xml with noindex versions.
+  // Search engines should never see staging content.
+  if (isStaging) {
+    writeFileSync(
+      join(DIST, 'robots.txt'),
+      'User-agent: *\nDisallow: /\n',
+      'utf8'
+    )
+    // Remove any prod sitemap.xml that may have been emitted by the vite plugin
+    const sitemapPath = join(DIST, 'sitemap.xml')
+    if (existsSync(sitemapPath)) {
+      writeFileSync(sitemapPath, '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>\n', 'utf8')
+    }
+    console.log(`[prerender] staging mode — robots.txt set to Disallow: /`)
+  }
 }
 
 main()

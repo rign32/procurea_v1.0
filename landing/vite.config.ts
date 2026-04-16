@@ -3,7 +3,11 @@ import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
 
 export default defineConfig(({ mode }) => {
-  const isEN = mode === 'production-en'
+  const isEN = mode === 'production-en' || mode === 'staging-en'
+  const isStaging = mode === 'staging' || mode === 'staging-en'
+  const outDir = isStaging
+    ? (isEN ? 'dist-staging-en' : 'dist-staging')
+    : (isEN ? 'dist-en' : 'dist')
 
   return {
     plugins: [
@@ -127,7 +131,7 @@ export default defineConfig(({ mode }) => {
       },
     ],
     build: {
-      outDir: isEN ? 'dist-en' : 'dist',
+      outDir,
     },
     resolve: {
       alias: {

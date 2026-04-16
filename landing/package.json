@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build && node scripts/prerender.mjs",
     "build:en": "tsc -b && vite build --mode production-en && node scripts/prerender.mjs --mode=production-en",
+    "build:staging": "tsc -b && vite build --mode staging && node scripts/prerender.mjs --mode=staging",
+    "build:staging-en": "tsc -b && vite build --mode staging-en && node scripts/prerender.mjs --mode=staging-en",
     "preview": "vite preview"
   },
   "dependencies": {

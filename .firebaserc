@@ -28,6 +28,12 @@
         ],
         "app-staging-en": [
           "procurea-app-staging-en"
+        ],
+        "landing-staging": [
+          "procurea-landing-staging"
+        ],
+        "landing-staging-en": [
+          "procurea-landing-staging-en"
         ]
       }
     }
