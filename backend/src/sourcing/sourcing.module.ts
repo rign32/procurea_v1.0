@@ -10,6 +10,7 @@ import { EnrichmentAgentService } from './agents/enrichment.agent';
 import { AuditorAgentService } from './agents/auditor.agent';
 import { ExpansionAgentService } from './agents/expansion.agent';
 import { ApolloEnrichmentAgent } from './agents/apollo-enrichment.agent';
+import { EmailFallbackService } from './agents/email-fallback.service';
 import { ContactsController } from './contacts.controller';
 import { SourcingGateway } from './sourcing.gateway';
 import { EmailModule } from '../email/email.module';
@@ -30,7 +31,9 @@ import { SalesOpsModule } from '../sales-ops/sales-ops.module';
     AuditorAgentService,
     ExpansionAgentService,
     ApolloEnrichmentAgent,
+    EmailFallbackService,
     SourcingGateway,
   ],
+  exports: [EmailFallbackService],
 })
 export class SourcingModule { }
