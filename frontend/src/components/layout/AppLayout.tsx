@@ -19,6 +19,7 @@ import {
     FileSignature,
     ClipboardCheck,
     FolderKanban,
+    ShoppingCart,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { t, isEN } from "@/i18n"
@@ -64,6 +65,7 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
         { name: t.nav.suppliers, href: "/suppliers", icon: Users },
         { name: t.nav.blacklist, href: "/blacklist", icon: ShieldAlert },
         ...(isFullPlan ? [{ name: t.nav.contracts, href: "/contracts", icon: FileSignature }] : []),
+        ...(isFullPlan ? [{ name: t.nav.purchaseOrders, href: "/purchase-orders", icon: ShoppingCart }] : []),
         ...(isFullPlan ? [{ name: t.nav.approvals, href: "/approvals", icon: ClipboardCheck, badge: pendingApprovalsCount }] : []),
         ...(isFullPlan ? [{ name: t.nav.workspaces, href: "/workspaces", icon: FolderKanban }] : []),
         { name: t.nav.documents, href: "/documents", icon: FolderOpen },

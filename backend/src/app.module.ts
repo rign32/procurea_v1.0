@@ -40,6 +40,7 @@ import { NotificationsCenterModule } from './notifications-center/notifications-
 import { LeadsModule } from './leads/leads.module';
 import { IntegrationsModule } from './integrations/integrations.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
+import { PurchaseOrdersModule } from './purchase-orders/purchase-orders.module';
 import { SentryModule } from '@sentry/nestjs/setup';
 
 @Module({
@@ -88,6 +89,7 @@ import { SentryModule } from '@sentry/nestjs/setup';
     LeadsModule,
     IntegrationsModule,
     WebhooksModule,
+    PurchaseOrdersModule,
   ],
   controllers: [AppController],
   providers: [

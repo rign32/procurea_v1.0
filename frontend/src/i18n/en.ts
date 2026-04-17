@@ -53,6 +53,7 @@ export const EN: Translations = {
     analytics: 'Analytics',
     documents: 'Documents',
     contracts: 'Contracts',
+    purchaseOrders: 'Purchase Orders',
     approvals: 'Approvals',
     workspaces: 'Workspaces',
   },
