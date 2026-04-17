@@ -833,7 +833,7 @@ export class RequestsService {
             moq?: number | null;
             specsConfirmed: boolean;
             incotermsConfirmed: boolean;
-            supplier: { id: string; name: string; country?: string | null; qualityScore?: number | null } | null;
+            supplier: { id: string; name: string | null; country?: string | null; qualityScore?: number | null } | null;
             convertedPrice: number;
         }>,
         rfq: { productName: string; quantity: number; targetPrice?: number | null; currency: string; desiredDeliveryDate?: Date | null } | null | undefined,
