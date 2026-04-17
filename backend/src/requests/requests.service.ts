@@ -4,6 +4,7 @@ import { NotificationService } from '../common/services/notification.service';
 import { EmailService } from '../email/email.service';
 import { TranslationService } from '../common/services/translation.service';
 import { CurrencyService } from '../common/services/currency.service';
+import { GeminiService } from '../common/services/gemini.service';
 import { getLanguageForCountry } from '../common/normalize-country';
 import { TenantContextService } from '../common/services/tenant-context.service';
 import * as crypto from 'crypto';
@@ -35,6 +36,7 @@ export class RequestsService {
         private readonly translationService: TranslationService,
         private readonly currencyService: CurrencyService,
         private readonly tenantContext: TenantContextService,
+        private readonly geminiService: GeminiService,
     ) { }
 
     // --- Ownership helpers ---
@@ -536,7 +538,7 @@ export class RequestsService {
         return { success: true, message: 'Email sent successfully' };
     }
 
-    async compareOffers(offerIds: string[], userId?: string) {
+    async compareOffers(offerIds: string[], userId?: string, includeAiRecommendation = true) {
         if (!offerIds || offerIds.length < 2) {
             throw new BadRequestException('At least 2 offers required for comparison');
         }
@@ -551,6 +553,7 @@ export class RequestsService {
                         country: true,
                         city: true,
                         website: true,
+                        qualityScore: true,
                     },
                 },
                 priceTiers: { orderBy: { minQty: 'asc' } },
@@ -578,6 +581,7 @@ export class RequestsService {
         // Get organization's base currency
         const org = offers[0]?.rfqRequest?.owner?.organization;
         const baseCurrency = org?.baseCurrency || 'PLN';
+        const rfq = offers[0]?.rfqRequest;
 
         const submitted = offers.filter(o => o.price != null && o.price > 0);
 
@@ -619,15 +623,157 @@ export class RequestsService {
             }, withBoth[0])
             : lowestPrice;
 
+        // --- Risk flags per offer ---
+        const avgPrice = offersWithConvertedPrices.length > 0
+            ? offersWithConvertedPrices.reduce((sum, o) => sum + o.convertedPrice, 0) / offersWithConvertedPrices.length
+            : 0;
+
+        // Count total offers per supplier (to detect new suppliers)
+        const supplierIds = offersWithConvertedPrices.map(o => o.supplierId);
+        const supplierOfferCounts = await this.prisma.offer.groupBy({
+            by: ['supplierId'],
+            where: { supplierId: { in: supplierIds } },
+            _count: { id: true },
+        });
+        const offerCountMap = new Map(supplierOfferCounts.map(s => [s.supplierId, s._count.id]));
+
+        const offersEnriched = offersWithConvertedPrices.map(offer => {
+            // Risk: new supplier (only 1 offer ever = this one)
+            const isNewSupplier = (offerCountMap.get(offer.supplierId) || 0) <= 1;
+
+            // Risk: lead time tight — less than 7 days buffer before desired delivery
+            let leadTimeRisk = false;
+            if (rfq?.desiredDeliveryDate && offer.leadTime) {
+                const deliveryDate = new Date(rfq.desiredDeliveryDate);
+                const now = new Date();
+                const leadTimeDays = offer.leadTime * 7; // leadTime is in weeks
+                const estimatedDelivery = new Date(now.getTime() + leadTimeDays * 86400000);
+                const bufferDays = (deliveryDate.getTime() - estimatedDelivery.getTime()) / 86400000;
+                leadTimeRisk = bufferDays < 7;
+            }
+
+            // Risk: price outlier (< 50% or > 200% of average)
+            const priceOutlier = avgPrice > 0 && (offer.convertedPrice < avgPrice * 0.5 || offer.convertedPrice > avgPrice * 2);
+
+            return {
+                ...offer,
+                qualityScore: offer.supplier?.qualityScore ?? null,
+                riskFlags: {
+                    isNewSupplier,
+                    leadTimeRisk,
+                    priceOutlier,
+                },
+                compliance: {
+                    specsConfirmed: offer.specsConfirmed,
+                    incotermsConfirmed: offer.incotermsConfirmed,
+                },
+            };
+        });
+
+        // --- AI Recommendation (optional, graceful degradation) ---
+        let aiRecommendation: {
+            recommendedOfferId: string;
+            reasoning: string;
+            scores: Array<{ offerId: string; score: number; breakdown: { price: number; delivery: number; quality: number; compliance: number } }>;
+        } | null = null;
+
+        if (includeAiRecommendation && offersEnriched.length >= 2) {
+            try {
+                aiRecommendation = await this.generateOfferRecommendation(offersEnriched, rfq);
+            } catch (err) {
+                this.logger.warn(`AI recommendation failed, returning comparison without it: ${err}`);
+            }
+        }
+
         return {
-            offers: offersWithConvertedPrices,
+            offers: offersEnriched,
             baseCurrency, // Include for frontend display
             comparison: {
                 lowestPrice: lowestPrice ? { offerId: lowestPrice.id, supplierId: lowestPrice.supplierId } : null,
                 fastestDelivery: fastestDelivery ? { offerId: fastestDelivery.id, supplierId: fastestDelivery.supplierId } : null,
                 bestValue: bestValue ? { offerId: bestValue.id, supplierId: bestValue.supplierId } : null,
             },
+            aiRecommendation,
         };
+    }
+
+    private async generateOfferRecommendation(
+        offers: Array<{
+            id: string;
+            price?: number | null;
+            currency?: string | null;
+            leadTime?: number | null;
+            moq?: number | null;
+            specsConfirmed: boolean;
+            incotermsConfirmed: boolean;
+            supplier: { id: string; name: string; country?: string | null; qualityScore?: number | null } | null;
+            convertedPrice: number;
+        }>,
+        rfq: { productName: string; quantity: number; targetPrice?: number | null; currency: string; desiredDeliveryDate?: Date | null } | null | undefined,
+    ) {
+        const prompt = `You are a procurement advisor. Compare these ${offers.length} offers and recommend the best one.
+
+RFQ: ${rfq?.productName || 'N/A'}, qty ${rfq?.quantity || '?'}, target price ${rfq?.targetPrice || 'N/A'} ${rfq?.currency || 'EUR'}
+Desired delivery: ${rfq?.desiredDeliveryDate ? new Date(rfq.desiredDeliveryDate).toISOString().split('T')[0] : 'Flexible'}
+
+Offers:
+${offers.map((o, i) => `${i + 1}. [ID:${o.id}] ${o.supplier?.name || 'Unknown'} (${o.supplier?.country || '?'}): price ${o.price} ${o.currency}, lead ${o.leadTime || '?'} weeks, MOQ ${o.moq || '?'}, quality score ${o.supplier?.qualityScore ?? 'N/A'}/100, specs confirmed: ${o.specsConfirmed}, incoterms confirmed: ${o.incotermsConfirmed}`).join('\n')}
+
+Score each offer 0-100 on: price (weight 40%), delivery (20%), quality (20%), compliance (20%).
+Recommend the best match overall.
+
+JSON response ONLY:
+{
+  "recommendedOfferId": "offer id of the best match",
+  "reasoning": "2-3 sentences explaining why (Polish if any supplier is from PL, otherwise English)",
+  "scores": [
+    { "offerId": "...", "score": 85, "breakdown": { "price": 90, "delivery": 80, "quality": 85, "compliance": 100 } }
+  ]
+}`;
+
+        const raw = await this.geminiService.generateContent(prompt, undefined, 'offer-comparison');
+        return this.parseOfferRecommendation(raw, offers);
+    }
+
+    private parseOfferRecommendation(
+        raw: string,
+        offers: Array<{ id: string }>,
+    ): { recommendedOfferId: string; reasoning: string; scores: Array<{ offerId: string; score: number; breakdown: { price: number; delivery: number; quality: number; compliance: number } }> } {
+        try {
+            // Strip markdown code fences if present
+            const cleaned = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+            const parsed = JSON.parse(cleaned);
+
+            const validOfferIds = new Set(offers.map(o => o.id));
+
+            // Validate recommendedOfferId exists
+            if (!parsed.recommendedOfferId || !validOfferIds.has(parsed.recommendedOfferId)) {
+                // Fallback: pick first scored offer
+                if (parsed.scores?.length > 0) {
+                    const bestScore = parsed.scores.reduce((best: any, s: any) =>
+                        (s.score > (best?.score || 0) ? s : best), parsed.scores[0]);
+                    parsed.recommendedOfferId = bestScore.offerId;
+                } else {
+                    parsed.recommendedOfferId = offers[0].id;
+                }
+            }
+
+            // Validate scores array references valid offer IDs
+            if (Array.isArray(parsed.scores)) {
+                parsed.scores = parsed.scores.filter((s: any) => validOfferIds.has(s.offerId));
+            } else {
+                parsed.scores = [];
+            }
+
+            return {
+                recommendedOfferId: parsed.recommendedOfferId,
+                reasoning: parsed.reasoning || '',
+                scores: parsed.scores,
+            };
+        } catch (err) {
+            this.logger.warn(`Failed to parse AI recommendation JSON: ${err}`);
+            throw new Error('Invalid AI response format');
+        }
     }
 
     async createOffer(data: any, userId?: string) {

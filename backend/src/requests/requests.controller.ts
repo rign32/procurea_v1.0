@@ -78,8 +78,8 @@ export class RequestsController {
     }
 
     @Post('offers/compare')
-    compareOffers(@Body() body: { offerIds: string[] }, @Req() req: any) {
-        return this.requestsService.compareOffers(body.offerIds, this.getUserId(req));
+    compareOffers(@Body() body: { offerIds: string[]; includeAiRecommendation?: boolean }, @Req() req: any) {
+        return this.requestsService.compareOffers(body.offerIds, this.getUserId(req), body.includeAiRecommendation);
     }
 
     @Post('offers/:offerId/accept')
