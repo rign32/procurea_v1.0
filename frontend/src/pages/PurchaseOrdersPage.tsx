@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Loader2, ShoppingCart, Plus, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
+import { Loader2, ShoppingCart, Plus, ChevronDown, ChevronUp, ArrowRight, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { usePurchaseOrders, useGeneratePO, useUpdatePOStatus } from '@/hooks/usePurchaseOrders';
+import { usePurchaseOrders, useGeneratePO, useUpdatePOStatus, useSyncToErp } from '@/hooks/usePurchaseOrders';
 import { useContracts } from '@/hooks/useContracts';
 import { isEN } from '@/i18n';
 import type { POStatus, PurchaseOrder } from '@/services/purchase-orders.service';
@@ -80,6 +80,7 @@ export function PurchaseOrdersPage() {
   const { data: purchaseOrders, isLoading, error } = usePurchaseOrders(statusFilter);
   const generateMutation = useGeneratePO();
   const statusMutation = useUpdatePOStatus();
+  const syncMutation = useSyncToErp();
 
   // Get signed/active contracts for PO generation
   const { data: signedContracts } = useContracts('SIGNED' as any);

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import purchaseOrdersService from '../services/purchase-orders.service';
-import type { POStatus } from '../services/purchase-orders.service';
+import type { POStatus, SyncToErpResult } from '../services/purchase-orders.service';
 
 export function usePurchaseOrders(status?: POStatus) {
   return useQuery({
@@ -25,6 +25,16 @@ export function useUpdatePOStatus() {
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: POStatus }) =>
       purchaseOrdersService.updateStatus(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['purchase-orders'] });
+    },
+  });
+}
+
+export function useSyncToErp() {
+  const queryClient = useQueryClient();
+  return useMutation<SyncToErpResult, Error, string>({
+    mutationFn: (id: string) => purchaseOrdersService.syncToErp(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['purchase-orders'] });
     },

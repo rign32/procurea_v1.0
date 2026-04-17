@@ -46,6 +46,16 @@ export interface PurchaseOrder {
     name?: string;
     email: string;
   };
+  // ERP sync fields
+  externalId?: string;
+  externalSystem?: string;
+  syncedAt?: string;
+}
+
+export interface SyncToErpResult {
+  success: boolean;
+  externalId?: string;
+  error?: string;
 }
 
 export const purchaseOrdersService = {
@@ -67,6 +77,11 @@ export const purchaseOrdersService = {
 
   updateStatus: async (id: string, status: POStatus): Promise<PurchaseOrder> => {
     const { data } = await apiClient.patch<PurchaseOrder>(`/purchase-orders/${id}/status`, { status });
+    return data;
+  },
+
+  syncToErp: async (id: string): Promise<SyncToErpResult> => {
+    const { data } = await apiClient.post<SyncToErpResult>(`/purchase-orders/${id}/sync-to-erp`);
     return data;
   },
 };
