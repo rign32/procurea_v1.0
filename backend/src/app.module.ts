@@ -39,6 +39,7 @@ import { WorkspacesModule } from './workspaces/workspaces.module';
 import { NotificationsCenterModule } from './notifications-center/notifications-center.module';
 import { LeadsModule } from './leads/leads.module';
 import { IntegrationsModule } from './integrations/integrations.module';
+import { WebhooksModule } from './webhooks/webhooks.module';
 import { SentryModule } from '@sentry/nestjs/setup';
 
 @Module({
@@ -86,6 +87,7 @@ import { SentryModule } from '@sentry/nestjs/setup';
     NotificationsCenterModule,
     LeadsModule,
     IntegrationsModule,
+    WebhooksModule,
   ],
   controllers: [AppController],
   providers: [
