@@ -44,6 +44,28 @@ export interface UpdateContractDto {
   endDate?: string;
 }
 
+export interface ContractDraft {
+  title: string;
+  terms: string;
+  startDate?: string;
+  endDate?: string;
+  offerId: string;
+}
+
+export interface ContractDraftSource {
+  productName: string;
+  supplierName: string;
+  price: number | null;
+  currency: string | null;
+  leadTime: number | null;
+  incoterms: string | null;
+}
+
+export interface GenerateFromOfferResponse {
+  draft: ContractDraft;
+  source: ContractDraftSource;
+}
+
 export const contractsService = {
   getAll: async (status?: ContractStatus): Promise<Contract[]> => {
     const params = status ? { status } : {};
@@ -63,6 +85,14 @@ export const contractsService = {
 
   updateStatus: async (id: string, status: ContractStatus, comments?: string): Promise<Contract> => {
     const { data } = await apiClient.patch<Contract>(`/contracts/${id}/status`, { status, comments });
+    return data;
+  },
+
+  generateFromOffer: async (offerId: string): Promise<GenerateFromOfferResponse> => {
+    const { data } = await apiClient.post<GenerateFromOfferResponse>(
+      '/contracts/generate-from-offer',
+      { offerId },
+    );
     return data;
   },
 };

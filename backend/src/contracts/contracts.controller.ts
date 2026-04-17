@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Patch, Param, Body, Query, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Param, Body, Query, UseGuards, Req, BadRequestException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { IsString, IsOptional, MaxLength, IsDateString } from 'class-validator';
 import { ContractsService } from './contracts.service';
+import { GenerateFromOfferDto } from './dto/generate-from-offer.dto';
 
 class CreateContractDto {
     @IsString() offerId: string;
@@ -47,6 +48,16 @@ export class ContractsController {
     ) {
         const userId = req.user?.userId || req.user?.sub;
         return this.service.create(userId, body);
+    }
+
+    @Post('generate-from-offer')
+    generateFromOffer(
+        @Req() req: any,
+        @Body() body: GenerateFromOfferDto,
+    ) {
+        if (!body?.offerId) throw new BadRequestException('offerId is required');
+        const userId = req.user?.userId || req.user?.sub;
+        return this.service.generateFromOffer(userId, body.offerId);
     }
 
     @Patch(':id/status')
