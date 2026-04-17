@@ -206,6 +206,19 @@ export class SequenceSchedulerService {
             let ctaText = 'Złóż ofertę';
             let linkFallbackText = 'Lub skopiuj link:';
 
+            // Personalized subject: use locale-aware prefix for follow-ups
+            const isFollowUp = step.dayOffset > 0;
+            if (isFollowUp) {
+                const subjectPrefix = this.getRfqSubjectPrefix(targetLang.code);
+                subject = `Re: ${subjectPrefix}: ${rfq.productName}`;
+            }
+
+            // Personalized greeting
+            const greeting = this.getGreeting(supplier, targetLang.code);
+
+            // Specs highlights (only for INITIAL step, follow-ups are shorter)
+            const specsHighlights = !isFollowUp ? this.buildSpecsHighlights(rfq, targetLang.code) : '';
+
             if (targetLang.code !== 'pl') {
                 this.logger.log(`[SEQUENCE] Translating ${step.type} to ${targetLang.name} for ${supplier.name}`);
                 const translated = await this.translateEmail(subject, body, targetLang);
@@ -220,6 +233,14 @@ export class SequenceSchedulerService {
             const footerHtml = organization ? this.buildFooterHtml(organization) : '';
 
             const portalUrl = `${process.env.FRONTEND_URL || 'https://app.procurea.pl'}/offers/${offer.accessToken}`;
+
+            // Build greeting HTML
+            const greetingHtml = `<tr><td style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #374151; font-size: 15px; line-height: 1.75; padding: 0 0 16px 0;">${greeting}</td></tr>`;
+
+            // Build specs HTML (only if non-empty)
+            const specsHtml = specsHighlights
+                ? `<tr><td style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #374151; font-size: 14px; line-height: 1.75; padding: 0 0 16px 0;"><div style="background: #F8FAFC; border-left: 3px solid #4F46E5; padding: 12px 16px; white-space: pre-line;">${specsHighlights}</div></td></tr>`
+                : '';
 
             // Build body paragraphs
             const bodyParagraphs = body
@@ -257,6 +278,8 @@ export class SequenceSchedulerService {
   <!-- Body -->
   <tr><td style="padding: 28px 0 8px 0;">
     <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      ${greetingHtml}
+      ${specsHtml}
       ${bodyParagraphs}
     </table>
   </td></tr>
@@ -464,6 +487,96 @@ Respond ONLY with valid JSON (no markdown, no code blocks):
         if (parts.length === 0) return '';
 
         return `<p style="font-family: ${font}; font-size: 13px; line-height: 1.8; margin: 0;">${parts.join('<br>')}</p>`;
+    }
+
+    // --- Email personalization helpers ---
+
+    /**
+     * Locale-aware RFQ subject prefix based on supplier language.
+     */
+    private getRfqSubjectPrefix(langCode: string): string {
+        switch (langCode) {
+            case 'pl': return 'Zapytanie ofertowe';
+            case 'de': return 'Angebotsanfrage';
+            case 'fr': return 'Demande de devis';
+            case 'es': return 'Solicitud de cotización';
+            case 'it': return 'Richiesta di offerta';
+            case 'nl': return 'Offerteaanvraag';
+            case 'cs': return 'Poptávka';
+            case 'en': return 'Request for Quote';
+            default: return 'RFQ';
+        }
+    }
+
+    /**
+     * Personalized greeting using decision-maker name and locale.
+     */
+    private getGreeting(supplier: { contacts?: { name?: string | null; isDecisionMaker?: boolean | null }[] }, langCode: string): string {
+        const decisionMaker = supplier.contacts?.find((c: any) => c.isDecisionMaker) || supplier.contacts?.[0];
+        const name = decisionMaker?.name;
+
+        switch (langCode) {
+            case 'pl':
+                return name ? `Szanowny/a ${name},` : 'Szanowni Państwo,';
+            case 'de':
+                return name ? `Sehr geehrte/r ${name},` : 'Sehr geehrte Damen und Herren,';
+            case 'fr':
+                return name ? `Cher/Chère ${name},` : 'Madame, Monsieur,';
+            case 'es':
+                return name ? `Estimado/a ${name},` : 'Estimados señores,';
+            case 'it':
+                return name ? `Gentile ${name},` : 'Gentili Signori,';
+            case 'nl':
+                return name ? `Geachte ${name},` : 'Geachte heer/mevrouw,';
+            case 'cs':
+                return name ? `Vážený/á ${name},` : 'Vážení,';
+            default:
+                return name ? `Dear ${name},` : 'Dear Sir/Madam,';
+        }
+    }
+
+    /**
+     * Build specs highlights section from RFQ fields. Only includes non-empty values.
+     */
+    private buildSpecsHighlights(rfq: any, langCode: string): string {
+        const labels = this.getSpecsLabels(langCode);
+        const lines: string[] = [];
+
+        if (rfq.material) lines.push(`${labels.material}: ${rfq.material}`);
+        if (rfq.quantity) lines.push(`${labels.quantity}: ${rfq.quantity} ${rfq.unit || 'pcs'}`);
+        if (rfq.incoterms) lines.push(`${labels.incoterms}: ${rfq.incoterms}`);
+        if (rfq.desiredDeliveryDate) {
+            const date = new Date(rfq.desiredDeliveryDate);
+            lines.push(`${labels.delivery}: ${date.toISOString().split('T')[0]}`);
+        }
+        if (rfq.offerDeadline) {
+            const date = new Date(rfq.offerDeadline);
+            lines.push(`${labels.deadline}: ${date.toISOString().split('T')[0]}`);
+        }
+        if (rfq.partNumber) lines.push(`${labels.partNumber}: ${rfq.partNumber}`);
+
+        if (lines.length === 0) return '';
+
+        const header = labels.header;
+        const bullets = lines.map(l => `• ${l}`).join('\n');
+        return `${header}\n${bullets}`;
+    }
+
+    private getSpecsLabels(langCode: string): Record<string, string> {
+        switch (langCode) {
+            case 'pl':
+                return { header: 'Kluczowe wymagania:', material: 'Materiał', quantity: 'Ilość', incoterms: 'Incoterms', delivery: 'Termin dostawy', deadline: 'Termin składania ofert', partNumber: 'Nr katalogowy' };
+            case 'de':
+                return { header: 'Wichtige Anforderungen:', material: 'Material', quantity: 'Menge', incoterms: 'Incoterms', delivery: 'Liefertermin', deadline: 'Angebotsfrist', partNumber: 'Teilenummer' };
+            case 'fr':
+                return { header: 'Exigences clés :', material: 'Matériau', quantity: 'Quantité', incoterms: 'Incoterms', delivery: 'Date de livraison', deadline: "Date limite de l'offre", partNumber: 'Réf. article' };
+            case 'es':
+                return { header: 'Requisitos clave:', material: 'Material', quantity: 'Cantidad', incoterms: 'Incoterms', delivery: 'Fecha de entrega', deadline: 'Fecha límite de oferta', partNumber: 'Nº de pieza' };
+            case 'it':
+                return { header: 'Requisiti chiave:', material: 'Materiale', quantity: 'Quantità', incoterms: 'Incoterms', delivery: 'Data di consegna', deadline: "Scadenza dell'offerta", partNumber: 'Cod. articolo' };
+            default:
+                return { header: 'Key requirements:', material: 'Material', quantity: 'Quantity', incoterms: 'Incoterms', delivery: 'Delivery by', deadline: 'Offer deadline', partNumber: 'Part number' };
+        }
     }
 
     private getSupplierEmails(supplier: any): string[] {

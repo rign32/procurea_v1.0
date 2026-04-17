@@ -37,6 +37,96 @@ export class RequestsService {
         private readonly tenantContext: TenantContextService,
     ) { }
 
+    // --- Email personalization helpers ---
+
+    /**
+     * Locale-aware RFQ subject prefix based on supplier language.
+     */
+    private getRfqSubjectPrefix(langCode: string): string {
+        switch (langCode) {
+            case 'pl': return 'Zapytanie ofertowe';
+            case 'de': return 'Angebotsanfrage';
+            case 'fr': return 'Demande de devis';
+            case 'es': return 'Solicitud de cotización';
+            case 'it': return 'Richiesta di offerta';
+            case 'nl': return 'Offerteaanvraag';
+            case 'cs': return 'Poptávka';
+            case 'en': return 'Request for Quote';
+            default: return 'RFQ';
+        }
+    }
+
+    /**
+     * Personalized greeting using decision-maker name and locale.
+     */
+    private getGreeting(supplier: { contacts?: { name?: string | null; isDecisionMaker?: boolean | null }[] }, langCode: string): string {
+        const decisionMaker = supplier.contacts?.find(c => c.isDecisionMaker) || supplier.contacts?.[0];
+        const name = decisionMaker?.name;
+
+        switch (langCode) {
+            case 'pl':
+                return name ? `Szanowny/a ${name},` : 'Szanowni Państwo,';
+            case 'de':
+                return name ? `Sehr geehrte/r ${name},` : 'Sehr geehrte Damen und Herren,';
+            case 'fr':
+                return name ? `Cher/Chère ${name},` : 'Madame, Monsieur,';
+            case 'es':
+                return name ? `Estimado/a ${name},` : 'Estimados señores,';
+            case 'it':
+                return name ? `Gentile ${name},` : 'Gentili Signori,';
+            case 'nl':
+                return name ? `Geachte ${name},` : 'Geachte heer/mevrouw,';
+            case 'cs':
+                return name ? `Vážený/á ${name},` : 'Vážení,';
+            default:
+                return name ? `Dear ${name},` : 'Dear Sir/Madam,';
+        }
+    }
+
+    /**
+     * Build specs highlights section from RFQ fields. Only includes non-empty values.
+     */
+    private buildSpecsHighlights(rfq: any, langCode: string): string {
+        const labels = this.getSpecsLabels(langCode);
+        const lines: string[] = [];
+
+        if (rfq.material) lines.push(`${labels.material}: ${rfq.material}`);
+        if (rfq.quantity) lines.push(`${labels.quantity}: ${rfq.quantity} ${rfq.unit || 'pcs'}`);
+        if (rfq.incoterms) lines.push(`${labels.incoterms}: ${rfq.incoterms}`);
+        if (rfq.desiredDeliveryDate) {
+            const date = new Date(rfq.desiredDeliveryDate);
+            lines.push(`${labels.delivery}: ${date.toISOString().split('T')[0]}`);
+        }
+        if (rfq.offerDeadline) {
+            const date = new Date(rfq.offerDeadline);
+            lines.push(`${labels.deadline}: ${date.toISOString().split('T')[0]}`);
+        }
+        if (rfq.partNumber) lines.push(`${labels.partNumber}: ${rfq.partNumber}`);
+
+        if (lines.length === 0) return '';
+
+        const header = labels.header;
+        const bullets = lines.map(l => `• ${l}`).join('\n');
+        return `${header}\n${bullets}`;
+    }
+
+    private getSpecsLabels(langCode: string): Record<string, string> {
+        switch (langCode) {
+            case 'pl':
+                return { header: 'Kluczowe wymagania:', material: 'Materiał', quantity: 'Ilość', incoterms: 'Incoterms', delivery: 'Termin dostawy', deadline: 'Termin składania ofert', partNumber: 'Nr katalogowy' };
+            case 'de':
+                return { header: 'Wichtige Anforderungen:', material: 'Material', quantity: 'Menge', incoterms: 'Incoterms', delivery: 'Liefertermin', deadline: 'Angebotsfrist', partNumber: 'Teilenummer' };
+            case 'fr':
+                return { header: 'Exigences clés :', material: 'Matériau', quantity: 'Quantité', incoterms: 'Incoterms', delivery: 'Date de livraison', deadline: "Date limite de l'offre", partNumber: 'Réf. article' };
+            case 'es':
+                return { header: 'Requisitos clave:', material: 'Material', quantity: 'Cantidad', incoterms: 'Incoterms', delivery: 'Fecha de entrega', deadline: 'Fecha límite de oferta', partNumber: 'Nº de pieza' };
+            case 'it':
+                return { header: 'Requisiti chiave:', material: 'Materiale', quantity: 'Quantità', incoterms: 'Incoterms', delivery: 'Data di consegna', deadline: "Scadenza dell'offerta", partNumber: 'Cod. articolo' };
+            default:
+                return { header: 'Key requirements:', material: 'Material', quantity: 'Quantity', incoterms: 'Incoterms', delivery: 'Delivery by', deadline: 'Offer deadline', partNumber: 'Part number' };
+        }
+    }
+
     // --- Ownership helpers ---
 
     private async verifyRfqOwnership(rfqId: string, userId: string) {
@@ -287,14 +377,34 @@ export class RequestsService {
                     portalUrl,
                 }, supplierLang.code);
 
+                // Build personalized subject and greeting
+                const subjectPrefix = this.getRfqSubjectPrefix(supplierLang.code);
+                const emailSubject = `${subjectPrefix}: ${rfq.productName}`;
+                const greeting = this.getGreeting(supplier, supplierLang.code);
+                const specsHighlights = this.buildSpecsHighlights(rfq, supplierLang.code);
+
+                // Prepend greeting and specs to the translated body
+                let finalHtml = htmlContent;
+                const greetingHtml = `<p style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #374151; font-size: 15px; line-height: 1.75; margin: 0 0 16px 0;">${greeting}</p>`;
+                const specsHtml = specsHighlights
+                    ? `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #374151; font-size: 14px; line-height: 1.75; background: #F8FAFC; border-left: 3px solid #4F46E5; padding: 12px 16px; margin: 0 0 16px 0; white-space: pre-line;">${specsHighlights}</div>`
+                    : '';
+
+                // Inject greeting + specs before the main body content
+                // The translated body starts with <body> — insert after the first table row opening
+                finalHtml = finalHtml.replace(
+                    /(<td[^>]*style="[^"]*padding: 28px 0 8px 0[^"]*"[^>]*>)/,
+                    `$1\n${greetingHtml}\n${specsHtml}`,
+                );
+
                 // Send email to primary contact
                 const primaryEmail = emails[0];
                 const organizationId = (rfq as any).owner?.organizationId || undefined;
                 const replyDomain = this.getReplyDomain(supplier);
                 const result = await this.emailService.sendEmail({
                     to: primaryEmail,
-                    subject: `RFQ: ${rfq.productName}`,
-                    html: htmlContent,
+                    subject: emailSubject,
+                    html: finalHtml,
                     organizationId,
                     replyTo: `reply-${offer.id}@${replyDomain}`,
                 });
@@ -508,13 +618,30 @@ export class RequestsService {
             portalUrl,
         }, supplierLang.code);
 
+        // Build personalized subject and greeting
+        const subjectPrefix = this.getRfqSubjectPrefix(supplierLang.code);
+        const emailSubject = `${subjectPrefix}: ${rfq.productName}`;
+        const greeting = this.getGreeting(offer.supplier, supplierLang.code);
+        const specsHighlights = this.buildSpecsHighlights(rfq, supplierLang.code);
+
+        // Prepend greeting and specs to the translated body
+        let finalHtml = htmlContent;
+        const greetingHtml = `<p style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #374151; font-size: 15px; line-height: 1.75; margin: 0 0 16px 0;">${greeting}</p>`;
+        const specsHtml = specsHighlights
+            ? `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #374151; font-size: 14px; line-height: 1.75; background: #F8FAFC; border-left: 3px solid #4F46E5; padding: 12px 16px; margin: 0 0 16px 0; white-space: pre-line;">${specsHighlights}</div>`
+            : '';
+        finalHtml = finalHtml.replace(
+            /(<td[^>]*style="[^"]*padding: 28px 0 8px 0[^"]*"[^>]*>)/,
+            `$1\n${greetingHtml}\n${specsHtml}`,
+        );
+
         // Send email
         const organizationId = (rfq as any).owner?.organizationId || undefined;
         const replyDomain = this.getReplyDomain(offer.supplier);
         const result = await this.emailService.sendEmail({
             to: emails[0],
-            subject: `RFQ: ${rfq.productName}`,
-            html: htmlContent,
+            subject: emailSubject,
+            html: finalHtml,
             organizationId,
             replyTo: `reply-${offer.id}@${replyDomain}`,
         });
