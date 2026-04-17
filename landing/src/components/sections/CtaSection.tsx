@@ -48,8 +48,8 @@ export function CtaSection() {
               whileTap={{ scale: 0.98 }}
               className="group relative inline-flex items-center justify-center"
             >
-              <div className="absolute -inset-1.5 rounded-xl bg-gradient-to-r from-brand-700 via-brand-500 to-brand-400 opacity-60 blur-lg group-hover:opacity-80 transition-opacity" />
-              <span className="relative inline-flex items-center gap-2.5 px-9 py-4 rounded-xl bg-white text-gray-900 text-base font-semibold shadow-xl">
+              <div className="absolute -inset-2 rounded-xl bg-gradient-to-r from-brand-700 via-brand-400 to-emerald-400 opacity-50 blur-lg group-hover:opacity-80 transition-opacity animate-gradient-x bg-[length:200%_200%]" />
+              <span className="relative inline-flex items-center gap-2.5 px-9 py-4 rounded-xl bg-white text-gray-900 text-base font-semibold shadow-xl hover:shadow-2xl transition-shadow">
                 {t.cta.ctaPrimary}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </span>

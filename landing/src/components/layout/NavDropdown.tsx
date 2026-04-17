@@ -31,6 +31,7 @@ interface NavDropdownProps {
 export function NavDropdown({ label, sections, columns = 2 }: NavDropdownProps) {
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
 
   // Close on outside click
   useEffect(() => {
@@ -42,11 +43,14 @@ export function NavDropdown({ label, sections, columns = 2 }: NavDropdownProps) 
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
-  // Close on Escape
+  // Close on Escape and return focus to trigger
   useEffect(() => {
     if (!open) return
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
+      if (e.key === 'Escape') {
+        setOpen(false)
+        triggerRef.current?.focus()
+      }
     }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
@@ -57,6 +61,7 @@ export function NavDropdown({ label, sections, columns = 2 }: NavDropdownProps) 
   return (
     <div ref={containerRef} className="relative">
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen(!open)}
         className={cn(

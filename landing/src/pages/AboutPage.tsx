@@ -94,7 +94,7 @@ export function AboutPage() {
       <RouteMeta />
       <Navbar />
 
-      <main>
+      <main id="main-content">
         {/* Hero */}
         <section className="relative pt-32 pb-16 bg-gradient-to-b from-white to-slate-50/30 overflow-hidden">
           <div className="absolute top-20 -right-40 w-[500px] h-[500px] rounded-full opacity-[0.06] blur-[100px] bg-primary pointer-events-none" />

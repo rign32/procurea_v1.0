@@ -16,7 +16,7 @@ export function PagePlaceholder({ title, subtitle, mvpStage, note }: PagePlaceho
     <div className="min-h-screen">
       <RouteMeta />
       <Navbar />
-      <main className="pt-32 pb-24">
+      <main id="main-content" className="pt-32 pb-24">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-xs font-bold text-amber-800 uppercase tracking-wider mb-6">
             <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />

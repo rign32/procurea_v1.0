@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Cal, { getCalApi } from "@calcom/embed-react"
 
 interface CalEmbedProps {
@@ -11,32 +11,56 @@ interface CalEmbedProps {
 }
 
 /**
- * Cal.com inline embed with a 30-min intro slot (procurea/15min).
- * The Cal widget loads client-side only — SSR/prerender skips it to avoid
- * hydration mismatches.
+ * Cal.com inline embed with lazy loading — only mounts when the container
+ * scrolls into view, avoiding heavy 3rd-party JS on initial page load.
  */
 export function CalEmbed({
   calLink = "procurea/15min",
   namespace = "15min",
   height = 640,
 }: CalEmbedProps) {
-  const [mounted, setMounted] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
+  const [calReady, setCalReady] = useState(false)
+  const sentinelRef = useRef<HTMLDivElement>(null)
 
+  // Lazy-load: only start when in viewport
   useEffect(() => {
-    setMounted(true)
+    const el = sentinelRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '200px' }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  // Init Cal API once visible
+  useEffect(() => {
+    if (!isVisible) return
+    setCalReady(true)
     ;(async () => {
       const cal = await getCalApi({ namespace })
       cal("ui", { hideEventTypeDetails: false, layout: "month_view" })
     })()
-  }, [namespace])
+  }, [isVisible, namespace])
 
-  if (!mounted) {
+  if (!calReady) {
     return (
       <div
-        className="w-full rounded-2xl border border-black/[0.08] bg-slate-50 flex items-center justify-center"
+        ref={sentinelRef}
+        className="w-full rounded-2xl border border-black/[0.08] bg-slate-50 flex items-center justify-center animate-pulse"
         style={{ height }}
       >
-        <div className="text-sm text-muted-foreground">Loading calendar…</div>
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-6 w-6 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+          <div className="text-sm text-muted-foreground">Loading calendar...</div>
+        </div>
       </div>
     )
   }
@@ -49,7 +73,6 @@ export function CalEmbed({
         style={{ width: "100%", height: `${height}px`, overflow: "auto" }}
         config={{
           layout: "month_view",
-          // the Cal SDK expects string here in their example
           useSlotsViewOnSmallScreen: "true" as unknown as string,
         }}
       />

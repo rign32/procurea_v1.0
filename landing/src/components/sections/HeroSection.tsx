@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { useAnimatedCounter } from "@/hooks/useAnimatedCounter"
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
 import { pathFor } from "@/i18n/paths"
@@ -53,6 +54,20 @@ const supplierCerts = [
 
 export function HeroSection() {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+  const mockupRef = useRef<HTMLDivElement>(null)
+  const [mockupVisible, setMockupVisible] = useState(false)
+  const supplierCount = useAnimatedCounter(183, 2000, mockupVisible)
+
+  useEffect(() => {
+    const el = mockupRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setMockupVisible(true) },
+      { threshold: 0.3 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -194,6 +209,7 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.8, ease: [0.21, 0.47, 0.32, 0.98] as const }}
+          ref={mockupRef}
           className="relative max-w-5xl mx-auto pb-20 lg:pb-28"
         >
           <div className="absolute -inset-6 bg-gradient-to-b from-brand-500/[0.08] via-brand-900/[0.06] to-brand-500/[0.03] rounded-3xl blur-3xl pointer-events-none" />
@@ -294,11 +310,11 @@ export function HeroSection() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.5, delay: 1.4 }}
-                        className="flex items-center gap-3 rounded-xl border border-border/60 bg-gray-50 px-4 py-2.5"
+                        className="flex items-center gap-3 rounded-xl border border-border/60 bg-gradient-to-r from-gray-50 via-brand-50/30 to-gray-50 px-4 py-2.5 bg-[length:200%_100%] animate-shimmer"
                       >
                         <Loader2 className="h-4 w-4 text-brand-500 animate-spin" />
                         <span className="text-xs text-muted-foreground flex-1">{t.hero.mockup.progressLabel}</span>
-                        <span className="text-lg font-bold text-brand-600">183</span>
+                        <span className="text-lg font-bold text-brand-600 tabular-nums">{supplierCount}</span>
                       </motion.div>
                     </div>
 
@@ -313,7 +329,7 @@ export function HeroSection() {
                         <span className="text-xs font-semibold text-foreground">{t.hero.mockup.statsLabel}</span>
                       </div>
                       <div className="text-[11px] text-muted-foreground mb-1">{t.hero.mockup.suppliersFound}</div>
-                      <div className="text-3xl font-bold bg-gradient-to-r from-brand-700 to-brand-500 bg-clip-text text-transparent">183</div>
+                      <div className="text-3xl font-bold bg-gradient-to-r from-brand-700 to-brand-500 bg-clip-text text-transparent tabular-nums">{supplierCount}</div>
                       <div className="mt-3 pt-3 border-t border-border/50">
                         <div className="text-[11px] text-muted-foreground mb-1">{t.hero.mockup.duration}</div>
                         <div className="text-sm font-semibold text-foreground">18m 12s</div>

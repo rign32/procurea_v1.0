@@ -36,8 +36,8 @@ function CounterItem({
   const displayCount = decimals && decimals > 0 ? count.toFixed(decimals) : count
 
   return (
-    <div ref={ref} className="text-center group">
-      <div className={`inline-flex items-center justify-center h-14 w-14 rounded-2xl ${bg} ${color} mb-4 transition-transform duration-200 group-hover:scale-110 ring-1 ${ring}`}>
+    <div ref={ref} className="text-center group cursor-default">
+      <div className={`inline-flex items-center justify-center h-14 w-14 rounded-2xl ${bg} ${color} mb-4 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg ring-1 ${ring}`}>
         <Icon className="h-6 w-6" />
       </div>
       <div className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight tabular-nums mb-2">

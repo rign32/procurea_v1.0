@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react"
 import { useSearchParams } from "react-router-dom"
 import { CheckCircle2, AlertCircle, Loader2, Mail } from "lucide-react"
+import { Confetti } from "@/components/ui/Confetti"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
@@ -53,6 +54,12 @@ export function ContactPage() {
   useEffect(() => {
     if (prefilledInterest) setInterest(prefilledInterest)
   }, [prefilledInterest])
+
+  // Auto-clear error when user edits any field
+  useEffect(() => {
+    if (errorMsg) setErrorMsg('')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name, email, interest, company, phone, message])
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -113,12 +120,13 @@ export function ContactPage() {
   if (status === 'success') {
     return (
       <div className="min-h-screen">
+        <Confetti />
         <RouteMeta />
         <Navbar />
-        <main className="pt-32 pb-24">
+        <main id="main-content" className="pt-32 pb-24">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-10">
-              <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-emerald-100 mb-6">
+              <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-emerald-100 mb-6 animate-[bounce_0.6s_ease-out]">
                 <CheckCircle2 className="h-8 w-8 text-emerald-600" />
               </div>
               <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
@@ -153,7 +161,7 @@ export function ContactPage() {
     <div className="min-h-screen">
       <RouteMeta />
       <Navbar />
-      <main className="pt-32 pb-24">
+      <main id="main-content" className="pt-32 pb-24">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="text-center mb-10">

@@ -40,7 +40,7 @@ const productSections: DropdownSection[] = [
 const linkClass = "px-3.5 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-black/[0.03]"
 
 export function Navbar() {
-  const { isScrolled } = useScrollProgress()
+  const { isScrolled, progress } = useScrollProgress()
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
@@ -109,6 +109,13 @@ export function Navbar() {
             </button>
           </div>
         </nav>
+        {/* Scroll progress bar */}
+        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-transparent">
+          <div
+            className="h-full bg-gradient-to-r from-primary via-brand-400 to-emerald-400 transition-[width] duration-150 ease-out"
+            style={{ width: `${progress * 100}%` }}
+          />
+        </div>
       </header>
 
       <MobileMenu open={mobileOpen} onClose={() => setMobileOpen(false)} appUrl={APP_URL} />

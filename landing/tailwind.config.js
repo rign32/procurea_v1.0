@@ -91,6 +91,8 @@ export default {
         "shimmer": "shimmer 2s linear infinite",
         "scroll-left": "scroll-left 60s linear infinite",
         "scroll-right": "scroll-right 60s linear infinite",
+        "marquee": "scroll-left 30s linear infinite",
+        "gradient-border": "gradient-border 3s ease infinite",
       },
       keyframes: {
         "gradient-x": {
@@ -112,6 +114,10 @@ export default {
         "scroll-right": {
           "0%": { transform: "translateX(-50%)" },
           "100%": { transform: "translateX(0)" },
+        },
+        "gradient-border": {
+          "0%, 100%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
         },
       },
     },

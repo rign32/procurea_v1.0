@@ -2,6 +2,7 @@ import { Link } from "react-router-dom"
 import { Search, Workflow, Layers, Sparkles, ArrowRight, type LucideIcon } from "lucide-react"
 import { t } from "@/i18n"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
+import { TiltCard } from "@/components/ui/TiltCard"
 import { cn } from "@/lib/utils"
 
 const ICON_MAP: Record<string, LucideIcon> = {
@@ -35,12 +36,13 @@ export function ModuleOverview() {
             const highlight = Boolean(mod.highlight)
             return (
               <RevealOnScroll key={mod.title} delay={idx * 0.05}>
+                <TiltCard className="h-full">
                 <Link
                   to={mod.href}
                   className={cn(
-                    "group relative flex h-full flex-col rounded-2xl border p-6 shadow-premium transition-all hover:shadow-premium-lg hover:-translate-y-0.5",
+                    "group relative flex h-full flex-col rounded-2xl border p-6 shadow-premium transition-all hover:shadow-premium-lg",
                     highlight
-                      ? "border-primary/30 bg-gradient-to-br from-primary/[0.04] via-white to-white"
+                      ? "border-primary/30 bg-gradient-to-br from-primary/[0.04] via-white to-white ring-1 ring-primary/10"
                       : "border-black/[0.06] bg-white"
                   )}
                 >
@@ -82,6 +84,7 @@ export function ModuleOverview() {
                     </span>
                   </div>
                 </Link>
+                </TiltCard>
               </RevealOnScroll>
             )
           })}

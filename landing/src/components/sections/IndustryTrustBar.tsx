@@ -13,28 +13,44 @@ const INDUSTRIES = [
   { icon: Wrench, key: 'mro' as const },
 ]
 
-export function IndustryTrustBar() {
+function IndustryPill({ icon: Icon, label }: { icon: typeof Factory; label: string }) {
   return (
-    <section className="relative border-y border-border/50 bg-slate-50/40">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10 md:py-12">
+    <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-black/[0.06] bg-white/80 shrink-0 hover:border-primary/20 hover:shadow-sm transition-all">
+      <Icon className="h-4 w-4 text-slate-600" strokeWidth={1.5} />
+      <span className="text-xs font-medium text-slate-700 whitespace-nowrap">{label}</span>
+    </div>
+  )
+}
+
+export function IndustryTrustBar() {
+  // Double the items for seamless infinite scroll
+  const items = INDUSTRIES.map(({ icon, key }) => ({
+    icon,
+    label: t.homeTrustBar.industries[key],
+    key,
+  }))
+
+  return (
+    <section className="relative border-y border-border/50 bg-slate-50/40 overflow-hidden">
+      <div className="py-8 md:py-10">
         <RevealOnScroll>
-          <p className="text-center text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground mb-6">
+          <p className="text-center text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground mb-5 px-4">
             {t.homeTrustBar.heading}
           </p>
-          <div className="grid grid-cols-4 sm:grid-cols-8 gap-4 items-center justify-items-center">
-            {INDUSTRIES.map(({ icon: Icon, key }) => (
-              <div
-                key={key}
-                className="flex flex-col items-center gap-1.5 opacity-70 hover:opacity-100 transition-opacity"
-              >
-                <Icon className="h-6 w-6 text-slate-600" strokeWidth={1.5} />
-                <span className="text-[11px] font-medium text-slate-600 text-center">
-                  {t.homeTrustBar.industries[key]}
-                </span>
-              </div>
+        </RevealOnScroll>
+
+        {/* Marquee — infinite scroll */}
+        <div className="relative">
+          {/* Fade edges */}
+          <div className="absolute left-0 top-0 bottom-0 w-16 z-10 bg-gradient-to-r from-slate-50/90 to-transparent pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-16 z-10 bg-gradient-to-l from-slate-50/90 to-transparent pointer-events-none" />
+
+          <div className="flex gap-3 animate-marquee hover:[animation-play-state:paused]">
+            {[...items, ...items].map(({ icon, label, key }, idx) => (
+              <IndustryPill key={`${key}-${idx}`} icon={icon} label={label} />
             ))}
           </div>
-        </RevealOnScroll>
+        </div>
       </div>
     </section>
   )

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useId, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -10,11 +10,17 @@ interface AccordionItemProps {
 
 export function AccordionItem({ question, answer }: AccordionItemProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const id = useId()
+  const panelId = `accordion-panel-${id}`
+  const triggerId = `accordion-trigger-${id}`
 
   return (
     <div className="border-b border-border last:border-b-0">
       <button
+        id={triggerId}
         onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        aria-controls={panelId}
         className="flex w-full items-center justify-between py-5 text-left group"
       >
         <span className="text-base font-semibold pr-4 group-hover:text-foreground transition-colors">{question}</span>
@@ -28,6 +34,9 @@ export function AccordionItem({ question, answer }: AccordionItemProps) {
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            id={panelId}
+            role="region"
+            aria-labelledby={triggerId}
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}

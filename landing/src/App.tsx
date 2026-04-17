@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { pathMappings } from "@/i18n/paths"
 import { t } from "@/i18n"
+import { BackToTop } from "@/components/ui/BackToTop"
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -56,6 +57,9 @@ import { TermsPage } from "@/pages/TermsPage"
 import { PrivacyPolicyPage } from "@/pages/PrivacyPolicyPage"
 import { GdprPage } from "@/pages/GdprPage"
 
+// 404
+import { NotFoundPage } from "@/pages/NotFoundPage"
+
 const isEN = t.meta.lang === 'en'
 const lang = isEN ? 'en' : 'pl'
 
@@ -70,6 +74,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <BackToTop />
       <AnimatedRoutes>
       <Routes>
         {/* Home */}
@@ -105,6 +110,9 @@ export default function App() {
             <Route path={p('gdpr')} element={<RodoPage />} />
           </>
         )}
+
+        {/* 404 */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
       </AnimatedRoutes>
     </BrowserRouter>

@@ -1,6 +1,7 @@
 import { Search, Mail, Shield, BarChart3, Sparkles, ArrowRight } from "lucide-react"
 import { Link } from "react-router-dom"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
+import { TiltCard } from "@/components/ui/TiltCard"
 import { pathFor } from "@/i18n/paths"
 import { t } from "@/i18n"
 
@@ -41,22 +42,24 @@ export function FeaturesSneakPeek() {
             const feat = features[f.slug]
             return (
               <RevealOnScroll key={f.slug} delay={i * 0.08}>
-                <Link
-                  to={pathFor('featuresHub')}
-                  className="group block h-full rounded-2xl border border-black/[0.08] bg-white p-6 hover:border-primary/30 hover:shadow-md transition-all"
-                >
-                  <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4">
-                    <Icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <h3 className="text-base font-bold mb-2">{feat.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-                    {feat.subtitle}
-                  </p>
-                  <span className="text-sm font-semibold text-primary flex items-center gap-1 group-hover:gap-2 transition-all">
-                    {copy.cta}
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </span>
-                </Link>
+                <TiltCard className="h-full">
+                  <Link
+                    to={pathFor('featuresHub')}
+                    className="group block h-full rounded-2xl border border-black/[0.08] bg-white p-6 hover:border-primary/30 hover:shadow-lg transition-all"
+                  >
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4 group-hover:shadow-md group-hover:shadow-primary/10 transition-shadow">
+                      <Icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <h3 className="text-base font-bold mb-2">{feat.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                      {feat.subtitle}
+                    </p>
+                    <span className="text-sm font-semibold text-primary flex items-center gap-1 group-hover:gap-2 transition-all">
+                      {copy.cta}
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </span>
+                  </Link>
+                </TiltCard>
               </RevealOnScroll>
             )
           })}

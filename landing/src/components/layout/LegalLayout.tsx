@@ -19,7 +19,7 @@ export function LegalLayout({ title, lastUpdated, children }: LegalLayoutProps) 
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="flex-1 pt-32 pb-20">
+      <main id="main-content" className="flex-1 pt-32 pb-20">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           <Link
             to="/"

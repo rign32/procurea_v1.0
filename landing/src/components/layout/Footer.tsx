@@ -94,7 +94,7 @@ export function Footer() {
 
         {/* Bottom bar */}
         <div className="mt-12 pt-8 border-t border-white/[0.06]">
-          <p className="text-xs text-gray-600 text-center">
+          <p className="text-xs text-gray-500 text-center">
             &copy; {new Date().getFullYear()} {t.footer.copyright}
           </p>
         </div>
