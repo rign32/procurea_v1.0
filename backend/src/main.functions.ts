@@ -18,11 +18,13 @@ if (process.env.DATABASE_URL_STAGING && !process.env.DATABASE_URL) {
 const expressApp = express();
 let app: NestExpressApplication;
 
-// Capture raw body for Stripe webhook signature verification
+// Capture raw body for Stripe + Resend Inbound webhook signature verification
 // Must be BEFORE prefix stripping AND before NestJS body parsing
 const webhookRawParser = express.raw({ type: 'application/json' });
 expressApp.use('/api/billing/webhook', webhookRawParser);
 expressApp.use('/billing/webhook', webhookRawParser);
+expressApp.use('/api/webhooks/resend/inbound', webhookRawParser);
+expressApp.use('/webhooks/resend/inbound', webhookRawParser);
 
 // Strip /api prefix from incoming requests
 // Firebase Hosting rewrites /api/** → Cloud Function with full path
@@ -141,6 +143,7 @@ export const api = onRequest(
             'SLACK_ALERTS_CHANNEL_ID',
             'APOLLO_WEBHOOK_SECRET',
             'APOLLO_API_KEY',
+            'RESEND_INBOUND_WEBHOOK_SECRET',
         ],
     },
     expressApp
@@ -177,6 +180,7 @@ export const apiStaging = onRequest(
             'SLACK_ALERTS_CHANNEL_ID',
             'APOLLO_WEBHOOK_SECRET',
             'APOLLO_API_KEY',
+            'RESEND_INBOUND_WEBHOOK_SECRET',
         ],
     },
     expressApp

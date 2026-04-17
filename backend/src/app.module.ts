@@ -38,7 +38,8 @@ import { ContractsModule } from './contracts/contracts.module';
 import { WorkspacesModule } from './workspaces/workspaces.module';
 import { NotificationsCenterModule } from './notifications-center/notifications-center.module';
 import { LeadsModule } from './leads/leads.module';
-// import { IntegrationsModule } from './integrations/integrations.module'; // WIP — not yet committed, re-enable when backend/src/integrations/ is pushed
+import { IntegrationsModule } from './integrations/integrations.module';
+import { WebhooksModule } from './webhooks/webhooks.module';
 import { SentryModule } from '@sentry/nestjs/setup';
 
 @Module({
@@ -85,7 +86,8 @@ import { SentryModule } from '@sentry/nestjs/setup';
     WorkspacesModule,
     NotificationsCenterModule,
     LeadsModule,
-    // IntegrationsModule, // WIP — re-enable when integrations module is committed
+    IntegrationsModule,
+    WebhooksModule,
   ],
   controllers: [AppController],
   providers: [
