@@ -2,11 +2,15 @@ import { Controller, Get, Post, Param, Patch, Body, Query, Res, UseGuards, Req, 
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { SuppliersService } from './suppliers.service';
+import { QualityScoreService } from './quality-score.service';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('suppliers')
 export class SuppliersController {
-    constructor(private readonly suppliersService: SuppliersService) { }
+    constructor(
+        private readonly suppliersService: SuppliersService,
+        private readonly qualityScoreService: QualityScoreService,
+    ) { }
 
     @Get()
     findAll(
@@ -103,6 +107,18 @@ export class SuppliersController {
         @Body() body: { reason: string },
     ) {
         return this.suppliersService.updateBlacklistReason(id, body.reason);
+    }
+
+    @Post('campaign/:campaignId/recompute-scores')
+    async recomputeCampaignScores(@Param('campaignId') campaignId: string) {
+        await this.qualityScoreService.recomputeForCampaign(campaignId);
+        return { message: 'Scores recomputed for campaign', campaignId };
+    }
+
+    @Post(':id/recompute-score')
+    async recomputeScore(@Param('id') id: string) {
+        const qualityScore = await this.qualityScoreService.computeAndSave(id);
+        return { qualityScore };
     }
 
     @Get(':id/performance')
