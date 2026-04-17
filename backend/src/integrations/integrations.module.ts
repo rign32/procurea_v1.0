@@ -10,6 +10,6 @@ import { MergeDevAdapter } from './adapters/merge-dev.adapter';
     imports: [ConfigModule, PrismaModule],
     controllers: [IntegrationsController],
     providers: [IntegrationsService, SupplierMatchingService, MergeDevAdapter],
-    exports: [IntegrationsService, SupplierMatchingService],
+    exports: [IntegrationsService, SupplierMatchingService, MergeDevAdapter],
 })
 export class IntegrationsModule {}

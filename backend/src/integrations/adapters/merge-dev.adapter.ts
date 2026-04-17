@@ -200,13 +200,54 @@ export class MergeDevAdapter implements SupplierConnector {
         draft: ExternalPurchaseOrderDraft,
     ): Promise<{ externalId: string; raw?: unknown }> {
         this.ensureConfigured();
-        this.logger.debug(
-            `createPurchaseOrder(token=${this.mask(providerAccountToken)}, lines=${draft.lines.length}) — stub`,
+        const apiKey = this.apiKey as string;
+
+        this.logger.log(
+            `createPurchaseOrder(token=${this.mask(providerAccountToken)}, vendor=${draft.supplierExternalId}, lines=${draft.lines.length})`,
         );
-        // Wave 3 — implemented in sprint/w3-d-po-export
-        throw new NotImplementedException(
-            'MergeDevAdapter.createPurchaseOrder scheduled for Wave 3 (sprint/w3-d-po-export)',
+
+        let response;
+        try {
+            response = await this.http.post(
+                '/accounting/v1/purchase-orders',
+                {
+                    model: {
+                        vendor: draft.supplierExternalId,
+                        delivery_date: draft.deliveryDate ?? null,
+                        currency: draft.currency?.toUpperCase() ?? null,
+                        memo: draft.memo ?? null,
+                        line_items: draft.lines.map((li) => ({
+                            description: li.description ?? '',
+                            quantity: li.quantity ?? null,
+                            unit_price: li.unitPrice ?? null,
+                            total_line_amount:
+                                li.quantity != null && li.unitPrice != null
+                                    ? li.quantity * li.unitPrice
+                                    : null,
+                        })),
+                    },
+                },
+                {
+                    headers: {
+                        ...this.buildHeaders(apiKey, providerAccountToken),
+                        'Content-Type': 'application/json',
+                    },
+                    timeout: 30_000,
+                },
+            );
+        } catch (err) {
+            this.rethrowAxios(err, 'createPurchaseOrder');
+        }
+
+        const body = response!.data;
+        const externalId: string =
+            body?.model?.id ?? body?.id ?? '';
+
+        this.logger.log(
+            `createPurchaseOrder success — externalId=${externalId}`,
         );
+
+        return { externalId, raw: body };
     }
 
     async getCapabilities(
