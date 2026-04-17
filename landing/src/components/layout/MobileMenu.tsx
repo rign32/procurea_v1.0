@@ -24,18 +24,20 @@ interface MobileSection {
   footerTo?: string
 }
 
-const platformSection: MobileSection = {
-  label: isEN ? "Features" : "Funkcje",
+const modulesSection: MobileSection = {
+  label: isEN ? "Modules" : "Moduly",
   links: [
     { label: "AI Sourcing", to: pathFor("fAiSourcing") },
+    { label: "Company Registry", to: pathFor("fCompanyRegistry") },
     { label: "Email Outreach", to: pathFor("fEmailOutreach") },
     { label: "Supplier Portal", to: pathFor("fSupplierPortal") },
     {
       label: isEN ? "Offer Comparison" : "Porownywarka ofert",
       to: pathFor("fOfferComparison"),
     },
+    { label: "AI Insights", to: pathFor("featuresHub") },
   ],
-  footerLabel: t.nav.allFeatures,
+  footerLabel: isEN ? "All modules" : "Wszystkie moduly",
   footerTo: pathFor("featuresHub"),
 }
 
@@ -46,17 +48,14 @@ const industrySection: MobileSection = {
     { label: isEN ? "Events" : "Eventy", to: pathFor("iEvents") },
     { label: isEN ? "Construction" : "Budownictwo", to: pathFor("iConstruction") },
     { label: isEN ? "Retail & E-com" : "Retail & E-com", to: pathFor("iRetail") },
+    { label: isEN ? "HoReCa" : "HoReCa", to: pathFor("iHoreca") },
+    { label: isEN ? "Healthcare" : "Ochrona zdrowia", to: pathFor("iHealthcare") },
+    { label: isEN ? "Logistics" : "Logistyka", to: pathFor("iLogistics") },
+    { label: "MRO", to: pathFor("iMro") },
   ],
   footerLabel: t.nav.allIndustries,
   footerTo: pathFor("industriesHub"),
 }
-
-const resourceLinks = [
-  { label: "Blog", to: "#" },
-  { label: "Case Studies", to: "#" },
-  { label: isEN ? "Documentation" : "Dokumentacja", to: "#" },
-  { label: "API Docs", to: "#" },
-]
 
 // Animation variants
 const overlayVariants = {
@@ -217,7 +216,17 @@ export function MobileMenu({ open, onClose, appUrl }: MobileMenuProps) {
             {/* Navigation */}
             <nav className="flex-1 px-5 py-4 space-y-1 overflow-y-auto">
               <motion.div variants={itemVariants}>
-                <CollapsibleSection section={platformSection} onClose={onClose} />
+                <Link
+                  to={pathFor("home")}
+                  onClick={onClose}
+                  className="block px-2 py-3.5 text-lg font-semibold text-foreground"
+                >
+                  {t.nav.product}
+                </Link>
+              </motion.div>
+
+              <motion.div variants={itemVariants}>
+                <CollapsibleSection section={modulesSection} onClose={onClose} />
               </motion.div>
 
               <motion.div variants={itemVariants}>
@@ -244,15 +253,14 @@ export function MobileMenu({ open, onClose, appUrl }: MobileMenuProps) {
                 </Link>
               </motion.div>
 
-              {/* Resources section */}
               <motion.div variants={itemVariants}>
-                <CollapsibleSection
-                  section={{
-                    label: isEN ? "Resources" : "Zasoby",
-                    links: resourceLinks,
-                  }}
-                  onClose={onClose}
-                />
+                <Link
+                  to={pathFor("about")}
+                  onClick={onClose}
+                  className="block px-2 py-3.5 text-lg font-semibold text-foreground"
+                >
+                  {t.nav.company}
+                </Link>
               </motion.div>
             </nav>
 
@@ -261,16 +269,18 @@ export function MobileMenu({ open, onClose, appUrl }: MobileMenuProps) {
               variants={itemVariants}
               className="px-5 pb-8 pt-2 space-y-3 border-t border-black/[0.06]"
             >
-              <Link
-                to={pathFor("contact")}
+              <a
+                href={appendUtm(appUrl, "mobile_signup")}
+                target="_blank"
+                rel="noopener noreferrer"
                 onClick={() => {
-                  trackCtaClick("mobile_cta")
+                  trackCtaClick("mobile_signup")
                   onClose()
                 }}
                 className="flex items-center justify-center w-full rounded-xl font-semibold text-base bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm hover:shadow-md transition-all duration-200 px-6 py-3.5"
               >
                 {t.nav.cta}
-              </Link>
+              </a>
               <a
                 href={appendUtm(appUrl, "mobile_login")}
                 target="_blank"

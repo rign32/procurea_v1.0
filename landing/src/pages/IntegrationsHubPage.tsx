@@ -85,7 +85,7 @@ export function IntegrationsHubPage() {
         noResults: 'No pre-built integration found.',
         noResultsCta: 'Contact us — we can build one →',
         requestTitle: 'Your system?',
-        requestSubtitle: "We'll build an adapter for your ERP via Merge.dev or natively.",
+        requestSubtitle: "We'll build an adapter for your ERP.",
         requestCta: 'Talk to us →',
       }
     : {
@@ -93,7 +93,7 @@ export function IntegrationsHubPage() {
         noResults: 'Nie znaleziono gotowej integracji.',
         noResultsCta: 'Skontaktuj się z nami — zbudujemy →',
         requestTitle: 'Twój system?',
-        requestSubtitle: 'Zbudujemy adapter do Twojego ERP przez Merge.dev lub natywnie.',
+        requestSubtitle: 'Zbudujemy adapter do Twojego ERP.',
         requestCta: 'Porozmawiaj z nami →',
       }
 

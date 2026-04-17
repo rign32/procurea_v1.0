@@ -23,7 +23,7 @@ const SYSTEMS: { name: string; logo: string; status: 'pilot' | 'roadmap' | 'cust
   { name: 'Oracle Fusion Cloud', logo: 'OFC', status: 'roadmap', eta: 'Q4 2026' },
   { name: 'SAP S/4HANA', logo: 'SAP', status: 'roadmap', eta: 'Q4 2026' },
   { name: 'SAP ECC', logo: 'ECC', status: 'custom' },
-  { name: '50+ via Merge.dev', logo: '50+', status: 'roadmap', eta: 'Q4 2026' },
+  { name: '100+ ERP/CRM systems', logo: '100+', status: 'roadmap', eta: 'Q4 2026' },
 ]
 
 function statusBadge(status: string, eta?: string) {

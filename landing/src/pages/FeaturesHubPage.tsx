@@ -84,8 +84,8 @@ const copy = {
   insightsHeading: 'AI Insights',
   integrationsHeading: isEN ? 'ERP & CRM Integrations' : 'Integracje ERP i CRM',
   integrationsDesc: isEN
-    ? 'Native integration with SAP, Oracle, Dynamics, Salesforce — plus 50+ systems via Merge.dev.'
-    : 'Natywna integracja z SAP, Oracle, Dynamics, Salesforce — plus 50+ systemów przez Merge.dev.',
+    ? 'Native integration with SAP, Oracle, Dynamics, Salesforce — plus 100+ other ERP/CRM systems.'
+    : 'Natywna integracja z SAP, Oracle, Dynamics, Salesforce — plus 100+ innych systemów ERP/CRM.',
   integrationsCta: isEN ? 'See all integrations' : 'Zobacz wszystkie integracje',
   learnMore: isEN ? 'Learn more' : 'Dowiedz się więcej',
   inProcurement: isEN ? 'Part of AI Procurement' : 'Część AI Procurement',
@@ -134,6 +134,45 @@ export function FeaturesHubPage() {
         <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center mb-16">
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-5">{copy.heroTitle}</h1>
           <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">{copy.heroSubtitle}</p>
+        </section>
+
+        {/* How the two modules work together */}
+        <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mb-16">
+          <RevealOnScroll>
+            <div className="rounded-2xl border border-black/[0.06] bg-gradient-to-br from-emerald-50/30 via-white to-primary/5 p-8 md:p-10">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-3">
+                  {isEN ? 'Two modules. One procurement pipeline.' : 'Dwa moduły. Jeden pipeline zakupowy.'}
+                </h2>
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                  {isEN
+                    ? 'AI Sourcing discovers suppliers. AI Procurement runs the RFQ. Together, they replace your entire vendor selection workflow.'
+                    : 'AI Sourcing znajduje dostawców. AI Procurement prowadzi RFQ. Razem zastępują cały workflow doboru vendorów.'}
+                </p>
+              </div>
+              <div className="flex flex-col md:flex-row items-center gap-4 md:gap-2 justify-center">
+                <div className="flex items-center gap-3 px-5 py-3 rounded-xl bg-white border border-emerald-200 shadow-sm">
+                  <div className="h-8 w-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center"><Search className="h-4 w-4" /></div>
+                  <div>
+                    <div className="text-sm font-bold">AI Sourcing</div>
+                    <div className="text-xs text-muted-foreground">{isEN ? 'Find → Verify → Shortlist' : 'Szukaj → Weryfikuj → Shortlista'}</div>
+                  </div>
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground/40 rotate-90 md:rotate-0" />
+                <div className="flex items-center gap-3 px-5 py-3 rounded-xl bg-white border border-primary/20 shadow-sm">
+                  <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center"><Sparkles className="h-4 w-4" /></div>
+                  <div>
+                    <div className="text-sm font-bold">AI Procurement</div>
+                    <div className="text-xs text-muted-foreground">{isEN ? 'RFQ → Collect → Compare' : 'RFQ → Zbieraj → Porównuj'}</div>
+                  </div>
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground/40 rotate-90 md:rotate-0" />
+                <div className="px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-primary text-white shadow-sm text-center">
+                  <div className="text-sm font-bold">{isEN ? 'Best suppliers selected' : 'Najlepsi dostawcy wybrani'}</div>
+                </div>
+              </div>
+            </div>
+          </RevealOnScroll>
         </section>
 
         {/* AI Sourcing module */}

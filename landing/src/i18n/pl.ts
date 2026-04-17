@@ -24,7 +24,7 @@ export const PL = {
     pricing: 'Cennik',
     faq: 'FAQ',
     login: 'Zaloguj się',
-    cta: 'Umów demo',
+    cta: 'Zarejestruj sie',
     openMenu: 'Otwórz menu',
     closeMenu: 'Zamknij menu',
     allFeatures: 'Wszystkie funkcje',
@@ -45,8 +45,9 @@ export const PL = {
     headlineHighlight: 'w zakupach',
     headlinePart2: '.',
     subheadline: 'Dwa moduły: AI Sourcing wyszukuje dostawców w 26 językach, a AI Procurement wysyła RFQ, zbiera oferty przez portal dostawcy i porównuje — wszystko zautomatyzowane.',
-    ctaPrimary: 'Umów demo',
-    ctaSecondary: 'Zobacz cennik',
+    ctaPrimary: 'Zarejestruj sie za darmo',
+    ctaSecondary: 'Obejrzyj demo',
+    ctaPricingLink: 'Zobacz cennik',
     trustFreeAccess: '10 darmowych kredytów',
     trustNoCreditCard: 'Bez karty',
     trustBeta: 'Integruje się z Twoim ERP',
@@ -277,10 +278,10 @@ export const PL = {
     ],
   },
   cta: {
-    headingPart1: 'Wypróbuj AI sourcing',
-    headingHighlight: 'na swoim zapytaniu',
-    description: 'Załóż darmowe konto, opisz czego szukasz — zweryfikowana lista dostawców będzie gotowa w kilka minut. Beta testy — pełny dostęp bez opłat.',
-    ctaPrimary: 'Dołącz do beta testów',
+    headingPart1: 'Zacznij automatyzować',
+    headingHighlight: 'procurement z AI',
+    description: '10 darmowych wyszukiwań dostawców na start. Bez karty, bez zobowiązań.',
+    ctaPrimary: 'Zacznij za darmo',
     ctaEmail: 'Napisz do nas',
     contactEmail: 'r.ignaczak1@gmail.com',
     trustPoints: [
@@ -372,7 +373,7 @@ export const PL = {
       },
       {
         q: 'Z jakimi systemami ERP/CRM się integrujecie?',
-        a: 'Natywnie: SAP S/4HANA, Oracle NetSuite, Oracle Fusion Cloud, Microsoft Dynamics 365 Business Central, Microsoft Dynamics 365 F&O, Salesforce. Dodatkowo przez Merge.dev pokrywamy 100+ systemów księgowych, ERP i CRM (QuickBooks, Xero, Sage, HubSpot, Pipedrive, Zoho itd.). Pełna lista: /integracje. Integracja synchronizuje dostawców, PO, faktury i master data — dwukierunkowo, bez ręcznego exportu CSV.',
+        a: 'Natywnie: SAP S/4HANA, Oracle NetSuite, Oracle Fusion Cloud, Microsoft Dynamics 365 Business Central, Microsoft Dynamics 365 F&O, Salesforce. Dodatkowo nasz katalog pokrywa 100+ systemów księgowych, ERP i CRM (QuickBooks, Xero, Sage, HubSpot, Pipedrive, Zoho itd.). Pełna lista: /integracje. Integracja synchronizuje dostawców, PO, faktury i master data — dwukierunkowo, bez ręcznego exportu CSV.',
       },
       {
         q: 'Jak szybkie jest wdrożenie?',
@@ -392,11 +393,11 @@ export const PL = {
       },
       {
         q: 'Co jeśli mojego ERP nie ma na liście?',
-        a: 'Dwie ścieżki. (1) Jeśli Twój system jest w katalogu Merge.dev (100+ systemów) — integracja działa out-of-the-box bez dodatkowego kodu, aktywujemy w ramach standardowego planu Procurement lub Bundle. (2) Jeśli system jest niszowy lub on-prem — Enterprise Custom buduje dedykowany adapter (REST/SOAP/file-based) w ramach SOW, typowo 2–4 tygodnie. Umów rozmowę techniczną: /kontakt.',
+        a: 'Dwie ścieżki. (1) Jeśli Twój system jest w naszym katalogu 100+ systemów — integracja działa out-of-the-box bez dodatkowego kodu, aktywujemy w ramach standardowego planu Procurement lub Bundle. (2) Jeśli system jest niszowy lub on-prem — Enterprise Custom buduje dedykowany adapter (REST/SOAP/file-based) w ramach SOW, typowo 2–4 tygodnie. Umów rozmowę techniczną: /kontakt.',
       },
       {
         q: 'Kiedy wybrać Enterprise Custom?',
-        a: 'Enterprise Custom ma sens gdy: (a) robisz 500+ kampanii sourcingowych rocznie (wtedy unlimited taniej niż kredyty), (b) potrzebujesz custom ERP adapter którego nie ma Merge.dev, (c) wymagasz dedykowanej instancji (izolowana baza, własny VPC), (d) masz ścisłe wymagania compliance (ISO 27001 audit, DPA z regionalnym residency), (e) chcesz SSO/SAML, custom SLA i dedykowanego CSM. Cena od $25k/rok, typowe kontrakty $40–120k. Umów demo: /kontakt.',
+        a: 'Enterprise Custom ma sens gdy: (a) robisz 500+ kampanii sourcingowych rocznie (wtedy unlimited taniej niż kredyty), (b) potrzebujesz custom ERP adapter którego nie ma w naszym standardowym katalogu, (c) wymagasz dedykowanej instancji (izolowana baza, własny VPC), (d) masz ścisłe wymagania compliance (ISO 27001 audit, DPA z regionalnym residency), (e) chcesz SSO/SAML, custom SLA i dedykowanego CSM. Cena od $25k/rok, typowe kontrakty $40–120k. Umów demo: /kontakt.',
       },
     ],
   },
@@ -457,7 +458,7 @@ export const PL = {
         {
           name: 'Integracje',
           rows: [
-            { label: 'ERP (Merge.dev, 100+ systemów)', sourcing: '—', procurement: '✓', bundle: '✓', enterprise: 'Custom adapter' },
+            { label: 'ERP (100+ systemów)', sourcing: '—', procurement: '✓', bundle: '✓', enterprise: 'Custom adapter' },
             { label: 'CRM (HubSpot, Salesforce, Pipedrive)', sourcing: '—', procurement: '✓', bundle: '✓', enterprise: '✓' },
             { label: 'Email (Gmail, Outlook)', sourcing: '✓', procurement: '✓', bundle: '✓', enterprise: '✓' },
             { label: 'Webhooks', sourcing: '—', procurement: '✓', bundle: '✓', enterprise: '✓' },
@@ -576,7 +577,7 @@ export const PL = {
   },
   integrationsSearch: {
     placeholder: 'Sprawdź czy integrujemy z Twoim ERP...',
-    noResults: 'Nie znaleźliśmy gotowej integracji. Skontaktuj się z nami — zbudujemy adapter przez Merge.dev lub natywnie.',
+    noResults: 'Nie znaleźliśmy gotowej integracji. Skontaktuj się z nami — zbudujemy adapter.',
     requestTitle: 'Twój system?',
     requestSubtitle: 'Zbudujemy adapter dla Twojego ERP.',
     requestCta: 'Porozmawiaj z nami',

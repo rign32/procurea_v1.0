@@ -27,7 +27,10 @@ import {
   Sparkles,
 } from "lucide-react"
 import { trackCtaClick } from "@/lib/analytics"
+import { appendUtm } from "@/lib/utm"
 import { t } from "@/i18n"
+
+const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 
 /* ─── constants ─── */
 
@@ -201,25 +204,41 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.5 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10"
+            className="flex flex-col items-center gap-4 mb-10"
           >
-            {/* Primary CTA with glow */}
-            <Link
-              to={pathFor("contact")}
-              onClick={() => trackCtaClick("hero_primary")}
-              className="group relative inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-300 bg-primary text-primary-foreground hover:bg-primary/90 text-base px-8 py-4 shadow-glow-primary hover:shadow-[0_0_30px_rgba(90,140,143,0.4),0_0_80px_rgba(90,140,143,0.15)] hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <Sparkles className="mr-2 h-4 w-4 opacity-80" />
-              {t.hero.ctaPrimary}
-              <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </Link>
-            {/* Secondary CTA - ghost */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              {/* Primary CTA with glow */}
+              <motion.a
+                href={appendUtm(APP_URL, 'hero_signup')}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackCtaClick('hero_signup')}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+                className="relative inline-flex items-center justify-center"
+              >
+                <span className="absolute -inset-1 rounded-xl bg-gradient-to-r from-brand-500 via-emerald-400 to-brand-400 opacity-40 blur-md animate-pulse" />
+                <span className="relative group inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-300 bg-primary text-primary-foreground hover:bg-primary/90 text-base px-8 py-4 shadow-lg">
+                  {t.hero.ctaPrimary}
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </span>
+              </motion.a>
+              {/* Secondary CTA - ghost */}
+              <a
+                href={`#${t.sectionIds.demo}`}
+                onClick={() => trackCtaClick("hero_demo")}
+                className="inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-300 border border-border/80 bg-white/50 backdrop-blur-sm text-foreground hover:bg-white hover:border-brand-300 hover:text-brand-700 text-base px-8 py-4 hover:shadow-lg hover:shadow-brand-500/5"
+              >
+                {t.hero.ctaSecondary}
+              </a>
+            </div>
+            {/* Pricing link below CTAs */}
             <Link
               to={pathFor("pricing")}
-              onClick={() => trackCtaClick("hero_pricing")}
-              className="inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-300 border border-border/80 bg-white/50 backdrop-blur-sm text-foreground hover:bg-white hover:border-brand-300 hover:text-brand-700 text-base px-8 py-4 hover:shadow-lg hover:shadow-brand-500/5"
+              onClick={() => trackCtaClick("hero_pricing_link")}
+              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
             >
-              {t.hero.ctaSecondary}
+              {t.hero.ctaPricingLink} &rarr;
             </Link>
           </motion.div>
 

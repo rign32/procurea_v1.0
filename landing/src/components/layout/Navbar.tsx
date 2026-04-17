@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 import { useScrollProgress } from "@/hooks/useScrollProgress"
 import { MobileMenu } from "./MobileMenu"
 import { NavDropdown, type DropdownSection } from "./NavDropdown"
-import { Menu, Search, Mail, LayoutGrid, Zap, FileText, BookOpen, Users, Code } from "lucide-react"
+import { Menu, Search, Mail, LayoutGrid, Zap, Sparkles, Building2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { trackCtaClick } from "@/lib/analytics"
 import { appendUtm } from "@/lib/utm"
@@ -16,9 +16,9 @@ const isEN = LANG === 'en'
 
 /* ---------- Dropdown data ---------- */
 
-const platformSections: DropdownSection[] = [
+const modulesSections: DropdownSection[] = [
   {
-    label: isEN ? 'Core Platform' : 'Platforma',
+    label: 'AI Sourcing',
     items: [
       {
         label: 'AI Sourcing',
@@ -26,6 +26,17 @@ const platformSections: DropdownSection[] = [
         description: isEN ? 'Find 250 vendors in 20 minutes' : 'Znajdz 250 dostawcow w 20 minut',
         icon: <Search className="h-4 w-4" />,
       },
+      {
+        label: 'Company Registry',
+        to: pathFor('fCompanyRegistry'),
+        description: isEN ? 'Centralized supplier database' : 'Centralna baza dostawcow',
+        icon: <Building2 className="h-4 w-4" />,
+      },
+    ],
+  },
+  {
+    label: 'AI Procurement',
+    items: [
       {
         label: 'Email Outreach',
         to: pathFor('fEmailOutreach'),
@@ -44,12 +55,18 @@ const platformSections: DropdownSection[] = [
         description: isEN ? 'Side-by-side weighted ranking' : 'Ranking wazony side-by-side',
         icon: <Zap className="h-4 w-4" />,
       },
+      {
+        label: 'AI Insights',
+        to: pathFor('featuresHub'),
+        description: isEN ? 'Procurement reports that write themselves' : 'Raporty procurement, ktore same sie pisza',
+        icon: <Sparkles className="h-4 w-4" />,
+      },
     ],
-    footer: { label: t.nav.allFeatures, to: pathFor('featuresHub') },
+    footer: { label: isEN ? 'All modules →' : 'Wszystkie moduly →', to: pathFor('featuresHub') },
   },
 ]
 
-const modulesSections: DropdownSection[] = [
+const industriesSections: DropdownSection[] = [
   {
     label: isEN ? 'Industries' : 'Branze',
     items: [
@@ -57,55 +74,12 @@ const modulesSections: DropdownSection[] = [
       { label: isEN ? 'Events' : 'Eventy', to: pathFor('iEvents') },
       { label: isEN ? 'Construction' : 'Budownictwo', to: pathFor('iConstruction') },
       { label: isEN ? 'Retail & E-com' : 'Retail & E-com', to: pathFor('iRetail') },
+      { label: isEN ? 'HoReCa' : 'HoReCa', to: pathFor('iHoreca') },
+      { label: isEN ? 'Healthcare' : 'Ochrona zdrowia', to: pathFor('iHealthcare') },
+      { label: isEN ? 'Logistics' : 'Logistyka', to: pathFor('iLogistics') },
+      { label: 'MRO', to: pathFor('iMro') },
     ],
-    footer: { label: t.nav.allIndustries, to: pathFor('industriesHub') },
-  },
-  {
-    label: isEN ? 'Integrations' : 'Integracje',
-    items: [
-      {
-        label: isEN ? 'All Integrations' : 'Wszystkie integracje',
-        to: pathFor('integrationsHub'),
-        description: isEN ? 'ERP, CRM, and more' : 'ERP, CRM i wiecej',
-      },
-    ],
-  },
-]
-
-const resourcesSections: DropdownSection[] = [
-  {
-    label: isEN ? 'Learn' : 'Wiedza',
-    items: [
-      {
-        label: 'Blog',
-        to: '#',
-        description: isEN ? 'Insights on procurement automation' : 'Artykuly o automatyzacji zakupow',
-        icon: <FileText className="h-4 w-4" />,
-      },
-      {
-        label: 'Case Studies',
-        to: '#',
-        description: isEN ? 'How teams save with Procurea' : 'Jak zespoly oszczedzaja z Procurea',
-        icon: <Users className="h-4 w-4" />,
-      },
-    ],
-  },
-  {
-    label: isEN ? 'Developers' : 'Deweloperzy',
-    items: [
-      {
-        label: isEN ? 'Documentation' : 'Dokumentacja',
-        to: '#',
-        description: isEN ? 'Guides and references' : 'Przewodniki i dokumentacja',
-        icon: <BookOpen className="h-4 w-4" />,
-      },
-      {
-        label: 'API Docs',
-        to: '#',
-        description: isEN ? 'REST API reference' : 'Dokumentacja REST API',
-        icon: <Code className="h-4 w-4" />,
-      },
-    ],
+    footer: { label: isEN ? 'All industries →' : 'Wszystkie branze →', to: pathFor('industriesHub') },
   },
 ]
 
@@ -159,27 +133,28 @@ export function Navbar() {
 
             {/* Desktop nav -- visible at lg (1024px) and up */}
             <div className="hidden lg:flex items-center gap-0.5">
-              <NavDropdown
-                label={isEN ? 'Platform' : 'Platforma'}
-                sections={platformSections}
-                columns={1}
-              />
+              <Link to={pathFor('home')} className={linkClass}>
+                {t.nav.product}
+              </Link>
               <NavDropdown
                 label={isEN ? 'Modules' : 'Moduly'}
                 sections={modulesSections}
                 columns={2}
               />
-              <Link to={pathFor('industriesHub')} className={linkClass}>
-                {isEN ? 'Industries' : 'Branze'}
-              </Link>
+              <NavDropdown
+                label={isEN ? 'Industries' : 'Branze'}
+                sections={industriesSections}
+                columns={1}
+              />
               <Link to={pathFor('pricing')} className={linkClass}>
                 {t.nav.pricing}
               </Link>
-              <NavDropdown
-                label={isEN ? 'Resources' : 'Zasoby'}
-                sections={resourcesSections}
-                columns={2}
-              />
+              <Link to={pathFor('integrationsHub')} className={linkClass}>
+                {t.nav.integrations}
+              </Link>
+              <Link to={pathFor('about')} className={linkClass}>
+                {t.nav.company}
+              </Link>
             </div>
 
             {/* Desktop CTA -- visible at lg and up */}
@@ -193,13 +168,15 @@ export function Navbar() {
               >
                 {t.nav.login}
               </a>
-              <Link
-                to={pathFor('contact')}
-                onClick={() => trackCtaClick('navbar_cta')}
+              <a
+                href={appendUtm(APP_URL, 'navbar_signup')}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackCtaClick('navbar_signup')}
                 className="relative inline-flex items-center px-5 py-2 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all duration-200 hover:shadow-[0_0_20px_rgba(var(--primary-rgb,34,197,94),0.3)]"
               >
                 {t.nav.cta}
-              </Link>
+              </a>
             </div>
 
             {/* Mobile hamburger -- visible below lg */}

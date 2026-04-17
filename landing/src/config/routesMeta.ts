@@ -78,7 +78,7 @@ export function metaFor(path: string): RouteMeta {
     case '/integrations':
       return {
         title: 'Integrations — Procurea works with your stack',
-        description: 'SAP S/4HANA, Oracle NetSuite, Oracle Fusion Cloud, Dynamics 365, Salesforce, and 50+ more via Merge.dev. No duplicate data entry.',
+        description: 'SAP S/4HANA, Oracle NetSuite, Oracle Fusion Cloud, Dynamics 365, Salesforce, and 100+ more ERP/CRM systems. No duplicate data entry.',
         canonical,
       }
 

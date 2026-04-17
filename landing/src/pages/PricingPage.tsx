@@ -1,4 +1,3 @@
-import { Fragment } from "react"
 import { Link } from "react-router-dom"
 import { Check, Sparkles, Search, Workflow, Layers, type LucideIcon } from "lucide-react"
 import { Navbar } from "@/components/layout/Navbar"
@@ -10,7 +9,6 @@ import { appendUtm } from "@/lib/utm"
 import { trackCtaClick } from "@/lib/analytics"
 import { pathFor } from "@/i18n/paths"
 import { t } from "@/i18n"
-import { SavingsCalculator } from "@/components/sections/SavingsCalculator"
 import {
   PRODUCTS,
   ORDERED_PRODUCTS,
@@ -235,72 +233,6 @@ function CreditPacksSection() {
   )
 }
 
-function renderCell(value: string, highlight = false) {
-  if (value === '✓') {
-    return <Check className={`h-4 w-4 mx-auto ${highlight ? 'text-primary' : 'text-emerald-600'}`} />
-  }
-  if (value === '—') {
-    return <span className="text-muted-foreground/50">—</span>
-  }
-  return <span className={highlight ? 'font-semibold text-primary' : ''}>{value}</span>
-}
-
-function ComparePlansSection() {
-  const section = t.pricing.compare
-  const plans = section.plans
-
-  return (
-    <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mb-16">
-      <RevealOnScroll>
-        <div className="text-center mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-2">{section.title}</h2>
-          <p className="text-sm text-muted-foreground max-w-2xl mx-auto">{section.subtitle}</p>
-        </div>
-      </RevealOnScroll>
-
-      <div className="rounded-2xl border border-black/[0.08] bg-white overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr className="border-b border-black/[0.08]">
-                <th className="sticky left-0 bg-white text-left font-semibold px-4 py-4 min-w-[200px] z-10">
-                  <span className="sr-only">{isEN ? 'Feature' : 'Funkcja'}</span>
-                </th>
-                <th className="text-center font-semibold px-4 py-4 min-w-[130px]">{plans.sourcing}</th>
-                <th className="text-center font-semibold px-4 py-4 min-w-[130px]">{plans.procurement}</th>
-                <th className="text-center font-semibold px-4 py-4 min-w-[130px] bg-primary/5 text-primary">{plans.bundle}</th>
-                <th className="text-center font-semibold px-4 py-4 min-w-[130px]">{plans.enterprise}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {section.groups.map((group) => (
-                <Fragment key={group.name}>
-                  <tr className="bg-slate-50">
-                    <td
-                      colSpan={5}
-                      className="sticky left-0 bg-slate-50 px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-700"
-                    >
-                      {group.name}
-                    </td>
-                  </tr>
-                  {group.rows.map((row) => (
-                    <tr key={`${group.name}-${row.label}`} className="border-b border-black/[0.04] last:border-b-0">
-                      <td className="sticky left-0 bg-white px-4 py-3 text-left">{row.label}</td>
-                      <td className="text-center px-4 py-3">{renderCell(row.sourcing)}</td>
-                      <td className="text-center px-4 py-3">{renderCell(row.procurement)}</td>
-                      <td className="text-center px-4 py-3 bg-primary/[0.03]">{renderCell(row.bundle, true)}</td>
-                      <td className="text-center px-4 py-3">{renderCell(row.enterprise)}</td>
-                    </tr>
-                  ))}
-                </Fragment>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-  )
-}
 
 export function PricingPage() {
   return (
@@ -316,14 +248,47 @@ export function PricingPage() {
           </h1>
           <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
             {isEN
-              ? 'Buy only what you need. Start free, scale on demand.'
-              : 'Kupuj tylko to czego potrzebujesz. Zacznij za darmo, skaluj kiedy chcesz.'}
+              ? 'AI Sourcing credits for supplier discovery. AI Procurement credits for RFQ workflow. Bundle for both at 15% off. All features included — pay per campaign.'
+              : 'Kredyty AI Sourcing na wyszukiwanie dostawców. Kredyty AI Procurement na workflow RFQ. Bundle za oba z 15% rabatem. Wszystkie funkcje w każdym planie — płać za kampanię.'}
           </p>
         </section>
 
-        {/* Savings calculator — compact inline */}
-        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-10">
-          <SavingsCalculator variant="pricing" />
+        {/* How the two modules work together */}
+        <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 mb-14">
+          <RevealOnScroll>
+            <div className="rounded-2xl border border-black/[0.06] bg-white p-6 md:p-8">
+              <h2 className="text-xl md:text-2xl font-bold text-center mb-6">
+                {isEN ? 'Two complementary modules, one platform' : 'Dwa komplementarne moduły, jedna platforma'}
+              </h2>
+              <div className="grid md:grid-cols-3 gap-6 items-center">
+                {/* Module 1 */}
+                <div className="text-center p-4 rounded-xl bg-emerald-50/50 border border-emerald-100">
+                  <Search className="h-8 w-8 text-emerald-600 mx-auto mb-3" />
+                  <h3 className="font-bold mb-1">AI Sourcing</h3>
+                  <p className="text-xs text-muted-foreground">{isEN ? 'Find qualified suppliers in 26 languages. Get a verified shortlist.' : 'Znajdź dostawców w 26 językach. Otrzymaj zweryfikowaną listę.'}</p>
+                </div>
+                {/* Arrow */}
+                <div className="hidden md:flex items-center justify-center">
+                  <div className="flex items-center gap-2 text-muted-foreground/40">
+                    <div className="h-px w-8 bg-current" />
+                    <span className="text-xs font-bold">+</span>
+                    <div className="h-px w-8 bg-current" />
+                  </div>
+                </div>
+                {/* Module 2 */}
+                <div className="text-center p-4 rounded-xl bg-primary/5 border border-primary/10">
+                  <Workflow className="h-8 w-8 text-primary mx-auto mb-3" />
+                  <h3 className="font-bold mb-1">AI Procurement</h3>
+                  <p className="text-xs text-muted-foreground">{isEN ? 'Send RFQs, collect offers via portal, compare and negotiate.' : 'Wyślij RFQ, zbieraj oferty przez portal, porównuj i negocjuj.'}</p>
+                </div>
+              </div>
+              <p className="text-center text-sm text-muted-foreground mt-5">
+                {isEN
+                  ? 'Use each module independently, or bundle them for end-to-end procurement at 15% savings. All features included in every plan — you only pay per campaign.'
+                  : 'Używaj każdego modułu niezależnie, albo połącz je w Bundle za 15% taniej. Wszystkie funkcje dostępne w każdym planie — płacisz tylko za kampanię.'}
+              </p>
+            </div>
+          </RevealOnScroll>
         </section>
 
         {/* Product cards — 4 simplified */}
@@ -338,8 +303,6 @@ export function PricingPage() {
         {/* Credit packs */}
         <CreditPacksSection />
 
-        {/* Compare plans */}
-        <ComparePlansSection />
 
         {/* FAQ */}
         <section className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 mb-16">

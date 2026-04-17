@@ -7,12 +7,15 @@ import { pathFor } from "@/i18n/paths"
 import { t } from "@/i18n"
 
 const FEATURES = [
-  { slug: "ai-sourcing" as const, icon: Search, gradient: "from-blue-500/10 to-cyan-500/10", accent: "text-blue-600", ring: "ring-blue-500/20", bar: "from-blue-500 to-cyan-400" },
-  { slug: "email-outreach" as const, icon: Mail, gradient: "from-violet-500/10 to-purple-500/10", accent: "text-violet-600", ring: "ring-violet-500/20", bar: "from-violet-500 to-purple-400" },
-  { slug: "supplier-portal" as const, icon: Shield, gradient: "from-emerald-500/10 to-teal-500/10", accent: "text-emerald-600", ring: "ring-emerald-500/20", bar: "from-emerald-500 to-teal-400" },
-  { slug: "offer-comparison" as const, icon: BarChart3, gradient: "from-amber-500/10 to-orange-500/10", accent: "text-amber-600", ring: "ring-amber-500/20", bar: "from-amber-500 to-orange-400" },
-  { slug: "ai-insights" as const, icon: Sparkles, gradient: "from-rose-500/10 to-pink-500/10", accent: "text-rose-600", ring: "ring-rose-500/20", bar: "from-rose-500 to-pink-400" },
+  { slug: "ai-sourcing" as const, icon: Search, gradient: "from-blue-500/10 to-cyan-500/10", accent: "text-blue-600", ring: "ring-blue-500/20", bar: "from-blue-500 to-cyan-400", linkTo: 'fAiSourcing' as const },
+  { slug: "email-outreach" as const, icon: Mail, gradient: "from-violet-500/10 to-purple-500/10", accent: "text-violet-600", ring: "ring-violet-500/20", bar: "from-violet-500 to-purple-400", linkTo: 'fEmailOutreach' as const },
+  { slug: "supplier-portal" as const, icon: Shield, gradient: "from-emerald-500/10 to-teal-500/10", accent: "text-emerald-600", ring: "ring-emerald-500/20", bar: "from-emerald-500 to-teal-400", linkTo: 'fSupplierPortal' as const },
+  { slug: "offer-comparison" as const, icon: BarChart3, gradient: "from-amber-500/10 to-orange-500/10", accent: "text-amber-600", ring: "ring-amber-500/20", bar: "from-amber-500 to-orange-400", linkTo: 'fOfferComparison' as const },
+  { slug: "ai-insights" as const, icon: Sparkles, gradient: "from-rose-500/10 to-pink-500/10", accent: "text-rose-600", ring: "ring-rose-500/20", bar: "from-rose-500 to-pink-400", linkTo: 'featuresHub' as const },
 ] as const
+
+const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
+const isEN = LANG === 'en'
 
 type FeatureSlug = (typeof FEATURES)[number]["slug"]
 
@@ -187,6 +190,13 @@ export function FeaturesSneakPeek() {
                       </motion.li>
                     ))}
                   </ul>
+
+                  <Link
+                    to={pathFor(active.linkTo)}
+                    className={`inline-flex items-center gap-1.5 mt-6 text-sm font-semibold ${active.accent} hover:gap-2.5 transition-all duration-200`}
+                  >
+                    {isEN ? 'Learn more' : 'Dowiedz sie wiecej'} &rarr;
+                  </Link>
                 </motion.div>
               </AnimatePresence>
             </div>
@@ -283,15 +293,14 @@ export function FeaturesSneakPeek() {
           })}
         </div>
 
-        {/* CTA */}
+        {/* 6th card: View all modules */}
         <RevealOnScroll>
-          <div className="mt-12 md:mt-16 text-center">
+          <div className="mt-8 md:mt-12 flex justify-center">
             <Link
               to={pathFor("featuresHub")}
-              className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 hover:shadow-md transition-all group"
+              className="inline-flex items-center gap-2 rounded-2xl border-2 border-dashed border-gray-300 hover:border-primary/50 px-8 py-5 text-base font-semibold text-muted-foreground hover:text-primary transition-all duration-200 group"
             >
-              {copy.cta}
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              {isEN ? 'View all modules' : 'Zobacz wszystkie moduly'} &rarr;
             </Link>
           </div>
         </RevealOnScroll>
