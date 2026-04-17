@@ -51,7 +51,7 @@ export function HomePage() {
         <div data-track-section="industry-trust"><IndustryTrustBar /></div>
         <div data-track-section="modules"><ModuleOverview /></div>
         <div data-track-section="benefits"><BenefitsSection /></div>
-        <div data-track-section="calculator"><SavingsCalculator /></div>
+        <div data-track-section="calculator" className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8"><SavingsCalculator /></div>
 
         <section id="product" data-track-section="product">
           <FeatureShowcase number="01" slug="ai-sourcing" reverse={false} />

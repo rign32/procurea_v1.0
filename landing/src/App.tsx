@@ -1,15 +1,32 @@
 import { useEffect } from "react"
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom"
+import { motion, AnimatePresence } from "framer-motion"
 import { pathMappings } from "@/i18n/paths"
 import { t } from "@/i18n"
 
-// Scroll to top on every route change (React Router v7 preserves scroll by default).
 function ScrollToTop() {
   const { pathname } = useLocation()
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [pathname])
   return null
+}
+
+function AnimatedRoutes({ children }: { children: React.ReactNode }) {
+  const location = useLocation()
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={location.pathname}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2, ease: "easeInOut" }}
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
+  )
 }
 
 // Home (migrated from inline LandingPage in this file)
@@ -53,6 +70,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <AnimatedRoutes>
       <Routes>
         {/* Home */}
         <Route path={p('home')} element={<HomePage />} />
@@ -88,6 +106,7 @@ export default function App() {
           </>
         )}
       </Routes>
+      </AnimatedRoutes>
     </BrowserRouter>
   )
 }

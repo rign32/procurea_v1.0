@@ -81,12 +81,6 @@ function headlineSub(product: ProductDefinition): string {
   return isEN ? 'Unlimited · custom contract' : 'Bez limitu · custom kontrakt'
 }
 
-function trimTagline(tagline: string): string {
-  // keep first sentence only
-  const firstSentence = tagline.split('.')[0]
-  return firstSentence.length > 0 ? firstSentence + '.' : tagline
-}
-
 function ProductCard({ product }: { product: ProductDefinition }) {
   const styles = accentClasses(product.accent)
   const isBundle = product.accent === 'bundle'
@@ -117,7 +111,7 @@ function ProductCard({ product }: { product: ProductDefinition }) {
   )
 
   return (
-    <div className={`relative rounded-2xl p-6 md:p-7 flex flex-col h-full ${styles.card}`}>
+    <div className={`relative rounded-2xl p-5 md:p-6 flex flex-col h-full ${styles.card}`}>
       {isBundle && (
         <span className={`absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${styles.badge}`}>
           <Sparkles className="h-3 w-3" />
@@ -125,36 +119,28 @@ function ProductCard({ product }: { product: ProductDefinition }) {
         </span>
       )}
 
-      {/* Icon */}
-      <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl mb-4 ${styles.iconWrap}`}>
-        <Icon className="h-5 w-5" />
-      </div>
-
-      {/* Header */}
-      <div className="mb-5">
-        <h3 className={`text-xl font-bold mb-1 ${isDark ? 'text-white' : 'text-foreground'}`}>
+      <div className="flex items-center gap-2.5 mb-3">
+        <div className={`inline-flex h-9 w-9 items-center justify-center rounded-lg ${styles.iconWrap}`}>
+          <Icon className="h-4 w-4" />
+        </div>
+        <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-foreground'}`}>
           {product.name}
         </h3>
-        <p className={`text-sm leading-relaxed ${isDark ? 'text-white/80' : 'text-muted-foreground'}`}>
-          {trimTagline(product.tagline)}
-        </p>
       </div>
 
-      {/* Price — single headline */}
-      <div className={`mb-6 rounded-xl p-4 border ${isDark ? 'border-white/10 bg-white/5' : 'border-black/[0.06] bg-slate-50/60'}`}>
-        <div className={`text-2xl md:text-3xl font-bold ${isDark ? 'text-white' : 'text-foreground'}`}>
+      <div className={`mb-4 rounded-lg p-3 border ${isDark ? 'border-white/10 bg-white/5' : 'border-black/[0.06] bg-slate-50/60'}`}>
+        <div className={`text-xl md:text-2xl font-bold ${isDark ? 'text-white' : 'text-foreground'}`}>
           {headlinePrice(product)}
         </div>
-        <div className={`text-xs mt-1 ${isDark ? 'text-white/70' : 'text-muted-foreground'}`}>
+        <div className={`text-[11px] mt-0.5 ${isDark ? 'text-white/70' : 'text-muted-foreground'}`}>
           {headlineSub(product)}
         </div>
       </div>
 
-      {/* Features — top 4 only */}
-      <ul className="space-y-2.5 mb-6 flex-1">
+      <ul className="space-y-2 mb-5 flex-1">
         {topFeatures.map((feature) => (
-          <li key={feature} className="flex items-start gap-2 text-sm">
-            <Check className={`h-4 w-4 mt-0.5 shrink-0 ${isDark ? 'text-amber-300' : 'text-emerald-600'}`} />
+          <li key={feature} className="flex items-start gap-1.5 text-[13px] leading-snug">
+            <Check className={`h-3.5 w-3.5 mt-0.5 shrink-0 ${isDark ? 'text-amber-300' : 'text-emerald-600'}`} />
             <span className={isDark ? 'text-white/90' : 'text-foreground'}>
               {feature}
             </span>
@@ -162,7 +148,6 @@ function ProductCard({ product }: { product: ProductDefinition }) {
         ))}
       </ul>
 
-      {/* CTA */}
       {ctaElement}
     </div>
   )
@@ -184,15 +169,15 @@ function CreditPacksSection() {
   }))
 
   return (
-    <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mb-24">
+    <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mb-16">
       <RevealOnScroll>
-        <div className="text-center mb-10">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">{section.title}</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">{section.subtitle}</p>
+        <div className="text-center mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-2">{section.title}</h2>
+          <p className="text-sm text-muted-foreground max-w-2xl mx-auto">{section.subtitle}</p>
         </div>
       </RevealOnScroll>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {tiers.map((tier, idx) => {
           const isFeatured = idx === 1
           return (
@@ -243,7 +228,7 @@ function CreditPacksSection() {
         })}
       </div>
 
-      <p className="text-center text-sm text-muted-foreground mt-8 max-w-2xl mx-auto">
+      <p className="text-center text-xs text-muted-foreground mt-5 max-w-xl mx-auto">
         {section.helper}
       </p>
     </section>
@@ -265,11 +250,11 @@ function ComparePlansSection() {
   const plans = section.plans
 
   return (
-    <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mb-24">
+    <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mb-16">
       <RevealOnScroll>
-        <div className="text-center mb-10">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">{section.title}</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">{section.subtitle}</p>
+        <div className="text-center mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-2">{section.title}</h2>
+          <p className="text-sm text-muted-foreground max-w-2xl mx-auto">{section.subtitle}</p>
         </div>
       </RevealOnScroll>
 
@@ -325,24 +310,24 @@ export function PricingPage() {
 
       <main className="pt-32 pb-24">
         {/* Hero — compact */}
-        <section className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center mb-14">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-5">
+        <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center mb-10">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">
             {copy.heroTitle}
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
+          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
             {isEN
               ? 'Buy only what you need. Start free, scale on demand.'
               : 'Kupuj tylko to czego potrzebujesz. Zacznij za darmo, skaluj kiedy chcesz.'}
           </p>
         </section>
 
-        {/* Savings calculator */}
-        <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mb-24">
+        {/* Savings calculator — compact inline */}
+        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-10">
           <SavingsCalculator variant="pricing" />
         </section>
 
         {/* Product cards — 4 simplified */}
-        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-24">
+        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-20">
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
             {ORDERED_PRODUCTS.map((key: Product) => (
               <ProductCard key={key} product={PRODUCTS[key]} />
@@ -357,7 +342,7 @@ export function PricingPage() {
         <ComparePlansSection />
 
         {/* FAQ */}
-        <section className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 mb-24">
+        <section className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 mb-16">
           <RevealOnScroll>
             <div className="text-center mb-10">
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight">{copy.faqTitle}</h2>
