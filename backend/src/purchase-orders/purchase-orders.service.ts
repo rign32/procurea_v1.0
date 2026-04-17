@@ -43,7 +43,7 @@ export class PurchaseOrdersService {
         const rfq = offer.rfqRequest;
         if (!rfq) throw new BadRequestException('Offer has no associated RFQ request');
 
-        const poNumber = await this.generatePoNumber(contract.organizationId);
+        const poNumber = await this.generatePoNumber(contract.organizationId || '');
 
         // Build line items from offer price tiers (or single line if no tiers)
         const lines = offer.priceTiers?.length > 0
@@ -51,8 +51,8 @@ export class PurchaseOrdersService {
                 description: `${rfq.productName} (${tier.minQty}${tier.maxQty ? '-' + tier.maxQty : '+'} ${rfq.unit || 'units'})`,
                 quantity: tier.minQty,
                 unit: rfq.unit || 'pcs',
-                unitPrice: tier.pricePerUnit,
-                totalPrice: tier.minQty * tier.pricePerUnit,
+                unitPrice: tier.unitPrice,
+                totalPrice: tier.minQty * tier.unitPrice,
                 sortOrder: i,
             }))
             : [{
@@ -69,7 +69,7 @@ export class PurchaseOrdersService {
                 poNumber,
                 contractId: contract.id,
                 offerId: offer.id,
-                organizationId: contract.organizationId,
+                organizationId: contract.organizationId || '',
                 status: 'DRAFT',
                 totalAmount: lines.reduce((sum, l) => sum + l.totalPrice, 0),
                 currency: offer.currency || rfq.currency || 'EUR',
