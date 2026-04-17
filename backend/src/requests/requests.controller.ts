@@ -1,12 +1,16 @@
 import { Controller, Get, Post, Body, Param, Patch, UseGuards, Req } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { RequestsService } from './requests.service';
+import { CounterOfferAiService } from './counter-offer-ai.service';
 import { CreateRfqDto } from '../common/dto/create-rfq.dto';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('requests')
 export class RequestsController {
-    constructor(private readonly requestsService: RequestsService) { }
+    constructor(
+        private readonly requestsService: RequestsService,
+        private readonly counterOfferAiService: CounterOfferAiService,
+    ) { }
 
     private getUserId(req: any): string {
         return req.user?.userId || req.user?.sub;
@@ -121,5 +125,10 @@ export class RequestsController {
     @Post('offers/:offerId/resend-email')
     resendOfferEmail(@Param('offerId') offerId: string, @Req() req: any) {
         return this.requestsService.resendOfferEmail(offerId, this.getUserId(req));
+    }
+
+    @Post('offers/:offerId/suggest-counter')
+    suggestCounterOffer(@Param('offerId') offerId: string) {
+        return this.counterOfferAiService.suggestCounter(offerId);
     }
 }

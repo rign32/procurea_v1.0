@@ -198,6 +198,18 @@ export const offersService = {
     const { data } = await apiClient.post(`/requests/offers/${offerId}/counter`, terms);
     return data;
   },
+
+  /**
+   * Pobierz sugestię AI counter-offer dla oferty
+   */
+  suggestCounter: async (offerId: string): Promise<{
+    suggestedTerms: { price?: number; leadTime?: number; moq?: number; comments?: string };
+    reasoning: string;
+    savingsEstimate?: { percentage: number; absoluteAmount: number; currency: string };
+  }> => {
+    const { data } = await apiClient.post(`/requests/offers/${offerId}/suggest-counter`);
+    return data;
+  },
 };
 
 export default rfqsService;

@@ -23,7 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { useRfq, useOffers, useAcceptOffer, useRejectOffer, useShortlistOffer, useCompareOffers, useCounterOffer } from '@/hooks/useRfqs';
+import { useRfq, useOffers, useAcceptOffer, useRejectOffer, useShortlistOffer, useCompareOffers, useCounterOffer, useSuggestCounter } from '@/hooks/useRfqs';
 import { offersService } from '@/services/rfqs.service';
 import { contractsService, type ContractDraft, type ContractDraftSource } from '@/services/contracts.service';
 import { t, isEN } from '@/i18n';
@@ -153,8 +153,10 @@ export function RfqDetailPage() {
   const shortlistMutation = useShortlistOffer();
   const compareMutation = useCompareOffers();
   const counterOfferMutation = useCounterOffer();
+  const suggestCounterMutation = useSuggestCounter();
 
   const [selectedOffers, setSelectedOffers] = useState<Set<string>>(new Set());
+  const [aiSuggestion, setAiSuggestion] = useState<Record<string, { suggestedTerms: { price?: number; leadTime?: number; moq?: number; comments?: string }; reasoning: string; savingsEstimate?: { percentage: number; absoluteAmount: number; currency: string } } | null>>({});
   const [rejectDialogId, setRejectDialogId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [acceptDialogId, setAcceptDialogId] = useState<string | null>(null);
@@ -236,6 +238,32 @@ export function RfqDetailPage() {
     } catch {
       // error handled by React Query
     }
+  };
+
+  const handleSuggestCounter = async (offerId: string) => {
+    try {
+      const result = await suggestCounterMutation.mutateAsync(offerId);
+      setAiSuggestion(prev => ({ ...prev, [offerId]: result }));
+    } catch {
+      toast.error(t.rfqs.offer.aiSuggestionError);
+    }
+  };
+
+  const handleApplySuggestion = (offerId: string) => {
+    const suggestion = aiSuggestion[offerId];
+    if (!suggestion) return;
+    setCounterDialogId(offerId);
+    setCounterForm({
+      price: suggestion.suggestedTerms.price?.toString() || '',
+      moq: suggestion.suggestedTerms.moq?.toString() || '',
+      leadTime: suggestion.suggestedTerms.leadTime?.toString() || '',
+      comments: suggestion.suggestedTerms.comments || '',
+    });
+    setAiSuggestion(prev => ({ ...prev, [offerId]: null }));
+  };
+
+  const handleDismissSuggestion = (offerId: string) => {
+    setAiSuggestion(prev => ({ ...prev, [offerId]: null }));
   };
 
   const openCounterDialog = (offerId: string) => {
@@ -713,6 +741,84 @@ export function RfqDetailPage() {
                           <AlternativeOfferCard key={alt.id} alt={alt} unit={rfqUnit} />
                         ))
                       )}
+
+                      {/* AI Counter-Offer Suggestion (from negotiation history or on-demand) */}
+                      {(() => {
+                        // Check negotiation history for an existing AI suggestion
+                        const historyEntries = (offer as any).negotiationHistory as any[] | undefined;
+                        const historySuggestion = historyEntries?.filter((h: any) => h.action === 'ai_counter_suggestion').pop();
+                        const activeSuggestion = aiSuggestion[offer.id] || historySuggestion;
+
+                        if (!activeSuggestion) return null;
+
+                        const terms = activeSuggestion.suggestedTerms || {};
+                        return (
+                          <div className="mt-3 pt-3 border-t border-dashed">
+                            <div className="rounded-md border border-indigo-200 bg-indigo-50 p-3">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
+                                <span className="text-xs font-semibold text-indigo-800">{t.rfqs.offer.aiSuggestionTitle}</span>
+                                {activeSuggestion.savingsEstimate && (
+                                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-green-700 border-green-300 bg-green-50">
+                                    -{activeSuggestion.savingsEstimate.percentage}% ({activeSuggestion.savingsEstimate.absoluteAmount} {activeSuggestion.savingsEstimate.currency})
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                                {terms.price != null && (
+                                  <div>
+                                    <p className="text-muted-foreground text-xs">{t.rfqs.offer.counterPrice}</p>
+                                    <p className="font-medium text-xs">{formatCurrency(terms.price, offer.currency)}</p>
+                                  </div>
+                                )}
+                                {terms.moq != null && (
+                                  <div>
+                                    <p className="text-muted-foreground text-xs">{t.rfqs.offer.counterMoq}</p>
+                                    <p className="font-medium text-xs">{terms.moq}</p>
+                                  </div>
+                                )}
+                                {terms.leadTime != null && (
+                                  <div>
+                                    <p className="text-muted-foreground text-xs">{t.rfqs.offer.counterLeadTime}</p>
+                                    <p className="font-medium text-xs">{terms.leadTime} {t.rfqs.detail.weeks}</p>
+                                  </div>
+                                )}
+                                {terms.comments && (
+                                  <div className="col-span-2 md:col-span-4">
+                                    <p className="text-muted-foreground text-xs">{t.rfqs.offer.counterComments}</p>
+                                    <p className="font-medium text-xs">{terms.comments}</p>
+                                  </div>
+                                )}
+                              </div>
+                              {activeSuggestion.reasoning && (
+                                <p className="mt-2 text-xs text-indigo-700 italic">
+                                  {t.rfqs.offer.aiSuggestionReasoning}: {activeSuggestion.reasoning}
+                                </p>
+                              )}
+                              {canAct(offer) && (
+                                <div className="flex items-center gap-2 mt-2">
+                                  <Button
+                                    size="sm"
+                                    variant="default"
+                                    className="h-7 text-xs bg-indigo-600 hover:bg-indigo-700"
+                                    onClick={() => handleApplySuggestion(offer.id)}
+                                  >
+                                    {t.rfqs.offer.aiSuggestionApply}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-7 text-xs"
+                                    onClick={() => handleDismissSuggestion(offer.id)}
+                                  >
+                                    {t.rfqs.offer.aiSuggestionDismiss}
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
 
                       {/* Counter-offer terms display */}
                       {offer.status === 'COUNTER_OFFERED' && (

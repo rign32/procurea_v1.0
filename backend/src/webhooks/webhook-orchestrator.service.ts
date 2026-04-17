@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { EmailTriageService, TriageResult } from './email-triage.service';
 import { OfferReplyMatcherService } from './offer-reply-matcher.service';
+import { CounterOfferAiService } from '../requests/counter-offer-ai.service';
 import { ResendInboundPayload } from './dto/resend-inbound-payload.dto';
 
 /**
@@ -13,6 +14,7 @@ import { ResendInboundPayload } from './dto/resend-inbound-payload.dto';
  *   4. Persist an OfferReply row
  *   5. If FORWARD → email user with AI summary preamble
  *   6. Append to Offer.negotiationHistory
+ *   7. If FORWARD + extractedTerms → generate AI counter-offer suggestion
  */
 @Injectable()
 export class WebhookOrchestratorService {
@@ -23,6 +25,7 @@ export class WebhookOrchestratorService {
         private readonly matcher: OfferReplyMatcherService,
         private readonly triage: EmailTriageService,
         private readonly emailService: EmailService,
+        private readonly counterOfferAi: CounterOfferAiService,
     ) {}
 
     async processInboundEmail(payload: ResendInboundPayload): Promise<void> {
@@ -147,6 +150,34 @@ export class WebhookOrchestratorService {
                 extractedTerms: triageResult.extractedTerms,
                 replyId: reply.id,
             });
+
+            // 8. If FORWARD with extracted terms → generate AI counter-offer suggestion
+            if (triageResult.category === 'FORWARD' && triageResult.extractedTerms) {
+                try {
+                    const suggestion = await this.counterOfferAi.suggestCounter(
+                        offer.id,
+                        {
+                            extractedTerms: triageResult.extractedTerms,
+                            summary: triageResult.summary,
+                        },
+                    );
+                    history.push({
+                        action: 'ai_counter_suggestion',
+                        timestamp: new Date().toISOString(),
+                        suggestedTerms: suggestion.suggestedTerms,
+                        reasoning: suggestion.reasoning,
+                        savingsEstimate: suggestion.savingsEstimate,
+                    });
+                    this.logger.log(
+                        `AI counter suggestion generated for offer ${offer.id}`,
+                    );
+                } catch (err: any) {
+                    this.logger.warn(
+                        `Counter suggestion failed for offer ${offer.id}: ${err?.message}`,
+                    );
+                }
+            }
+
             await this.prisma.offer.update({
                 where: { id: offer.id },
                 data: { negotiationHistory: history as any },

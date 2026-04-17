@@ -210,6 +210,15 @@ export function useCounterOffer() {
 }
 
 /**
+ * React Query hook - AI counter-offer suggestion
+ */
+export function useSuggestCounter() {
+  return useMutation({
+    mutationFn: (offerId: string) => offersService.suggestCounter(offerId),
+  });
+}
+
+/**
  * React Query hook - Porównaj oferty
  */
 export function useCompareOffers() {
