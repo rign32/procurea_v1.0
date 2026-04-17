@@ -502,6 +502,23 @@ export function RfqDetailPage() {
       {/* Comparison Result */}
       {comparisonResult && (
         <motion.div variants={itemVariants}>
+          {/* AI Recommendation Card */}
+          {comparisonResult.aiRecommendation && (
+            <Card className="border-blue-200 bg-blue-50/50 mb-3">
+              <CardContent className="py-4">
+                <div className="flex items-start gap-2">
+                  <span className="text-lg">💡</span>
+                  <div>
+                    <p className="font-semibold text-sm text-blue-900">
+                      {t.rfqs.detail.aiRecommendation}:{' '}
+                      {comparisonResult.offers.find((o: any) => o.id === comparisonResult.aiRecommendation.recommendedOfferId)?.supplier?.name || '—'}
+                    </p>
+                    <p className="text-sm text-blue-800 mt-1">{comparisonResult.aiRecommendation.reasoning}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
           <Card className="border-[#C5E0E2] bg-[#EDF4F4]/50">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">{t.rfqs.detail.comparison}</CardTitle>
@@ -524,6 +541,8 @@ export function RfqDetailPage() {
                       </th>
                       <th className="text-right py-2 px-4">{t.rfqs.offer.moq}</th>
                       <th className="text-right py-2 px-4">{t.rfqs.offer.leadTime}</th>
+                      <th className="text-center py-2 px-4">{t.rfqs.detail.qualityScore}</th>
+                      <th className="text-center py-2 px-4">{t.rfqs.detail.aiScore}</th>
                       <th className="text-right py-2 pl-4">{t.rfqs.offer.status}</th>
                     </tr>
                   </thead>
@@ -531,6 +550,9 @@ export function RfqDetailPage() {
                     {comparisonResult.offers.map((offer: any) => {
                       const isLowest = comparisonResult.comparison.lowestPrice?.offerId === offer.id;
                       const isFastest = comparisonResult.comparison.fastestDelivery?.offerId === offer.id;
+                      const isRecommended = comparisonResult.aiRecommendation?.recommendedOfferId === offer.id;
+                      const aiScore = comparisonResult.aiRecommendation?.scores?.find((s: any) => s.offerId === offer.id);
+                      const risks = offer.riskFlags || {};
 
                       // Use tier price for comparison if available
                       let displayPrice: string;
@@ -544,14 +566,34 @@ export function RfqDetailPage() {
                       }
 
                       return (
-                        <tr key={offer.id} className="border-b last:border-0">
+                        <tr key={offer.id} className={`border-b last:border-0 ${isRecommended ? 'bg-blue-50/50' : ''}`}>
                           <td className="py-2 pr-4">
-                            <Link
-                              to={`/suppliers/${offer.supplier?.id}`}
-                              className="font-medium text-primary hover:underline"
-                            >
-                              {offer.supplier?.name || '—'}
-                            </Link>
+                            <div className="flex items-center gap-1">
+                              {isRecommended && <span title={t.rfqs.detail.aiRecommendation}>⭐</span>}
+                              <Link
+                                to={`/suppliers/${offer.supplier?.id}`}
+                                className="font-medium text-primary hover:underline"
+                              >
+                                {offer.supplier?.name || '—'}
+                              </Link>
+                            </div>
+                            <div className="flex gap-1 mt-0.5 flex-wrap">
+                              {risks.isNewSupplier && (
+                                <span className="text-xs bg-amber-100 text-amber-800 px-1 rounded" title={t.rfqs.detail.newSupplier}>⚠️ {t.rfqs.detail.newSupplier}</span>
+                              )}
+                              {risks.leadTimeRisk && (
+                                <span className="text-xs bg-orange-100 text-orange-800 px-1 rounded" title={t.rfqs.detail.deliveryRisk}>🕐 {t.rfqs.detail.deliveryRisk}</span>
+                              )}
+                              {risks.priceOutlier && (
+                                <span className="text-xs bg-red-100 text-red-800 px-1 rounded" title={t.rfqs.detail.priceOutlier}>💲 {t.rfqs.detail.priceOutlier}</span>
+                              )}
+                              {offer.compliance?.specsConfirmed && (
+                                <span className="text-xs bg-green-100 text-green-800 px-1 rounded">✓ {t.rfqs.detail.specsOk}</span>
+                              )}
+                              {offer.compliance?.incotermsConfirmed && (
+                                <span className="text-xs bg-green-100 text-green-800 px-1 rounded">✓ {t.rfqs.detail.incotermsOk}</span>
+                              )}
+                            </div>
                           </td>
                           <td className={`py-2 px-4 text-right ${isLowest ? 'text-green-700 font-bold' : ''}`}>
                             {displayPrice}
@@ -561,6 +603,32 @@ export function RfqDetailPage() {
                           <td className={`py-2 px-4 text-right ${isFastest ? 'text-green-700 font-bold' : ''}`}>
                             {offer.leadTime ? `${offer.leadTime} ${t.rfqs.detail.weeks}` : '—'}
                             {isFastest && <span className="ml-1 text-xs">min</span>}
+                          </td>
+                          <td className="py-2 px-4 text-center">
+                            {offer.qualityScore != null ? (
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                offer.qualityScore >= 80 ? 'bg-green-100 text-green-800' :
+                                offer.qualityScore >= 50 ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-red-100 text-red-800'
+                              }`}>
+                                {Math.round(offer.qualityScore)}/100
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">—</span>
+                            )}
+                          </td>
+                          <td className="py-2 px-4 text-center">
+                            {aiScore ? (
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                aiScore.score >= 80 ? 'bg-blue-100 text-blue-800' :
+                                aiScore.score >= 50 ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-red-100 text-red-800'
+                              }`}>
+                                {aiScore.score}/100
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">—</span>
+                            )}
                           </td>
                           <td className="py-2 pl-4 text-right">{getStatusBadge(offer.status)}</td>
                         </tr>
