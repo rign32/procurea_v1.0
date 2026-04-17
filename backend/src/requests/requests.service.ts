@@ -290,14 +290,23 @@ export class RequestsService {
                 // Send email to primary contact
                 const primaryEmail = emails[0];
                 const organizationId = (rfq as any).owner?.organizationId || undefined;
-                const emailSent = await this.emailService.sendEmail({
+                const replyDomain = this.getReplyDomain(supplier);
+                const result = await this.emailService.sendEmail({
                     to: primaryEmail,
                     subject: `RFQ: ${rfq.productName}`,
                     html: htmlContent,
                     organizationId,
+                    replyTo: `reply-${offer.id}@${replyDomain}`,
                 });
 
-                if (emailSent) {
+                if (result.sent) {
+                    // Save Resend emailId for incoming reply matching
+                    if (result.emailId) {
+                        await this.prisma.offer.update({
+                            where: { id: offer.id },
+                            data: { resendEmailId: result.emailId },
+                        });
+                    }
                     sent++;
                     this.logger.log(`RFQ sent to ${supplier.name} (${primaryEmail})`);
                 } else {
@@ -319,6 +328,10 @@ export class RequestsService {
         }
 
         return { sent, failed };
+    }
+
+    private getReplyDomain(supplier: { country?: string | null }): string {
+        return supplier.country === 'PL' ? 'procurea.pl' : 'procurea.io';
     }
 
     private getSupplierEmails(supplier: any): string[] {
@@ -497,15 +510,25 @@ export class RequestsService {
 
         // Send email
         const organizationId = (rfq as any).owner?.organizationId || undefined;
-        const emailSent = await this.emailService.sendEmail({
+        const replyDomain = this.getReplyDomain(offer.supplier);
+        const result = await this.emailService.sendEmail({
             to: emails[0],
             subject: `RFQ: ${rfq.productName}`,
             html: htmlContent,
             organizationId,
+            replyTo: `reply-${offer.id}@${replyDomain}`,
         });
 
-        if (!emailSent) {
+        if (!result.sent) {
             throw new Error(`Failed to send email to ${emails[0]}`);
+        }
+
+        // Update Resend emailId for reply matching
+        if (result.emailId) {
+            await this.prisma.offer.update({
+                where: { id: offer.id },
+                data: { resendEmailId: result.emailId },
+            });
         }
 
         this.logger.log(`Resent RFQ email to ${offer.supplier.name} (${emails[0]})`);

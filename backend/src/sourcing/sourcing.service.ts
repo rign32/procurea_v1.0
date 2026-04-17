@@ -3400,13 +3400,13 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                             </div>
                         `;
 
-                        const sent = await this.emailService.sendEmail({
+                        const emailResult = await this.emailService.sendEmail({
                             to: recipientEmail,
                             subject,
                             html,
                         });
 
-                        if (sent) {
+                        if (emailResult.sent) {
                             await this.prisma.sequenceExecution.create({
                                 data: { offerId: offer.id, stepId: initialStep.id, recipientEmail, status: 'SENT' },
                             });

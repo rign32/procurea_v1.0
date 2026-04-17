@@ -282,10 +282,10 @@ export class EmailService {
         }
     }
 
-    async sendEmail(options: { to: string; subject: string; html: string; organizationId?: string; locale?: string; replyTo?: string }): Promise<boolean> {
+    async sendEmail(options: { to: string; subject: string; html: string; organizationId?: string; locale?: string; replyTo?: string }): Promise<{ sent: boolean; emailId?: string }> {
         if (!this.resend) {
             this.logger.log(`[MOCK EMAIL] To: ${options.to} | Subject: ${options.subject}`);
-            return true;
+            return { sent: true };
         }
 
         try {
@@ -328,18 +328,22 @@ export class EmailService {
                 } catch { /* ignore */ }
             }
 
-            await this.resend.emails.send({
+            const { data, error } = await this.resend.emails.send({
                 from: this.getFromEmailForLocale(options.locale),
                 to: to,
                 subject: subject,
                 html: finalHtml,
                 ...(replyTo && { reply_to: replyTo }),
             });
-            this.logger.log(`Email sent to ${options.to}`);
-            return true;
+            if (error) {
+                this.logger.error(`Resend API error for ${options.to}: ${error.message}`);
+                return { sent: false };
+            }
+            this.logger.log(`Email sent to ${options.to} (id: ${data?.id})`);
+            return { sent: true, emailId: data?.id };
         } catch (error) {
             this.logger.error(`Failed to send email to ${options.to}`, error);
-            return false;
+            return { sent: false };
         }
     }
 

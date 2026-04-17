@@ -457,7 +457,7 @@ export class AdminService {
         // Send email (locale-aware)
         const isEn = user.language === 'en';
         try {
-            await this.emailService.sendEmail({
+            const { sent } = await this.emailService.sendEmail({
                 to: user.email,
                 subject: 'Password Reset - Procurea',
                 html: isEn
@@ -472,6 +472,9 @@ export class AdminService {
                     <p>Token wygasa za 24 godziny.</p>
                     `,
             });
+            if (!sent) {
+                this.logger.warn(`Password reset email not sent to ${user.email}`);
+            }
             this.logger.log(`Password reset initiated for user: ${user.email}`);
         } catch (e) {
             this.logger.error(`Failed to send reset email: ${e.message}`);

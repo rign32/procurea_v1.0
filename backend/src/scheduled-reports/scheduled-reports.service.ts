@@ -139,11 +139,14 @@ export class ScheduledReportsService {
 
         for (const email of recipients) {
             try {
-                await this.emailService.sendEmail({
+                const { sent } = await this.emailService.sendEmail({
                     to: email,
                     subject,
                     html: htmlBody,
                 });
+                if (!sent) {
+                    this.logger.warn(`Report email not sent to ${email}`);
+                }
             } catch (err) {
                 this.logger.warn(`Failed to send report to ${email}: ${err.message}`);
             }

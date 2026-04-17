@@ -231,7 +231,7 @@ export class WebhookOrchestratorService {
             ? reply.subject
             : `Re: ${reply.subject || ''}`;
 
-        await this.emailService.sendEmail({
+        const { sent } = await this.emailService.sendEmail({
             to: userEmail,
             subject,
             html: body,
@@ -240,6 +240,9 @@ export class WebhookOrchestratorService {
             replyTo: reply.fromAddress,
             locale: lang,
         });
+        if (!sent) {
+            this.logger.warn(`Failed to forward reply ${replyId} to ${userEmail}`);
+        }
 
         await this.prisma.offerReply.update({
             where: { id: replyId },

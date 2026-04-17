@@ -321,14 +321,17 @@ export class SequenceSchedulerService {
             let attempt = 0;
             let sent = false;
             let lastError: any = null;
+            const replyDomain = supplier.country === 'PL' ? 'procurea.pl' : 'procurea.io';
 
             while (attempt < MAX_RETRIES && !sent) {
                 try {
-                    sent = await this.emailService.sendEmail({
+                    const result = await this.emailService.sendEmail({
                         to: recipientEmail,
                         subject,
                         html,
+                        replyTo: `reply-${offer.id}@${replyDomain}`,
                     });
+                    sent = result.sent;
                     if (!sent) throw new Error("Email service returned false");
                 } catch (err: any) {
                     attempt++;
