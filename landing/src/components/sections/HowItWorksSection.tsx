@@ -128,7 +128,7 @@ export function HowItWorksSection() {
                     className="relative z-10 flex flex-col items-center"
                   >
                     {/* Outer ring */}
-                    <div className={`flex items-center justify-center h-[76px] w-[76px] rounded-full ring-1 ${colors.ring} bg-white shadow-sm mb-8`}>
+                    <div className={`flex items-center justify-center h-[76px] w-[76px] rounded-full ring-1 ${colors.ring} bg-white shadow-sm mb-8 transition-shadow duration-300 group-hover:shadow-md`}>
                       {/* Gradient number */}
                       <span className={`text-2xl font-extrabold bg-gradient-to-br ${colors.number} bg-clip-text text-transparent`}>
                         {stepNumbers[i]}
@@ -136,7 +136,7 @@ export function HowItWorksSection() {
                     </div>
 
                     {/* Glass card */}
-                    <div className={`relative rounded-2xl border border-white/80 bg-gradient-to-b ${colors.card} backdrop-blur-sm p-7 transition-all duration-300 hover:shadow-xl hover:shadow-black/[0.06] hover:-translate-y-1.5 hover:border-white group w-full max-w-[320px]`}>
+                    <div className={`relative rounded-2xl border border-white/80 bg-gradient-to-b ${colors.card} backdrop-blur-sm p-7 transition-all duration-300 hover:shadow-xl hover:shadow-black/[0.06] hover:-translate-y-1.5 hover:border-primary/20 group w-full max-w-[320px]`}>
                       {/* Icon */}
                       <div className={`inline-flex items-center justify-center h-11 w-11 rounded-xl bg-gradient-to-br ${colors.iconBg} mb-5 transition-transform duration-300 group-hover:scale-110`}>
                         <Icon className={`h-5 w-5 ${colors.iconColor}`} strokeWidth={1.8} />

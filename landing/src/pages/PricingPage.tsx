@@ -109,7 +109,7 @@ function ProductCard({ product }: { product: ProductDefinition }) {
   )
 
   return (
-    <div className={`relative rounded-2xl p-5 md:p-6 flex flex-col h-full ${styles.card}`}>
+    <div className={`relative rounded-2xl p-5 md:p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-hover-card ${styles.card}`}>
       {isBundle && (
         <span className={`absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${styles.badge}`}>
           <Sparkles className="h-3 w-3" />
@@ -181,7 +181,7 @@ function CreditPacksSection() {
           return (
             <div
               key={tier.name}
-              className={`relative rounded-2xl p-6 border flex flex-col ${
+              className={`relative rounded-2xl p-6 border flex flex-col transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
                 isFeatured
                   ? 'bg-white border-primary/30 shadow-lg ring-1 ring-primary/20'
                   : 'bg-white border-black/[0.08] shadow-sm'
@@ -322,7 +322,7 @@ export function PricingPage() {
 
         {/* Final CTA */}
         <section className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <div className="rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white p-10 md:p-16 text-center">
+          <div className="rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white p-10 md:p-16 text-center hover:shadow-2xl transition-shadow duration-300">
             <h2 className="text-2xl md:text-3xl font-bold mb-3">
               {isEN ? 'Not sure which product fits?' : 'Nie wiesz który produkt Ci pasuje?'}
             </h2>

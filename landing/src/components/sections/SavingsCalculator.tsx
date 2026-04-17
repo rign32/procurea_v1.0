@@ -111,7 +111,7 @@ export function SavingsCalculator({ variant = "home" }: SavingsCalculatorProps) 
               max={100}
               value={sliderPos}
               onChange={(e) => setSliderPos(Number(e.target.value))}
-              className="absolute inset-x-0 w-full h-8 appearance-none bg-transparent cursor-pointer outline-none z-10 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-emerald-500 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:shadow-emerald-500/20 [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-150 [&::-webkit-slider-thumb]:hover:scale-125 [&::-webkit-slider-thumb]:hover:shadow-lg [&::-webkit-slider-thumb]:hover:shadow-emerald-500/30 [&::-webkit-slider-thumb]:active:scale-110 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-emerald-500 [&::-moz-range-thumb]:shadow-md [&::-moz-range-track]:bg-transparent"
+              className="absolute inset-x-0 w-full h-8 appearance-none bg-transparent cursor-pointer outline-none z-10 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-emerald-500 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:shadow-emerald-500/20 [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-150 [&::-webkit-slider-thumb]:hover:scale-125 [&::-webkit-slider-thumb]:hover:shadow-lg [&::-webkit-slider-thumb]:hover:shadow-emerald-500/30 [&::-webkit-slider-thumb]:hover:ring-2 [&::-webkit-slider-thumb]:hover:ring-emerald-400/30 [&::-webkit-slider-thumb]:active:scale-110 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-emerald-500 [&::-moz-range-thumb]:shadow-md [&::-moz-range-track]:bg-transparent"
               aria-label={t.calculator.inputLabel}
             />
           </div>
@@ -127,7 +127,7 @@ export function SavingsCalculator({ variant = "home" }: SavingsCalculatorProps) 
         {/* Results flow */}
         <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr_auto_1fr] gap-3 sm:gap-0 sm:items-center">
           {/* Gross Savings */}
-          <div className="rounded-xl bg-slate-50 p-4 text-center">
+          <div className="rounded-xl bg-slate-50 p-4 text-center hover:shadow-sm transition-shadow duration-200">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
               {t.calculator.grossSavings}
             </span>
@@ -143,7 +143,7 @@ export function SavingsCalculator({ variant = "home" }: SavingsCalculatorProps) 
           </div>
 
           {/* Procurea Cost */}
-          <div className="rounded-xl bg-orange-50/60 p-4 text-center">
+          <div className="rounded-xl bg-orange-50/60 p-4 text-center hover:shadow-sm transition-shadow duration-200">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-orange-600 block mb-1">
               {t.calculator.procureaCost}
             </span>
@@ -159,7 +159,7 @@ export function SavingsCalculator({ variant = "home" }: SavingsCalculatorProps) 
           </div>
 
           {/* Net Savings — hero element */}
-          <div className="relative rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 p-4 text-center overflow-hidden">
+          <div className="relative rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 p-4 text-center overflow-hidden hover:shadow-sm transition-shadow duration-200">
             {/* Subtle pulse glow */}
             <motion.div
               className="absolute inset-0 rounded-xl bg-emerald-400/[0.06]"

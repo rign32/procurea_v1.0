@@ -200,7 +200,7 @@ export function ContactPage() {
                   onChange={(e) => setName(e.target.value)}
                   required
                   minLength={2}
-                  className="w-full px-4 py-2.5 text-sm border border-black/[0.1] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
+                  className="w-full px-4 py-2.5 text-sm border border-black/[0.1] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:shadow-[0_0_0_4px_rgba(90,140,143,0.08)] transition-all"
                   placeholder={isEN ? 'Jane Doe' : 'Jan Kowalski'}
                 />
               </div>
@@ -210,7 +210,7 @@ export function ContactPage() {
                   type="text"
                   value={company}
                   onChange={(e) => setCompany(e.target.value)}
-                  className="w-full px-4 py-2.5 text-sm border border-black/[0.1] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
+                  className="w-full px-4 py-2.5 text-sm border border-black/[0.1] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:shadow-[0_0_0_4px_rgba(90,140,143,0.08)] transition-all"
                   placeholder={isEN ? 'Acme Corp' : 'Acme sp. z o.o.'}
                 />
               </div>
@@ -221,7 +221,7 @@ export function ContactPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full px-4 py-2.5 text-sm border border-black/[0.1] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
+                  className="w-full px-4 py-2.5 text-sm border border-black/[0.1] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:shadow-[0_0_0_4px_rgba(90,140,143,0.08)] transition-all"
                   placeholder="you@company.com"
                 />
               </div>
@@ -231,7 +231,7 @@ export function ContactPage() {
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-4 py-2.5 text-sm border border-black/[0.1] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
+                  className="w-full px-4 py-2.5 text-sm border border-black/[0.1] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:shadow-[0_0_0_4px_rgba(90,140,143,0.08)] transition-all"
                   placeholder="+1 555 123 4567"
                 />
               </div>
@@ -243,7 +243,7 @@ export function ContactPage() {
                 value={interest}
                 onChange={(e) => setInterest(e.target.value)}
                 required
-                className="w-full px-4 py-2.5 text-sm border border-black/[0.1] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all bg-white"
+                className="w-full px-4 py-2.5 text-sm border border-black/[0.1] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:shadow-[0_0_0_4px_rgba(90,140,143,0.08)] transition-all bg-white"
               >
                 {INTEREST_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -259,7 +259,7 @@ export function ContactPage() {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 rows={5}
-                className="w-full px-4 py-2.5 text-sm border border-black/[0.1] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all resize-none"
+                className="w-full px-4 py-2.5 text-sm border border-black/[0.1] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:shadow-[0_0_0_4px_rgba(90,140,143,0.08)] transition-all resize-none"
                 placeholder={isEN
                   ? 'Tell us about your team size, current tools, and what you\'re trying to solve.'
                   : 'Opisz swój zespół, obecne narzędzia i problem, który chcesz rozwiązać.'}
@@ -277,7 +277,7 @@ export function ContactPage() {
               <button
                 type="submit"
                 disabled={status === 'submitting'}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-glow-primary hover:scale-[1.02] active:scale-[0.98] shadow-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {status === 'submitting' && <Loader2 className="h-4 w-4 animate-spin" />}
                 {status === 'submitting'

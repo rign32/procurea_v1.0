@@ -201,7 +201,7 @@ export function BenefitsSection() {
                 >
                   {/* Accent line */}
                   <div
-                    className={`h-1 w-14 rounded-full bg-gradient-to-r ${style.accent} mb-7 transition-all duration-300 group-hover:w-20`}
+                    className={`h-1 w-14 rounded-full bg-gradient-to-r ${style.accent} mb-7 transition-all duration-300 group-hover:w-20 group-hover:shadow-[0_0_12px_rgba(0,0,0,0.08)]`}
                   />
                   <h3 className="text-xl lg:text-2xl font-bold mb-3 tracking-tight">
                     {card.title}

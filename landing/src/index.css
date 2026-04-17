@@ -82,6 +82,64 @@
     transform: translateY(-2px);
     box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.08);
   }
+
+  /* Hover glow for primary buttons */
+  .hover-glow-primary {
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
+  }
+  .hover-glow-primary:hover {
+    box-shadow: 0 0 24px rgba(90, 140, 143, 0.35), 0 0 60px rgba(90, 140, 143, 0.12);
+  }
+
+  /* Sliding underline on hover */
+  .underline-slide {
+    position: relative;
+  }
+  .underline-slide::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 100%;
+    height: 1.5px;
+    background: hsl(var(--primary));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+  .underline-slide:hover::after {
+    transform: scaleX(1);
+  }
+
+  /* Shimmer text sweep — single pass, not looping */
+  .shimmer-text {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--foreground)) 0%,
+      hsl(var(--foreground)) 40%,
+      hsl(var(--primary)) 50%,
+      hsl(var(--foreground)) 60%,
+      hsl(var(--foreground)) 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer-sweep 2.5s ease-out forwards;
+  }
+
+  /* Focus glow for form inputs */
+  .focus-glow:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(90, 140, 143, 0.2), 0 0 0 4px rgba(90, 140, 143, 0.08);
+    border-color: hsl(var(--primary) / 0.5);
+  }
+
+  /* Section gradient divider */
+  .section-divider-gradient {
+    height: 1px;
+    background: linear-gradient(to right, transparent, hsl(var(--primary) / 0.2), transparent);
+  }
 }
 
 /* Custom scrollbar */

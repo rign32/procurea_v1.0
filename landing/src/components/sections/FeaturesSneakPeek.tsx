@@ -96,22 +96,22 @@ export function FeaturesSneakPeek() {
                     className={`relative flex items-center gap-3.5 rounded-xl px-4 py-3.5 text-left transition-all duration-200 cursor-pointer ${
                       isActive
                         ? "bg-white shadow-sm"
-                        : "hover:bg-gray-50"
+                        : "hover:bg-gray-100/60"
                     }`}
                   >
                     {/* Animated active bar */}
                     {isActive && (
                       <motion.div
                         layoutId="activeTabBar"
-                        className={`absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-gradient-to-b ${f.bar}`}
+                        className={`absolute left-0 top-2 bottom-2 w-[4px] rounded-full bg-gradient-to-b ${f.bar}`}
                         transition={{ type: "spring", stiffness: 350, damping: 30 }}
                       />
                     )}
 
                     <div
-                      className={`h-9 w-9 shrink-0 rounded-lg flex items-center justify-center transition-colors duration-200 ${
+                      className={`h-9 w-9 shrink-0 rounded-lg flex items-center justify-center transition-all duration-200 ${
                         isActive
-                          ? `bg-gradient-to-br ${f.gradient}`
+                          ? `bg-gradient-to-br ${f.gradient} shadow-sm`
                           : "bg-gray-100"
                       }`}
                     >

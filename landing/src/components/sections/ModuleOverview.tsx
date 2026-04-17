@@ -63,7 +63,7 @@ export function ModuleOverview() {
                         ? [
                             "border-transparent bg-white",
                             "shadow-lg shadow-primary/10",
-                            "ring-2 ring-primary/20 hover:ring-primary/40",
+                            "ring-2 ring-primary/20 hover:ring-primary/40 hover:shadow-glow-primary",
                             "before:absolute before:inset-0 before:-z-10 before:rounded-2xl before:p-[2px]",
                             "before:bg-gradient-to-br before:from-primary/40 before:via-primary/20 before:to-transparent",
                             "before:content-['']",
@@ -72,7 +72,7 @@ export function ModuleOverview() {
                         : [
                             "border-black/[0.06] bg-white",
                             "shadow-premium hover:shadow-premium-lg",
-                            "hover:border-primary/20",
+                            "hover:border-primary/25",
                           ]
                     )}
                   >
@@ -92,7 +92,7 @@ export function ModuleOverview() {
                     {/* Icon */}
                     <div
                       className={cn(
-                        "inline-flex h-12 w-12 items-center justify-center rounded-xl mb-5 transition-transform duration-300 group-hover:scale-110",
+                        "inline-flex h-12 w-12 items-center justify-center rounded-xl mb-5 transition-all duration-300 group-hover:scale-110 group-hover:shadow-md",
                         highlight
                           ? "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-md shadow-primary/20"
                           : cn(colors.bg, colors.text)

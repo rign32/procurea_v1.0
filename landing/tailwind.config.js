@@ -86,6 +86,9 @@ export default {
         "glow-primary": "0 0 20px rgba(90, 140, 143, 0.3), 0 0 60px rgba(90, 140, 143, 0.1)",
         "glow-emerald": "0 0 20px rgba(16, 185, 129, 0.3), 0 0 60px rgba(16, 185, 129, 0.1)",
         "inner-glow": "inset 0 1px 0 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 0 rgba(0, 0, 0, 0.05)",
+        "glow-primary-hover": "0 0 24px rgba(90, 140, 143, 0.4), 0 0 80px rgba(90, 140, 143, 0.15)",
+        "glow-emerald-hover": "0 0 24px rgba(16, 185, 129, 0.4), 0 0 80px rgba(16, 185, 129, 0.15)",
+        "hover-card": "0 12px 40px -8px rgba(0, 0, 0, 0.1), 0 4px 16px -4px rgba(0, 0, 0, 0.06)",
       },
       backdropBlur: {
         xs: "2px",
@@ -119,6 +122,9 @@ export default {
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
         "ticker": "ticker 25s linear infinite",
         "spin-slow": "spin-slow 6s linear infinite",
+        "shimmer-sweep": "shimmer-sweep 2.5s ease-out forwards",
+        "drift": "drift 20s ease-in-out infinite",
+        "gradient-x-slow": "gradient-x 12s ease infinite",
       },
       keyframes: {
         "gradient-x": {
@@ -176,6 +182,16 @@ export default {
         "spin-slow": {
           "0%": { transform: "rotate(0deg)" },
           "100%": { transform: "rotate(360deg)" },
+        },
+        "shimmer-sweep": {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
+        "drift": {
+          "0%, 100%": { transform: "translate(0, 0)" },
+          "25%": { transform: "translate(8px, -6px)" },
+          "50%": { transform: "translate(-4px, 8px)" },
+          "75%": { transform: "translate(6px, 4px)" },
         },
       },
     },

@@ -6,6 +6,7 @@ interface RevealOnScrollProps {
   className?: string
   delay?: number
   direction?: "up" | "left" | "right"
+  scale?: boolean
 }
 
 export function RevealOnScroll({
@@ -13,6 +14,7 @@ export function RevealOnScroll({
   className,
   delay = 0,
   direction = "up",
+  scale = false,
 }: RevealOnScrollProps) {
   const directionOffset = {
     up: { y: 30, x: 0 },
@@ -25,11 +27,13 @@ export function RevealOnScroll({
       initial={{
         opacity: 0,
         ...directionOffset[direction],
+        ...(scale && { scale: 0.97 }),
       }}
       whileInView={{
         opacity: 1,
         x: 0,
         y: 0,
+        ...(scale && { scale: 1 }),
       }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{

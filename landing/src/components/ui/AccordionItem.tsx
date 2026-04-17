@@ -15,18 +15,18 @@ export function AccordionItem({ question, answer }: AccordionItemProps) {
   const triggerId = `accordion-trigger-${id}`
 
   return (
-    <div className="border-b border-border last:border-b-0">
+    <div className={cn("border-b border-border last:border-b-0", isOpen && "border-l-2 border-primary pl-[calc(1rem-2px)]")}>
       <button
         id={triggerId}
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
         aria-controls={panelId}
-        className="flex w-full items-center justify-between py-5 text-left group"
+        className="flex w-full items-center justify-between py-5 text-left group hover:bg-muted/40 rounded-lg px-3 -mx-3"
       >
         <span className="text-base font-semibold pr-4 group-hover:text-foreground transition-colors">{question}</span>
         <ChevronDown
           className={cn(
-            "h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-200",
+            "h-5 w-5 shrink-0 text-muted-foreground transition-all duration-200 group-hover:text-primary",
             isOpen && "rotate-180"
           )}
         />
