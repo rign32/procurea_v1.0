@@ -93,7 +93,7 @@ export function TestimonialSection() {
           >
             {/* Avatar with gradient border */}
             <div className="relative">
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-brand-400 blur-sm opacity-30" />
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-brand-400 blur-sm opacity-30 animate-pulse-glow" />
               <div className="relative h-14 w-14 rounded-full bg-gradient-to-br from-primary/20 to-brand-400/10 p-[2px]">
                 <div className="flex h-full w-full items-center justify-center rounded-full bg-white">
                   <span className="text-sm font-bold bg-gradient-to-br from-primary to-brand-400 bg-clip-text text-transparent">
@@ -112,12 +112,13 @@ export function TestimonialSection() {
 
         {/* Social proof bar */}
         <motion.div
-          className="mt-16 pt-10 border-t border-slate-200/60"
+          className="mt-16 pt-10 relative"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.8, duration: 0.5, ease: [0.21, 0.47, 0.32, 0.98] }}
         >
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/15 to-transparent" />
           <div className="flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-12 md:gap-16">
             {trustIndicators.map((item, i) => (
               <div key={i} className="flex flex-col items-center gap-1.5">
@@ -130,7 +131,7 @@ export function TestimonialSection() {
                     ))}
                   </div>
                 )}
-                <span className="text-2xl md:text-3xl font-display font-bold tracking-tight text-foreground">
+                <span className="text-2xl md:text-3xl font-display font-bold tracking-tight bg-gradient-to-r from-foreground via-foreground to-primary/80 bg-clip-text text-transparent">
                   {item.value}
                 </span>
                 <span className="text-sm text-muted-foreground">{item.label}</span>

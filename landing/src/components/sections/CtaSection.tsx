@@ -4,6 +4,7 @@ import { ArrowRight, CheckCircle } from "lucide-react"
 import { trackCtaClick } from "@/lib/analytics"
 import { appendUtm } from "@/lib/utm"
 import { t } from "@/i18n"
+import { AnimatedGrid } from "@/components/ui/AnimatedGrid"
 
 const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 
@@ -26,7 +27,7 @@ function FloatingCard({
 }) {
   return (
     <motion.div
-      className="absolute hidden lg:flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.06] backdrop-blur-md border border-white/[0.08] text-xs text-gray-300 font-medium shadow-lg pointer-events-none select-none"
+      className="absolute hidden lg:flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.10] backdrop-blur-md border border-white/[0.08] text-xs text-gray-300 font-medium shadow-lg shadow-[0_0_20px_rgba(16,185,129,0.06)] pointer-events-none select-none"
       style={{ left: x, top: y }}
       animate={{
         y: [0, -12, 0],
@@ -48,6 +49,9 @@ function FloatingCard({
 export function CtaSection() {
   return (
     <section className="py-32 lg:py-40 relative overflow-hidden">
+      {/* Gradient separator line */}
+      <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-brand-400/20 to-transparent" />
+
       {/* Base gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-gray-950 via-brand-900 to-gray-950" />
 
@@ -79,14 +83,8 @@ export function CtaSection() {
         transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      {/* Dot grid overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.035] pointer-events-none"
-        style={{
-          backgroundImage: `radial-gradient(circle, white 1px, transparent 1px)`,
-          backgroundSize: "32px 32px",
-        }}
-      />
+      {/* Animated dot grid overlay */}
+      <AnimatedGrid color="rgba(255,255,255,0.04)" spacing={32} />
 
       {/* Content */}
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center relative z-10">

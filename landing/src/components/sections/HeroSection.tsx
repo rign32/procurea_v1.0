@@ -29,6 +29,7 @@ import {
 import { trackCtaClick } from "@/lib/analytics"
 import { appendUtm } from "@/lib/utm"
 import { t } from "@/i18n"
+import { AnimatedGrid } from "@/components/ui/AnimatedGrid"
 
 const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 
@@ -110,14 +111,8 @@ export function HeroSection() {
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-mesh-gradient" />
 
-        {/* Grid pattern overlay */}
-        <div
-          className="absolute inset-0 opacity-[0.035]"
-          style={{
-            backgroundImage: `linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)`,
-            backgroundSize: "64px 64px",
-          }}
-        />
+        {/* Animated grid pattern overlay */}
+        <AnimatedGrid color="hsl(var(--foreground) / 0.03)" spacing={64} />
       </div>
 
       {/* ── Animated gradient orbs ── */}
@@ -291,7 +286,7 @@ export function HeroSection() {
             {/* Gradient border frame */}
             <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-b from-brand-300/40 via-border/30 to-brand-400/20 pointer-events-none" />
 
-            <div className="relative rounded-2xl border border-transparent bg-white shadow-premium-lg overflow-hidden ring-1 ring-black/[0.04]">
+            <div className="relative rounded-2xl border border-transparent bg-white shadow-premium-lg overflow-hidden ring-1 ring-primary/[0.05]">
               {/* Browser chrome */}
               <div className="flex items-center gap-2 px-3 sm:px-4 py-3 bg-gradient-to-b from-gray-50 to-gray-50/80 border-b border-border/50">
                 <div className="flex gap-1.5">

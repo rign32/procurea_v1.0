@@ -103,7 +103,7 @@ function CounterItem({
     <div ref={ref} className="text-center group cursor-default">
       {/* Icon */}
       <div
-        className={`inline-flex items-center justify-center h-12 w-12 rounded-xl ${iconBg} ${iconColor} mb-5 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg ${glowColor}`}
+        className={`inline-flex items-center justify-center h-12 w-12 rounded-xl ${iconBg} ${iconColor} ring-1 ring-black/[0.04] mb-5 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg ${glowColor}`}
       >
         <Icon className="h-5 w-5" strokeWidth={2.5} />
       </div>
