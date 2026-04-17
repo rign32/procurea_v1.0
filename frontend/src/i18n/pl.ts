@@ -51,6 +51,7 @@ export const PL = {
     analytics: 'Analityka',
     documents: 'Dokumenty',
     contracts: 'Kontrakty',
+    purchaseOrders: 'Zamówienia',
     approvals: 'Zatwierdzenia',
     workspaces: 'Przestrzenie',
   },

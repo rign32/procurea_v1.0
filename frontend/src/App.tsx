@@ -28,6 +28,7 @@ const ContactsPage = lazy(() => import('./pages/ContactsPage'))
 const DocumentsPage = lazy(() => import('./pages/DocumentsPage'))
 const StatusPage = lazy(() => import('./pages/StatusPage'))
 const ContractsPage = lazy(() => import('./pages/ContractsPage'))
+const PurchaseOrdersPage = lazy(() => import('./pages/PurchaseOrdersPage'))
 const ApprovalsPage = lazy(() => import('./pages/ApprovalsPage'))
 const WorkspacesPage = lazy(() => import('./pages/WorkspacesPage'))
 
@@ -403,6 +404,7 @@ function App() {
             <Route path="/sequences" element={<PlanGuard feature={((import.meta.env.VITE_LANGUAGE || 'pl') === 'en') ? 'Email Sequences' : 'Sekwencje email'}><SequencesPage /></PlanGuard>} />
             <Route path="/documents" element={<DocumentsPage />} />
             <Route path="/contracts" element={<PlanGuard feature={((import.meta.env.VITE_LANGUAGE || 'pl') === 'en') ? 'Contracts' : 'Kontrakty'}><ContractsPage /></PlanGuard>} />
+            <Route path="/purchase-orders" element={<PlanGuard feature={((import.meta.env.VITE_LANGUAGE || 'pl') === 'en') ? 'Purchase Orders' : 'Zamówienia'}><PurchaseOrdersPage /></PlanGuard>} />
             <Route path="/approvals" element={<PlanGuard feature={((import.meta.env.VITE_LANGUAGE || 'pl') === 'en') ? 'Approvals' : 'Zatwierdzenia'}><ApprovalsPage /></PlanGuard>} />
             <Route path="/workspaces" element={<PlanGuard feature={((import.meta.env.VITE_LANGUAGE || 'pl') === 'en') ? 'Workspaces' : 'Przestrzenie robocze'}><WorkspacesPage /></PlanGuard>} />
             <Route path="/settings" element={<SettingsPage />} />
