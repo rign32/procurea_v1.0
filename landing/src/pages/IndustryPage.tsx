@@ -91,7 +91,7 @@ export function IndustryPage() {
       <RouteMeta />
       <Navbar />
 
-      <main>
+      <main id="main-content">
         {/* Hero */}
         <section className="relative pt-32 pb-16 bg-gradient-to-b from-white to-slate-50/30 overflow-hidden">
           {/* Decorative gradient */}
@@ -195,6 +195,26 @@ export function IndustryPage() {
             </div>
           </div>
         </section>
+
+        {/* Case study */}
+        {industry.caseStudy && (
+          <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 mb-20">
+            <RevealOnScroll>
+              <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-white border border-emerald-100 p-8 md:p-10">
+                <div className="flex flex-col md:flex-row gap-8 items-start">
+                  <div className="shrink-0 text-center md:text-left">
+                    <div className="text-4xl md:text-5xl font-extrabold text-emerald-600">{industry.caseStudy.stat}</div>
+                    <div className="text-sm text-muted-foreground mt-1">{industry.caseStudy.statLabel}</div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold mb-2">{industry.caseStudy.headline}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{industry.caseStudy.body}</p>
+                  </div>
+                </div>
+              </div>
+            </RevealOnScroll>
+          </section>
+        )}
 
         {/* Related features */}
         <section className="py-16 md:py-20">

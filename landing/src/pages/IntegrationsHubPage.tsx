@@ -1,5 +1,6 @@
+import { useState } from "react"
 import { Link } from "react-router-dom"
-import { ArrowRight, Check } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
@@ -27,10 +28,6 @@ function IntegrationTypeBadge({ type }: { type: Integration['integrationType'] }
 }
 
 function IntegrationCard({ integration }: { integration: Integration }) {
-  const dataFlow = isEN ? integration.dataFlowEn : integration.dataFlowPl
-  const capabilities = isEN ? integration.capabilitiesEn : integration.capabilitiesPl
-  const customization = isEN ? integration.customizationEn : integration.customizationPl
-
   return (
     <div className="rounded-2xl border border-black/[0.08] bg-white p-6 hover:shadow-md hover:border-black/[0.12] transition-all flex flex-col">
       <div className="flex items-start justify-between mb-4">
@@ -55,41 +52,6 @@ function IntegrationCard({ integration }: { integration: Integration }) {
         {isEN ? integration.descEn : integration.descPl}
       </p>
 
-      <div className="mb-4 pt-3 border-t border-black/[0.06]">
-        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
-          {integrationsCopy.dataFlowLabel}
-        </div>
-        <ul className="space-y-1">
-          {dataFlow.map((item) => (
-            <li key={item} className="text-xs text-foreground/80 leading-relaxed flex gap-1.5">
-              <span className="text-muted-foreground mt-0.5">·</span>
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="mb-4">
-        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
-          {integrationsCopy.capabilitiesLabel}
-        </div>
-        <ul className="space-y-1">
-          {capabilities.map((item) => (
-            <li key={item} className="text-xs text-foreground/80 leading-relaxed flex gap-1.5">
-              <Check className="h-3 w-3 text-emerald-600 shrink-0 mt-0.5" />
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="mb-4">
-        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
-          {integrationsCopy.customizationLabel}
-        </div>
-        <p className="text-xs text-foreground/80 leading-relaxed">{customization}</p>
-      </div>
-
       <div className="text-xs text-muted-foreground mb-4 pt-3 border-t border-black/[0.06]">
         <span className="font-semibold text-foreground">{integrationsCopy.tierLabel}: </span>
         {isEN ? integration.tiersEn : integration.tiersPl}
@@ -107,12 +69,40 @@ function IntegrationCard({ integration }: { integration: Integration }) {
 }
 
 export function IntegrationsHubPage() {
+  const [searchQuery, setSearchQuery] = useState('')
+  const isSearching = searchQuery.trim() !== ''
+
+  const filteredIntegrations = isSearching
+    ? INTEGRATIONS.filter(i =>
+        i.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        i.searchKeywords?.some(kw => kw.includes(searchQuery.toLowerCase()))
+      )
+    : INTEGRATIONS
+
+  const t = isEN
+    ? {
+        searchPlaceholder: 'Check if we integrate with your ERP...',
+        noResults: 'No pre-built integration found.',
+        noResultsCta: 'Contact us — we can build one →',
+        requestTitle: 'Your system?',
+        requestSubtitle: "We'll build an adapter for your ERP via Merge.dev or natively.",
+        requestCta: 'Talk to us →',
+      }
+    : {
+        searchPlaceholder: 'Sprawdź czy integrujemy z Twoim ERP...',
+        noResults: 'Nie znaleziono gotowej integracji.',
+        noResultsCta: 'Skontaktuj się z nami — zbudujemy →',
+        requestTitle: 'Twój system?',
+        requestSubtitle: 'Zbudujemy adapter do Twojego ERP przez Merge.dev lub natywnie.',
+        requestCta: 'Porozmawiaj z nami →',
+      }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50/50">
       <RouteMeta />
       <Navbar />
 
-      <main className="pt-32 pb-24">
+      <main id="main-content" className="pt-32 pb-24">
         {/* Hero */}
         <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center mb-16">
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-5">
@@ -123,46 +113,89 @@ export function IntegrationsHubPage() {
           </p>
         </section>
 
-        {/* Value props */}
-        <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mb-20">
-          <RevealOnScroll>
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-12">
-              {integrationsCopy.valueTitle}
-            </h2>
-          </RevealOnScroll>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {integrationsCopy.valueProps.map((prop) => (
-              <div key={prop.title} className="rounded-2xl border border-black/[0.08] bg-white p-6">
-                <h3 className="text-lg font-bold mb-2">{prop.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{prop.body}</p>
-              </div>
-            ))}
-          </div>
+        {/* Search */}
+        <section className="mx-auto max-w-xl px-4 sm:px-6 lg:px-8 mb-12">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t.searchPlaceholder}
+            className="w-full px-5 py-3.5 rounded-xl border border-black/[0.1] bg-white text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 shadow-sm transition-all"
+          />
         </section>
+
+        {/* Value props — only when not searching */}
+        {!isSearching && (
+          <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mb-20">
+            <RevealOnScroll>
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-12">
+                {integrationsCopy.valueTitle}
+              </h2>
+            </RevealOnScroll>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {integrationsCopy.valueProps.map((prop) => (
+                <div key={prop.title} className="rounded-2xl border border-black/[0.08] bg-white p-6">
+                  <h3 className="text-lg font-bold mb-2">{prop.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{prop.body}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Integrations grid */}
-        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {INTEGRATIONS.map((integration) => (
+        <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mb-20">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
+            {filteredIntegrations.map((integration) => (
               <IntegrationCard key={integration.slug} integration={integration} />
             ))}
+
+            {/* Request card — only when not searching */}
+            {!isSearching && (
+              <div className="rounded-2xl border-2 border-dashed border-black/[0.12] bg-slate-50/50 p-6 flex flex-col items-center justify-center text-center">
+                <div className="text-2xl mb-3">🔌</div>
+                <h3 className="text-base font-bold mb-2">{t.requestTitle}</h3>
+                <p className="text-sm text-muted-foreground mb-4">{t.requestSubtitle}</p>
+                <Link
+                  to={`${pathFor('contact')}?interest=integration_other`}
+                  className="text-sm font-semibold text-primary hover:underline"
+                >
+                  {t.requestCta}
+                </Link>
+              </div>
+            )}
+
+            {/* No results */}
+            {filteredIntegrations.length === 0 && (
+              <div className="col-span-full text-center py-12">
+                <p className="text-muted-foreground">{t.noResults}</p>
+                <Link
+                  to={`${pathFor('contact')}?interest=integration_other`}
+                  className="text-sm font-semibold text-primary mt-2 inline-block"
+                >
+                  {t.noResultsCta}
+                </Link>
+              </div>
+            )}
           </div>
         </section>
 
-        {/* Logos carousel — 50+ other ERP/CRM systems */}
-        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-20">
-          <RevealOnScroll>
-            <div className="text-center mb-10">
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">
-                {integrationsCopy.logosSectionTitle}
-              </h2>
-              <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto">
-                {integrationsCopy.logosSectionBody}
-              </p>
-            </div>
-          </RevealOnScroll>
-          <IntegrationsLogosCarousel />
-        </section>
+        {/* Logos carousel — only when not searching */}
+        {!isSearching && (
+          <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-20">
+            <RevealOnScroll>
+              <div className="text-center mb-10">
+                <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">
+                  {integrationsCopy.logosSectionTitle}
+                </h2>
+                <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto">
+                  {integrationsCopy.logosSectionBody}
+                </p>
+              </div>
+            </RevealOnScroll>
+            <IntegrationsLogosCarousel />
+          </section>
+        )}
 
         {/* Final CTA */}
         <section className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">

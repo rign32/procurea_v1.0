@@ -115,6 +115,39 @@ export function metaFor(path: string): RouteMeta {
         canonical,
       }
 
+    // Industry round 2 pages
+    case '/dla-kogo/gastronomia':
+    case '/industries/horeca':
+      return {
+        title: 'Procurement for HoReCa — Procurea',
+        description: 'F&B ingredient sourcing, kitchen equipment, tableware for restaurants, hotels, and catering. HACCP/IFS/BRC certified suppliers discovered by AI.',
+        canonical,
+      }
+
+    case '/dla-kogo/ochrona-zdrowia':
+    case '/industries/healthcare':
+      return {
+        title: 'Medical device sourcing for Healthcare — Procurea',
+        description: 'CE/MDR/ISO 13485-certified medical device manufacturers and disposable suppliers. Compliance-first AI sourcing for hospitals and clinics.',
+        canonical,
+      }
+
+    case '/dla-kogo/logistyka':
+    case '/industries/logistics':
+      return {
+        title: 'Supplier sourcing for Logistics — Procurea',
+        description: 'Warehouse equipment, fleet spare parts, and 3PL service providers. AI-powered supplier discovery across markets and languages.',
+        canonical,
+      }
+
+    case '/dla-kogo/mro-utrzymanie-ruchu':
+    case '/industries/mro':
+      return {
+        title: 'MRO procurement — Procurea',
+        description: 'Industrial spare parts, maintenance service providers, and facilities management. Reduce downtime with pre-qualified backup suppliers and competitive RFQ.',
+        canonical,
+      }
+
     // Feature MVP P0 pages
     case '/funkcje/ai-sourcing':
     case '/features/ai-sourcing':
@@ -213,6 +246,11 @@ export const STATIC_ROUTES_PL = [
   '/dla-kogo/eventy',
   '/dla-kogo/budownictwo',
   '/dla-kogo/retail-ecommerce',
+  // Round 2 industries
+  '/dla-kogo/gastronomia',
+  '/dla-kogo/ochrona-zdrowia',
+  '/dla-kogo/logistyka',
+  '/dla-kogo/mro-utrzymanie-ruchu',
   // MVP P0 features
   '/funkcje/ai-sourcing',
   '/funkcje/outreach-mailowy',
@@ -236,6 +274,11 @@ export const STATIC_ROUTES_EN = [
   '/industries/events',
   '/industries/construction',
   '/industries/retail-ecommerce',
+  // Round 2 industries
+  '/industries/horeca',
+  '/industries/healthcare',
+  '/industries/logistics',
+  '/industries/mro',
   // MVP P0 features
   '/features/ai-sourcing',
   '/features/email-outreach',

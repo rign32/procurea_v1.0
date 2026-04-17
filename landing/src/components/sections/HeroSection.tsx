@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
-import { Button } from "@/components/ui/Button"
 import { pathFor } from "@/i18n/paths"
 import {
   ArrowRight,
@@ -119,19 +118,6 @@ export function HeroSection() {
             {t.hero.badge}
           </motion.div>
 
-          {/* Savings pill */}
-          <div>
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] font-bold text-emerald-700 uppercase tracking-wider mb-4"
-            >
-              <TrendingDown className="h-3 w-3" />
-              {t.hero.savingsPill}
-            </motion.div>
-          </div>
-
           {/* Headline */}
           <motion.h1
             initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
@@ -164,16 +150,20 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.5 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8"
           >
-            <Link to={pathFor('contact')} onClick={() => trackCtaClick('hero_primary')}>
-              <Button size="lg" className="group text-base px-8 py-4 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 transition-all">
-                {t.hero.ctaPrimary}
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Button>
+            <Link
+              to={pathFor('contact')}
+              onClick={() => trackCtaClick('hero_primary')}
+              className="group inline-flex items-center justify-center rounded-lg font-semibold transition-all duration-200 bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 text-base px-8 py-4"
+            >
+              {t.hero.ctaPrimary}
+              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
-            <Link to={pathFor('pricing')} onClick={() => trackCtaClick('hero_pricing')}>
-              <Button variant="secondary" size="lg" className="text-base px-8 py-4">
-                {t.hero.ctaSecondary}
-              </Button>
+            <Link
+              to={pathFor('pricing')}
+              onClick={() => trackCtaClick('hero_pricing')}
+              className="inline-flex items-center justify-center rounded-lg font-semibold transition-all duration-200 border border-border bg-background text-foreground hover:bg-accent text-base px-8 py-4"
+            >
+              {t.hero.ctaSecondary}
             </Link>
           </motion.div>
 

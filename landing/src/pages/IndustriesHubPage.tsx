@@ -3,7 +3,6 @@ import { ArrowRight, Factory, Calendar, HardHat, ShoppingBag, UtensilsCrossed, H
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
-import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { pathFor } from "@/i18n/paths"
 
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
@@ -22,19 +21,19 @@ const industries: IndustryItem[] = isEN ? [
   { icon: Calendar, title: 'Events', desc: 'Local vendors in 48h — catering, AV, scenography for events in foreign cities.', to: pathFor('iEvents'), round: 1 },
   { icon: HardHat, title: 'Construction', desc: 'Subcontractors and materials for developers and general contractors.', to: pathFor('iConstruction'), round: 1 },
   { icon: ShoppingBag, title: 'Retail & E-commerce', desc: 'Private label manufacturers — nearshore migration from China.', to: pathFor('iRetail'), round: 1 },
-  { icon: UtensilsCrossed, title: 'HoReCa', desc: 'F&B ingredients, equipment, tabletop for restaurants and hotels.', to: null, round: 2 },
-  { icon: HeartPulse, title: 'Healthcare', desc: 'Medical devices, disposables — CE, FDA, MDR certified vendors.', to: null, round: 2 },
-  { icon: Truck, title: 'Logistics', desc: 'Warehouse equipment, fleet parts, outsourced 3PL services.', to: null, round: 2 },
-  { icon: Wrench, title: 'MRO', desc: 'Industrial spare parts, maintenance services, urgent sourcing.', to: null, round: 2 },
+  { icon: UtensilsCrossed, title: 'HoReCa', desc: 'F&B ingredients, equipment, tabletop for restaurants and hotels.', to: pathFor('iHoreca'), round: 1 },
+  { icon: HeartPulse, title: 'Healthcare', desc: 'Medical devices, disposables — CE, FDA, MDR certified vendors.', to: pathFor('iHealthcare'), round: 1 },
+  { icon: Truck, title: 'Logistics', desc: 'Warehouse equipment, fleet parts, outsourced 3PL services.', to: pathFor('iLogistics'), round: 1 },
+  { icon: Wrench, title: 'MRO', desc: 'Industrial spare parts, maintenance services, urgent sourcing.', to: pathFor('iMro'), round: 1 },
 ] : [
   { icon: Factory, title: 'Produkcja', desc: 'Alternatywni dostawcy surowców i komponentów. Kwalifikacja ISO 9001 / IATF.', to: pathFor('iManufacturing'), round: 1 },
   { icon: Calendar, title: 'Eventy', desc: 'Lokalni dostawcy w 48h — catering, AV, scenografia dla eventów w obcych miastach.', to: pathFor('iEvents'), round: 1 },
   { icon: HardHat, title: 'Budownictwo', desc: 'Podwykonawcy i materiały dla deweloperów i generalnych wykonawców.', to: pathFor('iConstruction'), round: 1 },
   { icon: ShoppingBag, title: 'Retail & E-commerce', desc: 'Producenci private label — migracja nearshore z Chin.', to: pathFor('iRetail'), round: 1 },
-  { icon: UtensilsCrossed, title: 'HoReCa', desc: 'Ingredients F&B, sprzęt, tabletop dla restauracji i hoteli.', to: null, round: 2 },
-  { icon: HeartPulse, title: 'Ochrona zdrowia', desc: 'Wyroby medyczne, jednorazówki — dostawcy z certyfikatami CE, FDA, MDR.', to: null, round: 2 },
-  { icon: Truck, title: 'Logistyka', desc: 'Sprzęt magazynowy, części floty, outsourcing usług 3PL.', to: null, round: 2 },
-  { icon: Wrench, title: 'MRO', desc: 'Części zamienne przemysłowe, serwis, pilne sourcing.', to: null, round: 2 },
+  { icon: UtensilsCrossed, title: 'HoReCa', desc: 'Składniki F&B, sprzęt, tabletop dla restauracji i hoteli.', to: pathFor('iHoreca'), round: 1 },
+  { icon: HeartPulse, title: 'Ochrona zdrowia', desc: 'Wyroby medyczne, jednorazówki — dostawcy z certyfikatami CE, FDA, MDR.', to: pathFor('iHealthcare'), round: 1 },
+  { icon: Truck, title: 'Logistyka', desc: 'Sprzęt magazynowy, części floty, outsourcing usług 3PL.', to: pathFor('iLogistics'), round: 1 },
+  { icon: Wrench, title: 'MRO', desc: 'Części zamienne przemysłowe, serwis, pilne sourcing.', to: pathFor('iMro'), round: 1 },
 ]
 
 const copy = {
@@ -42,9 +41,6 @@ const copy = {
   heroSubtitle: isEN
     ? 'Different industries have different procurement workflows. We start with four core industries and expand based on what our customers need most.'
     : 'Różne branże to różne workflow. Startujemy od czterech głównych branż i rozwijamy się zgodnie z potrzebami klientów.',
-  round1Label: isEN ? 'Deep content available' : 'Pełna treść dostępna',
-  round2Label: isEN ? 'Coming next — based on demand' : 'Wkrótce — w zależności od popytu',
-  comingSoon: isEN ? 'Coming soon' : 'Wkrótce',
 }
 
 function IndustryCard({ industry }: { industry: IndustryItem }) {
@@ -57,51 +53,29 @@ function IndustryCard({ industry }: { industry: IndustryItem }) {
       <h3 className="text-lg font-bold mb-2">{industry.title}</h3>
       <p className="text-sm text-muted-foreground leading-relaxed flex-1">{industry.desc}</p>
       <div className="mt-4 text-sm font-semibold text-primary group-hover:gap-2 flex items-center gap-1 transition-all">
-        {industry.to ? (isEN ? 'Learn more' : 'Dowiedz się więcej') : copy.comingSoon}
-        {industry.to && <ArrowRight className="h-3.5 w-3.5" />}
+        {isEN ? 'Learn more' : 'Dowiedz się więcej'}
+        <ArrowRight className="h-3.5 w-3.5" />
       </div>
     </div>
   )
-  if (industry.to) return <Link to={industry.to}>{content}</Link>
-  return <div className="opacity-60">{content}</div>
+  return <Link to={industry.to!}>{content}</Link>
 }
 
 export function IndustriesHubPage() {
-  const round1 = industries.filter(i => i.round === 1)
-  const round2 = industries.filter(i => i.round === 2)
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50/50">
       <RouteMeta />
       <Navbar />
 
-      <main className="pt-32 pb-24">
+      <main id="main-content" className="pt-32 pb-24">
         <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center mb-16">
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-5">{copy.heroTitle}</h1>
           <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">{copy.heroSubtitle}</p>
         </section>
 
         <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-20">
-          <RevealOnScroll>
-            <div className="flex items-center gap-2 mb-8">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{copy.round1Label}</h2>
-            </div>
-          </RevealOnScroll>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-            {round1.map((i) => <IndustryCard key={i.title} industry={i} />)}
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-20">
-          <RevealOnScroll>
-            <div className="flex items-center gap-2 mb-8">
-              <span className="h-2 w-2 rounded-full bg-amber-500" />
-              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{copy.round2Label}</h2>
-            </div>
-          </RevealOnScroll>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-            {round2.map((i) => <IndustryCard key={i.title} industry={i} />)}
+            {industries.map((i) => <IndustryCard key={i.title} industry={i} />)}
           </div>
         </section>
 

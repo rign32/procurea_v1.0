@@ -35,6 +35,7 @@ const ROUTES_PL = [
   '/', '/cennik', '/o-nas', '/kontakt', '/funkcje', '/dla-kogo', '/integracje',
   '/regulamin', '/polityka-prywatnosci', '/rodo',
   '/dla-kogo/produkcja', '/dla-kogo/eventy', '/dla-kogo/budownictwo', '/dla-kogo/retail-ecommerce',
+  '/dla-kogo/gastronomia', '/dla-kogo/ochrona-zdrowia', '/dla-kogo/logistyka', '/dla-kogo/mro-utrzymanie-ruchu',
   '/funkcje/ai-sourcing', '/funkcje/outreach-mailowy', '/funkcje/supplier-portal', '/funkcje/porownywarka-ofert',
 ]
 
@@ -42,6 +43,7 @@ const ROUTES_EN = [
   '/', '/pricing', '/about', '/contact', '/features', '/industries', '/integrations',
   '/terms', '/privacy', '/gdpr',
   '/industries/manufacturing', '/industries/events', '/industries/construction', '/industries/retail-ecommerce',
+  '/industries/horeca', '/industries/healthcare', '/industries/logistics', '/industries/mro',
   '/features/ai-sourcing', '/features/email-outreach', '/features/supplier-portal', '/features/offer-comparison',
 ]
 
@@ -71,6 +73,14 @@ const META = {
   '/industries/construction': { title: 'Procurement for Construction — Procurea', description: 'Materials and subcontractors for developers and general contractors. RFQ to 30+ subcontractors at once, tiered pricing comparison.' },
   '/dla-kogo/retail-ecommerce': { title: 'Sourcing Private Label dla Retail & E-commerce — Procurea', description: 'Producenci private label w Europie, Turcji, nearshore. Migracja z Chin z 18+ alternatywnymi fabrykami w tygodniach zamiast miesięcy.' },
   '/industries/retail-ecommerce': { title: 'Private label sourcing for Retail & E-commerce — Procurea', description: 'Private label manufacturers in Europe, Turkey, nearshore. Migrate from China with 18+ alternative factories in weeks instead of months.' },
+  '/dla-kogo/gastronomia': { title: 'Procurement dla HoReCa — Procurea', description: 'Sourcing składników F&B, sprzętu kuchennego i zastawy stołowej dla restauracji, hoteli i cateringu. Dostawcy z certyfikatami HACCP/IFS/BRC wyszukani przez AI.' },
+  '/industries/horeca': { title: 'Procurement for HoReCa — Procurea', description: 'F&B ingredient sourcing, kitchen equipment, tableware for restaurants, hotels, and catering. HACCP/IFS/BRC certified suppliers discovered by AI.' },
+  '/dla-kogo/ochrona-zdrowia': { title: 'Sourcing wyrobów medycznych — Procurea', description: 'Producenci wyrobów medycznych z certyfikatami CE/MDR/ISO 13485. Compliance-first AI sourcing dla szpitali i klinik.' },
+  '/industries/healthcare': { title: 'Medical device sourcing for Healthcare — Procurea', description: 'CE/MDR/ISO 13485-certified medical device manufacturers and disposable suppliers. Compliance-first AI sourcing for hospitals and clinics.' },
+  '/dla-kogo/logistyka': { title: 'Sourcing dostawców dla Logistyki — Procurea', description: 'Sprzęt magazynowy, części zamienne do floty i dostawcy usług 3PL. AI-powered wyszukiwanie dostawców na rynkach i w językach.' },
+  '/industries/logistics': { title: 'Supplier sourcing for Logistics — Procurea', description: 'Warehouse equipment, fleet spare parts, and 3PL service providers. AI-powered supplier discovery across markets and languages.' },
+  '/dla-kogo/mro-utrzymanie-ruchu': { title: 'Procurement MRO — Procurea', description: 'Przemysłowe części zamienne, dostawcy usług maintenance i zarządzania obiektami. Zmniejsz przestoje z zakwalifikowanymi backup dostawcami i konkurencyjnymi RFQ.' },
+  '/industries/mro': { title: 'MRO procurement — Procurea', description: 'Industrial spare parts, maintenance service providers, and facilities management. Reduce downtime with pre-qualified backup suppliers and competitive RFQ.' },
   // Features
   '/funkcje/ai-sourcing': { title: 'AI Sourcing — Procurea', description: 'Opisz czego szukasz. AI dostarcza zweryfikowaną listę dostawców w kilka minut. Dostępne od Starter Sourcing ($199/mies).' },
   '/features/ai-sourcing': { title: 'AI Sourcing — Procurea', description: 'Describe what you need. AI delivers a verified supplier shortlist in minutes. Available from Starter Sourcing ($199/mo).' },
@@ -105,6 +115,10 @@ const ALT_MAP = {
   '/dla-kogo/eventy': '/industries/events', '/industries/events': '/dla-kogo/eventy',
   '/dla-kogo/budownictwo': '/industries/construction', '/industries/construction': '/dla-kogo/budownictwo',
   '/dla-kogo/retail-ecommerce': '/industries/retail-ecommerce', '/industries/retail-ecommerce': '/dla-kogo/retail-ecommerce',
+  '/dla-kogo/gastronomia': '/industries/horeca', '/industries/horeca': '/dla-kogo/gastronomia',
+  '/dla-kogo/ochrona-zdrowia': '/industries/healthcare', '/industries/healthcare': '/dla-kogo/ochrona-zdrowia',
+  '/dla-kogo/logistyka': '/industries/logistics', '/industries/logistics': '/dla-kogo/logistyka',
+  '/dla-kogo/mro-utrzymanie-ruchu': '/industries/mro', '/industries/mro': '/dla-kogo/mro-utrzymanie-ruchu',
   '/funkcje/ai-sourcing': '/features/ai-sourcing', '/features/ai-sourcing': '/funkcje/ai-sourcing',
   '/funkcje/outreach-mailowy': '/features/email-outreach', '/features/email-outreach': '/funkcje/outreach-mailowy',
   '/funkcje/supplier-portal': '/features/supplier-portal', '/features/supplier-portal': '/funkcje/supplier-portal',

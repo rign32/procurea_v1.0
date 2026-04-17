@@ -4,6 +4,7 @@ import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
+import { FeatureShowcase } from "@/components/sections/FeatureShowcase"
 import { pathFor } from "@/i18n/paths"
 
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
@@ -128,7 +129,7 @@ export function FeaturesHubPage() {
       <RouteMeta />
       <Navbar />
 
-      <main className="pt-32 pb-24">
+      <main id="main-content" className="pt-32 pb-24">
         {/* Hero */}
         <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center mb-16">
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-5">{copy.heroTitle}</h1>
@@ -232,6 +233,22 @@ export function FeaturesHubPage() {
               {insightsFeatures.map((f) => <FeatureCard key={f.title} feature={f} variant="procurement" />)}
             </div>
           </div>
+        </section>
+
+        {/* Product deep dive — split-layout showcases */}
+        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-20">
+          <RevealOnScroll>
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">
+                {isEN ? 'Product deep dive' : 'Szczegóły produktu'}
+              </h2>
+            </div>
+          </RevealOnScroll>
+          <FeatureShowcase number="01" slug="ai-sourcing" reverse={false} />
+          <FeatureShowcase number="02" slug="email-outreach" reverse={true} />
+          <FeatureShowcase number="03" slug="supplier-portal" reverse={false} />
+          <FeatureShowcase number="04" slug="offer-comparison" reverse={true} />
+          <FeatureShowcase number="05" slug="ai-insights" reverse={false} />
         </section>
 
         {/* Integrations banner */}

@@ -19,6 +19,8 @@ export const EN: LandingTranslations = {
     cta: 'Book demo',
     openMenu: 'Open menu',
     closeMenu: 'Close menu',
+    allFeatures: 'All features',
+    allIndustries: 'All industries',
   },
   sectionIds: {
     howItWorks: 'how-it-works',
@@ -30,11 +32,11 @@ export const EN: LandingTranslations = {
   },
   hero: {
     badge: 'AI-native procurement platform',
-    savingsPill: 'Average 4.6% savings on procurement spend',
+    savingsPill: '',
     headlinePart1: 'Agentic AI',
     headlineHighlight: 'procurement',
     headlinePart2: '.',
-    subheadline: '4 specialized AI agents source, negotiate, and qualify suppliers for you — delivering 4.6% average savings on every RFQ.',
+    subheadline: 'Two modules: AI Sourcing finds qualified suppliers in 26 languages, and AI Procurement sends RFQs, collects offers via supplier portal, and compares — fully automated.',
     ctaPrimary: 'Book demo',
     ctaSecondary: 'See pricing',
     trustFreeAccess: '10 free credits',
@@ -396,6 +398,10 @@ export const EN: LandingTranslations = {
     inputLabel: 'Annual procurement spend',
     annualSavings: 'Annual savings',
     monthlySavings: 'Monthly savings',
+    grossSavings: 'Gross savings',
+    procureaCost: 'Procurea cost',
+    netSavings: 'Net savings',
+    costBasis: 'Cost estimated based on Bundle plan ($39.9/credit)',
     roiLabel: 'Bundle plan payback',
     roiSuffix: 'days',
     roiNotReached: '—',
@@ -502,6 +508,12 @@ export const EN: LandingTranslations = {
     backToHome: 'Back to homepage',
     lastUpdatedPrefix: 'Last updated:',
   },
+  featuresSneakPeek: {
+    sectionLabel: 'FEATURES',
+    title: 'Everything your procurement team needs',
+    subtitle: 'From supplier discovery to offer comparison — in one platform.',
+    cta: 'View all features',
+  },
   homeFeatures: {
     'ai-sourcing': {
       sectionLabel: 'AI SOURCING',
@@ -553,5 +565,12 @@ export const EN: LandingTranslations = {
         'Negotiation leverage identification',
       ],
     },
+  },
+  integrationsSearch: {
+    placeholder: 'Check if we integrate with your ERP...',
+    noResults: 'No pre-built integration found. Contact us — we can build an adapter via Merge.dev or natively.',
+    requestTitle: 'Your system?',
+    requestSubtitle: "We'll build an adapter for your ERP.",
+    requestCta: 'Talk to us',
   },
 } as const;

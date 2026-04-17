@@ -308,7 +308,7 @@ export function PricingPage() {
       <RouteMeta />
       <Navbar />
 
-      <main className="pt-32 pb-24">
+      <main id="main-content" className="pt-32 pb-24">
         {/* Hero — compact */}
         <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center mb-10">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">

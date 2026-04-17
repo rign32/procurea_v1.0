@@ -21,12 +21,17 @@ interface SavingsCalculatorProps {
 export function SavingsCalculator({ variant = "home" }: SavingsCalculatorProps) {
   const [sliderPos, setSliderPos] = useState(50)
 
-  const { rounded, annualSavings, monthlySavings } = useMemo(() => {
+  const { rounded, annualSavings, monthlySavings, annualCost, netSavings } = useMemo(() => {
     const spend = 100_000 * Math.pow(10, (sliderPos / 100) * 3)
     const rounded = Math.round(spend / 10_000) * 10_000
     const annualSavings = Math.round(rounded * SAVINGS_RATE)
     const monthlySavings = Math.round(annualSavings / 12)
-    return { rounded, annualSavings, monthlySavings }
+    // Estimate campaigns needed: ~1 campaign per $500k of procurement spend, min 12/year
+    const estimatedCampaignsPerYear = Math.max(12, Math.ceil(rounded / 500_000) * 12)
+    // Bundle price: $39.9 per credit (based on $399/10 credits)
+    const annualCost = Math.round(estimatedCampaignsPerYear * 39.9)
+    const netSavings = annualSavings - annualCost
+    return { rounded, annualSavings, monthlySavings, annualCost, netSavings }
   }, [sliderPos])
 
   const heading =
@@ -54,7 +59,7 @@ export function SavingsCalculator({ variant = "home" }: SavingsCalculatorProps) 
             className="w-full h-1.5 rounded-full appearance-none cursor-pointer bg-gradient-to-r from-slate-200 via-brand-200 to-emerald-300 accent-primary outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-brand-500 [&::-webkit-slider-thumb]:shadow-sm [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-110 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-brand-500 [&::-moz-range-thumb]:shadow-sm"
             aria-label={t.calculator.inputLabel}
           />
-          <div className="flex justify-between mt-1 text-[10px] text-muted-foreground/60 tabular-nums">
+          <div className="flex justify-between mt-1 text-[10px] text-muted-foreground tabular-nums">
             <span>$100k</span>
             <span>$1M</span>
             <span>$10M</span>
@@ -82,36 +87,52 @@ export function SavingsCalculator({ variant = "home" }: SavingsCalculatorProps) 
         </div>
         <div className="text-muted-foreground/30 text-lg font-light hidden sm:block">→</div>
         <div>
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600">{t.calculator.annualSavings}</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t.calculator.grossSavings}</span>
           <AnimatePresence mode="wait">
             <motion.div
-              key={annualSavings}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="text-lg font-bold tabular-nums text-emerald-600"
-            >
-              {formatUSD(annualSavings)}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-        <div>
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t.calculator.monthlySavings}</span>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={monthlySavings}
+              key={`gross-${annualSavings}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
               className="text-lg font-bold tabular-nums text-muted-foreground"
             >
-              {formatUSD(monthlySavings)}
+              {formatUSD(annualSavings)}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+        <div>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-orange-600">{t.calculator.procureaCost}</span>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`cost-${annualCost}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="text-lg font-bold tabular-nums text-orange-600"
+            >
+              −{formatUSD(annualCost)}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+        <div>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600">{t.calculator.netSavings}</span>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`net-${netSavings}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="text-xl font-bold tabular-nums text-emerald-600"
+            >
+              {formatUSD(netSavings)}
             </motion.div>
           </AnimatePresence>
         </div>
       </div>
+      <p className="text-[10px] text-muted-foreground mt-2">{t.calculator.costBasis}</p>
     </div>
   )
 }

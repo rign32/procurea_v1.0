@@ -15,6 +15,7 @@ export interface IndustryContent {
   ctaTitle: string
   ctaBody: string
   interestTag: string // for /kontakt?interest=
+  caseStudy?: { headline: string; body: string; stat: string; statLabel: string }
 }
 
 // EN content
@@ -57,6 +58,12 @@ const industriesEN: Record<string, IndustryContent> = {
     ctaTitle: 'Ready to diversify your supplier base?',
     ctaBody: 'Book a 30-minute intro call. We will show you how Procurea handles your specific category (materials, components, MRO, packaging).',
     interestTag: 'industry_manufacturing',
+    caseStudy: {
+      stat: '80%',
+      statLabel: 'less time spent on supplier sourcing',
+      headline: 'A European automotive OEM diversified its supplier base in 3 weeks',
+      body: 'After a key tier-1 supplier announced capacity constraints, the procurement team used Procurea to identify 35 alternative injection molding suppliers across Central Europe. The AI-qualified shortlist replaced a process that previously took 4 months of manual research.',
+    },
   },
   'eventy': {
     slug: 'events',
@@ -96,6 +103,12 @@ const industriesEN: Record<string, IndustryContent> = {
     ctaTitle: 'Got an event in 2 weeks?',
     ctaBody: 'Start a free research campaign right now. Your shortlist of local vendors will be ready in 20 minutes.',
     interestTag: 'industry_events',
+    caseStudy: {
+      stat: '48h',
+      statLabel: 'from brief to vendor shortlist',
+      headline: 'A global events agency sourced 40 local vendors for a conference in Berlin',
+      body: 'Tasked with organizing a 2,000-person tech conference, the agency needed catering, AV, and on-site branding vendors in Berlin — a market they had never operated in. Procurea searched German directories and delivered 40 qualified local vendors within two days.',
+    },
   },
   'budownictwo': {
     slug: 'construction',
@@ -135,6 +148,12 @@ const industriesEN: Record<string, IndustryContent> = {
     ctaTitle: 'Running a tender this month?',
     ctaBody: 'Book a demo. See how Procurea handles subcontractor RFQ for your project type (residential, commercial, industrial, infrastructure).',
     interestTag: 'industry_construction',
+    caseStudy: {
+      stat: '\u20AC2.4M',
+      statLabel: 'annual procurement savings',
+      headline: 'A Polish general contractor cut material sourcing costs by 5%',
+      body: 'By running competitive RFQs through Procurea for steel, concrete, and insulation across 12 active projects, the contractor identified lower-cost suppliers with equivalent quality certifications. The consolidated savings reached \u20AC2.4M annually.',
+    },
   },
   'retail-ecommerce': {
     slug: 'retail-ecommerce',
@@ -174,6 +193,192 @@ const industriesEN: Record<string, IndustryContent> = {
     ctaTitle: 'Migrating from China?',
     ctaBody: 'Book a nearshore sourcing strategy call. We will map 15-20 alternative manufacturers for your category in Europe + Turkey.',
     interestTag: 'industry_retail',
+    caseStudy: {
+      stat: '6 weeks \u2192 2 days',
+      statLabel: 'supplier discovery cycle',
+      headline: 'A DTC brand migrated packaging sourcing from China to nearshore',
+      body: 'Facing rising tariffs and 12-week lead times, a fast-growing DTC cosmetics brand used Procurea to find 18 alternative packaging manufacturers in Poland, Portugal, and Turkey. The entire supplier shortlist was ready in 2 days instead of the usual 6-week research cycle.',
+    },
+  },
+  'gastronomia': {
+    slug: 'horeca',
+    heroTitle: 'Procurement automation for restaurants, hotels, and catering',
+    heroSubtitle:
+      'Find food service suppliers, kitchen equipment vendors, and F&B ingredient producers across Europe. Compare pricing, MOQ, and delivery terms — all in one platform.',
+    painPoints: [
+      {
+        title: 'Fragmented supplier landscape',
+        body: 'The HoReCa supply chain is hyper-local. Finding specialty ingredient suppliers, commercial kitchen equipment dealers, or tableware importers beyond your existing network takes weeks of phone calls and trade show visits.',
+      },
+      {
+        title: 'Price volatility in F&B ingredients',
+        body: 'Commodity prices for dairy, oils, proteins shift weekly. Without a broad supplier base for spot-buying, you are locked into above-market contracts or scrambling for last-minute alternatives.',
+      },
+      {
+        title: 'Compliance and food safety certifications',
+        body: 'HACCP, IFS, BRC, organic certifications — every supplier needs verification. Manually checking certificates across dozens of vendors is error-prone and time-consuming.',
+      },
+    ],
+    howProcureaHelps: [
+      {
+        title: 'Discover specialty suppliers in any region',
+        body: 'Search "organic olive oil producer, Andalusia, HACCP certified, 200L MOQ". AI scans local food industry directories in 26 languages and returns verified producers with capacity data.',
+      },
+      {
+        title: 'Competitive RFQ for seasonal procurement',
+        body: 'Run parallel RFQs for seasonal ingredients across multiple suppliers. Supplier Portal collects structured quotes — price per unit, delivery schedule, minimum order, shelf life.',
+      },
+      {
+        title: 'Certification tracking built in',
+        body: 'AI verifies HACCP, IFS, BRC, and organic certifications during supplier screening. Expired or missing certificates are flagged automatically before you send an RFQ.',
+      },
+    ],
+    topFeatures: ['fAiSourcing', 'fEmailOutreach', 'fSupplierPortal', 'fOfferComparison'],
+    relatedIndustries: ['eventy', 'retail-ecommerce'],
+    ctaTitle: 'Looking for better food service suppliers?',
+    ctaBody: 'Book a 15-minute call. We will show you how Procurea sources F&B ingredients, equipment, and tableware for your specific operation.',
+    interestTag: 'industry_horeca',
+    caseStudy: {
+      stat: '3x',
+      statLabel: 'more supplier options per tender',
+      headline: 'A hotel chain reduced food costs by consolidating ingredient sourcing',
+      body: 'A 12-property hotel group used Procurea to source dairy, bakery, and fresh produce suppliers across 4 countries. By tripling the number of qualified vendors in each category, they negotiated 8% better pricing on annual contracts.',
+    },
+  },
+  'ochrona-zdrowia': {
+    slug: 'healthcare',
+    heroTitle: 'Medical device and disposable sourcing for healthcare organizations',
+    heroSubtitle:
+      'Find CE/MDR-certified medical device manufacturers, lab equipment suppliers, and disposable producers. Verified compliance data, structured RFQ, side-by-side comparison.',
+    painPoints: [
+      {
+        title: 'Regulatory compliance is non-negotiable',
+        body: 'Every medical supplier must meet CE, MDR, FDA, or ISO 13485 standards. Verifying compliance manually for each potential vendor is a bottleneck that delays procurement by weeks.',
+      },
+      {
+        title: 'Limited visibility into alternative suppliers',
+        body: 'Healthcare procurement often relies on a small set of known distributors. When supply chain disruptions hit (as with PPE during COVID), organizations lack qualified backup vendors.',
+      },
+      {
+        title: 'Complex approval workflows',
+        body: 'Medical procurement requires clinical, compliance, and financial sign-off. Without structured vendor data, the approval process stalls at every handoff.',
+      },
+    ],
+    howProcureaHelps: [
+      {
+        title: 'Compliance-first supplier discovery',
+        body: 'Search by product category, certification (CE, MDR, ISO 13485), and geography. AI verifies regulatory documentation during screening — non-compliant vendors are filtered out automatically.',
+      },
+      {
+        title: 'Structured RFQ for medical procurement',
+        body: 'Send detailed RFQs with product specifications, compliance requirements, and volume tiers. Suppliers respond through a structured portal — no ambiguous email threads.',
+      },
+      {
+        title: 'Audit-ready supplier documentation',
+        body: 'Every supplier profile includes verified certifications, company data, and sourcing history. Export compliance reports for internal audit or regulatory review.',
+      },
+    ],
+    topFeatures: ['fAiSourcing', 'fSupplierPortal', 'fOfferComparison', 'fEmailOutreach'],
+    relatedIndustries: ['produkcja', 'mro-utrzymanie-ruchu'],
+    ctaTitle: 'Need qualified medical device suppliers?',
+    ctaBody: 'Book a demo. We will show you how Procurea handles compliance-first sourcing for medical devices, disposables, and lab equipment.',
+    interestTag: 'industry_healthcare',
+    caseStudy: {
+      stat: '70%',
+      statLabel: 'faster supplier qualification',
+      headline: 'A regional hospital network qualified 25 new disposable suppliers in 10 days',
+      body: 'After a primary supplier failed a compliance audit, the procurement team used Procurea to rapidly identify CE/ISO 13485-certified alternatives for surgical disposables. The AI-screened shortlist cut the usual 5-week qualification process to under two weeks.',
+    },
+  },
+  'logistyka': {
+    slug: 'logistics',
+    heroTitle: 'Supplier sourcing for logistics — warehouse, fleet, and 3PL services',
+    heroSubtitle:
+      'Find warehouse equipment suppliers, fleet spare parts vendors, and 3PL service providers. AI searches across markets and languages to uncover options your team would miss.',
+    painPoints: [
+      {
+        title: 'Warehouse equipment is hard to source competitively',
+        body: 'Racking systems, conveyor belts, automated picking solutions — these are niche categories with few well-known vendors. Without broad market visibility, you overpay or accept long lead times.',
+      },
+      {
+        title: 'Fleet maintenance parts require fast turnaround',
+        body: 'When a truck is down, every hour costs money. Finding a compatible spare part supplier with stock and next-day delivery across borders is a scramble that repeats every week.',
+      },
+      {
+        title: '3PL selection lacks structured comparison',
+        body: 'Evaluating third-party logistics providers on warehouse locations, SLA terms, technology stack, and pricing is a months-long manual exercise involving dozens of emails and calls.',
+      },
+    ],
+    howProcureaHelps: [
+      {
+        title: 'Niche equipment supplier discovery',
+        body: 'Search "automated pallet racking system, 10,000 pallet positions, CE certified, Central Europe". AI finds specialized manufacturers and distributors across 26 languages.',
+      },
+      {
+        title: 'Emergency parts sourcing in hours',
+        body: 'Describe the part, compatibility requirements, and delivery urgency. Procurea identifies suppliers with stock and sends RFQs immediately — shortlist in hours, not days.',
+      },
+      {
+        title: 'Structured 3PL evaluation',
+        body: 'Run an RFQ campaign for 3PL services with structured criteria: warehouse locations, SLA tiers, technology capabilities, pricing per pallet. Compare responses side-by-side.',
+      },
+    ],
+    topFeatures: ['fAiSourcing', 'fEmailOutreach', 'fOfferComparison', 'fSupplierPortal'],
+    relatedIndustries: ['produkcja', 'mro-utrzymanie-ruchu', 'budownictwo'],
+    ctaTitle: 'Optimizing your logistics procurement?',
+    ctaBody: 'Book a call. We will demo how Procurea handles warehouse equipment, fleet parts, and 3PL sourcing for your specific operation.',
+    interestTag: 'industry_logistics',
+    caseStudy: {
+      stat: '40%',
+      statLabel: 'reduction in fleet parts lead time',
+      headline: 'A European logistics operator cut spare parts procurement time by 40%',
+      body: 'Managing a fleet of 800+ vehicles across 5 countries, the operator used Procurea to build a cross-border spare parts supplier network. AI-sourced alternatives reduced average lead time from 5 days to 3 days, with 12% cost savings on brake and suspension components.',
+    },
+  },
+  'mro-utrzymanie-ruchu': {
+    slug: 'mro',
+    heroTitle: 'MRO procurement — industrial spare parts, maintenance, and facilities',
+    heroSubtitle:
+      'Source industrial spare parts, maintenance service providers, and facilities management vendors. Reduce downtime with faster supplier discovery and competitive RFQ.',
+    painPoints: [
+      {
+        title: 'Unplanned downtime drives emergency purchases',
+        body: 'When a production line stops, procurement scrambles to find spare parts at any price. Without pre-qualified backup suppliers, you pay 30-50% premiums on emergency orders.',
+      },
+      {
+        title: 'Tail spend is unmanaged and expensive',
+        body: 'MRO purchases are high-volume, low-value — thousands of SKUs across dozens of vendors. Without consolidation, maverick buying and duplicate orders inflate costs by 15-20%.',
+      },
+      {
+        title: 'Maintenance service providers are hard to benchmark',
+        body: 'HVAC servicing, electrical maintenance, calibration labs — each category has local specialists. Comparing service quality, response time, and pricing across providers requires structured data you do not have.',
+      },
+    ],
+    howProcureaHelps: [
+      {
+        title: 'Pre-qualified spare parts supplier network',
+        body: 'Build a backup supplier database before emergencies happen. Search by part category, OEM compatibility, certification, and geography. AI delivers qualified alternatives you can activate instantly.',
+      },
+      {
+        title: 'Tail spend consolidation via competitive RFQ',
+        body: 'Group similar MRO categories, run structured RFQs to multiple vendors, and compare on total cost of ownership. Supplier Portal collects standardized quotes for apples-to-apples comparison.',
+      },
+      {
+        title: 'Maintenance service benchmarking',
+        body: 'Send RFQs for maintenance contracts with structured criteria: response time SLA, geographic coverage, certifications, hourly rates. Compare service providers on what matters most.',
+      },
+    ],
+    topFeatures: ['fAiSourcing', 'fOfferComparison', 'fEmailOutreach', 'fSupplierPortal'],
+    relatedIndustries: ['produkcja', 'logistyka', 'budownictwo'],
+    ctaTitle: 'Reducing MRO costs and downtime?',
+    ctaBody: 'Book a demo. We will show how Procurea handles spare parts sourcing, maintenance vendor selection, and tail spend consolidation.',
+    interestTag: 'industry_mro',
+    caseStudy: {
+      stat: '22%',
+      statLabel: 'reduction in MRO spend',
+      headline: 'A food processing plant consolidated spare parts sourcing across 3 facilities',
+      body: 'Running 3 production facilities with 200+ maintenance SKUs each, the plant used Procurea to identify overlapping suppliers and run consolidated RFQs. The structured comparison revealed 22% savings on bearings, seals, and motor components versus incumbent pricing.',
+    },
   },
 }
 
@@ -217,6 +422,12 @@ const industriesPL: Record<string, IndustryContent> = {
     ctaTitle: 'Gotowy na dywersyfikację bazy dostawców?',
     ctaBody: 'Umów 30-minutowe spotkanie. Pokażemy jak Procurea radzi sobie z Twoją konkretną kategorią (materiały, komponenty, MRO, opakowania).',
     interestTag: 'industry_manufacturing',
+    caseStudy: {
+      stat: '80%',
+      statLabel: 'mniej czasu na sourcing dostawców',
+      headline: 'Europejski OEM motoryzacyjny zdywersyfikował bazę dostawców w 3 tygodnie',
+      body: 'Po tym jak kluczowy dostawca tier-1 ogłosił ograniczenia mocy, zespół zakupowy użył Procurea do identyfikacji 35 alternatywnych dostawców wtrysku tworzyw w Europie Środkowej. Lista zakwalifikowanych vendorów zastąpiła proces, który wcześniej zajmował 4 miesiące ręcznego researchu.',
+    },
   },
   'eventy': {
     slug: 'events',
@@ -256,6 +467,12 @@ const industriesPL: Record<string, IndustryContent> = {
     ctaTitle: 'Masz event za 2 tygodnie?',
     ctaBody: 'Rozpocznij darmową kampanię research teraz. Twoja shortlista lokalnych dostawców będzie gotowa w 20 minut.',
     interestTag: 'industry_events',
+    caseStudy: {
+      stat: '48h',
+      statLabel: 'od briefu do shortlisty vendorów',
+      headline: 'Globalna agencja eventowa znalazła 40 lokalnych dostawców na konferencję w Berlinie',
+      body: 'Organizując konferencję tech dla 2000 osób, agencja potrzebowała dostawców cateringu, AV i brandingu w Berlinie — rynku, na którym nigdy nie działała. Procurea przeszukała niemieckie katalogi i dostarczyła 40 zakwalifikowanych lokalnych vendorów w dwa dni.',
+    },
   },
   'budownictwo': {
     slug: 'construction',
@@ -295,6 +512,12 @@ const industriesPL: Record<string, IndustryContent> = {
     ctaTitle: 'Prowadzisz tender w tym miesiącu?',
     ctaBody: 'Umów demo. Zobacz jak Procurea radzi sobie z podwykonawcami RFQ dla Twojego typu projektu (mieszkalny, komercyjny, przemysłowy, infrastruktura).',
     interestTag: 'industry_construction',
+    caseStudy: {
+      stat: '\u20AC2,4M',
+      statLabel: 'rocznych oszczędności na procurement',
+      headline: 'Polski generalny wykonawca obniżył koszty sourcingu materiałów o 5%',
+      body: 'Prowadząc konkurencyjne RFQ przez Procurea na stal, beton i izolację w 12 aktywnych projektach, wykonawca zidentyfikował tańszych dostawców z równoważnymi certyfikatami jakości. Skonsolidowane oszczędności wyniosły \u20AC2,4M rocznie.',
+    },
   },
   'retail-ecommerce': {
     slug: 'retail-ecommerce',
@@ -334,6 +557,192 @@ const industriesPL: Record<string, IndustryContent> = {
     ctaTitle: 'Migrujesz z Chin?',
     ctaBody: 'Umów spotkanie strategiczne. Zmapujemy 15-20 alternatywnych producentów dla Twojej kategorii w Europie + Turcji.',
     interestTag: 'industry_retail',
+    caseStudy: {
+      stat: '6 tygodni → 2 dni',
+      statLabel: 'cykl wyszukiwania dostawców',
+      headline: 'Marka DTC przeniosła sourcing opakowań z Chin do nearshore',
+      body: 'W obliczu rosnących ceł i 12-tygodniowych lead time\'ów, szybko rosnąca marka kosmetyczna DTC użyła Procurea do znalezienia 18 alternatywnych producentów opakowań w Polsce, Portugalii i Turcji. Cała shortlista dostawców była gotowa w 2 dni zamiast zwykłego 6-tygodniowego cyklu researchu.',
+    },
+  },
+  'gastronomia': {
+    slug: 'horeca',
+    heroTitle: 'Automatyzacja procurement dla restauracji, hoteli i cateringu',
+    heroSubtitle:
+      'Znajdź dostawców food service, vendorów sprzętu kuchennego i producentów składników F&B w Europie. Porównaj ceny, MOQ i warunki dostaw — wszystko w jednej platformie.',
+    painPoints: [
+      {
+        title: 'Rozdrobniony krajobraz dostawców',
+        body: 'Łańcuch dostaw HoReCa jest hiperlokalny. Znalezienie dostawców specjalistycznych składników, dealerów sprzętu kuchennego czy importerów zastawy stołowej poza Twoją siecią kontaktów zajmuje tygodnie rozmów telefonicznych i wizyt na targach.',
+      },
+      {
+        title: 'Zmienność cen składników F&B',
+        body: 'Ceny surowców — nabiał, oleje, białka — zmieniają się co tydzień. Bez szerokiej bazy dostawców do zakupów spot jesteś zamknięty w kontraktach powyżej cen rynkowych lub szukasz alternatyw w ostatniej chwili.',
+      },
+      {
+        title: 'Compliance i certyfikaty bezpieczeństwa żywności',
+        body: 'HACCP, IFS, BRC, certyfikaty ekologiczne — każdy dostawca wymaga weryfikacji. Ręczne sprawdzanie certyfikatów u dziesiątek vendorów jest podatne na błędy i czasochłonne.',
+      },
+    ],
+    howProcureaHelps: [
+      {
+        title: 'Znajdź specjalistycznych dostawców w dowolnym regionie',
+        body: 'Szukaj "producent ekologicznej oliwy z oliwek, Andaluzja, HACCP, MOQ 200L". AI skanuje lokalne katalogi food industry w 26 językach i zwraca zweryfikowanych producentów z danymi o mocach.',
+      },
+      {
+        title: 'Konkurencyjne RFQ na procurement sezonowy',
+        body: 'Prowadź równoległe RFQ na sezonowe składniki u wielu dostawców. Supplier Portal zbiera ustrukturyzowane oferty — cena za jednostkę, harmonogram dostaw, minimum zamówienia, termin przydatności.',
+      },
+      {
+        title: 'Wbudowane śledzenie certyfikatów',
+        body: 'AI weryfikuje certyfikaty HACCP, IFS, BRC i ekologiczne podczas screeningu dostawców. Wygasłe lub brakujące certyfikaty są automatycznie flagowane przed wysłaniem RFQ.',
+      },
+    ],
+    topFeatures: ['fAiSourcing', 'fEmailOutreach', 'fSupplierPortal', 'fOfferComparison'],
+    relatedIndustries: ['eventy', 'retail-ecommerce'],
+    ctaTitle: 'Szukasz lepszych dostawców food service?',
+    ctaBody: 'Umów 15-minutowe spotkanie. Pokażemy jak Procurea sourcuje składniki F&B, sprzęt i zastawę stołową dla Twojej operacji.',
+    interestTag: 'industry_horeca',
+    caseStudy: {
+      stat: '3x',
+      statLabel: 'więcej opcji dostawców per tender',
+      headline: 'Sieć hoteli obniżyła koszty żywności konsolidując sourcing składników',
+      body: 'Grupa 12 hoteli użyła Procurea do sourcingu dostawców nabiału, pieczywa i świeżych produktów w 4 krajach. Potrojenie liczby zakwalifikowanych vendorów w każdej kategorii pozwoliło wynegocjować 8% lepsze ceny na kontraktach rocznych.',
+    },
+  },
+  'ochrona-zdrowia': {
+    slug: 'healthcare',
+    heroTitle: 'Sourcing wyrobów medycznych i jednorazówek dla organizacji ochrony zdrowia',
+    heroSubtitle:
+      'Znajdź producentów wyrobów medycznych z certyfikatami CE/MDR, dostawców sprzętu laboratoryjnego i producentów jednorazówek. Zweryfikowane dane compliance, ustrukturyzowane RFQ, porównanie side-by-side.',
+    painPoints: [
+      {
+        title: 'Regulatory compliance jest bezdyskusyjne',
+        body: 'Każdy dostawca medyczny musi spełniać standardy CE, MDR, FDA lub ISO 13485. Ręczna weryfikacja compliance dla każdego potencjalnego vendora to wąskie gardło, które opóźnia procurement o tygodnie.',
+      },
+      {
+        title: 'Ograniczona widoczność alternatywnych dostawców',
+        body: 'Procurement medyczny często opiera się na małym zbiorze znanych dystrybutorów. Gdy uderzają zakłócenia łańcucha dostaw (jak PPE podczas COVID), organizacje nie mają zakwalifikowanych backup vendorów.',
+      },
+      {
+        title: 'Złożone workflow zatwierdzania',
+        body: 'Procurement medyczny wymaga sign-off klinicznego, compliance i finansowego. Bez ustrukturyzowanych danych o vendorach proces zatwierdzania utyka na każdym handoff.',
+      },
+    ],
+    howProcureaHelps: [
+      {
+        title: 'Wyszukiwanie dostawców z priorytetem compliance',
+        body: 'Szukaj wg kategorii produktu, certyfikacji (CE, MDR, ISO 13485) i geografii. AI weryfikuje dokumentację regulacyjną podczas screeningu — niezgodne vendory są automatycznie odfiltrowywane.',
+      },
+      {
+        title: 'Ustrukturyzowane RFQ na procurement medyczny',
+        body: 'Wysyłaj szczegółowe RFQ ze specyfikacjami produktów, wymaganiami compliance i progami wolumenowymi. Dostawcy odpowiadają przez ustrukturyzowany portal — bez niejednoznacznych chainów maili.',
+      },
+      {
+        title: 'Dokumentacja dostawców gotowa na audyt',
+        body: 'Każdy profil dostawcy zawiera zweryfikowane certyfikaty, dane firmy i historię sourcingu. Eksportuj raporty compliance na wewnętrzny audyt lub przegląd regulacyjny.',
+      },
+    ],
+    topFeatures: ['fAiSourcing', 'fSupplierPortal', 'fOfferComparison', 'fEmailOutreach'],
+    relatedIndustries: ['produkcja', 'mro-utrzymanie-ruchu'],
+    ctaTitle: 'Potrzebujesz zakwalifikowanych dostawców wyrobów medycznych?',
+    ctaBody: 'Umów demo. Pokażemy jak Procurea radzi sobie z compliance-first sourcingiem wyrobów medycznych, jednorazówek i sprzętu laboratoryjnego.',
+    interestTag: 'industry_healthcare',
+    caseStudy: {
+      stat: '70%',
+      statLabel: 'szybsza kwalifikacja dostawców',
+      headline: 'Regionalna sieć szpitali zakwalifikowała 25 nowych dostawców jednorazówek w 10 dni',
+      body: 'Po tym jak główny dostawca nie przeszedł audytu compliance, zespół zakupowy użył Procurea do szybkiej identyfikacji alternatyw z certyfikatami CE/ISO 13485 dla jednorazówek chirurgicznych. Lista zeskanowana przez AI skróciła zwykły 5-tygodniowy proces kwalifikacji do niecałych dwóch tygodni.',
+    },
+  },
+  'logistyka': {
+    slug: 'logistics',
+    heroTitle: 'Sourcing dostawców dla logistyki — magazyn, flota i usługi 3PL',
+    heroSubtitle:
+      'Znajdź dostawców sprzętu magazynowego, vendorów części zamiennych do floty i dostawców usług 3PL. AI szuka na rynkach i w językach, żeby odkryć opcje, które Twój zespół by przegapił.',
+    painPoints: [
+      {
+        title: 'Sprzęt magazynowy trudno sourcować konkurencyjnie',
+        body: 'Systemy regałowe, przenośniki taśmowe, zautomatyzowane rozwiązania pickingowe — to niszowe kategorie z kilkoma znanymi vendorami. Bez szerokiej widoczności rynku przepłacasz lub akceptujesz długie lead time.',
+      },
+      {
+        title: 'Części zamienne do floty wymagają szybkiego turnaround',
+        body: 'Gdy ciężarówka stoi, każda godzina kosztuje. Znalezienie kompatybilnego dostawcy części z magazynem i dostawą next-day przez granice to wyścig, który powtarza się co tydzień.',
+      },
+      {
+        title: 'Selekcja 3PL bez ustrukturyzowanego porównania',
+        body: 'Ocena dostawców logistyki zewnętrznej pod kątem lokalizacji magazynów, warunków SLA, stacku technologicznego i cen to wielomiesięczne ćwiczenie manualne obejmujące dziesiątki maili i rozmów.',
+      },
+    ],
+    howProcureaHelps: [
+      {
+        title: 'Wyszukiwanie niszowych dostawców sprzętu',
+        body: 'Szukaj "zautomatyzowany system regałowy, 10 000 miejsc paletowych, CE, Europa Środkowa". AI znajduje specjalistycznych producentów i dystrybutorów w 26 językach.',
+      },
+      {
+        title: 'Awaryjny sourcing części w godzinach',
+        body: 'Opisz część, wymagania kompatybilności i pilność dostawy. Procurea identyfikuje dostawców z towarem na magazynie i natychmiast wysyła RFQ — shortlista w godzinach, nie dniach.',
+      },
+      {
+        title: 'Ustrukturyzowana ewaluacja 3PL',
+        body: 'Prowadź kampanię RFQ na usługi 3PL z ustrukturyzowanymi kryteriami: lokalizacje magazynów, tiery SLA, możliwości technologiczne, cena za paletę. Porównuj odpowiedzi side-by-side.',
+      },
+    ],
+    topFeatures: ['fAiSourcing', 'fEmailOutreach', 'fOfferComparison', 'fSupplierPortal'],
+    relatedIndustries: ['produkcja', 'mro-utrzymanie-ruchu', 'budownictwo'],
+    ctaTitle: 'Optymalizujesz procurement logistyczny?',
+    ctaBody: 'Umów spotkanie. Pokażemy jak Procurea radzi sobie z sourcingiem sprzętu magazynowego, części do floty i usług 3PL dla Twojej operacji.',
+    interestTag: 'industry_logistics',
+    caseStudy: {
+      stat: '40%',
+      statLabel: 'skrócenie lead time części do floty',
+      headline: 'Europejski operator logistyczny skrócił czas procurement części zamiennych o 40%',
+      body: 'Zarządzając flotą 800+ pojazdów w 5 krajach, operator użył Procurea do zbudowania transgranicznej sieci dostawców części zamiennych. Alternatywy znalezione przez AI skróciły średni lead time z 5 do 3 dni, z 12% oszczędnościami na komponentach hamulcowych i zawieszeniowych.',
+    },
+  },
+  'mro-utrzymanie-ruchu': {
+    slug: 'mro',
+    heroTitle: 'Procurement MRO — przemysłowe części zamienne, utrzymanie ruchu i facilities',
+    heroSubtitle:
+      'Sourcuj przemysłowe części zamienne, dostawców usług maintenance i vendorów zarządzania obiektami. Zmniejsz przestoje dzięki szybszemu wyszukiwaniu dostawców i konkurencyjnym RFQ.',
+    painPoints: [
+      {
+        title: 'Nieplanowane przestoje wymuszają zakupy awaryjne',
+        body: 'Gdy linia produkcyjna staje, procurement szuka części zamiennych za każdą cenę. Bez wstępnie zakwalifikowanych backup dostawców płacisz 30-50% premię na zamówieniach awaryjnych.',
+      },
+      {
+        title: 'Tail spend jest niezarządzany i kosztowny',
+        body: 'Zakupy MRO to duży wolumen, niska wartość — tysiące SKU u dziesiątek vendorów. Bez konsolidacji, maverick buying i duplikaty zamówień zawyżają koszty o 15-20%.',
+      },
+      {
+        title: 'Dostawców usług maintenance trudno zbenchmarkować',
+        body: 'Serwis HVAC, utrzymanie elektryczne, laboratoria kalibracyjne — każda kategoria ma lokalnych specjalistów. Porównanie jakości usług, czasu reakcji i cen u różnych dostawców wymaga ustrukturyzowanych danych, których nie masz.',
+      },
+    ],
+    howProcureaHelps: [
+      {
+        title: 'Wstępnie zakwalifikowana sieć dostawców części',
+        body: 'Zbuduj backup bazę dostawców zanim wydarzy się awaria. Szukaj wg kategorii części, kompatybilności OEM, certyfikacji i geografii. AI dostarcza zakwalifikowane alternatywy, które możesz aktywować natychmiast.',
+      },
+      {
+        title: 'Konsolidacja tail spend przez konkurencyjne RFQ',
+        body: 'Grupuj podobne kategorie MRO, prowadź ustrukturyzowane RFQ do wielu vendorów i porównuj po total cost of ownership. Supplier Portal zbiera standardowe oferty do porównania apples-to-apples.',
+      },
+      {
+        title: 'Benchmarking usług maintenance',
+        body: 'Wysyłaj RFQ na kontrakty maintenance z ustrukturyzowanymi kryteriami: czas reakcji SLA, zasięg geograficzny, certyfikacje, stawki godzinowe. Porównuj dostawców usług po tym, co ma największe znaczenie.',
+      },
+    ],
+    topFeatures: ['fAiSourcing', 'fOfferComparison', 'fEmailOutreach', 'fSupplierPortal'],
+    relatedIndustries: ['produkcja', 'logistyka', 'budownictwo'],
+    ctaTitle: 'Redukujesz koszty MRO i przestoje?',
+    ctaBody: 'Umów demo. Pokażemy jak Procurea radzi sobie z sourcingiem części zamiennych, selekcją vendorów maintenance i konsolidacją tail spend.',
+    interestTag: 'industry_mro',
+    caseStudy: {
+      stat: '22%',
+      statLabel: 'redukcja wydatków MRO',
+      headline: 'Zakład przetwórstwa spożywczego skonsolidował sourcing części zamiennych w 3 obiektach',
+      body: 'Prowadząc 3 obiekty produkcyjne z 200+ SKU maintenance każdy, zakład użył Procurea do identyfikacji nakładających się dostawców i prowadzenia skonsolidowanych RFQ. Ustrukturyzowane porównanie ujawniło 22% oszczędności na łożyskach, uszczelnieniach i komponentach silnikowych vs dotychczasowe ceny.',
+    },
   },
 }
 
@@ -350,6 +759,10 @@ export const SLUG_ALIASES: Record<string, string> = {
   'events': 'eventy',
   'construction': 'budownictwo',
   'retail-ecommerce': 'retail-ecommerce',
+  'horeca': 'gastronomia',
+  'healthcare': 'ochrona-zdrowia',
+  'logistics': 'logistyka',
+  'mro': 'mro-utrzymanie-ruchu',
 }
 
 export function resolveSlug(slug: string): string {

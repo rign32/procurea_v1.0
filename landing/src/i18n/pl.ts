@@ -27,6 +27,8 @@ export const PL = {
     cta: 'Umów demo',
     openMenu: 'Otwórz menu',
     closeMenu: 'Zamknij menu',
+    allFeatures: 'Wszystkie funkcje',
+    allIndustries: 'Wszystkie branże',
   },
   sectionIds: {
     howItWorks: 'jak-to-dziala',
@@ -38,11 +40,11 @@ export const PL = {
   },
   hero: {
     badge: 'AI-native platforma procurement',
-    savingsPill: 'Średnio 4,6% oszczędności na zakupach',
+    savingsPill: '',
     headlinePart1: 'Agentyczna AI',
     headlineHighlight: 'w zakupach',
     headlinePart2: '.',
-    subheadline: '4 wyspecjalizowane agenty AI wyszukują, negocjują i weryfikują dostawców — generując średnio 4,6% oszczędności na każdym zapytaniu.',
+    subheadline: 'Dwa moduły: AI Sourcing wyszukuje dostawców w 26 językach, a AI Procurement wysyła RFQ, zbiera oferty przez portal dostawcy i porównuje — wszystko zautomatyzowane.',
     ctaPrimary: 'Umów demo',
     ctaSecondary: 'Zobacz cennik',
     trustFreeAccess: '10 darmowych kredytów',
@@ -404,6 +406,10 @@ export const PL = {
     inputLabel: 'Roczny budżet zakupowy',
     annualSavings: 'Oszczędności rocznie',
     monthlySavings: 'Oszczędności miesięcznie',
+    grossSavings: 'Oszczędności brutto',
+    procureaCost: 'Koszt Procurea',
+    netSavings: 'Oszczędności netto',
+    costBasis: 'Koszt szacowany na bazie planu Bundle ($39.9/kredyt)',
     roiLabel: 'Zwrot z planu Bundle',
     roiSuffix: 'dni',
     roiNotReached: '—',
@@ -510,6 +516,12 @@ export const PL = {
     backToHome: 'Powrót do strony głównej',
     lastUpdatedPrefix: 'Ostatnia aktualizacja:',
   },
+  featuresSneakPeek: {
+    sectionLabel: 'FUNKCJE',
+    title: 'Wszystko czego potrzebuje Twój zespół zakupowy',
+    subtitle: 'Od wyszukiwania dostawców po porównanie ofert — w jednej platformie.',
+    cta: 'Zobacz wszystkie funkcje',
+  },
   homeFeatures: {
     'ai-sourcing': {
       sectionLabel: 'AI SOURCING',
@@ -561,5 +573,12 @@ export const PL = {
         'Identyfikacja dźwigni negocjacyjnej',
       ],
     },
+  },
+  integrationsSearch: {
+    placeholder: 'Sprawdź czy integrujemy z Twoim ERP...',
+    noResults: 'Nie znaleźliśmy gotowej integracji. Skontaktuj się z nami — zbudujemy adapter przez Merge.dev lub natywnie.',
+    requestTitle: 'Twój system?',
+    requestSubtitle: 'Zbudujemy adapter dla Twojego ERP.',
+    requestCta: 'Porozmawiaj z nami',
   },
 } as const;
