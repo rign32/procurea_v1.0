@@ -378,13 +378,13 @@ describe('MergeDevAdapter', () => {
             ).rejects.toBeInstanceOf(NotImplementedException);
         });
 
-        it('createPurchaseOrder throws NotImplementedException', async () => {
+        it('createPurchaseOrder throws when HTTP call fails (implemented in Wave 2)', async () => {
             await expect(
                 adapter.createPurchaseOrder('tok', {
                     supplierExternalId: 'x',
                     lines: [],
                 }),
-            ).rejects.toBeInstanceOf(NotImplementedException);
+            ).rejects.toThrow();
         });
 
         it('listLinkedAccounts throws NotImplementedException', async () => {
