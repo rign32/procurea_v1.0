@@ -8,8 +8,8 @@ import { t } from "@/i18n"
 import { pathFor } from "@/i18n/paths"
 import { cn } from "@/lib/utils"
 
-const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
-const isEN = LANG === 'en'
+const LANG = (import.meta.env.VITE_LANGUAGE || "pl") as "pl" | "en"
+const isEN = LANG === "en"
 
 interface MobileMenuProps {
   open: boolean
@@ -17,165 +17,272 @@ interface MobileMenuProps {
   appUrl: string
 }
 
-const featureLinks = [
-  { label: 'AI Sourcing', to: pathFor('fAiSourcing') },
-  { label: 'Email Outreach', to: pathFor('fEmailOutreach') },
-  { label: 'Supplier Portal', to: pathFor('fSupplierPortal') },
-  { label: isEN ? 'Offer Comparison' : 'Porównywarka ofert', to: pathFor('fOfferComparison') },
+interface MobileSection {
+  label: string
+  links: { label: string; to: string }[]
+  footerLabel?: string
+  footerTo?: string
+}
+
+const platformSection: MobileSection = {
+  label: isEN ? "Features" : "Funkcje",
+  links: [
+    { label: "AI Sourcing", to: pathFor("fAiSourcing") },
+    { label: "Email Outreach", to: pathFor("fEmailOutreach") },
+    { label: "Supplier Portal", to: pathFor("fSupplierPortal") },
+    {
+      label: isEN ? "Offer Comparison" : "Porownywarka ofert",
+      to: pathFor("fOfferComparison"),
+    },
+  ],
+  footerLabel: t.nav.allFeatures,
+  footerTo: pathFor("featuresHub"),
+}
+
+const industrySection: MobileSection = {
+  label: isEN ? "Industries" : "Branze",
+  links: [
+    { label: isEN ? "Manufacturing" : "Produkcja", to: pathFor("iManufacturing") },
+    { label: isEN ? "Events" : "Eventy", to: pathFor("iEvents") },
+    { label: isEN ? "Construction" : "Budownictwo", to: pathFor("iConstruction") },
+    { label: isEN ? "Retail & E-com" : "Retail & E-com", to: pathFor("iRetail") },
+  ],
+  footerLabel: t.nav.allIndustries,
+  footerTo: pathFor("industriesHub"),
+}
+
+const resourceLinks = [
+  { label: "Blog", to: "#" },
+  { label: "Case Studies", to: "#" },
+  { label: isEN ? "Documentation" : "Dokumentacja", to: "#" },
+  { label: "API Docs", to: "#" },
 ]
 
-const industryLinks = [
-  { label: isEN ? 'Manufacturing' : 'Produkcja', to: pathFor('iManufacturing') },
-  { label: isEN ? 'Events' : 'Eventy', to: pathFor('iEvents') },
-  { label: isEN ? 'Construction' : 'Budownictwo', to: pathFor('iConstruction') },
-  { label: isEN ? 'Retail & E-com' : 'Retail & E-com', to: pathFor('iRetail') },
-]
+// Animation variants
+const overlayVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.3 } },
+  exit: { opacity: 0, transition: { duration: 0.2 } },
+}
 
-const linkClass = "px-4 py-3 text-base font-semibold text-foreground rounded-lg hover:bg-black/[0.02] transition-colors border-b border-black/[0.06]"
-const subLinkClass = "block px-6 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+const menuVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { duration: 0.3, staggerChildren: 0.05, delayChildren: 0.1 },
+  },
+  exit: { opacity: 0, transition: { duration: 0.2 } },
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.23, 1, 0.32, 1] as const } },
+}
+
+function CollapsibleSection({
+  section,
+  onClose,
+}: {
+  section: MobileSection
+  onClose: () => void
+}) {
+  const [expanded, setExpanded] = useState(false)
+
+  return (
+    <div>
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="flex w-full items-center justify-between px-2 py-3.5 text-lg font-semibold text-foreground"
+      >
+        {section.label}
+        <ChevronDown
+          className={cn(
+            "h-5 w-5 text-muted-foreground transition-transform duration-200",
+            expanded && "rotate-180"
+          )}
+        />
+      </button>
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="pb-2 pl-2 space-y-0.5">
+              {section.links.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  onClick={onClose}
+                  className="block px-3 py-2.5 text-base text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-black/[0.03]"
+                >
+                  {link.label}
+                </Link>
+              ))}
+              {section.footerTo && (
+                <Link
+                  to={section.footerTo}
+                  onClick={onClose}
+                  className="block px-3 py-2.5 text-sm font-semibold text-primary"
+                >
+                  {section.footerLabel} &rarr;
+                </Link>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
 
 export function MobileMenu({ open, onClose, appUrl }: MobileMenuProps) {
-  const [productOpen, setProductOpen] = useState(false)
   const closeRef = useRef<HTMLButtonElement>(null)
 
   // Focus close button when menu opens
   useEffect(() => {
-    if (open) closeRef.current?.focus()
+    if (open) {
+      closeRef.current?.focus()
+      // Lock body scroll
+      document.body.style.overflow = "hidden"
+    }
+    return () => {
+      document.body.style.overflow = ""
+    }
   }, [open])
 
   // Close on Escape
   useEffect(() => {
     if (!open) return
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === "Escape") onClose()
     }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
+    document.addEventListener("keydown", handler)
+    return () => document.removeEventListener("keydown", handler)
   }, [open, onClose])
 
   return (
     <AnimatePresence>
       {open && (
-        <>
-          {/* Backdrop */}
+        <motion.div
+          role="dialog"
+          aria-modal="true"
+          aria-label={t.nav.openMenu}
+          variants={overlayVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          className="fixed inset-0 z-50 bg-white/95 backdrop-blur-2xl"
+        >
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
-            aria-hidden="true"
-          />
-
-          {/* Drawer */}
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            aria-label={t.nav.openMenu}
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 bottom-0 z-50 w-[min(320px,85vw)] bg-background border-l border-border shadow-2xl overflow-y-auto"
+            variants={menuVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="flex flex-col min-h-full"
           >
-            <div className="flex flex-col min-h-full p-4">
-              <div className="flex justify-end mb-2">
-                <button
-                  ref={closeRef}
+            {/* Header with close */}
+            <motion.div
+              variants={itemVariants}
+              className="flex items-center justify-between px-5 pt-4 pb-2"
+            >
+              <Link
+                to={pathFor("home")}
+                onClick={onClose}
+                className="flex items-center gap-2"
+              >
+                <img
+                  src="/logo-procurea.png"
+                  alt="Procurea"
+                  className="h-8 w-8 rounded-lg"
+                />
+                <span className="text-lg font-bold tracking-tight">Procurea</span>
+              </Link>
+              <button
+                ref={closeRef}
+                onClick={onClose}
+                className="flex items-center justify-center h-10 w-10 rounded-xl text-muted-foreground hover:text-foreground hover:bg-black/[0.04] transition-colors"
+                aria-label={t.nav.closeMenu}
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </motion.div>
+
+            {/* Divider */}
+            <div className="mx-5 border-t border-black/[0.06]" />
+
+            {/* Navigation */}
+            <nav className="flex-1 px-5 py-4 space-y-1 overflow-y-auto">
+              <motion.div variants={itemVariants}>
+                <CollapsibleSection section={platformSection} onClose={onClose} />
+              </motion.div>
+
+              <motion.div variants={itemVariants}>
+                <CollapsibleSection section={industrySection} onClose={onClose} />
+              </motion.div>
+
+              <motion.div variants={itemVariants}>
+                <Link
+                  to={pathFor("pricing")}
                   onClick={onClose}
-                  className="p-2 text-muted-foreground hover:text-foreground"
-                  aria-label={t.nav.closeMenu}
+                  className="block px-2 py-3.5 text-lg font-semibold text-foreground"
                 >
-                  <X className="h-6 w-6" />
-                </button>
-              </div>
-
-              {/* Navigation links */}
-              <nav className="flex flex-col gap-1 mt-2">
-                {/* Product — expandable */}
-                <button
-                  onClick={() => setProductOpen(!productOpen)}
-                  className={cn(linkClass, "flex items-center justify-between w-full text-left")}
-                >
-                  {t.nav.product}
-                  <ChevronDown className={cn("h-4 w-4 transition-transform", productOpen && "rotate-180")} />
-                </button>
-
-                <AnimatePresence>
-                  {productOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="py-1">
-                        <p className="px-6 pt-2 pb-1 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-                          {isEN ? 'Features' : 'Funkcje'}
-                        </p>
-                        {featureLinks.map((link) => (
-                          <Link key={link.to} to={link.to} onClick={onClose} className={subLinkClass}>
-                            {link.label}
-                          </Link>
-                        ))}
-                        <Link to={pathFor('featuresHub')} onClick={onClose} className={cn(subLinkClass, "text-primary font-semibold")}>
-                          {t.nav.allFeatures} →
-                        </Link>
-
-                        <p className="px-6 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-                          {isEN ? 'Industries' : 'Branże'}
-                        </p>
-                        {industryLinks.map((link) => (
-                          <Link key={link.to} to={link.to} onClick={onClose} className={subLinkClass}>
-                            {link.label}
-                          </Link>
-                        ))}
-                        <Link to={pathFor('industriesHub')} onClick={onClose} className={cn(subLinkClass, "text-primary font-semibold")}>
-                          {t.nav.allIndustries} →
-                        </Link>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Flat links */}
-                <Link to={pathFor('pricing')} onClick={onClose} className={linkClass}>
                   {t.nav.pricing}
                 </Link>
-                <Link to={pathFor('integrationsHub')} onClick={onClose} className={linkClass}>
+              </motion.div>
+
+              <motion.div variants={itemVariants}>
+                <Link
+                  to={pathFor("integrationsHub")}
+                  onClick={onClose}
+                  className="block px-2 py-3.5 text-lg font-semibold text-foreground"
+                >
                   {t.nav.integrations}
                 </Link>
-                <Link to={pathFor('about')} onClick={onClose} className={linkClass}>
-                  {t.nav.company}
-                </Link>
-              </nav>
+              </motion.div>
 
-              {/* CTAs */}
-              <div className="mt-auto pt-6 flex flex-col gap-3">
-                <a
-                  href={appendUtm(appUrl, 'mobile_login')}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => trackCtaClick('mobile_login')}
-                  className="inline-flex items-center justify-center rounded-lg font-semibold transition-all duration-200 border border-border bg-background text-foreground hover:bg-accent px-6 py-2.5 text-sm w-full"
-                >
-                  {t.nav.login}
-                </a>
-                <Link
-                  to={pathFor('contact')}
-                  onClick={() => {
-                    trackCtaClick('mobile_cta')
-                    onClose()
+              {/* Resources section */}
+              <motion.div variants={itemVariants}>
+                <CollapsibleSection
+                  section={{
+                    label: isEN ? "Resources" : "Zasoby",
+                    links: resourceLinks,
                   }}
-                  className="inline-flex items-center justify-center rounded-lg font-semibold transition-all duration-200 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm hover:shadow-md px-6 py-2.5 text-sm w-full"
-                >
-                  {t.nav.cta}
-                </Link>
-              </div>
-            </div>
+                  onClose={onClose}
+                />
+              </motion.div>
+            </nav>
+
+            {/* CTAs at bottom */}
+            <motion.div
+              variants={itemVariants}
+              className="px-5 pb-8 pt-2 space-y-3 border-t border-black/[0.06]"
+            >
+              <Link
+                to={pathFor("contact")}
+                onClick={() => {
+                  trackCtaClick("mobile_cta")
+                  onClose()
+                }}
+                className="flex items-center justify-center w-full rounded-xl font-semibold text-base bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm hover:shadow-md transition-all duration-200 px-6 py-3.5"
+              >
+                {t.nav.cta}
+              </Link>
+              <a
+                href={appendUtm(appUrl, "mobile_login")}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackCtaClick("mobile_login")}
+                className="flex items-center justify-center w-full rounded-xl font-medium text-base border border-black/[0.08] text-foreground hover:bg-black/[0.03] transition-all duration-200 px-6 py-3.5"
+              >
+                {t.nav.login}
+              </a>
+            </motion.div>
           </motion.div>
-        </>
+        </motion.div>
       )}
     </AnimatePresence>
   )

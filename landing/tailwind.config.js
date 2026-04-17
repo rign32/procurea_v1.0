@@ -82,6 +82,24 @@ export default {
         xs: "0 1px 2px 0 rgb(0 0 0 / 0.04)",
         premium: "0 4px 16px -2px rgb(0 0 0 / 0.04), 0 8px 32px -4px rgb(0 0 0 / 0.06)",
         "premium-lg": "0 8px 32px -4px rgb(0 0 0 / 0.08), 0 16px 64px -8px rgb(0 0 0 / 0.08)",
+        glass: "0 8px 32px 0 rgba(31, 38, 135, 0.07)",
+        "glow-primary": "0 0 20px rgba(90, 140, 143, 0.3), 0 0 60px rgba(90, 140, 143, 0.1)",
+        "glow-emerald": "0 0 20px rgba(16, 185, 129, 0.3), 0 0 60px rgba(16, 185, 129, 0.1)",
+        "inner-glow": "inset 0 1px 0 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 0 rgba(0, 0, 0, 0.05)",
+      },
+      backdropBlur: {
+        xs: "2px",
+        "2xl": "40px",
+        "3xl": "64px",
+      },
+      fontSize: {
+        "display-xl": ["4.5rem", { lineHeight: "1.05", letterSpacing: "-0.04em" }],
+        "display-2xl": ["5.5rem", { lineHeight: "1.02", letterSpacing: "-0.045em" }],
+      },
+      backgroundImage: {
+        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
+        "gradient-conic": "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
+        "mesh-gradient": "radial-gradient(at 40% 20%, rgba(90, 140, 143, 0.15) 0px, transparent 50%), radial-gradient(at 80% 0%, rgba(169, 205, 208, 0.12) 0px, transparent 50%), radial-gradient(at 0% 50%, rgba(197, 224, 226, 0.1) 0px, transparent 50%)",
       },
       animation: {
         "gradient-x": "gradient-x 8s ease infinite",
@@ -93,6 +111,14 @@ export default {
         "scroll-right": "scroll-right 60s linear infinite",
         "marquee": "scroll-left 30s linear infinite",
         "gradient-border": "gradient-border 3s ease infinite",
+        "fade-up": "fade-up 0.6s ease-out both",
+        "fade-in": "fade-in 0.5s ease-out both",
+        "scale-in": "scale-in 0.4s ease-out both",
+        "slide-in-left": "slide-in-left 0.5s ease-out both",
+        "slide-in-right": "slide-in-right 0.5s ease-out both",
+        "pulse-glow": "pulse-glow 2s ease-in-out infinite",
+        "ticker": "ticker 25s linear infinite",
+        "spin-slow": "spin-slow 6s linear infinite",
       },
       keyframes: {
         "gradient-x": {
@@ -118,6 +144,38 @@ export default {
         "gradient-border": {
           "0%, 100%": { backgroundPosition: "0% 50%" },
           "50%": { backgroundPosition: "100% 50%" },
+        },
+        "fade-up": {
+          "0%": { opacity: "0", transform: "translateY(20px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "fade-in": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        "scale-in": {
+          "0%": { opacity: "0", transform: "scale(0.95)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
+        "slide-in-left": {
+          "0%": { opacity: "0", transform: "translateX(-20px)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
+        },
+        "slide-in-right": {
+          "0%": { opacity: "0", transform: "translateX(20px)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
+        },
+        "pulse-glow": {
+          "0%, 100%": { opacity: "1", boxShadow: "0 0 20px rgba(90, 140, 143, 0.2)" },
+          "50%": { opacity: "0.85", boxShadow: "0 0 40px rgba(90, 140, 143, 0.4)" },
+        },
+        "ticker": {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-100%)" },
+        },
+        "spin-slow": {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" },
         },
       },
     },

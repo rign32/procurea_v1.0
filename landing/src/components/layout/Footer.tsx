@@ -10,11 +10,17 @@ function FooterLinks({ links }: { links: readonly FooterLink[] }) {
       {links.map((link) => (
         <li key={link.label}>
           {link.external ? (
-            <a href={link.external} className="text-sm text-gray-400 hover:text-white transition-colors">
+            <a
+              href={link.external}
+              className="text-sm text-gray-400 hover:text-white transition-colors duration-200"
+            >
               {link.label}
             </a>
           ) : link.to ? (
-            <Link to={link.to} className="text-sm text-gray-400 hover:text-white transition-colors">
+            <Link
+              to={link.to}
+              className="text-sm text-gray-400 hover:text-white transition-colors duration-200"
+            >
               {link.label}
             </Link>
           ) : null}
@@ -24,81 +30,161 @@ function FooterLinks({ links }: { links: readonly FooterLink[] }) {
   )
 }
 
+const isEN = () => t.meta.lang === "en"
+
 export function Footer() {
   return (
-    <footer className="bg-gray-950 text-gray-300">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-10">
-          {/* Brand — 2 cols mobile, 1 col desktop */}
-          <div className="col-span-2 md:col-span-1">
-            <Link to="/" className="flex items-center gap-2.5 mb-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-gray-900">
-                <span className="text-sm font-bold">P</span>
+    <>
+      {/* Pre-footer CTA strip — newsletter signup */}
+      <section className="relative bg-gray-900 border-t border-white/[0.04]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-14">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div className="text-center sm:text-left">
+              <h3 className="text-lg font-semibold text-white">
+                {isEN()
+                  ? "Stay updated on procurement AI"
+                  : "Bądź na bieżąco z AI w procurement"}
+              </h3>
+              <p className="mt-1 text-sm text-gray-400">
+                {isEN()
+                  ? "Insights, product updates, and industry trends. No spam."
+                  : "Trendy, aktualizacje produktu i nowości z branży. Bez spamu."}
+              </p>
+            </div>
+            <form
+              onSubmit={(e) => e.preventDefault()}
+              className="flex w-full sm:w-auto gap-2"
+            >
+              <input
+                type="email"
+                placeholder={isEN() ? "Your email address" : "Twój adres email"}
+                className="w-full sm:w-72 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors duration-200"
+              />
+              <button
+                type="submit"
+                className="shrink-0 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-500 transition-colors duration-200"
+              >
+                {isEN() ? "Subscribe" : "Subskrybuj"}
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      {/* Main footer */}
+      <footer className="relative bg-gray-950 text-gray-300">
+        {/* Gradient top line */}
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
+
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-16 pb-12">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-x-8 gap-y-10">
+            {/* Brand column */}
+            <div className="col-span-2 md:col-span-1">
+              <Link to="/" className="inline-flex items-center gap-2.5 mb-4">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-gray-900">
+                  <span className="text-sm font-bold">P</span>
+                </div>
+                <span className="text-lg font-bold text-white tracking-tight">
+                  Procurea
+                </span>
+              </Link>
+              <p className="text-sm text-gray-500 leading-relaxed max-w-xs mb-6">
+                {t.footer.brand}
+              </p>
+              {/* Social links */}
+              <div className="flex items-center gap-3">
+                <a
+                  href="#"
+                  aria-label="LinkedIn"
+                  className="flex h-8 w-8 items-center justify-center rounded-md bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition-all duration-200"
+                >
+                  <svg
+                    className="h-4 w-4"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                  </svg>
+                </a>
+                <a
+                  href="#"
+                  aria-label="X (Twitter)"
+                  className="flex h-8 w-8 items-center justify-center rounded-md bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition-all duration-200"
+                >
+                  <svg
+                    className="h-4 w-4"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  </svg>
+                </a>
               </div>
-              <span className="text-lg font-bold text-white">Procurea</span>
-            </Link>
-            <p className="text-sm text-gray-500 leading-relaxed max-w-xs">
-              {t.footer.brand}
+            </div>
+
+            {/* Product */}
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 text-gray-500">
+                {t.footer.product}
+              </h3>
+              <FooterLinks links={t.footer.productLinks} />
+            </div>
+
+            {/* Industries */}
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 text-gray-500">
+                {t.footer.industries}
+              </h3>
+              <FooterLinks links={t.footer.industryLinks} />
+            </div>
+
+            {/* Integrations & Company */}
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 text-gray-500">
+                {t.footer.integrationsCompany}
+              </h3>
+              <FooterLinks links={t.footer.companyLinks} />
+            </div>
+
+            {/* Legal */}
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 text-gray-500">
+                {t.footer.legal}
+              </h3>
+              <ul className="space-y-2.5">
+                {t.footer.legalLinks.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      to={link.to}
+                      className="text-sm text-gray-400 hover:text-white transition-colors duration-200"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => CookieConsent.showPreferences()}
+                    className="text-sm text-gray-400 hover:text-white transition-colors duration-200"
+                  >
+                    {t.footer.cookieSettings}
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Bottom bar */}
+          <div className="mt-14 pt-8 border-t border-white/[0.06]">
+            <p className="text-xs text-gray-500 text-center">
+              &copy; {new Date().getFullYear()} {t.footer.copyright}
             </p>
           </div>
-
-          {/* Product */}
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 text-gray-500">
-              {t.footer.product}
-            </h3>
-            <FooterLinks links={t.footer.productLinks} />
-          </div>
-
-          {/* Industries */}
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 text-gray-500">
-              {t.footer.industries}
-            </h3>
-            <FooterLinks links={t.footer.industryLinks} />
-          </div>
-
-          {/* Integrations & Company */}
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 text-gray-500">
-              {t.footer.integrationsCompany}
-            </h3>
-            <FooterLinks links={t.footer.companyLinks} />
-          </div>
-
-          {/* Legal */}
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 text-gray-500">
-              {t.footer.legal}
-            </h3>
-            <ul className="space-y-2.5">
-              {t.footer.legalLinks.map((link) => (
-                <li key={link.label}>
-                  <Link to={link.to} className="text-sm text-gray-400 hover:text-white transition-colors">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-              <li>
-                <button
-                  type="button"
-                  onClick={() => CookieConsent.showPreferences()}
-                  className="text-sm text-gray-400 hover:text-white transition-colors"
-                >
-                  {t.footer.cookieSettings}
-                </button>
-              </li>
-            </ul>
-          </div>
         </div>
-
-        {/* Bottom bar */}
-        <div className="mt-12 pt-8 border-t border-white/[0.06]">
-          <p className="text-xs text-gray-500 text-center">
-            &copy; {new Date().getFullYear()} {t.footer.copyright}
-          </p>
-        </div>
-      </div>
-    </footer>
+      </footer>
+    </>
   )
 }
