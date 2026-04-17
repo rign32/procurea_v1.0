@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { GeminiService } from '../../common/services/gemini.service';
 import { parseAiJson } from '../../common/utils/parse-ai-json';
+import { EmailFallbackService } from './email-fallback.service';
 
 @Injectable()
 export class EnrichmentAgentService {
@@ -8,6 +9,7 @@ export class EnrichmentAgentService {
 
     constructor(
         private readonly geminiService: GeminiService,
+        private readonly emailFallbackService: EmailFallbackService,
     ) { }
 
     private normalizeToRootDomain(url: string): string {
@@ -131,8 +133,26 @@ Zwróć JSON:
                     result.enriched_data.domain_display = isPortal
                         ? this.extractDomainForDisplay(result.enriched_data.website || targetDomain)
                         : targetDisplayDomain;
-                    // Always return empty emails — email generation is disabled
-                    result.enriched_data.contact_emails = [];
+                    // Use Gemini-found emails if available, otherwise fallback to domain-based generation
+                    let emails: string[] = result.enriched_data.contact_emails || [];
+
+                    if (emails.length === 0 && (result.enriched_data.website || targetDomain)) {
+                        try {
+                            const fallbackEmails = await this.emailFallbackService.generateWithValidation({
+                                website: result.enriched_data.website || targetDomain,
+                                country: result.enriched_data.country,
+                            });
+                            if (fallbackEmails.length > 0) {
+                                emails = fallbackEmails.map(fe => fe.email);
+                                result.enriched_data.emailSource = 'fallback-domain-generated';
+                                this.logger.log(`Fallback generated ${emails.length} candidate emails for ${result.enriched_data.website || targetDomain}`);
+                            }
+                        } catch (fallbackErr) {
+                            this.logger.warn(`Email fallback failed for ${targetDomain}: ${fallbackErr.message}`);
+                        }
+                    }
+
+                    result.enriched_data.contact_emails = emails;
                 }
 
                 return result;
