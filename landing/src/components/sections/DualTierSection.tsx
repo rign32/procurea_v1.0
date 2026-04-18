@@ -23,16 +23,16 @@ const copy = {
     : 'Znajdź 50–250 zweryfikowanych dostawców na kampanię w 26 językach. Eksport Excel. Self-serve.',
   sourcingFeatures: isEN ? [
     'AI pipeline — 50–250 vendors per campaign',
-    '26-language research + Company Registry',
+    '26-language research + Supplier Database',
     'One-click Excel export',
     '10 free credits on signup',
   ] : [
     'AI pipeline — 50–250 dostawców na kampanię',
-    'Wielojęzyczny research (26 j.) + Company Registry',
+    'Wielojęzyczny research (26 j.) + Baza Dostawców',
     'Eksport Excel jednym kliknięciem',
     '10 darmowych kredytów po rejestracji',
   ],
-  sourcingCta: isEN ? 'Start free' : 'Rozpocznij za darmo',
+  sourcingCta: isEN ? 'Start free' : 'Zacznij za darmo',
 
   fullLabel: isEN ? 'Full Workflow (Bundle)' : 'Pełen Workflow (Bundle)',
   fullBadge: isEN ? 'Save 15%' : 'Oszczędzasz 15%',
@@ -134,7 +134,7 @@ export function DualTierSection() {
               </ul>
 
               <Link
-                to={`${pathFor('contact')}?interest=bundle`}
+                to={`${pathFor('contact')}?interest=bundle#calendar`}
                 onClick={() => trackCtaClick('dual_tier_full')}
                 className="relative inline-flex items-center justify-center w-full px-5 py-3 text-sm font-semibold rounded-lg bg-amber-400 text-amber-950 hover:bg-amber-300 shadow-lg transition-all"
               >

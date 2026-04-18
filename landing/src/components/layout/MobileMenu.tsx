@@ -28,7 +28,7 @@ const modulesSection: MobileSection = {
   label: isEN ? "Modules" : "Moduly",
   links: [
     { label: "AI Sourcing", to: pathFor("fAiSourcing") },
-    { label: "Company Registry", to: pathFor("fCompanyRegistry") },
+    { label: isEN ? "Supplier Database" : "Baza Dostawcow", to: pathFor("fCompanyRegistry") },
     { label: "Email Outreach", to: pathFor("fEmailOutreach") },
     { label: "Supplier Portal", to: pathFor("fSupplierPortal") },
     {

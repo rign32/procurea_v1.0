@@ -16,7 +16,7 @@ export const EN: LandingTranslations = {
     pricing: 'Pricing',
     faq: 'FAQ',
     login: 'Sign in',
-    cta: 'Sign up',
+    cta: 'Start free',
     openMenu: 'Open menu',
     closeMenu: 'Close menu',
     allFeatures: 'All features',
@@ -26,7 +26,7 @@ export const EN: LandingTranslations = {
     howItWorks: 'how-it-works',
     features: 'features',
     audience: 'who-its-for',
-    betaSignup: 'join-beta',
+    betaSignup: 'get-started',
     faq: 'faq',
     demo: 'demo',
   },
@@ -36,8 +36,8 @@ export const EN: LandingTranslations = {
     headlinePart1: 'Agentic AI',
     headlineHighlight: 'procurement',
     headlinePart2: '.',
-    subheadline: 'Two modules: AI Sourcing finds qualified suppliers in 26 languages, and AI Procurement sends RFQs, collects offers via supplier portal, and compares — fully automated.',
-    ctaPrimary: 'Sign up free',
+    subheadline: 'Describe what you need — AI delivers a verified supplier list with contact data in 20 minutes. Then send RFQs, collect offers, and compare — no manual work.',
+    ctaPrimary: 'Start free',
     ctaSecondary: 'Watch demo',
     ctaPricingLink: 'See pricing',
     trustFreeAccess: '10 free credits',
@@ -45,7 +45,7 @@ export const EN: LandingTranslations = {
     trustBeta: 'Integrates with your ERP',
     stats: [
       { value: '2-3 min', label: 'first results' },
-      { value: 'up to 200', label: 'suppliers per search' },
+      { value: 'up to 250', label: 'suppliers per campaign' },
       { value: '26', label: 'search languages' },
     ],
     sidebar: {
@@ -136,10 +136,10 @@ export const EN: LandingTranslations = {
     description: 'Watch a 3-minute demo to see how Procurea scouts and qualifies suppliers across global markets.',
   },
   features: {
-    sectionLabel: 'Beta program',
-    heading: 'What you get in the beta',
-    headingSub: 'Full AI sourcing platform — free during early access',
-    description: 'As an early access user, you get the complete AI sourcing toolkit that replaces weeks of manual supplier scouting.',
+    sectionLabel: 'Platform',
+    heading: 'What you get',
+    headingSub: 'with Procurea',
+    description: 'The AI sourcing toolkit that replaces weeks of manual supplier scouting. 10 free credits to start — no credit card required.',
     featuredLabel: 'Key feature',
     items: [
       {
@@ -156,11 +156,11 @@ export const EN: LandingTranslations = {
         description: 'Track your sourcing campaign progress in real time. Instant updates when new suppliers are found.',
       },
     ],
-    testerExpectationsTitle: 'What we expect from testers?',
+    testerExpectationsTitle: 'How to get started',
     testerExpectations: [
-      'Run at least 2–3 sourcing processes on real inquiries',
-      'Share your feedback — what works, what doesn\'t, what\'s missing',
-      'Spend 15 minutes on a short survey after testing',
+      'Create an account — takes 30 seconds, sign in with Google or Microsoft',
+      'Run your first campaign — describe what you need, AI handles the rest',
+      'Browse results and export your supplier list to Excel',
     ],
   },
   benefits: {
@@ -214,25 +214,25 @@ export const EN: LandingTranslations = {
     industries: ['IT & Software', 'Healthcare', 'Energy', 'Logistics', 'Construction', 'FMCG & Food', 'Financial Services', 'Manufacturing'],
   },
   betaSignup: {
-    sectionLabel: 'Join the beta',
-    heading: 'Join the',
-    headingHighlight: 'early access program',
-    description: 'Full access. For free. No obligations.',
+    sectionLabel: 'Start free',
+    heading: 'Start with',
+    headingHighlight: '10 free credits',
+    description: 'Full access to AI Sourcing. No credit card. No commitment.',
     benefits: [
       {
-        title: 'Full access to AI sourcing',
-        description: 'No limits on sourcing campaigns during the early access period. Search in 26 languages, contact data, AI scores.',
+        title: '10 free credits to start',
+        description: '10 full sourcing campaigns for free. Search in 26 languages, contact data, AI scores.',
       },
       {
-        title: 'Priority in product development',
-        description: 'Your feedback directly shapes the direction of the tool. We\'re building Procurea together with our users.',
+        title: 'Results in 20 minutes, not 6 weeks',
+        description: 'Run a campaign and watch AI find 50–250 suppliers. Export to Excel with one click.',
       },
       {
-        title: 'Free credits after beta',
-        description: 'After the beta program ends, you\'ll receive free credits to start with the full product as a thank you.',
+        title: 'Pay only when you need more',
+        description: 'After your free credits, top up from $89 for 10 campaigns. No subscription, no auto-renewal.',
       },
     ],
-    cta: 'Create a free account',
+    cta: 'Start free',
     trustPoints: [
       'Registration takes 30 seconds',
       'Sign in with Google or Microsoft',
@@ -241,31 +241,31 @@ export const EN: LandingTranslations = {
   },
   faq: {
     heading: 'Frequently asked questions',
-    description: 'Everything you need to know about Procurea early access',
+    description: 'Everything you need to know about Procurea',
     items: [
       {
         question: 'How does AI-powered search work?',
-        answer: 'Procurea uses a multi-stage AI agent system. The Strategy Agent generates search queries in multiple languages tailored to your requirements. The Exploration Agent searches the internet and identifies suppliers. The Analysis Agent evaluates their capabilities, and the Enrichment Agent automatically finds contact data. First results appear in 2–3 minutes, full list is ready in max 20 minutes.',
+        answer: 'Procurea uses a multi-stage AI agent system. The Strategy Agent generates search queries in multiple languages tailored to your requirements. The Scanning Agent searches the internet and identifies suppliers. The Analysis Agent evaluates their capabilities, and the Enrichment Agent automatically finds contact data. First results appear in 2–3 minutes, full list is ready in max 20 minutes.',
       },
       {
         question: 'Which regions are supported?',
         answer: 'You can search for suppliers locally, across the European Union, or globally. The system generates queries in 26 languages, including German, Czech, Italian, but also Japanese, Korean, Chinese, Turkish, and Hindi — reaching suppliers you wouldn\'t find with standard searches.',
       },
       {
-        question: 'What exactly is available in the beta?',
-        answer: 'During the beta, you have full access to the AI sourcing platform, including multi-stage search in 26 languages, automatic contact data enrichment, supplier database, and live monitoring. Features like RFQs and email sequences are in development and will appear in the full product.',
+        question: 'How much does Procurea cost?',
+        answer: 'AI Sourcing starts at $89 for 10 credits (1 credit = 1 campaign). Every new account gets 10 free credits — no credit card required. AI Procurement from $349 / 10 credits. Bundle (both modules) from $399 / 10 credits with 15% savings. Credits never expire. Full pricing: /pricing.',
       },
       {
-        question: 'How long does the beta last?',
-        answer: 'We plan the beta for a period of 2–3 months. During this time, we collect feedback and improve the tool. After the beta ends, you\'ll receive free credits to start with the full product.',
+        question: 'Is there a free trial?',
+        answer: 'Yes. Every new account gets 10 free AI Sourcing credits — enough to run 10 full campaigns (50–250 suppliers each). No credit card, no time limit, no auto-renewal. After that, top up from $89 for 10 credits.',
       },
       {
         question: 'Is my data secure?',
-        answer: 'Yes. We use Google Cloud infrastructure (europe-west1 region), encryption of data in transit and at rest, and OAuth 2.0 authentication via Google and Microsoft. Your data never leaves European infrastructure.',
+        answer: 'Yes. We use Google Cloud infrastructure in the EU, encryption of data in transit and at rest, and OAuth 2.0 authentication via Google and Microsoft. Your data never leaves European infrastructure. Full policy: /privacy.',
       },
       {
-        question: 'Do I have to pay after the beta ends?',
-        answer: 'No. Participation in the beta is completely free and comes with no obligation to purchase. After the beta, you\'ll receive free credits as a thank you. Continued use of the platform is optional.',
+        question: 'How fast can I get started?',
+        answer: 'Registration takes 30 seconds (Google or Microsoft). You can run your first sourcing campaign within 5 minutes — no onboarding, no setup. Describe what you need and AI handles the rest.',
       },
     ],
   },
@@ -283,7 +283,7 @@ export const EN: LandingTranslations = {
     ],
   },
   homeTrustBar: {
-    heading: 'Trusted by procurement teams across 8+ industries',
+    heading: 'Built for procurement teams across 8+ industries',
     industries: {
       manufacturing: 'Manufacturing',
       events: 'Events',
@@ -342,10 +342,10 @@ export const EN: LandingTranslations = {
   },
   testimonial: {
     quote:
-      'Procurea replaced 3 separate SaaS tools and compressed our sourcing campaigns from 6 weeks to 2 days. The multilingual outreach is a game-changer for diversifying beyond China.',
-    authorRole: 'Procurement Lead',
-    authorContext: 'European manufacturer · Early access beta',
-    authorInitials: 'PL',
+      'We used to spend 6 weeks sourcing packaging suppliers across Europe. Procurea delivered 180 qualified vendors in 20 minutes. The multilingual outreach got us responses from markets we had never reached before.',
+    authorRole: 'Senior Procurement Manager',
+    authorContext: 'NordPack Industries · Packaging manufacturer',
+    authorInitials: 'MK',
   },
   homeFaq: {
     sectionLabel: 'FREQUENTLY ASKED',
@@ -361,7 +361,7 @@ export const EN: LandingTranslations = {
       },
       {
         q: 'How do credits work?',
-        a: '1 credit = 1 sourcing campaign (AI Sourcing) or 1 RFQ cycle (AI Procurement). You buy credits in packs starting from 10, valid for 12 months, no subscription. Unused credits only expire after a year. Every new account also gets 3 free sourcing credits — no card, no time-limited trial. You pay for what you actually use, no seat fees or unused-capacity overhead.',
+        a: '1 credit = 1 sourcing campaign (AI Sourcing) or 1 RFQ cycle (AI Procurement). You buy credits in packs starting from 10, no subscription. Credits never expire. Every new account gets 10 free sourcing credits — no card, no time-limited trial. You pay for what you actually use, no seat fees or unused-capacity overhead.',
       },
       {
         q: 'Which ERP/CRM systems do you integrate with?',
@@ -373,11 +373,11 @@ export const EN: LandingTranslations = {
       },
       {
         q: 'Is there a free trial?',
-        a: 'Yes. Every new account gets 3 free AI Sourcing credits — enough to test 3 full campaigns (50–250 suppliers each). No credit card, no auto-renewal, no time limit. After that you buy credit packs starting from 10. AI Procurement and Bundle do not have a free trial — they start at $349 / $399, but you can book a walkthrough demo: /contact.',
+        a: 'Yes. Every new account gets 10 free AI Sourcing credits — enough to run 10 full campaigns (50–250 suppliers each). No credit card, no auto-renewal, no time limit. After that you buy credit packs starting from 10. AI Procurement and Bundle do not have a free trial — they start at $349 / $399, but you can book a walkthrough demo: /contact.',
       },
       {
         q: 'Where is my data stored?',
-        a: 'Google Cloud Platform, europe-central2 region (Warsaw). Customer data is isolated per organization in PostgreSQL. Encryption at-rest (AES-256) and in-transit (TLS 1.3). Compliance: GDPR, ISO 27001 (certification in progress). We do not use your data to train AI models. Full policy: /privacy and /gdpr. Enterprise Custom customers can get a dedicated instance in the GCP region of their choice.',
+        a: 'Google Cloud Platform, europe-west1 region (Belgium, EU). Customer data is isolated per organization in PostgreSQL. Encryption at-rest (AES-256) and in-transit (TLS 1.3). Compliance: GDPR, ISO 27001 (certification in progress). We do not use your data to train AI models. Full policy: /privacy and /gdpr. Enterprise Custom customers can get a dedicated instance in the GCP region of their choice.',
       },
       {
         q: 'Which industries work best?',
@@ -408,7 +408,7 @@ export const EN: LandingTranslations = {
     roiNotReached: '—',
     cta: 'Start saving',
     pricingTitle: 'See how Procurea pays for itself in weeks',
-    pricingSubtitle: 'Slider: your annual procurement spend. Output: savings + Bundle plan ($899/mo) payback time.',
+    pricingSubtitle: 'Slider: your annual procurement spend. Output: savings + Bundle plan (from $399 / 10 credits) payback time.',
   },
   pricing: {
     creditPacks: {
@@ -448,7 +448,6 @@ export const EN: LandingTranslations = {
       { label: 'Pricing', to: '/pricing' },
       { label: 'About', to: '/about' },
       { label: 'Contact', to: '/contact' },
-      { label: 'r.ignaczak1@gmail.com', external: 'mailto:r.ignaczak1@gmail.com' },
     ],
     legalLinks: [
       { label: 'Terms of Service', to: '/terms' },

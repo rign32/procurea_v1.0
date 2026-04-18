@@ -27,9 +27,9 @@ const modulesSections: DropdownSection[] = [
         icon: <Search className="h-4 w-4" />,
       },
       {
-        label: 'Company Registry',
+        label: isEN ? 'Supplier Database' : 'Baza Dostawcow',
         to: pathFor('fCompanyRegistry'),
-        description: isEN ? 'Centralized supplier database' : 'Centralna baza dostawcow',
+        description: isEN ? 'AI scores, contacts, campaign history' : 'Oceny AI, kontakty, historia kampanii',
         icon: <Building2 className="h-4 w-4" />,
       },
     ],
@@ -107,8 +107,8 @@ export function Navbar() {
       <header
         className={cn(
           "fixed top-0 left-0 right-0 z-40 transition-all duration-300",
-          "bg-white/70 backdrop-blur-xl border-b border-black/[0.04]",
-          isScrolled && "bg-white/90 shadow-[0_1px_4px_rgba(0,0,0,0.06)] border-black/[0.06]"
+          "bg-white/95 backdrop-blur-xl border-b border-black/[0.08]",
+          isScrolled && "bg-white shadow-[0_1px_4px_rgba(0,0,0,0.06)] border-black/[0.06]"
         )}
       >
         <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

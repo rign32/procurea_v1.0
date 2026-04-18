@@ -35,7 +35,7 @@ export function metaFor(path: string): RouteMeta {
     case '/pricing':
       return {
         title: 'Pricing — Procurea',
-        description: 'Sourcing from $199/mo. Full Workflow Bundle (Sourcing + Procurement) from $399/mo. Enterprise Custom available. Annual billing saves 20%.',
+        description: 'AI Sourcing from $89 / 10 credits. Bundle (Sourcing + Procurement) from $399 / 10 credits. Enterprise Custom from $25k/year. Pay-as-you-go, no subscription.',
         canonical,
       }
 
@@ -153,7 +153,7 @@ export function metaFor(path: string): RouteMeta {
     case '/features/ai-sourcing':
       return {
         title: 'AI Sourcing — Procurea',
-        description: 'Describe what you need. AI delivers a verified supplier shortlist in minutes. Available from Starter Sourcing ($199/mo).',
+        description: 'Describe what you need. AI delivers a verified supplier shortlist in minutes. From $89 / 10 credits. Free credits on signup.',
         canonical,
       }
 
@@ -177,7 +177,7 @@ export function metaFor(path: string): RouteMeta {
     case '/features/offer-comparison':
       return {
         title: 'Offer Comparison & Reports — Procurea',
-        description: 'Side-by-side comparison of all RFQ responses — price, MOQ, lead time, certifications. Export to PDF/PPTX. Available from Professional +Procurement.',
+        description: 'Side-by-side comparison of all RFQ responses — price, MOQ, lead time, certifications. Export to PDF/PPTX. Part of AI Procurement credits.',
         canonical,
       }
 

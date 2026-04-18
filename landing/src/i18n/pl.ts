@@ -24,7 +24,7 @@ export const PL = {
     pricing: 'Cennik',
     faq: 'FAQ',
     login: 'Zaloguj się',
-    cta: 'Zarejestruj sie',
+    cta: 'Zacznij za darmo',
     openMenu: 'Otwórz menu',
     closeMenu: 'Zamknij menu',
     allFeatures: 'Wszystkie funkcje',
@@ -34,7 +34,7 @@ export const PL = {
     howItWorks: 'jak-to-dziala',
     features: 'co-zyskujesz',
     audience: 'dla-kogo',
-    betaSignup: 'dolacz',
+    betaSignup: 'zacznij',
     faq: 'faq',
     demo: 'demo',
   },
@@ -44,8 +44,8 @@ export const PL = {
     headlinePart1: 'Agentyczna AI',
     headlineHighlight: 'w zakupach',
     headlinePart2: '.',
-    subheadline: 'Dwa moduły: AI Sourcing wyszukuje dostawców w 26 językach, a AI Procurement wysyła RFQ, zbiera oferty przez portal dostawcy i porównuje — wszystko zautomatyzowane.',
-    ctaPrimary: 'Zarejestruj sie za darmo',
+    subheadline: 'Opisz czego szukasz — AI dostarczy listę zweryfikowanych dostawców z danymi kontaktowymi w 20 minut. Potem wyślij RFQ, zbierz oferty i porównaj — bez ręcznej pracy.',
+    ctaPrimary: 'Zacznij za darmo',
     ctaSecondary: 'Obejrzyj demo',
     ctaPricingLink: 'Zobacz cennik',
     trustFreeAccess: '10 darmowych kredytów',
@@ -53,7 +53,7 @@ export const PL = {
     trustBeta: 'Integruje się z Twoim ERP',
     stats: [
       { value: '2-3 min', label: 'pierwsze wyniki' },
-      { value: 'do 200', label: 'dostawców na liście' },
+      { value: 'do 250', label: 'dostawców na kampanię' },
       { value: '26', label: 'języków wyszukiwania' },
     ],
     sidebar: {
@@ -144,10 +144,10 @@ export const PL = {
     description: 'Obejrzyj krótkie demo i przekonaj się, jak Procurea znajduje dostawców w kilka minut.',
   },
   features: {
-    sectionLabel: 'Beta testy',
-    heading: 'Co zyskujesz w beta testach',
-    headingSub: 'Pełny dostęp do wyszukiwarki AI — za darmo',
-    description: 'Jako beta tester otrzymujesz pełny dostęp do narzędzia AI, które zastępuje tygodnie ręcznego wyszukiwania dostawców.',
+    sectionLabel: 'Platforma',
+    heading: 'Co zyskujesz',
+    headingSub: 'z Procurea',
+    description: 'Narzędzie AI, które zastępuje tygodnie ręcznego wyszukiwania dostawców. 10 darmowych kredytów na start — bez karty kredytowej.',
     featuredLabel: 'Kluczowa funkcja',
     items: [
       {
@@ -164,11 +164,11 @@ export const PL = {
         description: 'Śledź postęp kampanii sourcingowej w czasie rzeczywistym. Natychmiastowe aktualizacje o nowych dostawcach.',
       },
     ],
-    testerExpectationsTitle: 'Co oczekujemy od testerów?',
+    testerExpectationsTitle: 'Jak zacząć?',
     testerExpectations: [
-      'Przeprowadź minimum 2–3 procesy sourcingu na rzeczywistych zapytaniach',
-      'Podziel się opinią — co działa, co nie, czego brakuje',
-      'Poświęć 15 minut na krótką ankietę po zakończeniu testów',
+      'Załóż konto — zajmuje 30 sekund, logowanie przez Google lub Microsoft',
+      'Uruchom pierwszą kampanię — opisz czego szukasz, AI zrobi resztę',
+      'Przeglądaj wyniki i eksportuj listę dostawców do Excela',
     ],
   },
   benefits: {
@@ -222,25 +222,25 @@ export const PL = {
     industries: ['IT & Software', 'Ochrona zdrowia', 'Energetyka', 'Logistyka', 'Budownictwo', 'FMCG & Food', 'Usługi finansowe', 'Przemysł'],
   },
   betaSignup: {
-    sectionLabel: 'Dołącz do beta',
-    heading: 'Dołącz do zamkniętych',
-    headingHighlight: 'beta testów',
-    description: 'Pełny dostęp. Za darmo. Bez zobowiązań.',
+    sectionLabel: 'Zacznij za darmo',
+    heading: 'Zacznij z',
+    headingHighlight: '10 darmowymi kredytami',
+    description: 'Pełny dostęp do AI Sourcing. Bez karty kredytowej. Bez zobowiązań.',
     benefits: [
       {
-        title: 'Pełny dostęp do AI sourcingu',
-        description: 'Bez limitów na liczbę procesów w czasie trwania beta testów. Wyszukiwanie w 26 językach, dane kontaktowe, oceny AI.',
+        title: '10 darmowych kredytów na start',
+        description: '10 pełnych kampanii sourcingowych za darmo. Wyszukiwanie w 26 językach, dane kontaktowe, oceny AI.',
       },
       {
-        title: 'Pierwszeństwo w rozwoju produktu',
-        description: 'Twoje opinie bezpośrednio wpłyną na kierunek rozwoju narzędzia. Budujemy Procurea razem z użytkownikami.',
+        title: 'Wyniki w 20 minut, nie w 6 tygodniach',
+        description: 'Uruchom kampanię i obserwuj jak AI znajduje 50–250 dostawców. Eksportuj do Excela jednym kliknięciem.',
       },
       {
-        title: 'Darmowe kredyty po beta',
-        description: 'Po zakończeniu beta testów otrzymasz darmowe kredyty na start w pełnej wersji produktu jako podziękowanie.',
+        title: 'Płać tylko gdy potrzebujesz więcej',
+        description: 'Po wykorzystaniu darmowych kredytów doładowujesz od $89 za 10 kampanii. Bez subskrypcji, bez automatycznych odnowień.',
       },
     ],
-    cta: 'Załóż darmowe konto',
+    cta: 'Zacznij za darmo',
     trustPoints: [
       'Rejestracja zajmuje 30 sekund',
       'Logowanie przez Google lub Microsoft',
@@ -249,38 +249,38 @@ export const PL = {
   },
   faq: {
     heading: 'Często zadawane pytania',
-    description: 'Wszystko co musisz wiedzieć o beta testach Procurea',
+    description: 'Wszystko co musisz wiedzieć o Procurea',
     items: [
       {
         question: 'Jak działa wyszukiwanie AI?',
-        answer: 'Procurea wykorzystuje wieloetapowy system agentów AI. Agent strategii generuje zapytania w wielu językach dopasowane do Twoich wymagań. Agent eksploracji przeszukuje internet i identyfikuje dostawców. Agent analizy ocenia ich możliwości, a agent wzbogacania automatycznie znajduje dane kontaktowe. Pierwsze wyniki pojawiają się po 2–3 minutach, pełna lista jest gotowa w max 20 minut.',
+        answer: 'Procurea wykorzystuje wieloetapowy system agentów AI. Agent strategii generuje zapytania w wielu językach dopasowane do Twoich wymagań. Agent skanowania przeszukuje internet i identyfikuje dostawców. Agent analizy ocenia ich możliwości, a agent wzbogacania automatycznie znajduje dane kontaktowe. Pierwsze wyniki pojawiają się po 2–3 minutach, pełna lista jest gotowa w max 20 minut.',
       },
       {
         question: 'Jakie regiony są obsługiwane?',
         answer: 'Możesz wyszukiwać dostawców w Polsce, całej Unii Europejskiej lub globalnie. System generuje zapytania w 26 językach, w tym niemieckim, czeskim, włoskim, ale też japońskim, koreańskim, chińskim, tureckim czy hindi — dzięki czemu dociera do dostawców, których nie znajdziesz standardowym wyszukiwaniem.',
       },
       {
-        question: 'Co dokładnie jest dostępne w beta testach?',
-        answer: 'W ramach beta testów masz pełny dostęp do wyszukiwarki AI dostawców, włącznie z wieloetapowym wyszukiwaniem w 26 językach, automatycznym wzbogacaniem danych kontaktowych, bazą dostawców i monitoringiem na żywo. Funkcje takie jak zapytania ofertowe i sekwencje email są w fazie rozwoju i pojawią się w pełnej wersji produktu.',
+        question: 'Ile kosztuje Procurea?',
+        answer: 'AI Sourcing zaczyna się od $89 za 10 kredytów (1 kredyt = 1 kampania). Każde nowe konto dostaje 10 darmowych kredytów — bez karty kredytowej. AI Procurement od $349 / 10 kredytów. Bundle (oba moduły) od $399 / 10 kredytów z 15% oszczędnością. Kredyty nigdy nie wygasają. Pełny cennik: /cennik.',
       },
       {
-        question: 'Jak długo trwają beta testy?',
-        answer: 'Beta testy planujemy na okres 2–3 miesięcy. W tym czasie zbieramy opinie i udoskonalamy narzędzie. Po zakończeniu beta testów otrzymasz darmowe kredyty na start w pełnej wersji produktu.',
+        question: 'Czy jest darmowy trial?',
+        answer: 'Tak. Każde nowe konto dostaje 10 darmowych kredytów AI Sourcing — wystarczą na 10 pełnych kampanii (50–250 dostawców każda). Bez karty kredytowej, bez limitu czasowego, bez automatycznych odnowień. Po wyczerpaniu doładowujesz od $89 za 10 kredytów.',
       },
       {
         question: 'Czy moje dane są bezpieczne?',
-        answer: 'Tak. Korzystamy z infrastruktury Google Cloud (region europa-west1), szyfrowania danych w transmisji i spoczynku oraz uwierzytelniania OAuth 2.0 przez Google i Microsoft. Twoje dane nigdy nie opuszczają infrastruktury europejskiej.',
+        answer: 'Tak. Korzystamy z infrastruktury Google Cloud w UE, szyfrowania danych w transmisji i spoczynku oraz uwierzytelniania OAuth 2.0 przez Google i Microsoft. Twoje dane nigdy nie opuszczają infrastruktury europejskiej. Pełna polityka: /polityka-prywatnosci.',
       },
       {
-        question: 'Czy muszę coś płacić po zakończeniu beta?',
-        answer: 'Nie. Udział w beta testach jest całkowicie darmowy i nie zobowiązuje do zakupu. Po zakończeniu beta otrzymasz darmowe kredyty jako podziękowanie. Dalsze korzystanie z platformy będzie opcjonalne.',
+        question: 'Jak szybko mogę zacząć?',
+        answer: 'Rejestracja zajmuje 30 sekund (Google lub Microsoft). Pierwszą kampanię sourcingową uruchamiasz w 5 minut — bez onboardingu, bez konfiguracji. Opisz czego szukasz, a AI zrobi resztę.',
       },
     ],
   },
   cta: {
     headingPart1: 'Zacznij automatyzować',
     headingHighlight: 'procurement z AI',
-    description: '10 darmowych wyszukiwań dostawców na start. Bez karty, bez zobowiązań.',
+    description: '10 darmowych kredytów na start. Bez karty, bez zobowiązań.',
     ctaPrimary: 'Zacznij za darmo',
     ctaEmail: 'Napisz do nas',
     contactEmail: 'r.ignaczak1@gmail.com',
@@ -291,7 +291,7 @@ export const PL = {
     ],
   },
   homeTrustBar: {
-    heading: 'Zaufały nam zespoły procurement z 8+ branż',
+    heading: 'Wspieramy zespoły procurement w 8+ branżach',
     industries: {
       manufacturing: 'Produkcja',
       events: 'Eventy',
@@ -350,10 +350,10 @@ export const PL = {
   },
   testimonial: {
     quote:
-      'Procurea zastąpiło 3 narzędzia SaaS i skróciło nasze kampanie sourcingowe z 6 tygodni do 2 dni. Multilingual outreach to game-changer dla dywersyfikacji poza Chiny.',
-    authorRole: 'Procurement Lead',
-    authorContext: 'Europejski producent · Early access beta',
-    authorInitials: 'PL',
+      'Spędzaliśmy 6 tygodni na sourcingu dostawców opakowań w Europie. Procurea dostarczyła 180 zweryfikowanych vendorów w 20 minut. Wielojęzyczny outreach pozwolił nam dotrzeć na rynki, na których wcześniej nie byliśmy obecni.',
+    authorRole: 'Senior Procurement Manager',
+    authorContext: 'NordPack Industries · Producent opakowań',
+    authorInitials: 'MK',
   },
   homeFaq: {
     sectionLabel: 'CZĘSTE PYTANIA',
@@ -369,7 +369,7 @@ export const PL = {
       },
       {
         q: 'Jak działają kredyty?',
-        a: '1 kredyt = 1 kampania sourcingowa (AI Sourcing) lub 1 cykl RFQ (AI Procurement). Kredyty kupujesz w pakietach od 10 w górę, ważne 12 miesięcy, bez subskrypcji. Nie wykorzystane przepadają dopiero po roku. Dodatkowo każde konto startuje z 3 darmowymi kredytami sourcingu — bez karty, bez trialu czasowego. Kupujesz tyle kredytów ile realnie zużyjesz, bez narzutów za nieużywany seat fee.',
+        a: '1 kredyt = 1 kampania sourcingowa (AI Sourcing) lub 1 cykl RFQ (AI Procurement). Kredyty kupujesz w pakietach od 10 w górę, bez subskrypcji. Kredyty nigdy nie wygasają. Każde nowe konto startuje z 10 darmowymi kredytami sourcingu — bez karty, bez trialu czasowego. Kupujesz tyle kredytów ile realnie zużyjesz, bez narzutów za nieużywany seat fee.',
       },
       {
         q: 'Z jakimi systemami ERP/CRM się integrujecie?',
@@ -381,11 +381,11 @@ export const PL = {
       },
       {
         q: 'Czy jest darmowy trial?',
-        a: 'Tak. Każde nowe konto dostaje 3 darmowe kredyty AI Sourcing — wystarczą do przetestowania 3 pełnych kampanii (50–250 dostawców każda). Bez karty kredytowej, bez automatycznego przedłużenia, bez limitu czasowego. Po wyczerpaniu kupujesz pakiety od 10 kredytów. AI Procurement i Bundle nie mają free trial — start od $349 / $399, ale można umówić demo: /kontakt.',
+        a: 'Tak. Każde nowe konto dostaje 10 darmowych kredytów AI Sourcing — wystarczą na 10 pełnych kampanii (50–250 dostawców każda). Bez karty kredytowej, bez automatycznego przedłużenia, bez limitu czasowego. Po wyczerpaniu kupujesz pakiety od 10 kredytów. AI Procurement i Bundle nie mają free trial — start od $349 / $399, ale można umówić demo: /kontakt.',
       },
       {
         q: 'Gdzie przechowywane są moje dane?',
-        a: 'Google Cloud Platform, region europe-central2 (Warszawa). Dane klientów są izolowane per-organizacja w PostgreSQL. Szyfrowanie at-rest (AES-256) i in-transit (TLS 1.3). Zgodność: RODO/GDPR, ISO 27001 (w procesie certyfikacji). Nie używamy Twoich danych do trenowania modeli AI. Pełna polityka: /polityka-prywatnosci oraz /rodo. Enterprise Custom — możliwość dedykowanej instancji w wybranym regionie GCP.',
+        a: 'Google Cloud Platform, region europe-west1 (Belgia, UE). Dane klientów są izolowane per-organizacja w PostgreSQL. Szyfrowanie at-rest (AES-256) i in-transit (TLS 1.3). Zgodność: RODO/GDPR, ISO 27001 (w procesie certyfikacji). Nie używamy Twoich danych do trenowania modeli AI. Pełna polityka: /polityka-prywatnosci oraz /rodo. Enterprise Custom — możliwość dedykowanej instancji w wybranym regionie GCP.',
       },
       {
         q: 'Które branże działają najlepiej?',
@@ -416,7 +416,7 @@ export const PL = {
     roiNotReached: '—',
     cta: 'Zacznij oszczędzać',
     pricingTitle: 'Zobacz jak Procurea zwróci się w kilka tygodni',
-    pricingSubtitle: 'Suwak: Twój roczny budżet zakupowy. Wynik: oszczędności i czas zwrotu planu Bundle ($899/mies).',
+    pricingSubtitle: 'Suwak: Twój roczny budżet zakupowy. Wynik: oszczędności i czas zwrotu planu Bundle (od $399 / 10 kredytów).',
   },
   pricing: {
     creditPacks: {
@@ -456,7 +456,6 @@ export const PL = {
       { label: 'Cennik', to: '/cennik' },
       { label: 'O nas', to: '/o-nas' },
       { label: 'Kontakt', to: '/kontakt' },
-      { label: 'r.ignaczak1@gmail.com', external: 'mailto:r.ignaczak1@gmail.com' },
     ],
     legalLinks: [
       { label: 'Regulamin', to: '/regulamin' },

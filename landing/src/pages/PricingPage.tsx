@@ -100,7 +100,7 @@ function ProductCard({ product }: { product: ProductDefinition }) {
     </a>
   ) : (
     <Link
-      to={`${pathFor('contact')}?interest=${product.interestTag}`}
+      to={`${pathFor('contact')}?interest=${product.interestTag}#calendar`}
       onClick={() => trackCtaClick(`pricing_${product.key}_sales`)}
       className={`flex items-center justify-center w-full px-4 py-3 text-sm font-semibold rounded-lg transition-all ${styles.cta}`}
     >
@@ -363,7 +363,7 @@ export function PricingPage() {
                 : 'Umów 15-minutowe spotkanie. Przejdziemy przez Twój wolumen procurement i polecimy Sourcing-only, Bundle, lub Enterprise Custom.'}
             </p>
             <Link
-              to={pathFor('contact')}
+              to={`${pathFor('contact')}#calendar`}
               className="inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg bg-amber-400 text-amber-950 hover:bg-amber-300 shadow-lg transition-all"
             >
               {isEN ? 'Talk to us' : 'Porozmawiaj z nami'}

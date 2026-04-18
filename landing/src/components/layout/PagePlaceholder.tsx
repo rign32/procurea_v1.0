@@ -37,7 +37,7 @@ export function PagePlaceholder({ title, subtitle, mvpStage, note }: PagePlaceho
               ← Back to home
             </Link>
             <Link
-              to={pathFor('contact')}
+              to={`${pathFor('contact')}#calendar`}
               className="inline-flex items-center px-5 py-2.5 text-sm font-semibold rounded-lg border border-black/[0.1] text-foreground hover:bg-black/[0.03] transition-all"
             >
               Contact us

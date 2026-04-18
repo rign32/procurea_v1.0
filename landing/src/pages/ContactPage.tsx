@@ -176,7 +176,7 @@ export function ContactPage() {
           </div>
 
           {/* Cal.com embed — right under the header */}
-          <div className="mb-12">
+          <div id="calendar" className="mb-12">
             <CalEmbed />
           </div>
 

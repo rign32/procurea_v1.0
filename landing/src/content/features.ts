@@ -5,7 +5,7 @@ const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
 const isEN = LANG === 'en'
 
 // Feature taxonomy:
-//   - 'sourcing'    — AI Sourcing module (cheap credits): pipeline, Company Registry, 26-lang
+//   - 'sourcing'    — AI Sourcing module (cheap credits): pipeline, Supplier Database, 26-lang
 //   - 'outreach'    — AI Procurement / Outreach subgroup: contact enrichment, email, follow-up, multilingual
 //   - 'offers'      — AI Procurement / Offers subgroup: portal, collection, comparison
 //   - 'insights'    — AI Procurement / Insights subgroup: AI reports PDF/PPTX
@@ -71,7 +71,7 @@ const featuresEN: Record<string, FeatureContent> = {
     tierBadge: 'AI Sourcing · from $89 / 10 credits · 10 free on signup',
     heroTitle: 'AI Sourcing — 50–250 verified vendors in 20 minutes',
     heroSubtitle:
-      'Describe what you need in plain language. Our AI-native pipeline plans a search strategy across 26 languages, crawls registries and directories traditional tools miss, scores every supplier for capability fit, and enriches the shortlist with verified registry and contact data. First 20 vendors land in your dashboard in under three minutes; the full list of 50–250 qualified suppliers — deduplicated against your existing base — is Excel-ready in about 20.',
+      'Describe what you need in plain language. Our AI-native pipeline plans a search strategy across 26 languages, crawls directories and sources traditional tools miss, scores every supplier for capability fit, and enriches the shortlist with contact data and certification evidence. First 20 vendors land in your dashboard in under three minutes; the full list of 50–250 qualified suppliers — deduplicated against your existing base — is Excel-ready in about 20.',
     howItWorks: [
       {
         step: '1',
@@ -92,7 +92,7 @@ const featuresEN: Record<string, FeatureContent> = {
     highlights: [
       '26-language research across EU and global markets',
       'AI scoring: capability match, trust signals, certifications',
-      'Company Registry lookup (VAT, EORI, financials) built-in',
+      'Supplier Database with AI scores, contacts, and certification tracking',
       'One-click Excel export (full supplier list with contacts)',
       'Deduplicates against your existing supplier base',
       '10 free credits on signup — no credit card required',
@@ -141,8 +141,8 @@ const featuresEN: Record<string, FeatureContent> = {
       {
         step: '5',
         title: 'The Enrichment agent fills in the missing data',
-        body: 'For every qualified supplier, the enrichment pass pulls: VAT/NIP/EORI from national registries, financial health indicators where published, decision-maker contact details (email, phone, LinkedIn), and a deduplication check against suppliers already in your Procurea base. What lands in your dashboard is a shortlist you can act on immediately — Excel export, bulk RFQ through AI Procurement, or ERP push via API.',
-        techDetail: 'An Auditor pass runs last to flag inconsistencies — e.g. VAT number that does not match the country, or a capability claim the LLM could not verify on the site.',
+        body: 'For every qualified supplier, the enrichment pass pulls: company website and contact details (email, phone, LinkedIn), certification evidence, and a deduplication check against suppliers already in your Procurea Supplier Database. What lands in your dashboard is a shortlist you can act on immediately — Excel export, bulk RFQ through AI Procurement, or ERP push via API.',
+        techDetail: 'An Auditor pass runs last to flag inconsistencies — e.g. a capability claim the LLM could not verify on the site, or missing contact information.',
       },
     ],
     capabilityGroups: [
@@ -157,7 +157,7 @@ const featuresEN: Record<string, FeatureContent> = {
       {
         groupLabel: 'Enrichment',
         items: [
-          'Verified company data on every hit — VAT / NIP / EORI, legal status, ownership, financials where public',
+          'Centralized Supplier Database — AI match scores, contact details, certifications, and campaign history per vendor',
           'Decision-maker contacts — purchasing lead, procurement manager, CEO — with deliverability signals',
           'Automatic deduplication against your existing supplier base (ERP sync or manual upload)',
         ],
@@ -209,9 +209,9 @@ const featuresEN: Record<string, FeatureContent> = {
     ],
     integrationsHighlight: {
       heading: 'More than a search — a data layer for the rest of your procurement stack',
-      body: 'AI Sourcing is not a standalone tool. Every campaign feeds your broader Procurea workspace: enriched registry data, multi-language supplier records, deduplicated master data, and machine-readable exports that plug into the rest of your workflow. You get supplier research that compounds across projects instead of restarting from zero every quarter.',
+      body: 'AI Sourcing is not a standalone tool. Every campaign feeds your Supplier Database: AI-scored vendor profiles, multi-language supplier records, deduplicated master data, and machine-readable exports that plug into the rest of your workflow. You get supplier research that compounds across projects instead of restarting from zero every quarter.',
       bullets: [
-        'Company Registry lookup included on every campaign — VAT, EORI, financials, ownership, activity status — no separate due-diligence pass needed',
+        'Supplier Database included on every campaign — AI scores, contacts, certifications, campaign history — no separate data management needed',
         'Native 26-language search keeps regional vendors in the shortlist instead of filtered out by your English keywords',
         'Automatic deduplication against your existing supplier base — no duplicate outreach, no contact fatigue',
         'Excel export for every tier, REST API access on Enterprise — pipe results into SAP Ariba, Coupa, Salesforce or your in-house ERP',
@@ -249,37 +249,40 @@ const featuresEN: Record<string, FeatureContent> = {
     slug: 'company-registry',
     group: 'sourcing',
     tierBadge: 'AI Sourcing · included in every campaign',
-    heroTitle: 'Company Registry — instant VAT, EORI, financial verification',
+    heroTitle: 'Supplier Database — centralized supplier hub with AI scoring and campaign history',
     heroSubtitle:
-      'Every supplier the AI pipeline discovers is enriched with registry data: VAT / NIP / EORI numbers, financial health indicators, ownership structure, and registration status. No separate due diligence pass needed.',
+      'Every supplier discovered by AI Sourcing is stored in a centralized database with AI match scores, contact details, certification tracking, and full campaign history. Deduplicated, filterable, taggable, and Excel-exportable.',
     howItWorks: [
       {
         step: '1',
-        title: 'Automatic enrichment',
-        body: 'When the AI pipeline finds a supplier, we look them up in national and EU company registries. VAT number, EORI, financial data, ownership — all fetched automatically.',
+        title: 'Automatic import from campaigns',
+        body: 'Every supplier found by AI Sourcing is automatically added to your Supplier Database with AI match score, contact info, and campaign origin. No manual data entry.',
       },
       {
         step: '2',
-        title: 'Flag anomalies',
-        body: 'Inactive registration, recent ownership changes, blacklisting flags, or missing VAT — all highlighted on the supplier card. You see risks before you reach out.',
+        title: 'Filter, tag, and organize',
+        body: 'Filter suppliers by score, country, certification, campaign, or custom tags. Build shortlists across multiple campaigns. Deduplication ensures no vendor appears twice.',
       },
       {
         step: '3',
-        title: 'Export with audit trail',
-        body: 'Excel export includes registry data + verification date. Ready for tender documentation or internal audit.',
+        title: 'Export and act',
+        body: 'One-click Excel export with all supplier fields. Pipe suppliers into AI Procurement for RFQ, or use contact data for your own outreach.',
       },
     ],
     highlights: [
-      'VAT / NIP / EORI numbers verified against official registries',
-      'Financial health indicators (revenue, employee count)',
-      'Ownership structure (for compliance / regulated procurement)',
-      'Flag inactive or blacklisted entities',
-      'Audit-ready export format',
+      'Centralized supplier records across all campaigns',
+      'AI match scores with visible reasoning per supplier',
+      'Contact details (email, phone, website) per vendor',
+      'Certification tracking (ISO, CE, FDA, GOTS, and more)',
+      'Full campaign history — see every campaign a supplier appeared in',
+      'Automatic deduplication across campaigns',
+      'Custom tags and filtering for shortlist management',
+      'One-click Excel export',
     ],
     relatedIndustries: ['produkcja', 'budownictwo', 'ochrona-zdrowia'],
     relatedFeatures: ['fAiSourcing'],
-    ctaTitle: 'Every campaign includes registry data',
-    ctaBody: 'Company Registry enrichment runs automatically on every AI Sourcing campaign — no additional configuration.',
+    ctaTitle: 'Every campaign feeds your Supplier Database',
+    ctaBody: 'Supplier Database builds automatically as you run AI Sourcing campaigns — no setup needed.',
     isSelfServe: true,
     interestTag: 'ai_sourcing',
     hasPage: false,
@@ -619,15 +622,15 @@ const featuresPL: Record<string, FeatureContent> = {
     highlights: [
       'Research w 26 językach (UE + globalnie)',
       'AI scoring: dopasowanie możliwości, sygnały trust, certyfikaty',
-      'Company Registry (VAT, EORI, dane finansowe) wbudowany',
+      'Baza Dostawców z ocenami AI, kontaktami i śledzeniem certyfikatów',
       'Eksport do Excela jednym kliknięciem (pełna lista z kontaktami)',
       'Deduplikacja wobec istniejącej bazy dostawców',
       '10 darmowych kredytów po rejestracji — bez karty',
     ],
     relatedIndustries: ['produkcja', 'eventy', 'budownictwo', 'retail-ecommerce'],
     relatedFeatures: ['fCompanyRegistry', 'fEmailOutreach'],
-    ctaTitle: 'Rozpocznij pierwszą kampanię za darmo',
-    ctaBody: 'Zarejestruj się służbowym mailem. Dostajesz 10 darmowych kredytów — wystarczy na 10 pierwszych kampanii AI sourcingu. Bez karty kredytowej.',
+    ctaTitle: 'Zacznij pierwszą kampanię za darmo',
+    ctaBody: 'Załóż konto służbowym mailem. Dostajesz 10 darmowych kredytów — wystarczy na 10 pierwszych kampanii AI sourcingu. Bez karty kredytowej.',
     isSelfServe: true,
     interestTag: 'ai_sourcing',
     hasPage: true,
@@ -668,8 +671,8 @@ const featuresPL: Record<string, FeatureContent> = {
       {
         step: '5',
         title: 'Agent Enrichment uzupełnia brakujące dane',
-        body: 'Dla każdego zakwalifikowanego dostawcy enrichment pass pobiera: VAT/NIP/EORI z krajowych rejestrów, wskaźniki finansowe gdzie publikowane, dane kontaktowe decydentów (email, telefon, LinkedIn) i robi dedup wobec dostawców już w Twojej bazie Procurea. To, co ląduje w Twoim dashboardzie, to shortlista, na której możesz od razu działać — eksport do Excela, bulk RFQ przez AI Procurement, lub push do ERP przez API.',
-        techDetail: 'Na końcu uruchamia się pass Auditor, który flaguje niespójności — np. numer VAT niezgodny z krajem, albo capability claim, którego LLM nie mógł zweryfikować na stronie.',
+        body: 'Dla każdego zakwalifikowanego dostawcy enrichment pass pobiera: stronę firmową i dane kontaktowe (email, telefon, LinkedIn), dowody certyfikatów i robi dedup wobec dostawców już w Twojej Bazie Dostawców Procurea. To, co ląduje w Twoim dashboardzie, to shortlista, na której możesz od razu działać — eksport do Excela, bulk RFQ przez AI Procurement, lub push do ERP przez API.',
+        techDetail: 'Na końcu uruchamia się pass Auditor, który flaguje niespójności — np. capability claim, którego LLM nie mógł zweryfikować na stronie, albo brakujące dane kontaktowe.',
       },
     ],
     capabilityGroups: [
@@ -684,7 +687,7 @@ const featuresPL: Record<string, FeatureContent> = {
       {
         groupLabel: 'Enrichment',
         items: [
-          'Zweryfikowane dane firmowe na każdym hicie — VAT / NIP / EORI, status prawny, własność, finanse gdzie publiczne',
+          'Centralna Baza Dostawców — oceny dopasowania AI, dane kontaktowe, certyfikaty i historia kampanii per vendor',
           'Kontakty do decydentów — purchasing lead, manager procurement, CEO — z sygnałami deliverability',
           'Automatyczna deduplikacja wobec Twojej bazy dostawców (sync ERP lub manualny upload)',
         ],
@@ -736,9 +739,9 @@ const featuresPL: Record<string, FeatureContent> = {
     ],
     integrationsHighlight: {
       heading: 'Więcej niż wyszukiwarka — warstwa danych dla reszty Twojego stacku procurement',
-      body: 'AI Sourcing nie jest standalone tool. Każda kampania zasila Twój szerszy workspace Procurea: wzbogacone dane rejestrowe, wielojęzyczne rekordy dostawców, zdeduplikowane master data i machine-readable exporty, które wpinają się w resztę workflow. Dostajesz supplier research, który się kumuluje między projektami, zamiast restartować od zera co kwartał.',
+      body: 'AI Sourcing nie jest standalone tool. Każda kampania zasila Twoją Bazę Dostawców: profile vendorów z oceną AI, wielojęzyczne rekordy dostawców, zdeduplikowane master data i machine-readable exporty, które wpinają się w resztę workflow. Dostajesz supplier research, który się kumuluje między projektami, zamiast restartować od zera co kwartał.',
       bullets: [
-        'Company Registry lookup wliczone w każdą kampanię — VAT, EORI, finanse, własność, status aktywności — bez osobnego passa due diligence',
+        'Baza Dostawców wliczona w każdą kampanię — oceny AI, kontakty, certyfikaty, historia kampanii — bez osobnego zarządzania danymi',
         'Natywne wyszukiwanie w 26 językach utrzymuje regionalnych vendorów na shortliście zamiast odfiltrowywać ich przez angielskie keywordy',
         'Automatyczna deduplikacja wobec Twojej bazy — bez duplikatów outreach, bez contact fatigue',
         'Export Excel w każdym tierze, REST API na Enterprise — zasilanie SAP Ariba, Coupa, Salesforce lub Twojego ERP',
@@ -776,25 +779,28 @@ const featuresPL: Record<string, FeatureContent> = {
     slug: 'company-registry',
     group: 'sourcing',
     tierBadge: 'AI Sourcing · wliczone w każdą kampanię',
-    heroTitle: 'Company Registry — błyskawiczna weryfikacja VAT, EORI i finansów',
+    heroTitle: 'Baza Dostawców — centralna baza dostawców z oceną AI i historią kampanii',
     heroSubtitle:
-      'Każdy dostawca znaleziony przez AI pipeline jest wzbogacony o dane rejestrowe: numery VAT / NIP / EORI, wskaźniki finansowe, strukturę własności, status rejestracji. Bez osobnego procesu due diligence.',
+      'Każdy dostawca znaleziony przez AI Sourcing trafia do centralnej bazy z oceną dopasowania AI, danymi kontaktowymi, śledzeniem certyfikatów i pełną historią kampanii. Zdeduplikowana, filtrowalna, tagowalnia i gotowa do eksportu Excel.',
     howItWorks: [
-      { step: '1', title: 'Automatyczny enrichment', body: 'Gdy AI pipeline znajduje dostawcę, wyszukujemy go w rejestrach krajowych i unijnych. VAT, EORI, finanse, własność — wszystko pobierane automatycznie.' },
-      { step: '2', title: 'Flagowanie anomalii', body: 'Nieaktywna rejestracja, zmiany własności, blacklisty, brak VAT — wszystko highlightowane na karcie dostawcy. Widzisz ryzyka zanim się odezwiesz.' },
-      { step: '3', title: 'Eksport z audit trail', body: 'Export Excel zawiera dane rejestrowe + datę weryfikacji. Gotowe pod dokumentację tendera lub audyt wewnętrzny.' },
+      { step: '1', title: 'Automatyczny import z kampanii', body: 'Każdy dostawca znaleziony przez AI Sourcing jest automatycznie dodawany do Twojej Bazy Dostawców z oceną AI, danymi kontaktowymi i źródłem kampanii. Bez ręcznego wpisywania.' },
+      { step: '2', title: 'Filtruj, taguj, organizuj', body: 'Filtruj dostawców po ocenie, kraju, certyfikacie, kampanii lub własnych tagach. Buduj shortlisty z wielu kampanii. Deduplikacja zapewnia, że żaden vendor nie pojawi się dwa razy.' },
+      { step: '3', title: 'Eksportuj i działaj', body: 'Eksport do Excela jednym kliknięciem ze wszystkimi polami. Podłącz dostawców do AI Procurement pod RFQ, lub użyj danych kontaktowych do własnego outreach.' },
     ],
     highlights: [
-      'Numery VAT / NIP / EORI zweryfikowane wobec oficjalnych rejestrów',
-      'Wskaźniki finansowe (przychód, zatrudnienie)',
-      'Struktura własności (dla compliance / regulowanego procurement)',
-      'Flagowanie nieaktywnych lub blacklistowanych podmiotów',
-      'Format eksportu gotowy pod audyt',
+      'Centralne rekordy dostawców ze wszystkich kampanii',
+      'Oceny dopasowania AI z widocznym uzasadnieniem per dostawca',
+      'Dane kontaktowe (email, telefon, strona www) per vendor',
+      'Śledzenie certyfikatów (ISO, CE, FDA, GOTS i więcej)',
+      'Pełna historia kampanii — zobacz każdą kampanię, w której dostawca się pojawił',
+      'Automatyczna deduplikacja między kampaniami',
+      'Własne tagi i filtrowanie do zarządzania shortlistami',
+      'Eksport do Excela jednym kliknięciem',
     ],
     relatedIndustries: ['produkcja', 'budownictwo', 'ochrona-zdrowia'],
     relatedFeatures: ['fAiSourcing'],
-    ctaTitle: 'Każda kampania zawiera dane rejestrowe',
-    ctaBody: 'Enrichment Company Registry działa automatycznie na każdej kampanii AI Sourcing — bez dodatkowej konfiguracji.',
+    ctaTitle: 'Każda kampania zasila Twoją Bazę Dostawców',
+    ctaBody: 'Baza Dostawców buduje się automatycznie w miarę uruchamiania kampanii AI Sourcing — bez konfiguracji.',
     isSelfServe: true,
     interestTag: 'ai_sourcing',
     hasPage: false,

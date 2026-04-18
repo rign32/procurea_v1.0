@@ -1,11 +1,12 @@
 // Pricing page content — single source of truth for /cennik and /pricing
 // Model: credit-based pay-as-you-go for 3 self-serve products + Enterprise Custom.
 //
-// Three separate self-serve products (customer can buy any combination):
-//   1. AI Sourcing credits — cheap ($) — run AI pipeline to find 50-250 qualified vendors
-//   2. AI Procurement credits — expensive ($$$) — contact enrichment, email outreach in local
-//      language, auto follow-up, supplier portal (magic link), offer collection/comparison,
-//      AI insights reports
+// Products (AI Procurement REQUIRES AI Sourcing — it is an extension, not standalone):
+//   1. AI Sourcing credits — cheap ($) — base module, works standalone.
+//      Run AI pipeline to find 50-250 qualified vendors.
+//   2. AI Procurement credits — expensive ($$$) — extension, requires AI Sourcing.
+//      Contact enrichment, email outreach in local language, auto follow-up,
+//      supplier portal (magic link), offer collection/comparison, AI insights reports.
 //   3. Bundle — same credit count across both modules, ~15% discount vs buying separately.
 //      One bundle credit = one end-to-end campaign (sourcing → outreach → offers).
 //   4. Enterprise Custom — unlimited, personalized onboarding, per-client ERP integration
@@ -69,20 +70,20 @@ export const PRODUCTS: Record<Product, ProductDefinition> = {
     features: isEN ? [
       'AI pipeline: 50–250 verified vendors per campaign',
       '26-language research across EU and global markets',
-      'Company Registry (VAT, EORI, financial data)',
+      'Supplier Database with AI scores and campaign history',
       'One-click Excel export of full supplier list',
       'Deduplication against your existing vendor base',
       '10 free credits on signup (no credit card)',
     ] : [
       'AI pipeline: 50–250 zweryfikowanych dostawców na kampanię',
       'Wielojęzyczny research w 26 językach (UE + globalnie)',
-      'Company Registry (VAT, EORI, dane finansowe)',
+      'Baza Dostawców z ocenami AI i historią kampanii',
       'Eksport pełnej listy do Excela jednym kliknięciem',
       'Deduplikacja wobec istniejącej bazy dostawców',
       '10 darmowych kredytów po rejestracji (bez karty)',
     ],
     cta: 'self-serve',
-    ctaLabel: isEN ? 'Start free' : 'Rozpocznij za darmo',
+    ctaLabel: isEN ? 'Start free' : 'Zacznij za darmo',
     interestTag: 'ai_sourcing',
     accent: 'neutral',
   },
@@ -203,8 +204,8 @@ export const copy = {
     ? 'Transparent credit-based pricing'
     : 'Przejrzysty pricing credit-based',
   heroSubtitle: isEN
-    ? 'Buy what you need. AI Sourcing to find vendors. AI Procurement for full RFQ + offer workflow. Bundle runs both at once with 15% savings. Enterprise Custom for teams at scale.'
-    : 'Kupuj to czego potrzebujesz. AI Sourcing do wyszukiwania dostawców. AI Procurement do pełnego workflow RFQ + ofert. Bundle prowadzi oba naraz z 15% oszczędnością. Enterprise Custom dla zespołów na skalę.',
+    ? 'AI Sourcing works standalone — find qualified suppliers in 26 languages. Add AI Procurement to extend any campaign with RFQ outreach, Supplier Portal, and offer comparison. Bundle includes both for every campaign at 15% off.'
+    : 'AI Sourcing działa samodzielnie — znajdź dostawców w 26 językach. Dodaj AI Procurement, aby rozszerzyć kampanię o outreach RFQ, Supplier Portal i porównanie ofert. Bundle zawiera oba za każdą kampanię z 15% rabatem.',
 
   packLabel: isEN ? 'Credit packs' : 'Pakiety kredytów',
   perCreditLabel: isEN ? '/credit' : '/kredyt',
@@ -228,20 +229,20 @@ export const copy = {
   faqTitle: isEN ? 'Pricing FAQ' : 'FAQ o cennik',
   faq: isEN ? [
     { q: 'What is a credit?', a: 'One AI Sourcing credit runs one campaign — describe what you need, AI finds 50–250 verified vendors, you get a full list with contacts and certifications. One Procurement credit runs one RFQ + offer collection workflow. Bundle credits do both end-to-end.' },
-    { q: 'What are the free credits?', a: 'Every new user gets 10 free AI Sourcing credits on signup. Organizations with business email share a pool of 10 credits; teammates joining add +3 bonus each. No credit card required — use your free credits as long as you want.' },
+    { q: 'What are the free credits?', a: 'Every new account gets 10 free AI Sourcing credits on signup. No credit card required. Credits never expire — use them whenever you want.' },
     { q: 'Why is Procurement more expensive than Sourcing?', a: 'Procurement runs contact enrichment (third-party data lookups), sends emails via paid infrastructure, hosts Supplier Portal sessions, and uses more AI inference for translation and offer analysis. Our cost per credit is ~5x higher than Sourcing, so retail pricing reflects that.' },
     { q: 'Can I buy Procurement credits without Sourcing?', a: 'No — AI Procurement extends AI Sourcing. Each Procurement campaign runs on top of a Sourcing campaign. Buy the Sourcing credits you need, then add Procurement credits for the campaigns where you want full RFQ workflow. Bundle credits include both automatically.' },
     { q: 'Why is Bundle cheaper than buying separately?', a: 'Bundle assumes you run Sourcing + Procurement together in every campaign. We pre-commit capacity on both modules, pass ~15% savings to you. If you only need one module occasionally, buy that one — Bundle is for predictable end-to-end volume.' },
-    { q: 'Do credits expire?', a: 'No. Buy 50 credits today, use them over 12 months — no expiration.' },
+    { q: 'Do credits expire?', a: 'No. Credits never expire. Buy 50 credits today, use them over the next year or three — they are yours until you use them.' },
     { q: 'When do I need Enterprise Custom?', a: 'When you need unlimited usage, native SAP/Oracle/Dynamics integration, dedicated instance (or on-premise), custom SLA, or regulatory compliance review. Typically 10+ users or 500+ campaigns/year.' },
     { q: 'Do prices include VAT?', a: 'Prices shown are in USD, net. VAT/taxes added per your jurisdiction for EU and Polish customers.' },
   ] : [
     { q: 'Czym jest kredyt?', a: 'Jeden kredyt AI Sourcing uruchamia jedną kampanię — opisujesz czego szukasz, AI znajduje 50–250 zweryfikowanych dostawców, dostajesz pełną listę z kontaktami i certyfikatami. Jeden kredyt Procurement uruchamia jeden workflow RFQ + zbieranie ofert. Kredyty Bundle robią oba end-to-end.' },
-    { q: 'Co to są darmowe kredyty?', a: 'Każdy nowy użytkownik dostaje 10 darmowych kredytów AI Sourcing po rejestracji. Organizacje z biznesowym mailem dzielą pulę 10 kredytów; każdy dodatkowy członek dodaje +3 bonusowe. Bez karty kredytowej — używaj darmowych kredytów tak długo jak chcesz.' },
+    { q: 'Co to są darmowe kredyty?', a: 'Każde nowe konto dostaje 10 darmowych kredytów AI Sourcing po rejestracji. Bez karty kredytowej. Kredyty nigdy nie wygasają — używaj kiedy chcesz.' },
     { q: 'Dlaczego Procurement jest droższy niż Sourcing?', a: 'Procurement uruchamia enrichment kontaktów (third-party data lookup), wysyła maile przez płatną infrastrukturę, hostuje sesje Supplier Portal, używa więcej AI inference do tłumaczenia i analizy ofert. Nasz koszt per kredyt jest ~5x wyższy, więc retail pricing to odzwierciedla.' },
     { q: 'Czy mogę kupić kredyty Procurement bez Sourcingu?', a: 'Nie — AI Procurement rozszerza AI Sourcing. Każda kampania Procurement bazuje na kampanii Sourcing. Kup potrzebne kredyty Sourcing, a potem dodaj kredyty Procurement dla kampanii, w których chcesz pełny workflow RFQ. Kredyty Bundle zawierają oba automatycznie.' },
     { q: 'Dlaczego Bundle jest tańszy niż osobno?', a: 'Bundle zakłada że prowadzisz Sourcing + Procurement razem w każdej kampanii. Pre-commitujemy moce w obu modułach, przekazujemy ~15% oszczędności Tobie. Jeśli tylko czasami potrzebujesz jednego modułu — kup ten jeden; Bundle jest dla przewidywalnego end-to-end volumenu.' },
-    { q: 'Czy kredyty wygasają?', a: 'Nie. Kup 50 kredytów dziś, używaj przez 12 miesięcy — bez wygasania.' },
+    { q: 'Czy kredyty wygasają?', a: 'Nie. Kredyty nigdy nie wygasają. Kup 50 kredytów dziś, używaj przez rok, dwa lub trzy — są Twoje dopóki ich nie zużyjesz.' },
     { q: 'Kiedy potrzebuję Enterprise Custom?', a: 'Gdy potrzebujesz bez-limitowego użycia, natywnej integracji SAP/Oracle/Dynamics, dedicated instance (lub on-premise), custom SLA lub przeglądu compliance regulacyjnego. Typowo 10+ użytkowników lub 500+ kampanii rocznie.' },
     { q: 'Czy ceny zawierają VAT?', a: 'Ceny pokazane są w USD, netto. VAT/podatki dodawane zgodnie z Twoją jurysdykcją dla klientów z UE i Polski.' },
   ],
