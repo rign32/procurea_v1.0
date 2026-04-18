@@ -5,6 +5,7 @@ import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
+import { TiltCard } from "@/components/ui/TiltCard"
 import { AnimatedGrid } from "@/components/ui/AnimatedGrid"
 import { trackCtaClick } from "@/lib/analytics"
 import { pathFor } from "@/i18n/paths"
@@ -105,7 +106,7 @@ export function AboutPage() {
         {/* Vision */}
         <section className="py-16 md:py-24 bg-slate-50/50">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <RevealOnScroll>
+            <RevealOnScroll parallax>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
                 {/* Text */}
                 <motion.div
@@ -152,6 +153,8 @@ export function AboutPage() {
           </div>
         </section>
 
+        <div className="section-divider-gradient" />
+
         {/* Company Info */}
         <section className="py-16 md:py-20">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
@@ -159,22 +162,34 @@ export function AboutPage() {
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-10">
                 {isEN ? 'Company' : 'Firma'}
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <motion.div
+                className="grid grid-cols-1 sm:grid-cols-2 gap-5"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.12 } } }}
+              >
                 {([
                   {
                     icon: Building2,
                     label: 'Procurea sp. z o.o.',
                     sub: isEN ? 'Limited liability company' : 'Spółka z ograniczoną odpowiedzialnością',
+                    iconBg: 'from-amber-500/10 to-amber-500/5',
+                    iconColor: 'text-amber-600',
                   },
                   {
                     icon: MapPin,
                     label: isEN ? 'Bydgoszcz, Poland' : 'Bydgoszcz, Polska',
                     sub: 'ul. Pomorska 3/1, 85-050',
+                    iconBg: 'from-blue-500/10 to-blue-500/5',
+                    iconColor: 'text-blue-600',
                   },
                   {
                     icon: Calendar,
                     label: isEN ? 'Founded 2025' : 'Założona 2025',
                     sub: isEN ? 'Early-stage startup' : 'Startup we wczesnej fazie',
+                    iconBg: 'from-emerald-500/10 to-emerald-500/5',
+                    iconColor: 'text-emerald-600',
                   },
                   {
                     icon: Award,
@@ -182,26 +197,34 @@ export function AboutPage() {
                     sub: isEN
                       ? 'Backed by 5 years of procurement consulting'
                       : '5 lat doświadczenia w konsultingu procurement',
+                    iconBg: 'from-violet-500/10 to-violet-500/5',
+                    iconColor: 'text-violet-600',
                   },
                 ] as const).map((item) => {
                   const Icon = item.icon
                   return (
-                    <div
+                    <motion.div
                       key={item.label}
-                      className="rounded-2xl border border-black/[0.08] bg-white p-6 hover:shadow-lg hover:-translate-y-1 hover:border-primary/20 transition-all duration-300 group"
+                      variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }}
                     >
-                      <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                        <Icon className="h-5 w-5 text-primary" />
-                      </div>
-                      <p className="font-bold text-foreground">{item.label}</p>
-                      <p className="text-sm text-muted-foreground mt-1">{item.sub}</p>
-                    </div>
+                      <TiltCard className="h-full">
+                        <div className="rounded-2xl border border-black/[0.08] bg-white p-6 hover:shadow-lg hover:-translate-y-1 hover:border-primary/20 transition-all duration-300 group h-full">
+                          <div className={`h-10 w-10 rounded-lg bg-gradient-to-br ${item.iconBg} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300`}>
+                            <Icon className={`h-5 w-5 ${item.iconColor}`} />
+                          </div>
+                          <p className="font-bold text-foreground">{item.label}</p>
+                          <p className="text-sm text-muted-foreground mt-1">{item.sub}</p>
+                        </div>
+                      </TiltCard>
+                    </motion.div>
                   )
                 })}
-              </div>
+              </motion.div>
             </RevealOnScroll>
           </div>
         </section>
+
+        <div className="section-divider-gradient" />
 
         {/* CTA */}
         <section className="py-20">

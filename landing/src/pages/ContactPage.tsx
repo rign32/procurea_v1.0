@@ -1,11 +1,13 @@
 import { useEffect, useState, type FormEvent } from "react"
 import { useSearchParams } from "react-router-dom"
 import { CheckCircle2, AlertCircle, Loader2, Mail } from "lucide-react"
+import { motion } from "framer-motion"
 import { Confetti } from "@/components/ui/Confetti"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
 import { CalEmbed } from "@/components/ui/CalEmbed"
+import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { trackCtaClick, trackEvent } from "@/lib/analytics"
 
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
@@ -161,9 +163,11 @@ export function ContactPage() {
     <div className="min-h-screen bg-mesh-gradient">
       <RouteMeta />
       <Navbar />
-      <main id="main-content" className="pt-32 pb-24">
+      <main id="main-content" className="relative overflow-hidden pt-32 pb-24">
+        <div className="absolute top-32 -right-40 w-[500px] h-[500px] rounded-full bg-primary/[0.04] blur-[120px] pointer-events-none" />
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           {/* Header */}
+          <RevealOnScroll>
           <div className="text-center mb-10">
             <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
               {isEN ? 'Talk to us' : 'Porozmawiajmy'}
@@ -174,11 +178,14 @@ export function ContactPage() {
                 : 'Demo enterprise, plan Procurement, lub integracje ERP — odpowiadamy w ciągu 24 godzin.'}
             </p>
           </div>
+          </RevealOnScroll>
 
           {/* Cal.com embed — right under the header */}
+          <RevealOnScroll>
           <div id="calendar" className="mb-12">
             <CalEmbed />
           </div>
+          </RevealOnScroll>
 
           {/* Separator */}
           <div className="flex items-center gap-3 mb-8">
@@ -190,10 +197,11 @@ export function ContactPage() {
             <div className="h-px flex-1 bg-black/[0.06]" />
           </div>
 
+          <RevealOnScroll scale>
           <form onSubmit={handleSubmit} className="relative overflow-hidden rounded-2xl border border-black/[0.08] bg-white p-6 md:p-8 shadow-sm">
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brand-400 via-emerald-400 to-teal-400" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div>
+            <motion.div className="grid grid-cols-1 md:grid-cols-2 gap-5" initial="hidden" animate="visible" variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.05 } } }}>
+              <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { duration: 0.3 } } }}>
                 <label className="block text-sm font-medium mb-1.5">{isEN ? 'Full name' : 'Imię i nazwisko'} *</label>
                 <input
                   type="text"
@@ -204,8 +212,8 @@ export function ContactPage() {
                   className="w-full px-4 py-2.5 text-sm border border-black/[0.1] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:shadow-[0_0_0_4px_rgba(90,140,143,0.08)] transition-all"
                   placeholder={isEN ? 'Jane Doe' : 'Jan Kowalski'}
                 />
-              </div>
-              <div>
+              </motion.div>
+              <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { duration: 0.3 } } }}>
                 <label className="block text-sm font-medium mb-1.5">{isEN ? 'Company' : 'Firma'}</label>
                 <input
                   type="text"
@@ -214,8 +222,8 @@ export function ContactPage() {
                   className="w-full px-4 py-2.5 text-sm border border-black/[0.1] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:shadow-[0_0_0_4px_rgba(90,140,143,0.08)] transition-all"
                   placeholder={isEN ? 'Acme Corp' : 'Acme sp. z o.o.'}
                 />
-              </div>
-              <div>
+              </motion.div>
+              <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { duration: 0.3 } } }}>
                 <label className="block text-sm font-medium mb-1.5">{isEN ? 'Work email' : 'E-mail służbowy'} *</label>
                 <input
                   type="email"
@@ -225,8 +233,8 @@ export function ContactPage() {
                   className="w-full px-4 py-2.5 text-sm border border-black/[0.1] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:shadow-[0_0_0_4px_rgba(90,140,143,0.08)] transition-all"
                   placeholder="you@company.com"
                 />
-              </div>
-              <div>
+              </motion.div>
+              <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { duration: 0.3 } } }}>
                 <label className="block text-sm font-medium mb-1.5">{isEN ? 'Phone (optional)' : 'Telefon (opcjonalnie)'}</label>
                 <input
                   type="tel"
@@ -235,8 +243,8 @@ export function ContactPage() {
                   className="w-full px-4 py-2.5 text-sm border border-black/[0.1] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 focus:shadow-[0_0_0_4px_rgba(90,140,143,0.08)] transition-all"
                   placeholder="+1 555 123 4567"
                 />
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
 
             <div className="mt-5">
               <label className="block text-sm font-medium mb-1.5">{isEN ? 'What are you interested in' : 'Czym jesteś zainteresowany'} *</label>
@@ -292,12 +300,13 @@ export function ContactPage() {
               </p>
             </div>
           </form>
+          </RevealOnScroll>
 
           {/* Alt contact method */}
           <div className="mt-10 text-sm text-muted-foreground text-center">
             <Mail className="inline h-4 w-4 mr-1.5 text-primary" />
             {isEN ? 'Prefer email? ' : 'Wolisz mail? '}
-            <a href={`mailto:${SALES_EMAIL}`} className="text-primary hover:underline font-medium">
+            <a href={`mailto:${SALES_EMAIL}`} className="text-primary hover:underline underline-slide font-medium">
               {SALES_EMAIL}
             </a>
           </div>
