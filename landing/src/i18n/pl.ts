@@ -365,7 +365,7 @@ export const PL = {
       },
       {
         q: 'Czym różni się AI Sourcing od AI Procurement?',
-        a: 'AI Sourcing to moduł wyszukiwania i kwalifikacji — znajduje dostawców i buduje Twoją bazę. AI Procurement to pełny workflow operacyjny: RFQ do dostawców, zbieranie ofert przez Supplier Portal, porównywarka ofert z AI Insights, auto follow-upy i komunikacja wielojęzyczna. Możesz używać AI Sourcing standalone (jeśli masz własny ERP do reszty), AI Procurement standalone (jeśli bazę już masz), albo Bundle dla pełnego end-to-end. Cennik i detale: /cennik.',
+        a: 'AI Sourcing to moduł bazowy — wyszukuje i kwalifikuje dostawców, działa samodzielnie. AI Procurement to rozszerzenie: RFQ do dostawców, zbieranie ofert przez Supplier Portal, porównywarka ofert z AI Insights, auto follow-upy i komunikacja wielojęzyczna. AI Procurement wymaga AI Sourcing — każda kampania Procurement bazuje na kampanii Sourcing. Możesz używać samego AI Sourcing (jeśli masz własny ERP do reszty), albo dodać AI Procurement gdy potrzebujesz pełnego workflow RFQ. Bundle zawiera oba z 15% rabatem. Cennik i detale: /cennik.',
       },
       {
         q: 'Jak działają kredyty?',
@@ -429,53 +429,6 @@ export const PL = {
         { name: 'Scale', credits: '50 kredytów', badge: '' },
       ],
       productLabels: { sourcing: 'AI Sourcing', procurement: 'AI Procurement', bundle: 'Bundle' },
-    },
-    compare: {
-      title: 'Porównaj plany',
-      subtitle: 'Pełne zestawienie funkcji każdego planu',
-      plans: { sourcing: 'AI Sourcing', procurement: 'AI Procurement', bundle: 'Bundle', enterprise: 'Enterprise' },
-      groups: [
-        {
-          name: 'Sourcing',
-          rows: [
-            { label: 'Dostawców na kampanię', sourcing: '50–250', procurement: '—', bundle: '50–250', enterprise: 'Bez limitu' },
-            { label: 'Języków wyszukiwania', sourcing: '26', procurement: '—', bundle: '26', enterprise: '26' },
-            { label: 'Krajów (EU / Global)', sourcing: '✓', procurement: '—', bundle: '✓', enterprise: '✓' },
-            { label: 'Enrichment kontaktów', sourcing: 'Podstawowy', procurement: '✓', bundle: '✓', enterprise: '✓' },
-            { label: 'Manual review dostawców', sourcing: '—', procurement: '—', bundle: '✓', enterprise: '✓' },
-          ],
-        },
-        {
-          name: 'Procurement',
-          rows: [
-            { label: 'Szablony RFQ', sourcing: '—', procurement: '✓', bundle: '✓', enterprise: 'Custom' },
-            { label: 'Supplier Portal', sourcing: '—', procurement: '✓', bundle: '✓', enterprise: 'White-label' },
-            { label: 'Komunikacja z dostawcami', sourcing: '—', procurement: '✓', bundle: '✓', enterprise: '✓' },
-            { label: 'Porównanie ofert', sourcing: '—', procurement: '✓', bundle: '✓', enterprise: '✓' },
-            { label: 'Raporty AI Insights', sourcing: '—', procurement: '✓', bundle: '✓', enterprise: '✓' },
-          ],
-        },
-        {
-          name: 'Integracje',
-          rows: [
-            { label: 'ERP (100+ systemów)', sourcing: '—', procurement: '✓', bundle: '✓', enterprise: 'Custom adapter' },
-            { label: 'CRM (HubSpot, Salesforce, Pipedrive)', sourcing: '—', procurement: '✓', bundle: '✓', enterprise: '✓' },
-            { label: 'Email (Gmail, Outlook)', sourcing: '✓', procurement: '✓', bundle: '✓', enterprise: '✓' },
-            { label: 'Webhooks', sourcing: '—', procurement: '✓', bundle: '✓', enterprise: '✓' },
-            { label: 'Public API', sourcing: '—', procurement: '—', bundle: '—', enterprise: '✓' },
-          ],
-        },
-        {
-          name: 'Wsparcie',
-          rows: [
-            { label: 'Wsparcie email', sourcing: '✓', procurement: '✓', bundle: '✓', enterprise: '✓' },
-            { label: 'Wsparcie priorytetowe', sourcing: '—', procurement: '✓', bundle: '✓', enterprise: '✓' },
-            { label: 'Dedykowany CSM', sourcing: '—', procurement: '—', bundle: '—', enterprise: '✓' },
-            { label: 'SLA', sourcing: '—', procurement: '—', bundle: '—', enterprise: 'Custom' },
-            { label: 'Custom onboarding', sourcing: '—', procurement: '—', bundle: '—', enterprise: '✓' },
-          ],
-        },
-      ],
     },
   },
   footer: {

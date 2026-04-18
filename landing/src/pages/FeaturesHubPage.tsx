@@ -142,12 +142,12 @@ export function FeaturesHubPage() {
             <div className="rounded-2xl border border-black/[0.06] bg-gradient-to-br from-emerald-50/30 via-white to-primary/5 p-8 md:p-10">
               <div className="text-center mb-8">
                 <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-3">
-                  {isEN ? 'Two modules. One procurement pipeline.' : 'Dwa moduły. Jeden pipeline zakupowy.'}
+                  {isEN ? 'AI Sourcing + AI Procurement extension' : 'AI Sourcing + rozszerzenie AI Procurement'}
                 </h2>
                 <p className="text-muted-foreground max-w-2xl mx-auto">
                   {isEN
-                    ? 'AI Sourcing discovers suppliers. AI Procurement runs the RFQ. Together, they replace your entire vendor selection workflow.'
-                    : 'AI Sourcing znajduje dostawców. AI Procurement prowadzi RFQ. Razem zastępują cały workflow doboru vendorów.'}
+                    ? 'AI Sourcing discovers and qualifies suppliers — use it standalone. AI Procurement extends any campaign with RFQ outreach, portal, and offer comparison. Add it when you need the full workflow.'
+                    : 'AI Sourcing wyszukuje i kwalifikuje dostawców — działa samodzielnie. AI Procurement rozszerza dowolną kampanię o outreach RFQ, portal i porównanie ofert. Dodaj go gdy potrzebujesz pełnego workflow.'}
                 </p>
               </div>
               <div className="flex flex-col md:flex-row items-center gap-4 md:gap-2 justify-center">
@@ -155,14 +155,19 @@ export function FeaturesHubPage() {
                   <div className="h-8 w-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center"><Search className="h-4 w-4" /></div>
                   <div>
                     <div className="text-sm font-bold">AI Sourcing</div>
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 mb-0.5">{isEN ? 'Base module' : 'Moduł bazowy'}</div>
                     <div className="text-xs text-muted-foreground">{isEN ? 'Find → Verify → Shortlist' : 'Szukaj → Weryfikuj → Shortlista'}</div>
                   </div>
                 </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground/40 rotate-90 md:rotate-0" />
+                <div className="flex flex-col items-center gap-0.5">
+                  <ArrowRight className="h-5 w-5 text-muted-foreground/40 rotate-90 md:rotate-0" />
+                  <span className="text-[10px] font-bold text-muted-foreground/50">{isEN ? 'extend with' : 'rozszerz o'}</span>
+                </div>
                 <div className="flex items-center gap-3 px-5 py-3 rounded-xl bg-white border border-primary/20 shadow-sm">
                   <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center"><Sparkles className="h-4 w-4" /></div>
                   <div>
                     <div className="text-sm font-bold">AI Procurement</div>
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-primary mb-0.5">{isEN ? 'Extension' : 'Rozszerzenie'}</div>
                     <div className="text-xs text-muted-foreground">{isEN ? 'RFQ → Collect → Compare' : 'RFQ → Zbieraj → Porównuj'}</div>
                   </div>
                 </div>
