@@ -177,12 +177,13 @@ function CreditPacksSection() {
         </div>
       </RevealOnScroll>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-5" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}>
         {tiers.map((tier, idx) => {
           const isFeatured = idx === 1
           return (
-            <div
+            <motion.div
               key={tier.name}
+              variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}
               className={`relative rounded-2xl p-6 border flex flex-col transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
                 isFeatured
                   ? 'bg-white border-primary/30 shadow-lg ring-1 ring-primary/20'
@@ -223,10 +224,10 @@ function CreditPacksSection() {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           )
         })}
-      </div>
+      </motion.div>
 
       <p className="text-center text-xs text-muted-foreground mt-5 max-w-xl mx-auto">
         {section.helper}

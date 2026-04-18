@@ -114,8 +114,8 @@ export function ModuleOverview() {
                     {/* Price + CTA */}
                     <div className="mt-auto pt-4 border-t border-black/[0.04]">
                       <div className={cn(
-                        "text-sm font-semibold mb-3",
-                        highlight ? "text-primary" : "text-slate-800"
+                        "text-sm font-semibold mb-3 transition-colors duration-300",
+                        highlight ? "text-primary" : "text-slate-800 group-hover:text-primary"
                       )}>
                         {mod.price}
                       </div>

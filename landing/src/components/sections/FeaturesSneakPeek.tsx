@@ -76,7 +76,7 @@ export function FeaturesSneakPeek() {
         </RevealOnScroll>
 
         {/* Desktop: tabbed showcase */}
-        <RevealOnScroll>
+        <RevealOnScroll scale>
           <div
             className="hidden md:grid md:grid-cols-[280px_1fr] lg:grid-cols-[320px_1fr] gap-6 lg:gap-8"
             onMouseEnter={() => setPaused(true)}
@@ -213,7 +213,7 @@ export function FeaturesSneakPeek() {
             return (
               <RevealOnScroll key={f.slug} delay={i * 0.06}>
                 <div
-                  className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
+                  className={`rounded-2xl border transition-all duration-200 overflow-hidden hover:shadow-lg transition-shadow ${
                     isOpen
                       ? `border-black/[0.08] bg-gradient-to-br ${f.gradient} shadow-sm`
                       : "border-black/[0.06] bg-white"

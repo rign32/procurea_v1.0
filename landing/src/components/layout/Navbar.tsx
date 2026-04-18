@@ -86,7 +86,7 @@ const industriesSections: DropdownSection[] = [
 /* ---------- Shared styles ---------- */
 
 const linkClass =
-  "px-3.5 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 rounded-lg hover:bg-black/[0.03]"
+  "px-3.5 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 rounded-lg hover:bg-black/[0.03] underline-slide"
 
 /* ---------- Navbar ---------- */
 
@@ -111,7 +111,7 @@ export function Navbar() {
           isScrolled && "bg-white shadow-[0_1px_4px_rgba(0,0,0,0.06)] border-black/[0.06]"
         )}
       >
-        <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <nav role="navigation" aria-label="Main navigation" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between gap-4">
             {/* Logo */}
             <Link
@@ -173,7 +173,7 @@ export function Navbar() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => trackCtaClick('navbar_signup')}
-                className="relative inline-flex items-center px-5 py-2 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all duration-200 hover:shadow-[0_0_20px_rgba(var(--primary-rgb,34,197,94),0.3)]"
+                className="relative inline-flex items-center px-5 py-2 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all duration-200 hover:shadow-[0_0_20px_rgba(var(--primary-rgb,34,197,94),0.3)] hover:scale-[1.02] active:scale-[0.98]"
               >
                 {t.nav.cta}
               </a>
@@ -193,7 +193,7 @@ export function Navbar() {
         {/* Scroll progress bar */}
         <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-transparent">
           <div
-            className="h-full bg-gradient-to-r from-primary via-brand-400 to-emerald-400 transition-[width] duration-150 ease-out"
+            className="h-full bg-gradient-to-r from-primary via-brand-400 to-emerald-400 transition-[width] duration-200 ease-out"
             style={{ width: `${progress * 100}%` }}
           />
         </div>

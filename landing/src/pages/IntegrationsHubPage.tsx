@@ -61,7 +61,7 @@ function IntegrationCard({ integration }: { integration: Integration }) {
 
       <Link
         to={`${pathFor('contact')}?interest=integration_${integration.slug === 'sap' || integration.slug === 'sap-ecc' ? 'sap' : integration.slug === 'oracle-netsuite' || integration.slug === 'oracle-fusion-cloud' ? 'oracle' : integration.slug === 'dynamics-365-bc' || integration.slug === 'dynamics-365-fo' ? 'dynamics' : integration.slug === 'salesforce' ? 'salesforce' : 'other'}#calendar`}
-        className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:gap-2.5 transition-all"
+        className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:gap-2.5 transition-all underline-slide"
       >
         {integrationsCopy.ctaLabel}
         <ArrowRight className="h-3.5 w-3.5" />
@@ -158,8 +158,8 @@ export function IntegrationsHubPage() {
 
             {/* Request card — only when not searching */}
             {!isSearching && (
-              <div className="rounded-2xl border-2 border-dashed border-primary/20 bg-white/60 backdrop-blur-sm p-6 flex flex-col items-center justify-center text-center hover:border-primary/40 hover:shadow-md transition-all duration-300">
-                <div className="text-2xl mb-3">🔌</div>
+              <div className="group rounded-2xl border-2 border-dashed border-primary/20 bg-white/60 backdrop-blur-sm p-6 flex flex-col items-center justify-center text-center hover:border-primary/40 hover:shadow-md transition-all duration-300">
+                <div className="text-2xl mb-3"><span className="inline-block group-hover:scale-110 transition-transform duration-200">🔌</span></div>
                 <h3 className="text-base font-bold mb-2">{t.requestTitle}</h3>
                 <p className="text-sm text-muted-foreground mb-4">{t.requestSubtitle}</p>
                 <Link

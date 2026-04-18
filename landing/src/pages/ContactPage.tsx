@@ -128,9 +128,14 @@ export function ContactPage() {
         <main id="main-content" className="pt-32 pb-24">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-10">
-              <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-emerald-100 mb-6 animate-pulse-glow">
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-emerald-100 mb-6 animate-pulse-glow"
+              >
                 <CheckCircle2 className="h-8 w-8 text-emerald-600" />
-              </div>
+              </motion.div>
               <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
                 {isEN ? 'Thanks — we got it' : 'Dzięki — mamy to'}
               </h1>

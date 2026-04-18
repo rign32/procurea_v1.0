@@ -308,7 +308,7 @@ export function HeroSection() {
                 {/* Sidebar */}
                 <div className="hidden lg:flex flex-col w-56 border-r border-border/40 bg-gradient-to-b from-gray-50/80 to-white py-4 px-3 shrink-0">
                   <div className="flex items-center gap-2 px-2 mb-5">
-                    <img src="/logo-procurea.png" alt="P" className="h-7 w-7 rounded-lg shadow-xs" />
+                    <img src="/logo-procurea.png" alt="Procurea logo" className="h-7 w-7 rounded-lg shadow-xs" />
                     <span className="text-sm font-semibold text-foreground">Procurea</span>
                   </div>
 
@@ -367,6 +367,7 @@ export function HeroSection() {
                               initial={{ opacity: 0, scale: 0.95 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ duration: 0.4, delay: 1.0 + idx * 0.1 }}
+                              whileHover={{ y: -2, transition: { duration: 0.2 } }}
                               className="group/agent rounded-xl border border-border/50 bg-white p-3.5 transition-all duration-300 hover:shadow-md hover:border-brand-200/60 hover:-translate-y-0.5"
                             >
                               <div className="flex items-center gap-2 mb-1.5">
@@ -429,6 +430,7 @@ export function HeroSection() {
                             initial={{ opacity: 0, y: 12 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.5, delay: 1.5 + idx * 0.12 }}
+                            whileHover={{ y: -2, transition: { duration: 0.2 } }}
                             className="group/supplier rounded-xl border border-border/50 bg-white p-3 transition-all duration-300 hover:shadow-md hover:border-brand-200/60 hover:-translate-y-0.5"
                           >
                             <div className="flex items-start justify-between mb-1.5">

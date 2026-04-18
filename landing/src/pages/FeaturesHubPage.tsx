@@ -6,6 +6,7 @@ import { RouteMeta } from "@/lib/RouteMeta"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { FeatureShowcase } from "@/components/sections/FeatureShowcase"
 import { AnimatedGrid } from "@/components/ui/AnimatedGrid"
+import { TiltCard } from "@/components/ui/TiltCard"
 import { pathFor } from "@/i18n/paths"
 
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
@@ -97,6 +98,7 @@ function FeatureCard({ feature, variant = 'sourcing' }: { feature: FeatureItem; 
   const Icon = feature.icon
 
   const inner = (
+    <TiltCard className="h-full">
     <div className="group h-full rounded-2xl border border-black/[0.08] bg-white p-6 hover:border-primary/30 hover:shadow-md hover:shadow-hover-card hover:-translate-y-1 transition-all duration-300 flex flex-col">
       <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200">
         <Icon className="h-5 w-5 text-primary" />
@@ -116,6 +118,7 @@ function FeatureCard({ feature, variant = 'sourcing' }: { feature: FeatureItem; 
         )}
       </div>
     </div>
+    </TiltCard>
   )
 
   if (feature.hasPage) {
@@ -204,10 +207,10 @@ export function FeaturesHubPage() {
               <p className="text-base md:text-lg text-muted-foreground leading-relaxed">{copy.sourcingIntro}</p>
               <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-5 text-sm font-medium text-emerald-700">
                 {copy.sourcingValueProps.map((prop, i) => (
-                  <span key={prop} className="inline-flex items-center gap-2">
+                  <span key={prop} className="group inline-flex items-center gap-2">
                     {i > 0 && <span className="text-muted-foreground/40">·</span>}
                     <span className="inline-flex items-center gap-1.5">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 transition-transform duration-200 group-hover:scale-125" />
                       {prop}
                     </span>
                   </span>
@@ -240,10 +243,10 @@ export function FeaturesHubPage() {
               <p className="text-base md:text-lg text-muted-foreground leading-relaxed">{copy.procurementIntro}</p>
               <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-5 text-sm font-medium text-primary">
                 {copy.procurementValueProps.map((prop, i) => (
-                  <span key={prop} className="inline-flex items-center gap-2">
+                  <span key={prop} className="group inline-flex items-center gap-2">
                     {i > 0 && <span className="text-muted-foreground/40">·</span>}
                     <span className="inline-flex items-center gap-1.5">
-                      <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-primary transition-transform duration-200 group-hover:scale-125" />
                       {prop}
                     </span>
                   </span>

@@ -218,10 +218,10 @@ export function HowItWorksSection() {
         </div>
 
         {/* Summary line */}
-        <RevealOnScroll delay={0.4}>
+        <RevealOnScroll delay={0.4} scale>
           <div className="mt-16 lg:mt-20 flex items-center justify-center">
             <div className="inline-flex items-center gap-3.5 px-8 py-4.5 rounded-2xl bg-white/80 backdrop-blur-sm border border-white/60 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100/80">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100/80 animate-pulse-glow">
                 <ListChecks className="h-5 w-5 text-emerald-600" strokeWidth={1.8} />
               </div>
               <span className="text-sm sm:text-base">
