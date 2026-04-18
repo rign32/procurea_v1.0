@@ -1,9 +1,11 @@
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { ArrowRight } from "lucide-react"
+import { motion } from "framer-motion"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
+import { AnimatedGrid } from "@/components/ui/AnimatedGrid"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { pathFor } from "@/i18n/paths"
 import { INTEGRATIONS, integrationsCopy, type Integration } from "@/content/integrations"
@@ -29,10 +31,10 @@ function IntegrationTypeBadge({ type }: { type: Integration['integrationType'] }
 
 function IntegrationCard({ integration }: { integration: Integration }) {
   return (
-    <div className="rounded-2xl border border-black/[0.08] bg-white p-6 hover:shadow-md hover:border-black/[0.12] transition-all flex flex-col">
+    <div className="group rounded-2xl border border-black/[0.08] bg-white p-6 hover:shadow-hover-card hover:-translate-y-1 transition-all duration-300 flex flex-col">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-gradient-to-br from-slate-900 to-slate-700 text-white text-xs font-bold tracking-tight">
+          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-gradient-to-br from-slate-900 to-slate-700 text-white text-xs font-bold tracking-tight group-hover:scale-105 transition-transform duration-200">
             {integration.logo}
           </div>
           <div>
@@ -58,7 +60,7 @@ function IntegrationCard({ integration }: { integration: Integration }) {
       </div>
 
       <Link
-        to={`${pathFor('contact')}?interest=integration_${integration.slug === 'sap' || integration.slug === 'sap-ecc' ? 'sap' : integration.slug === 'oracle-netsuite' || integration.slug === 'oracle-fusion-cloud' ? 'oracle' : integration.slug === 'dynamics-365-bc' || integration.slug === 'dynamics-365-fo' ? 'dynamics' : integration.slug === 'salesforce' ? 'salesforce' : 'other'}`}
+        to={`${pathFor('contact')}?interest=integration_${integration.slug === 'sap' || integration.slug === 'sap-ecc' ? 'sap' : integration.slug === 'oracle-netsuite' || integration.slug === 'oracle-fusion-cloud' ? 'oracle' : integration.slug === 'dynamics-365-bc' || integration.slug === 'dynamics-365-fo' ? 'dynamics' : integration.slug === 'salesforce' ? 'salesforce' : 'other'}#calendar`}
         className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:gap-2.5 transition-all"
       >
         {integrationsCopy.ctaLabel}
@@ -98,13 +100,15 @@ export function IntegrationsHubPage() {
       }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50/50">
+    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50/50 bg-mesh-gradient">
       <RouteMeta />
       <Navbar />
 
       <main id="main-content" className="pt-32 pb-24">
         {/* Hero */}
-        <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center mb-16">
+        <section className="relative overflow-hidden mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center mb-16">
+          <AnimatedGrid color="hsl(var(--foreground) / 0.02)" spacing={48} className="opacity-40" />
+          <div className="absolute -top-20 -right-40 w-[600px] h-[600px] rounded-full bg-primary/[0.06] blur-[120px] pointer-events-none" />
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-5">
             {integrationsCopy.heroTitle}
           </h1>
@@ -120,7 +124,7 @@ export function IntegrationsHubPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t.searchPlaceholder}
-            className="w-full px-5 py-3.5 rounded-xl border border-black/[0.1] bg-white text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 shadow-sm transition-all"
+            className="w-full px-5 py-3.5 rounded-xl border border-black/[0.1] bg-white text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 shadow-sm transition-all focus-glow"
           />
         </section>
 
@@ -145,19 +149,21 @@ export function IntegrationsHubPage() {
 
         {/* Integrations grid */}
         <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mb-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
+          <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.08 } } }}>
             {filteredIntegrations.map((integration) => (
-              <IntegrationCard key={integration.slug} integration={integration} />
+              <motion.div key={integration.slug} variants={{ hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } } }}>
+                <IntegrationCard integration={integration} />
+              </motion.div>
             ))}
 
             {/* Request card — only when not searching */}
             {!isSearching && (
-              <div className="rounded-2xl border-2 border-dashed border-black/[0.12] bg-slate-50/50 p-6 flex flex-col items-center justify-center text-center">
+              <div className="rounded-2xl border-2 border-dashed border-primary/20 bg-white/60 backdrop-blur-sm p-6 flex flex-col items-center justify-center text-center hover:border-primary/40 hover:shadow-md transition-all duration-300">
                 <div className="text-2xl mb-3">🔌</div>
                 <h3 className="text-base font-bold mb-2">{t.requestTitle}</h3>
                 <p className="text-sm text-muted-foreground mb-4">{t.requestSubtitle}</p>
                 <Link
-                  to={`${pathFor('contact')}?interest=integration_other`}
+                  to={`${pathFor('contact')}?interest=integration_other#calendar`}
                   className="text-sm font-semibold text-primary hover:underline"
                 >
                   {t.requestCta}
@@ -170,14 +176,14 @@ export function IntegrationsHubPage() {
               <div className="col-span-full text-center py-12">
                 <p className="text-muted-foreground">{t.noResults}</p>
                 <Link
-                  to={`${pathFor('contact')}?interest=integration_other`}
+                  to={`${pathFor('contact')}?interest=integration_other#calendar`}
                   className="text-sm font-semibold text-primary mt-2 inline-block"
                 >
                   {t.noResultsCta}
                 </Link>
               </div>
             )}
-          </div>
+          </motion.div>
         </section>
 
         {/* Logos carousel — only when not searching */}
@@ -199,16 +205,18 @@ export function IntegrationsHubPage() {
 
         {/* Final CTA */}
         <section className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <div className="rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white p-10 md:p-16 text-center">
-            <h2 className="text-2xl md:text-3xl font-bold mb-3">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white p-10 md:p-16 text-center">
+            <div className="absolute -top-24 -left-24 w-[400px] h-[400px] rounded-full bg-primary/[0.08] blur-[100px] pointer-events-none" />
+            <div className="absolute -bottom-24 -right-24 w-[350px] h-[350px] rounded-full bg-amber-400/[0.06] blur-[100px] pointer-events-none" />
+            <h2 className="relative text-2xl md:text-3xl font-bold mb-3">
               {integrationsCopy.ctaSectionTitle}
             </h2>
-            <p className="text-white/80 mb-8 max-w-2xl mx-auto">
+            <p className="relative text-white/80 mb-8 max-w-2xl mx-auto">
               {integrationsCopy.ctaSectionBody}
             </p>
             <Link
-              to={`${pathFor('contact')}?interest=integration_other`}
-              className="inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg bg-amber-400 text-amber-950 hover:bg-amber-300 shadow-lg transition-all"
+              to={`${pathFor('contact')}?interest=integration_other#calendar`}
+              className="relative inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg bg-amber-400 text-amber-950 hover:bg-amber-300 shadow-lg hover:shadow-amber-400/25 transition-all"
             >
               {integrationsCopy.ctaLabel}
             </Link>

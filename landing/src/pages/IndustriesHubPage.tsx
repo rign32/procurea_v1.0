@@ -1,9 +1,13 @@
 import { Link } from "react-router-dom"
 import { ArrowRight, Factory, Calendar, HardHat, ShoppingBag, UtensilsCrossed, HeartPulse, Truck, Wrench } from "lucide-react"
+import { motion } from "framer-motion"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
 import { pathFor } from "@/i18n/paths"
+import { AnimatedGrid } from "@/components/ui/AnimatedGrid"
+import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
+import { TiltCard } from "@/components/ui/TiltCard"
 
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
 const isEN = LANG === 'en'
@@ -46,8 +50,9 @@ const copy = {
 function IndustryCard({ industry }: { industry: IndustryItem }) {
   const Icon = industry.icon
   const content = (
-    <div className={`group h-full rounded-2xl border border-black/[0.08] bg-white p-6 hover:border-primary/30 hover:shadow-md transition-all flex flex-col`}>
-      <div className="h-11 w-11 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4">
+    <TiltCard className="h-full">
+    <div className={`group h-full rounded-2xl border border-black/[0.08] bg-white p-6 hover:border-primary/30 hover:shadow-md hover:shadow-hover-card hover:-translate-y-1 transition-all flex flex-col`}>
+      <div className="h-11 w-11 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200">
         <Icon className="h-5 w-5 text-primary" />
       </div>
       <h3 className="text-lg font-bold mb-2">{industry.title}</h3>
@@ -57,45 +62,63 @@ function IndustryCard({ industry }: { industry: IndustryItem }) {
         <ArrowRight className="h-3.5 w-3.5" />
       </div>
     </div>
+    </TiltCard>
   )
   return <Link to={industry.to!}>{content}</Link>
 }
 
 export function IndustriesHubPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50/50">
+    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50/50 bg-mesh-gradient">
       <RouteMeta />
       <Navbar />
 
       <main id="main-content" className="pt-32 pb-24">
-        <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center mb-16">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-5">{copy.heroTitle}</h1>
-          <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">{copy.heroSubtitle}</p>
-        </section>
-
-        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-            {industries.map((i) => <IndustryCard key={i.title} industry={i} />)}
+        <section className="relative overflow-hidden mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center mb-16">
+          <AnimatedGrid color="hsl(var(--foreground) / 0.02)" spacing={48} className="opacity-40" />
+          <div className="absolute -top-20 -right-40 w-[600px] h-[600px] rounded-full bg-primary/[0.06] blur-[120px] pointer-events-none" />
+          <div className="absolute top-40 -left-32 w-[400px] h-[400px] rounded-full bg-emerald-500/[0.04] blur-[100px] pointer-events-none" />
+          <div className="relative">
+            <RevealOnScroll>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-5">{copy.heroTitle}</h1>
+            </RevealOnScroll>
+            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">{copy.heroSubtitle}</p>
           </div>
         </section>
 
-        <section className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-20">
+          <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.08 } } }}>
+            {industries.map((i) => (
+              <motion.div key={i.title} variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }}>
+                <IndustryCard industry={i} />
+              </motion.div>
+            ))}
+          </motion.div>
+        </section>
+
+        <section className="relative overflow-hidden mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white p-10 md:p-16 text-center">
-            <h2 className="text-2xl md:text-3xl font-bold mb-3">
-              {isEN ? "Your industry not listed?" : 'Nie ma Twojej branży?'}
-            </h2>
-            <p className="text-white/80 mb-8 max-w-2xl mx-auto">
-              {isEN
-                ? 'Procurea works for any business that sources suppliers. Book a call — we will walk through your specific category and workflow.'
-                : 'Procurea działa dla każdej firmy, która szuka dostawców. Umów spotkanie — przejdziemy przez Twoją specyficzną kategorię i workflow.'}
-            </p>
-            <Link
-              to={pathFor('contact')}
-              className="inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg bg-amber-400 text-amber-950 hover:bg-amber-300 shadow-lg transition-all"
-            >
-              {isEN ? 'Talk to us' : 'Porozmawiaj z nami'}
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-brand-500/[0.06] rounded-full blur-[100px]" />
+              <div className="absolute bottom-0 right-1/3 w-[300px] h-[300px] bg-emerald-500/[0.04] rounded-full blur-[80px]" />
+            </div>
+            <div className="relative">
+              <h2 className="text-2xl md:text-3xl font-bold mb-3">
+                {isEN ? "Your industry not listed?" : 'Nie ma Twojej branży?'}
+              </h2>
+              <p className="text-white/80 mb-8 max-w-2xl mx-auto">
+                {isEN
+                  ? 'Procurea works for any business that sources suppliers. Book a call — we will walk through your specific category and workflow.'
+                  : 'Procurea działa dla każdej firmy, która szuka dostawców. Umów spotkanie — przejdziemy przez Twoją specyficzną kategorię i workflow.'}
+              </p>
+              <Link
+                to={`${pathFor('contact')}#calendar`}
+                className="inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg bg-amber-400 text-amber-950 hover:bg-amber-300 shadow-lg transition-all hover:shadow-glow-primary hover:scale-[1.02] active:scale-[0.98]"
+              >
+                {isEN ? 'Talk to us' : 'Porozmawiaj z nami'}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </div>
           </div>
         </section>
       </main>

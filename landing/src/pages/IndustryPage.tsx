@@ -1,9 +1,11 @@
 import { Link, useParams } from "react-router-dom"
 import { ArrowRight, AlertTriangle, Sparkles, ChevronRight } from "lucide-react"
+import { motion } from "framer-motion"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
+import { AnimatedGrid } from "@/components/ui/AnimatedGrid"
 import { PagePlaceholder } from "@/components/layout/PagePlaceholder"
 import { appendUtm } from "@/lib/utm"
 import { trackCtaClick } from "@/lib/analytics"
@@ -93,14 +95,16 @@ export function IndustryPage() {
 
       <main id="main-content">
         {/* Hero */}
-        <section className="relative pt-32 pb-16 bg-gradient-to-b from-white to-slate-50/30 overflow-hidden">
+        <section className="relative pt-32 pb-16 bg-gradient-to-b from-white to-slate-50/30 bg-mesh-gradient overflow-hidden">
           {/* Decorative gradient */}
           <div className="absolute top-20 -right-40 w-[500px] h-[500px] rounded-full opacity-[0.06] blur-[100px] bg-primary pointer-events-none" />
+          <div className="absolute bottom-10 -left-32 w-[400px] h-[400px] rounded-full opacity-[0.04] blur-[100px] bg-emerald-500 pointer-events-none" />
+          <AnimatedGrid color="hsl(var(--foreground) / 0.02)" spacing={48} className="opacity-40" />
 
           <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center">
             <Link
               to={pathFor('industriesHub')}
-              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors underline-slide"
             >
               <ChevronRight className="h-3.5 w-3.5 rotate-180" />
               {isEN ? 'All industries' : 'Wszystkie branże'}
@@ -121,11 +125,11 @@ export function IndustryPage() {
                 onClick={() => trackCtaClick(`industry_${resolvedSlug}_primary`)}
                 className="inline-flex items-center px-6 py-3 text-base font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all"
               >
-                {isEN ? 'Start free research' : 'Rozpocznij za darmo'}
+                {isEN ? 'Start free' : 'Zacznij za darmo'}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </a>
               <Link
-                to={`${pathFor('contact')}?interest=${industry.interestTag}`}
+                to={`${pathFor('contact')}?interest=${industry.interestTag}#calendar`}
                 onClick={() => trackCtaClick(`industry_${resolvedSlug}_secondary`)}
                 className="inline-flex items-center px-6 py-3 text-base font-semibold rounded-lg border border-black/[0.1] text-foreground hover:bg-black/[0.03] transition-all"
               >
@@ -150,17 +154,16 @@ export function IndustryPage() {
               </div>
             </RevealOnScroll>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-5" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}>
               {industry.painPoints.map((point) => (
-                <div
-                  key={point.title}
-                  className="rounded-2xl border border-black/[0.08] bg-white p-6"
-                >
-                  <h3 className="text-lg font-bold mb-3">{point.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{point.body}</p>
-                </div>
+                <motion.div key={point.title} variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }}>
+                  <div className="rounded-2xl border border-black/[0.08] bg-white p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                    <h3 className="text-lg font-bold mb-3">{point.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{point.body}</p>
+                  </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
         </section>
 
@@ -179,20 +182,19 @@ export function IndustryPage() {
               </div>
             </RevealOnScroll>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-5" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}>
               {industry.howProcureaHelps.map((help, idx) => (
-                <div
-                  key={help.title}
-                  className="rounded-2xl border border-black/[0.08] bg-white p-6"
-                >
-                  <div className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-primary/10 text-primary font-bold mb-4">
-                    {idx + 1}
+                <motion.div key={help.title} variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }}>
+                  <div className="group rounded-2xl border border-black/[0.08] bg-white p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                    <div className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-primary/10 text-primary font-bold mb-4 group-hover:scale-110 transition-transform duration-200">
+                      {idx + 1}
+                    </div>
+                    <h3 className="text-lg font-bold mb-3">{help.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{help.body}</p>
                   </div>
-                  <h3 className="text-lg font-bold mb-3">{help.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{help.body}</p>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
         </section>
 
@@ -207,6 +209,9 @@ export function IndustryPage() {
                     <div className="text-sm text-muted-foreground mt-1">{industry.caseStudy.statLabel}</div>
                   </div>
                   <div>
+                    <span className="inline-block text-[10px] font-bold uppercase tracking-[0.15em] text-emerald-600/70 mb-1">
+                      {isEN ? 'Projected scenario' : 'Scenariusz modelowy'}
+                    </span>
                     <h3 className="text-lg font-bold mb-2">{industry.caseStudy.headline}</h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">{industry.caseStudy.body}</p>
                   </div>
@@ -216,72 +221,55 @@ export function IndustryPage() {
           </section>
         )}
 
-        {/* Related features */}
-        <section className="py-16 md:py-20">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <RevealOnScroll>
-              <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-3 text-center">
-                {isEN ? 'Features most used in this industry' : 'Funkcje najczęściej używane w tej branży'}
-              </h2>
-              <p className="text-center text-muted-foreground mb-10">
-                {isEN ? 'Dive into the capabilities that matter most for your workflow.' : 'Zagłęb się w funkcje kluczowe dla Twojego workflow.'}
-              </p>
-            </RevealOnScroll>
+        {/* Cross-links: features + related industries */}
+        <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 border-t border-black/[0.06]">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              {isEN ? 'Key features' : 'Kluczowe funkcje'}:
+            </span>
+            {industry.topFeatures.map((featureKey) => {
+              const link = getFeatureLink(featureKey)
+              if (!link) return null
+              return (
+                <Link
+                  key={featureKey}
+                  to={link.to}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-slate-100 text-sm font-medium text-foreground hover:bg-slate-200 transition-colors"
+                >
+                  {link.label}
+                </Link>
+              )
+            })}
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {industry.topFeatures.map((featureKey) => {
-                const link = getFeatureLink(featureKey)
+          {industry.relatedIndustries.length > 0 && (
+            <div className="flex flex-wrap items-center gap-3 mt-4">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                {isEN ? 'Related' : 'Powiązane'}:
+              </span>
+              {industry.relatedIndustries.map((indSlug) => {
+                const link = getIndustryLink(indSlug)
                 if (!link) return null
                 return (
                   <Link
-                    key={featureKey}
+                    key={indSlug}
                     to={link.to}
-                    className="group rounded-xl border border-black/[0.08] bg-white p-5 hover:border-primary/30 hover:shadow-sm transition-all"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-slate-100 text-sm font-medium text-foreground hover:bg-slate-200 transition-colors"
                   >
-                    <h3 className="text-sm font-bold mb-1 group-hover:text-primary transition-colors">
-                      {link.label}
-                    </h3>
-                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground group-hover:text-primary transition-colors">
-                      {isEN ? 'Learn more' : 'Dowiedz się więcej'}
-                      <ArrowRight className="h-3 w-3" />
-                    </span>
+                    {link.label}
                   </Link>
                 )
               })}
             </div>
-          </div>
+          )}
         </section>
-
-        {/* Related industries */}
-        {industry.relatedIndustries.length > 0 && (
-          <section className="py-12 bg-slate-50/50 border-y border-black/[0.04]">
-            <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4 text-center">
-                {isEN ? 'Related industries' : 'Powiązane branże'}
-              </h2>
-              <div className="flex flex-wrap items-center justify-center gap-3">
-                {industry.relatedIndustries.map((indSlug) => {
-                  const link = getIndustryLink(indSlug)
-                  if (!link) return null
-                  return (
-                    <Link
-                      key={indSlug}
-                      to={link.to}
-                      className="px-4 py-2 rounded-full bg-white border border-black/[0.08] text-sm font-medium hover:border-primary/30 hover:text-primary transition-all"
-                    >
-                      {link.label}
-                    </Link>
-                  )
-                })}
-              </div>
-            </div>
-          </section>
-        )}
 
         {/* Final CTA */}
         <section className="py-20">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-            <div className="rounded-3xl bg-gradient-to-br from-slate-900 to-slate-800 text-white p-10 md:p-16 text-center">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 to-slate-800 text-white p-10 md:p-16 text-center">
+              <div className="absolute top-10 -right-20 w-[300px] h-[300px] rounded-full opacity-[0.06] blur-[80px] bg-primary pointer-events-none" />
+              <div className="absolute bottom-10 -left-20 w-[250px] h-[250px] rounded-full opacity-[0.04] blur-[80px] bg-emerald-400 pointer-events-none" />
               <h2 className="text-2xl md:text-3xl font-bold mb-3">
                 {industry.ctaTitle}
               </h2>
@@ -294,12 +282,12 @@ export function IndustryPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => trackCtaClick(`industry_${resolvedSlug}_footer_primary`)}
-                  className="inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg bg-amber-400 text-amber-950 hover:bg-amber-300 shadow-lg transition-all"
+                  className="inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg bg-amber-400 text-amber-950 hover:bg-amber-300 shadow-lg hover:shadow-glow-primary hover:scale-[1.02] active:scale-[0.98] transition-all"
                 >
-                  {isEN ? 'Start free research' : 'Rozpocznij za darmo'}
+                  {isEN ? 'Start free' : 'Zacznij za darmo'}
                 </a>
                 <Link
-                  to={`${pathFor('contact')}?interest=${industry.interestTag}`}
+                  to={`${pathFor('contact')}?interest=${industry.interestTag}#calendar`}
                   onClick={() => trackCtaClick(`industry_${resolvedSlug}_footer_secondary`)}
                   className="inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg border border-white/20 text-white hover:bg-white/5 transition-all"
                 >
