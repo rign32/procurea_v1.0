@@ -1,6 +1,8 @@
 import type { ComponentType } from "react"
 import { Link, useParams } from "react-router-dom"
 import { ArrowRight, Check, ChevronRight, Sparkles } from "lucide-react"
+import { motion } from "framer-motion"
+import { AnimatedGrid } from "@/components/ui/AnimatedGrid"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
@@ -49,11 +51,19 @@ function getIndustryLink(slug: string): { to: string; label: string } | null {
     'eventy': 'Events',
     'budownictwo': 'Construction',
     'retail-ecommerce': 'Retail & E-commerce',
+    'gastronomia': 'HoReCa',
+    'ochrona-zdrowia': 'Healthcare',
+    'logistyka': 'Logistics',
+    'mro-utrzymanie-ruchu': 'MRO',
   } : {
     'produkcja': 'Produkcja',
     'eventy': 'Eventy',
     'budownictwo': 'Budownictwo',
     'retail-ecommerce': 'Retail & E-commerce',
+    'gastronomia': 'Gastronomia',
+    'ochrona-zdrowia': 'Ochrona zdrowia',
+    'logistyka': 'Logistyka',
+    'mro-utrzymanie-ruchu': 'MRO',
   }
   return { to, label: labels[slug] || slug }
 }
@@ -94,13 +104,15 @@ export function FeaturePage() {
 
       <main id="main-content">
         {/* Hero */}
-        <section className="relative pt-32 pb-16 bg-gradient-to-b from-white to-slate-50/30 overflow-hidden">
+        <section className="relative pt-32 pb-16 bg-gradient-to-b from-white to-slate-50/30 bg-mesh-gradient overflow-hidden">
           <div className="absolute top-20 -right-40 w-[500px] h-[500px] rounded-full opacity-[0.06] blur-[100px] bg-primary pointer-events-none" />
+          <div className="absolute bottom-10 -left-32 w-[400px] h-[400px] rounded-full opacity-[0.04] blur-[100px] bg-emerald-500 pointer-events-none" />
+          <AnimatedGrid color="hsl(var(--foreground) / 0.02)" spacing={48} className="opacity-40" />
 
           <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center">
             <Link
               to={pathFor('featuresHub')}
-              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors underline-slide"
             >
               <ChevronRight className="h-3.5 w-3.5 rotate-180" />
               {isEN ? 'All features' : 'Wszystkie funkcje'}
@@ -126,12 +138,12 @@ export function FeaturePage() {
                   onClick={() => trackCtaClick(`feature_${resolvedSlug}_primary`)}
                   className="inline-flex items-center px-6 py-3 text-base font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all"
                 >
-                  {isEN ? 'Start free research' : 'Rozpocznij za darmo'}
+                  {isEN ? 'Start free' : 'Zacznij za darmo'}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </a>
               ) : (
                 <Link
-                  to={`${pathFor('contact')}?interest=${feature.interestTag}`}
+                  to={`${pathFor('contact')}?interest=${feature.interestTag}#calendar`}
                   onClick={() => trackCtaClick(`feature_${resolvedSlug}_primary`)}
                   className="inline-flex items-center px-6 py-3 text-base font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all"
                 >
@@ -195,11 +207,17 @@ export function FeaturePage() {
             </RevealOnScroll>
 
             {feature.detailedSteps ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              <motion.div
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}
+              >
                 {feature.detailedSteps.map((step) => (
+                  <motion.div key={step.step} variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }}>
                   <div
-                    key={step.step}
-                    className="rounded-2xl border border-black/[0.08] bg-white p-6 flex flex-col"
+                    className="rounded-2xl border border-black/[0.08] bg-white p-6 flex flex-col hover:shadow-lg hover:-translate-y-1 transition-all duration-300 h-full"
                   >
                     <div className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-primary text-primary-foreground font-bold mb-4">
                       {step.step}
@@ -215,14 +233,21 @@ export function FeaturePage() {
                       </div>
                     )}
                   </div>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <motion.div
+                className="grid grid-cols-1 md:grid-cols-3 gap-5"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}
+              >
                 {feature.howItWorks.map((step) => (
+                  <motion.div key={step.step} variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }}>
                   <div
-                    key={step.step}
-                    className="rounded-2xl border border-black/[0.08] bg-white p-6"
+                    className="rounded-2xl border border-black/[0.08] bg-white p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
                   >
                     <div className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-primary text-primary-foreground font-bold mb-4">
                       {step.step}
@@ -230,8 +255,9 @@ export function FeaturePage() {
                     <h3 className="text-lg font-bold mb-3">{step.title}</h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">{step.body}</p>
                   </div>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             )}
           </div>
         </section>
@@ -246,11 +272,17 @@ export function FeaturePage() {
             </RevealOnScroll>
 
             {feature.capabilityGroups ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <motion.div
+                className="grid grid-cols-1 md:grid-cols-2 gap-5"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}
+              >
                 {feature.capabilityGroups.map((group) => (
+                  <motion.div key={group.groupLabel} variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }}>
                   <div
-                    key={group.groupLabel}
-                    className="rounded-2xl border border-black/[0.08] bg-white p-6 md:p-7"
+                    className="rounded-2xl border border-black/[0.08] bg-white p-6 md:p-7 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
                   >
                     <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-[11px] font-bold text-primary uppercase tracking-wider mb-4">
                       {group.groupLabel}
@@ -266,8 +298,9 @@ export function FeaturePage() {
                       ))}
                     </ul>
                   </div>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             ) : (
               <div className="rounded-2xl border border-black/[0.08] bg-white p-8 md:p-10 max-w-5xl mx-auto">
                 <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -396,75 +429,61 @@ export function FeaturePage() {
           </section>
         )}
 
-        {/* Used by / industries */}
-        <section className="py-16 md:py-20">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <RevealOnScroll>
-              <div className="text-center mb-10">
-                <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-3">
-                  {isEN ? 'Used by teams in' : 'Używane przez zespoły w'}
-                </h2>
-                <p className="text-muted-foreground">
-                  {isEN ? 'See how this feature fits your industry workflow.' : 'Zobacz jak ta funkcja pasuje do Twojego workflow branżowego.'}
-                </p>
-              </div>
-            </RevealOnScroll>
+        {/* Cross-links: industries + related features */}
+        <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 border-t border-black/[0.06]">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              {isEN ? 'Used in' : 'Używane w'}:
+            </span>
+            {feature.relatedIndustries.map((indSlug) => {
+              const link = getIndustryLink(indSlug)
+              if (!link) return null
+              return (
+                <Link
+                  key={indSlug}
+                  to={link.to}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-slate-100 text-sm font-medium text-foreground hover:bg-slate-200 transition-colors"
+                >
+                  {link.label}
+                </Link>
+              )
+            })}
+          </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {feature.relatedIndustries.map((indSlug) => {
-                const link = getIndustryLink(indSlug)
+          {feature.relatedFeatures.length > 0 && (
+            <div className="flex flex-wrap items-center gap-3 mt-4">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                {isEN ? 'Often used with' : 'Często używane z'}:
+              </span>
+              {feature.relatedFeatures.map((featureKey) => {
+                const link = getFeatureLink(featureKey)
                 if (!link) return null
                 return (
                   <Link
-                    key={indSlug}
+                    key={featureKey}
                     to={link.to}
-                    className="group rounded-xl border border-black/[0.08] bg-white p-5 text-center hover:border-primary/30 hover:shadow-sm transition-all"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-slate-100 text-sm font-medium text-foreground hover:bg-slate-200 transition-colors"
                   >
-                    <span className="text-sm font-bold group-hover:text-primary transition-colors">
-                      {link.label}
-                    </span>
-                    <ArrowRight className="mx-auto mt-2 h-3.5 w-3.5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                    {link.label}
                   </Link>
                 )
               })}
             </div>
-          </div>
+          )}
         </section>
-
-        {/* Related features */}
-        {feature.relatedFeatures.length > 0 && (
-          <section className="py-12 bg-slate-50/50 border-y border-black/[0.04]">
-            <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4 text-center">
-                {isEN ? 'Often used with' : 'Często używane z'}
-              </h2>
-              <div className="flex flex-wrap items-center justify-center gap-3">
-                {feature.relatedFeatures.map((featureKey) => {
-                  const link = getFeatureLink(featureKey)
-                  if (!link) return null
-                  return (
-                    <Link
-                      key={featureKey}
-                      to={link.to}
-                      className="px-4 py-2 rounded-full bg-white border border-black/[0.08] text-sm font-medium hover:border-primary/30 hover:text-primary transition-all"
-                    >
-                      {link.label}
-                    </Link>
-                  )
-                })}
-              </div>
-            </div>
-          </section>
-        )}
 
         {/* Final CTA */}
         <section className="py-20">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-            <div className="rounded-3xl bg-gradient-to-br from-slate-900 to-slate-800 text-white p-10 md:p-16 text-center">
-              <h2 className="text-2xl md:text-3xl font-bold mb-3">
+            <div className="rounded-3xl bg-gradient-to-br from-slate-900 to-slate-800 text-white p-10 md:p-16 text-center relative overflow-hidden">
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-brand-500/[0.06] rounded-full blur-[100px]" />
+                <div className="absolute bottom-0 right-1/3 w-[300px] h-[300px] bg-emerald-500/[0.04] rounded-full blur-[80px]" />
+              </div>
+              <h2 className="relative text-2xl md:text-3xl font-bold mb-3">
                 {feature.ctaTitle}
               </h2>
-              <p className="text-white/80 mb-8 max-w-2xl mx-auto">
+              <p className="relative text-white/80 mb-8 max-w-2xl mx-auto">
                 {feature.ctaBody}
               </p>
               {feature.isSelfServe ? (
@@ -473,15 +492,15 @@ export function FeaturePage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => trackCtaClick(`feature_${resolvedSlug}_footer_primary`)}
-                  className="inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg bg-amber-400 text-amber-950 hover:bg-amber-300 shadow-lg transition-all"
+                  className="inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg bg-amber-400 text-amber-950 hover:bg-amber-300 shadow-lg transition-all hover:shadow-glow-primary hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  {isEN ? 'Start free research' : 'Rozpocznij za darmo'}
+                  {isEN ? 'Start free' : 'Zacznij za darmo'}
                 </a>
               ) : (
                 <Link
-                  to={`${pathFor('contact')}?interest=${feature.interestTag}`}
+                  to={`${pathFor('contact')}?interest=${feature.interestTag}#calendar`}
                   onClick={() => trackCtaClick(`feature_${resolvedSlug}_footer_primary`)}
-                  className="inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg bg-amber-400 text-amber-950 hover:bg-amber-300 shadow-lg transition-all"
+                  className="inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg bg-amber-400 text-amber-950 hover:bg-amber-300 shadow-lg transition-all hover:shadow-glow-primary hover:scale-[1.02] active:scale-[0.98]"
                 >
                   {isEN ? 'Book a demo' : 'Umów demo'}
                 </Link>

@@ -1,93 +1,16 @@
 import { Link } from "react-router-dom"
-import { ArrowRight, Zap, Globe, Shield, Sparkles } from "lucide-react"
+import { ArrowRight, MapPin, Building2, Calendar, Award } from "lucide-react"
+import { motion } from "framer-motion"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { AnimatedGrid } from "@/components/ui/AnimatedGrid"
-import { appendUtm } from "@/lib/utm"
 import { trackCtaClick } from "@/lib/analytics"
 import { pathFor } from "@/i18n/paths"
 
-const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
 const isEN = LANG === 'en'
-
-const copy = {
-  heroEyebrow: isEN ? 'ABOUT PROCUREA' : 'O PROCUREA',
-  heroTitle: isEN
-    ? 'AI-native procurement automation for global teams'
-    : 'AI-native automatyzacja zakupów dla globalnych zespołów',
-  heroSubtitle: isEN
-    ? 'We build the procurement stack that small teams can run, and that enterprise buyers can scale with. Sourcing + RFQ + portal + negotiation — integrated with your ERP.'
-    : 'Budujemy stack procurement który małe zespoły mogą prowadzić, a enterprise buyerzy mogą skalować. Sourcing + RFQ + portal + negocjacje — zintegrowane z Twoim ERP.',
-
-  missionTitle: isEN ? 'Our mission' : 'Nasza misja',
-  missionBody: isEN
-    ? 'Procurement is the second-largest cost center in most industrial businesses after payroll — and it runs on spreadsheets, emails, and outdated vendor rolodexes. We believe AI should automate the repetitive 80% (research, outreach, comparison) so procurement teams can focus on the strategic 20% (negotiation, qualification, supplier development).'
-    : 'Procurement to drugie co do wielkości centrum kosztów w większości firm przemysłowych po payroll — a działa na Excelach, mailach i przestarzałych rolodexach. Wierzymy że AI powinno automatyzować powtarzalne 80% (research, outreach, porównania) żeby zespoły zakupowe mogły skupić się na strategicznych 20% (negocjacje, kwalifikacja, rozwój dostawców).',
-
-  valuesTitle: isEN ? 'What we value' : 'Co cenimy',
-  values: isEN ? [
-    {
-      icon: Zap,
-      title: 'Fast time-to-value',
-      body: 'You run your first sourcing campaign in 20 minutes. No 3-month implementation, no consultancy contract, no paid integrations engineer. Just product.',
-    },
-    {
-      icon: Globe,
-      title: 'Multilingual by default',
-      body: '26-language research and outreach. Your Polish team talks to Turkish suppliers in Turkish, German suppliers in German. Response rate 2-3x higher than English-only.',
-    },
-    {
-      icon: Shield,
-      title: 'Honest roadmap',
-      body: 'We do not promise integrations we have not built. SAP, Oracle, Salesforce — check /integrations for actual status (pilot / roadmap / custom). No vapor, no lock-in tactics.',
-    },
-    {
-      icon: Sparkles,
-      title: 'Enterprise workflow, SMB pricing',
-      body: 'From $199/mo you get what Coupa and Ariba charge $50k+ for — at a fraction of the cost, with zero legacy baggage. Growing teams skip the spreadsheet phase entirely.',
-    },
-  ] : [
-    {
-      icon: Zap,
-      title: 'Szybki time-to-value',
-      body: 'Uruchamiasz pierwszą kampanię sourcingową w 20 minut. Bez 3-miesięcznego wdrożenia, bez kontraktu konsultingowego, bez płatnego inżyniera integracji. Po prostu produkt.',
-    },
-    {
-      icon: Globe,
-      title: 'Wielojęzyczność domyślnie',
-      body: '26-języczny research i outreach. Twój polski zespół rozmawia z tureckimi dostawcami po turecku, z niemieckimi po niemiecku. Response rate 2-3x wyższy niż tylko angielski.',
-    },
-    {
-      icon: Shield,
-      title: 'Uczciwa roadmapa',
-      body: 'Nie obiecujemy integracji, których nie zbudowaliśmy. SAP, Oracle, Salesforce — sprawdź /integracje dla aktualnego statusu (pilot / roadmap / custom). Bez vapor, bez taktyk lock-in.',
-    },
-    {
-      icon: Sparkles,
-      title: 'Enterprise workflow, SMB pricing',
-      body: 'Od $199/mies dostajesz to za co Coupa i Ariba biorą $50k+ — za ułamek kosztu, bez legacy baggage. Rosnące zespoły omijają fazę spreadsheet w całości.',
-    },
-  ],
-
-  stackTitle: isEN ? 'Built on' : 'Zbudowane na',
-  stackBody: isEN
-    ? 'React 19 + Vite frontend · NestJS + PostgreSQL + Prisma backend · Google Gemini 2.0 Flash for AI · Serper.dev for search · Resend for email · Firebase Hosting + Cloud Functions. EU data residency (Google Cloud europe-west1).'
-    : 'React 19 + Vite frontend · NestJS + PostgreSQL + Prisma backend · Google Gemini 2.0 Flash dla AI · Serper.dev dla wyszukiwania · Resend dla maila · Firebase Hosting + Cloud Functions. Dane w UE (Google Cloud europe-west1).',
-
-  legalTitle: isEN ? 'Company' : 'Firma',
-  legalBody: 'Procurea sp. z o.o. · ul. Pomorska 3/1, 85-050 Bydgoszcz · Polska',
-  legalKrs: isEN ? 'Registered in Poland (KRS)' : 'Zarejestrowana w Polsce (KRS)',
-
-  ctaTitle: isEN ? 'Let\'s talk procurement' : 'Porozmawiajmy o zakupach',
-  ctaBody: isEN
-    ? 'Whether you are running your first sourcing campaign or migrating away from legacy procurement software, we\'d love to hear what you\'re trying to solve.'
-    : 'Niezależnie od tego czy uruchamiasz pierwszą kampanię sourcingową czy migrujesz z legacy procurement software, chętnie usłyszymy nad czym pracujesz.',
-  ctaStart: isEN ? 'Start free research' : 'Rozpocznij za darmo',
-  ctaContact: isEN ? 'Contact us' : 'Skontaktuj się',
-}
 
 export function AboutPage() {
   return (
@@ -103,82 +26,180 @@ export function AboutPage() {
 
           <div className="relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
             <span className="inline-block text-xs font-bold uppercase tracking-[0.15em] text-primary mb-4">
-              {copy.heroEyebrow}
+              {isEN ? 'ABOUT PROCUREA' : 'O PROCUREA'}
             </span>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-5">
-              {copy.heroTitle}
+              {isEN ? 'Built by a procurement insider' : 'Zbudowane przez praktyka procurement'}
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
-              {copy.heroSubtitle}
+              {isEN
+                ? "Not another startup guessing what procurement needs. Procurea was born from 5 years of watching sourcing processes that haven't changed in decades."
+                : 'To nie kolejny startup zgadujący czego potrzebuje procurement. Procurea powstała z 5 lat obserwowania procesów sourcingowych, które nie zmieniły się od dekad.'}
             </p>
           </div>
         </section>
 
-        {/* Mission */}
-        <section className="py-16 md:py-20">
-          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-            <RevealOnScroll>
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-6 text-center">
-                {copy.missionTitle}
-              </h2>
-              <p className="text-lg text-muted-foreground leading-relaxed text-center">
-                {copy.missionBody}
-              </p>
-            </RevealOnScroll>
-          </div>
-        </section>
-
-        {/* Values */}
-        <section className="py-16 md:py-20 bg-slate-50/50">
+        {/* Founder Story */}
+        <section className="py-16 md:py-24">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <RevealOnScroll>
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-12">
-                {copy.valuesTitle}
-              </h2>
-            </RevealOnScroll>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {copy.values.map((v) => {
-                const Icon = v.icon
-                return (
-                  <div
-                    key={v.title}
-                    className="rounded-2xl border border-black/[0.08] bg-white p-6 md:p-7 hover:shadow-lg hover:-translate-y-1 hover:border-primary/20 transition-all duration-300 group"
-                  >
-                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <Icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <h3 className="text-lg font-bold mb-2">{v.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{v.body}</p>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+                {/* Photo */}
+                <motion.div
+                  initial={{ opacity: 0, x: -30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, ease: 'easeOut' }}
+                  className="relative"
+                >
+                  <div className="rounded-2xl overflow-hidden shadow-xl">
+                    <img
+                      src="/team/rafal-reiwer.jpg"
+                      alt="Rafał Reiwer — Founder & CEO, Procurea"
+                      className="w-full h-auto object-cover aspect-[4/5]"
+                      loading="lazy"
+                    />
                   </div>
-                )
-              })}
-            </div>
-          </div>
-        </section>
+                  <div className="mt-4 text-center lg:text-left">
+                    <p className="text-xl font-bold tracking-tight">Rafał Reiwer</p>
+                    <p className="text-sm text-muted-foreground">Founder & CEO</p>
+                  </div>
+                </motion.div>
 
-        {/* Stack */}
-        <section className="py-16 md:py-20">
-          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-            <RevealOnScroll>
-              <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-5 text-center">
-                {copy.stackTitle}
-              </h2>
-              <p className="text-muted-foreground leading-relaxed text-center">
-                {copy.stackBody}
-              </p>
+                {/* Story */}
+                <motion.div
+                  initial={{ opacity: 0, x: 30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, ease: 'easeOut', delay: 0.15 }}
+                >
+                  <blockquote className="text-lg md:text-xl leading-relaxed text-foreground/90 space-y-5">
+                    <p>
+                      {isEN
+                        ? 'After 5 years as an ERP consultant implementing SAP and Dynamics for manufacturing companies, I saw the same problem everywhere: procurement teams spending 30+ hours per sourcing project, manually Googling vendors, sending cold emails, comparing quotes in spreadsheets.'
+                        : 'Po 5 latach jako konsultant ERP wdrażający SAP i Dynamics w firmach produkcyjnych, wszędzie widziałem ten sam problem: zespoły zakupowe spędzające 30+ godzin na projekt sourcingowy, ręcznie googlujące dostawców, wysyłające zimne maile, porównujące oferty w Excelach.'}
+                    </p>
+                    <p>
+                      {isEN
+                        ? "The tools existed for managing purchase orders. But nobody had automated the hardest part — finding and qualifying the right suppliers in the first place."
+                        : 'Narzędzia do zarządzania zamówieniami istniały. Ale nikt nie zautomatyzował najtrudniejszej części — znajdowania i kwalifikowania właściwych dostawców.'}
+                    </p>
+                    <p>
+                      {isEN
+                        ? 'Procurea deploys AI agents that search in 26 languages, verify supplier capabilities, and deliver a qualified shortlist in 20 minutes. What used to take weeks now takes a coffee break.'
+                        : 'Procurea wysyła agentów AI, którzy szukają w 26 językach, weryfikują możliwości dostawców i dostarczają kwalifikowaną shortlistę w 20 minut. To co zajmowało tygodnie, teraz zajmuje przerwę na kawę.'}
+                    </p>
+                  </blockquote>
+                  <div className="mt-6 flex items-center gap-3">
+                    <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
+                    <span className="text-sm font-semibold text-muted-foreground whitespace-nowrap">
+                      — Rafał Reiwer, Founder & CEO
+                    </span>
+                  </div>
+                </motion.div>
+              </div>
             </RevealOnScroll>
           </div>
         </section>
 
-        {/* Company legal */}
-        <section className="py-12 border-y border-black/[0.06] bg-slate-50/30">
-          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
-              {copy.legalTitle}
-            </h2>
-            <p className="text-sm font-semibold text-foreground mb-1">{copy.legalBody}</p>
-            <p className="text-xs text-muted-foreground">{copy.legalKrs}</p>
+        {/* Vision */}
+        <section className="py-16 md:py-24 bg-slate-50/50">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <RevealOnScroll>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+                {/* Text */}
+                <motion.div
+                  initial={{ opacity: 0, x: -30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, ease: 'easeOut' }}
+                  className="order-2 lg:order-1"
+                >
+                  <span className="inline-block text-xs font-bold uppercase tracking-[0.15em] text-primary mb-3">
+                    {isEN ? 'THE VISION' : 'WIZJA'}
+                  </span>
+                  <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-5">
+                    {isEN
+                      ? 'The platform we wished we had'
+                      : 'Platforma, której nam brakowało'}
+                  </h2>
+                  <p className="text-lg text-muted-foreground leading-relaxed">
+                    {isEN
+                      ? "We're building the procurement platform we wished we had as ERP consultants. AI-native from day one. No legacy. No compromise."
+                      : 'Budujemy platformę zakupową, której brakowało nam jako konsultantom ERP. AI-native od pierwszego dnia. Bez legacy. Bez kompromisów.'}
+                  </p>
+                </motion.div>
+
+                {/* Photo */}
+                <motion.div
+                  initial={{ opacity: 0, x: 30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, ease: 'easeOut', delay: 0.15 }}
+                  className="order-1 lg:order-2"
+                >
+                  <div className="rounded-2xl overflow-hidden shadow-xl">
+                    <img
+                      src="/team/rafal-reiwer-2.jpg"
+                      alt={isEN ? 'Rafał Reiwer — building Procurea' : 'Rafał Reiwer — twórca Procurea'}
+                      className="w-full h-auto object-cover aspect-[4/3]"
+                      loading="lazy"
+                    />
+                  </div>
+                </motion.div>
+              </div>
+            </RevealOnScroll>
+          </div>
+        </section>
+
+        {/* Company Info */}
+        <section className="py-16 md:py-20">
+          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+            <RevealOnScroll>
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-10">
+                {isEN ? 'Company' : 'Firma'}
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                {([
+                  {
+                    icon: Building2,
+                    label: 'Procurea sp. z o.o.',
+                    sub: isEN ? 'Limited liability company' : 'Spółka z ograniczoną odpowiedzialnością',
+                  },
+                  {
+                    icon: MapPin,
+                    label: isEN ? 'Bydgoszcz, Poland' : 'Bydgoszcz, Polska',
+                    sub: 'ul. Pomorska 3/1, 85-050',
+                  },
+                  {
+                    icon: Calendar,
+                    label: isEN ? 'Founded 2025' : 'Założona 2025',
+                    sub: isEN ? 'Early-stage startup' : 'Startup we wczesnej fazie',
+                  },
+                  {
+                    icon: Award,
+                    label: isEN ? 'Domain expertise' : 'Doświadczenie branżowe',
+                    sub: isEN
+                      ? 'Backed by 5 years of procurement consulting'
+                      : '5 lat doświadczenia w konsultingu procurement',
+                  },
+                ] as const).map((item) => {
+                  const Icon = item.icon
+                  return (
+                    <div
+                      key={item.label}
+                      className="rounded-2xl border border-black/[0.08] bg-white p-6 hover:shadow-lg hover:-translate-y-1 hover:border-primary/20 transition-all duration-300 group"
+                    >
+                      <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+                        <Icon className="h-5 w-5 text-primary" />
+                      </div>
+                      <p className="font-bold text-foreground">{item.label}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{item.sub}</p>
+                    </div>
+                  )
+                })}
+              </div>
+            </RevealOnScroll>
           </div>
         </section>
 
@@ -190,25 +211,29 @@ export function AboutPage() {
                 <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-brand-500/[0.06] rounded-full blur-[100px]" />
                 <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] bg-emerald-500/[0.04] rounded-full blur-[80px]" />
               </div>
-              <h2 className="text-2xl md:text-3xl font-bold mb-3">{copy.ctaTitle}</h2>
-              <p className="text-white/80 mb-8 max-w-2xl mx-auto">{copy.ctaBody}</p>
+              <h2 className="text-2xl md:text-3xl font-bold mb-3">
+                {isEN ? "Let's talk procurement" : 'Porozmawiajmy o zakupach'}
+              </h2>
+              <p className="text-white/80 mb-8 max-w-2xl mx-auto">
+                {isEN
+                  ? "Book a call with Rafał to discuss your sourcing challenges and see Procurea in action."
+                  : 'Umów rozmowę z Rafałem, żeby omówić Twoje wyzwania sourcingowe i zobaczyć Procurea w akcji.'}
+              </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <a
-                  href={appendUtm(APP_URL, 'about_primary')}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => trackCtaClick('about_primary')}
+                <Link
+                  to={`${pathFor('contact')}#calendar`}
+                  onClick={() => trackCtaClick('about_talk_to_rafal')}
                   className="inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg bg-amber-400 text-amber-950 hover:bg-amber-300 shadow-lg transition-all"
                 >
-                  {copy.ctaStart}
+                  {isEN ? 'Talk to Rafał' : 'Porozmawiaj z Rafałem'}
                   <ArrowRight className="ml-2 h-4 w-4" />
-                </a>
+                </Link>
                 <Link
-                  to={pathFor('contact')}
-                  onClick={() => trackCtaClick('about_secondary')}
+                  to={pathFor('featuresHub')}
+                  onClick={() => trackCtaClick('about_see_features')}
                   className="inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg border border-white/20 text-white hover:bg-white/5 transition-all"
                 >
-                  {copy.ctaContact}
+                  {isEN ? "See what we're building" : 'Zobacz co budujemy'}
                 </Link>
               </div>
             </div>

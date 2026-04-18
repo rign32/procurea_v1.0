@@ -41,10 +41,10 @@ function cellStyle(rowStatus: DeliveryStatus, colStatus: DeliveryStatus): string
 }
 
 function statusBadge(status: DeliveryStatus): { label: string; cls: string } {
-  if (status === "responded") return { label: "Responded", cls: "text-emerald-700 bg-emerald-50" }
-  if (status === "opened") return { label: "Opened", cls: "text-amber-700 bg-amber-50" }
-  if (status === "delivered") return { label: "Delivered", cls: "text-gray-600 bg-gray-100" }
-  return { label: "Sent", cls: "text-blue-700 bg-blue-50" }
+  if (status === "responded") return { label: "Responded", cls: "text-emerald-700 bg-emerald-50 ring-1 ring-emerald-500/10" }
+  if (status === "opened") return { label: "Opened", cls: "text-amber-700 bg-amber-50 ring-1 ring-amber-500/10" }
+  if (status === "delivered") return { label: "Delivered", cls: "text-gray-600 bg-gray-100 ring-1 ring-gray-400/10" }
+  return { label: "Sent", cls: "text-blue-700 bg-blue-50 ring-1 ring-blue-500/10" }
 }
 
 export function EmailOutreachMockup() {
@@ -61,7 +61,7 @@ export function EmailOutreachMockup() {
         <div className="flex items-center gap-3">
           <Mail className="h-4 w-4 text-brand-600" />
           <h3 className="text-sm font-bold text-foreground">RFQ — Packaging EU</h3>
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[11px] font-semibold">
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[11px] font-semibold ring-1 ring-emerald-500/10">
             <span className="relative flex h-1.5 w-1.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
@@ -184,7 +184,7 @@ export function EmailOutreachMockup() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.3, delay: 0.3 + idx * 0.06 }}
-                  className="grid grid-cols-[1.6fr_0.7fr_0.7fr_0.7fr_0.9fr] gap-2 px-3 py-2 items-center border-b border-border/40 last:border-0 hover:bg-gray-50/50"
+                  className="grid grid-cols-[1.6fr_0.7fr_0.7fr_0.7fr_0.9fr] gap-2 px-3 py-2 items-center border-b border-border/40 last:border-0 hover:bg-slate-50/80 transition-colors duration-150"
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="text-sm leading-none shrink-0">{row.flag}</span>

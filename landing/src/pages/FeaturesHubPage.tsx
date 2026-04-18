@@ -5,6 +5,7 @@ import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { FeatureShowcase } from "@/components/sections/FeatureShowcase"
+import { AnimatedGrid } from "@/components/ui/AnimatedGrid"
 import { pathFor } from "@/i18n/paths"
 
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
@@ -20,10 +21,10 @@ interface FeatureItem {
 
 const sourcingFeatures: FeatureItem[] = isEN ? [
   { icon: Search, title: 'AI Sourcing', desc: '50–250 verified vendors per campaign in 26 languages. One-click Excel export.', to: pathFor('fAiSourcing'), hasPage: true },
-  { icon: Building2, title: 'Company Registry', desc: 'VAT / EORI / financial data / ownership — verified against official registries.', to: pathFor('fCompanyRegistry'), hasPage: false },
+  { icon: Building2, title: 'Supplier Database', desc: 'Centralized supplier hub with AI scores, contacts, certifications, and campaign history.', to: pathFor('fCompanyRegistry'), hasPage: false },
 ] : [
   { icon: Search, title: 'AI Sourcing', desc: '50–250 zweryfikowanych dostawców na kampanię w 26 językach. Eksport Excel jednym kliknięciem.', to: pathFor('fAiSourcing'), hasPage: true },
-  { icon: Building2, title: 'Company Registry', desc: 'VAT / EORI / dane finansowe / własność — zweryfikowane wobec oficjalnych rejestrów.', to: pathFor('fCompanyRegistry'), hasPage: false },
+  { icon: Building2, title: 'Baza Dostawców', desc: 'Centralna baza dostawców z ocenami AI, kontaktami, certyfikatami i historią kampanii.', to: pathFor('fCompanyRegistry'), hasPage: false },
 ]
 
 const outreachFeatures: FeatureItem[] = isEN ? [
@@ -64,11 +65,11 @@ const copy = {
     ? 'Find qualified vendors. Self-serve, credit-based.'
     : 'Znajduj zweryfikowanych dostawców. Self-serve, credit-based.',
   sourcingIntro: isEN
-    ? "Most teams start here. AI Sourcing replaces the weeks you'd spend Googling vendors, filtering directories, and verifying certifications. Describe what you need in plain language — the AI pipeline runs 4 specialized agents across 26 languages, cross-checks supplier data against official registries, and delivers a verified shortlist of 50–250 qualified vendors in under 20 minutes."
-    : 'Większość zespołów zaczyna tutaj. AI Sourcing zastępuje tygodnie szukania dostawców w Google, filtrowania katalogów i weryfikacji certyfikatów. Opisz czego potrzebujesz zwykłym językiem — pipeline AI uruchamia 4 wyspecjalizowane agenty w 26 językach, krzyżowo weryfikuje dane firm z oficjalnymi rejestrami i dostarcza zweryfikowaną shortlistę 50–250 dostawców w mniej niż 20 minut.',
+    ? "Most teams start here. AI Sourcing replaces the weeks you'd spend Googling vendors, filtering directories, and verifying certifications. Describe what you need in plain language — the AI pipeline runs 4 specialized agents across 26 languages, scores every supplier for capability fit, and delivers a qualified shortlist of 50–250 vendors in under 20 minutes — all stored in your Supplier Database."
+    : 'Większość zespołów zaczyna tutaj. AI Sourcing zastępuje tygodnie szukania dostawców w Google, filtrowania katalogów i weryfikacji certyfikatów. Opisz czego potrzebujesz zwykłym językiem — pipeline AI uruchamia 4 wyspecjalizowane agenty w 26 językach, ocenia każdego dostawcę pod kątem dopasowania i dostarcza zakwalifikowaną shortlistę 50–250 vendorów w mniej niż 20 minut — wszystko trafia do Twojej Bazy Dostawców.',
   sourcingValueProps: isEN
-    ? ['26 languages', 'Company Registry', 'Excel export']
-    : ['26 języków', 'Company Registry', 'Eksport Excel'],
+    ? ['26 languages', 'Supplier Database', 'Excel export']
+    : ['26 języków', 'Baza Dostawców', 'Eksport Excel'],
   procurementHeading: 'AI Procurement',
   procurementDesc: isEN
     ? 'Full RFQ workflow with AI-assisted outreach, offers, and insights.'
@@ -96,8 +97,8 @@ function FeatureCard({ feature, variant = 'sourcing' }: { feature: FeatureItem; 
   const Icon = feature.icon
 
   const inner = (
-    <div className="group h-full rounded-2xl border border-black/[0.08] bg-white p-6 hover:border-primary/30 hover:shadow-md transition-all flex flex-col">
-      <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4">
+    <div className="group h-full rounded-2xl border border-black/[0.08] bg-white p-6 hover:border-primary/30 hover:shadow-md hover:shadow-hover-card hover:-translate-y-1 transition-all duration-300 flex flex-col">
+      <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200">
         <Icon className="h-5 w-5 text-primary" />
       </div>
       <h3 className="text-base font-bold mb-2">{feature.title}</h3>
@@ -125,13 +126,16 @@ function FeatureCard({ feature, variant = 'sourcing' }: { feature: FeatureItem; 
 
 export function FeaturesHubPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50/50">
+    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50/50 bg-mesh-gradient">
       <RouteMeta />
       <Navbar />
 
       <main id="main-content" className="pt-32 pb-24">
         {/* Hero */}
-        <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center mb-16">
+        <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center mb-16 relative overflow-hidden">
+          <AnimatedGrid color="hsl(var(--foreground) / 0.02)" spacing={48} className="opacity-40" />
+          <div className="absolute -top-20 -right-40 w-[600px] h-[600px] rounded-full bg-primary/[0.06] blur-[120px] pointer-events-none" />
+          <div className="absolute top-40 -left-32 w-[400px] h-[400px] rounded-full bg-emerald-500/[0.04] blur-[100px] pointer-events-none" />
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-5">{copy.heroTitle}</h1>
           <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">{copy.heroSubtitle}</p>
         </section>
@@ -300,7 +304,7 @@ export function FeaturesHubPage() {
           <RevealOnScroll>
             <Link
               to={pathFor('integrationsHub')}
-              className="group block rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white p-8 md:p-10 hover:shadow-2xl transition-all"
+              className="group block rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white p-8 md:p-10 hover:shadow-2xl hover:shadow-glow-primary transition-all transition-shadow duration-300"
             >
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
@@ -318,18 +322,22 @@ export function FeaturesHubPage() {
 
         {/* Final CTA — pricing */}
         <section className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <div className="rounded-2xl bg-white border border-black/[0.08] p-10 md:p-12 text-center">
-            <h2 className="text-2xl md:text-3xl font-bold mb-3">
+          <div className="rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white p-10 md:p-12 relative overflow-hidden text-center">
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-0 left-1/3 w-[400px] h-[400px] bg-brand-500/[0.06] rounded-full blur-[100px]" />
+              <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] bg-emerald-500/[0.04] rounded-full blur-[80px]" />
+            </div>
+            <h2 className="text-2xl md:text-3xl font-bold mb-3 text-white relative">
               {isEN ? 'See credit packs and pricing' : 'Zobacz pakiety kredytów i cennik'}
             </h2>
-            <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-white/80 mb-8 max-w-2xl mx-auto relative">
               {isEN
                 ? 'Credit-based pricing. Three self-serve products + Enterprise Custom for teams at scale.'
                 : 'Pricing credit-based. Trzy produkty self-serve + Enterprise Custom dla zespołów na skalę.'}
             </p>
             <Link
               to={pathFor('pricing')}
-              className="inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all"
+              className="inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg bg-amber-400 text-amber-950 hover:bg-amber-300 shadow-sm transition-all relative"
             >
               {isEN ? 'View pricing' : 'Zobacz cennik'}
               <ArrowRight className="ml-2 h-4 w-4" />

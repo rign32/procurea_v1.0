@@ -25,8 +25,8 @@ const TIERS = [
 ]
 
 function stepCircleCls(state: StepState): string {
-  if (state === "done") return "bg-emerald-500 text-white border-emerald-500"
-  if (state === "active") return "bg-brand-600 text-white border-brand-600"
+  if (state === "done") return "bg-emerald-500 text-white border-emerald-500 ring-1 ring-emerald-500/10"
+  if (state === "active") return "bg-brand-600 text-white border-brand-600 ring-1 ring-brand-500/10"
   return "bg-white text-gray-400 border-gray-200"
 }
 
@@ -93,7 +93,7 @@ export function SupplierPortalMockup() {
             {idx < STEPS.length - 1 && (
               <div
                 className={`flex-1 h-0.5 mx-2 rounded-full ${
-                  step.state === "done" ? "bg-emerald-400" : "bg-gray-200"
+                  step.state === "done" ? "bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.15)]" : "bg-gray-200"
                 }`}
               />
             )}
@@ -129,7 +129,7 @@ export function SupplierPortalMockup() {
           {TIERS.map((tier) => (
             <div
               key={tier.range}
-              className="grid grid-cols-[1.8fr_1fr_auto] gap-2 px-3 py-2.5 items-center border-b border-border/40 last:border-0"
+              className="grid grid-cols-[1.8fr_1fr_auto] gap-2 px-3 py-2.5 items-center border-b border-border/40 last:border-0 hover:bg-slate-50/80 transition-colors duration-150"
             >
               <div className="text-xs font-medium text-foreground">{tier.range}</div>
               <div className="text-xs font-bold text-foreground font-mono">{tier.price}</div>
@@ -146,19 +146,19 @@ export function SupplierPortalMockup() {
           transition={{ duration: 0.5, delay: 0.45 }}
           className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4"
         >
-          <div className="rounded-xl border border-border/60 bg-white p-3">
+          <div className="rounded-xl border border-border/60 bg-white p-3 hover:shadow-sm hover:-translate-y-0.5 transition-all duration-200">
             <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
               MOQ
             </div>
             <div className="text-sm font-bold text-foreground">500 units</div>
           </div>
-          <div className="rounded-xl border border-border/60 bg-white p-3">
+          <div className="rounded-xl border border-border/60 bg-white p-3 hover:shadow-sm hover:-translate-y-0.5 transition-all duration-200">
             <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
               Lead time
             </div>
             <div className="text-sm font-bold text-foreground">4 weeks</div>
           </div>
-          <div className="rounded-xl border border-border/60 bg-white p-3">
+          <div className="rounded-xl border border-border/60 bg-white p-3 hover:shadow-sm hover:-translate-y-0.5 transition-all duration-200">
             <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
               Incoterms
             </div>
@@ -186,7 +186,7 @@ export function SupplierPortalMockup() {
             ].map((f) => (
               <div
                 key={f.name}
-                className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white border border-border/60"
+                className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white border border-border/60 hover:shadow-sm hover:-translate-y-0.5 transition-all duration-200"
               >
                 <FileText className="h-3 w-3 text-brand-600" />
                 <span className="text-[11px] font-medium text-foreground">{f.name}</span>

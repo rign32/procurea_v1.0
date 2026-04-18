@@ -1,4 +1,5 @@
 import { Check } from "lucide-react"
+import { motion } from "framer-motion"
 import { type ComponentType } from "react"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { BrowserChrome } from "@/components/ui/BrowserChrome"
@@ -140,9 +141,9 @@ export function FeatureShowcase({
         >
           {/* Text column */}
           <div className={reverse ? "lg:col-start-2" : ""}>
-            <RevealOnScroll>
+            <RevealOnScroll scale>
               <div className="inline-flex items-center gap-3 mb-5">
-                <span className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                <span className="text-xs font-bold uppercase tracking-[0.2em] bg-gradient-to-r from-primary to-brand-400 bg-clip-text text-transparent">
                   {number}
                 </span>
                 <span className="h-px w-12 bg-border" />
@@ -157,13 +158,20 @@ export function FeatureShowcase({
                 {copy.subtitle}
               </p>
               <ul className="space-y-3 max-w-md">
-                {copy.bullets.map((b) => (
-                  <li key={b} className="flex items-start gap-3 text-sm">
+                {copy.bullets.map((b, bi) => (
+                  <motion.li
+                    key={b}
+                    className="flex items-start gap-3 text-sm"
+                    initial={{ opacity: 0, x: -10 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.3 + bi * 0.1, duration: 0.4, ease: [0.21, 0.47, 0.32, 0.98] as const }}
+                  >
                     <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
                       <Check className="h-3 w-3 text-primary" />
                     </div>
                     <span>{b}</span>
-                  </li>
+                  </motion.li>
                 ))}
               </ul>
             </RevealOnScroll>
@@ -171,7 +179,7 @@ export function FeatureShowcase({
 
           {/* Mockup column */}
           <div className={reverse ? "lg:col-start-1 lg:row-start-1" : ""}>
-            <RevealOnScroll direction={reverse ? "left" : "right"}>
+            <RevealOnScroll direction={reverse ? "left" : "right"} parallax>
               <BrowserChrome url={url}>
                 <div className="scale-[0.85] lg:scale-100 origin-top">
                   <MockupComponent />

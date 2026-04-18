@@ -6,6 +6,7 @@ interface BrowserChromeProps {
   url?: string
   variant?: "light" | "dark"
   className?: string
+  glow?: boolean
 }
 
 export function BrowserChrome({
@@ -13,6 +14,7 @@ export function BrowserChrome({
   url = "app.procurea.pl/dashboard",
   variant = "light",
   className = "",
+  glow = false,
 }: BrowserChromeProps) {
   const isDark = variant === "dark"
 
@@ -22,7 +24,7 @@ export function BrowserChrome({
         isDark
           ? "bg-slate-900 border-slate-800"
           : "bg-white border-black/[0.08]"
-      } ${className}`}
+      } ${glow ? "shadow-glow-primary ring-1 ring-primary/10" : ""} ${className}`}
     >
       {/* Chrome bar */}
       <div

@@ -74,9 +74,9 @@ const OFFERS: Offer[] = [
 ]
 
 function scoreCls(score: number): string {
-  if (score >= 90) return "text-emerald-700 bg-emerald-50"
-  if (score >= 80) return "text-amber-700 bg-amber-50"
-  return "text-gray-600 bg-gray-100"
+  if (score >= 90) return "text-emerald-700 bg-emerald-50 ring-1 ring-emerald-500/10"
+  if (score >= 80) return "text-amber-700 bg-amber-50 ring-1 ring-amber-500/10"
+  return "text-gray-600 bg-gray-100 ring-1 ring-gray-400/10"
 }
 
 export function OfferComparisonMockup() {
@@ -93,7 +93,7 @@ export function OfferComparisonMockup() {
         <div className="flex items-center gap-3">
           <BarChart3 className="h-4 w-4 text-brand-600" />
           <h3 className="text-sm font-bold text-foreground">5 offers received</h3>
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[11px] font-semibold">
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[11px] font-semibold ring-1 ring-emerald-500/10">
             Ready to compare
           </span>
         </div>
@@ -132,7 +132,7 @@ export function OfferComparisonMockup() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.3, delay: 0.1 + idx * 0.08 }}
-                  className={`grid grid-cols-[1.8fr_0.8fr_0.8fr_0.6fr_0.6fr_0.9fr_0.7fr] gap-2 px-3 py-2.5 items-center border-b border-border/40 last:border-0 ${
+                  className={`grid grid-cols-[1.8fr_0.8fr_0.8fr_0.6fr_0.6fr_0.9fr_0.7fr] gap-2 px-3 py-2.5 items-center border-b border-border/40 last:border-0 hover:bg-slate-50/80 transition-colors duration-150 ${
                     isBest ? "border-emerald-400/50 bg-emerald-50/30" : ""
                   }`}
                 >

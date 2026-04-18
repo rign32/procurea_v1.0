@@ -19,6 +19,7 @@ type Agent = {
   progress: number
   status: AgentStatus
   gradient: string
+  glow: string
   iconBg: string
   iconColor: string
 }
@@ -30,6 +31,7 @@ const AGENTS: Agent[] = [
     progress: 100,
     status: "done",
     gradient: "from-teal-500 to-teal-700",
+    glow: "shadow-[0_0_8px_rgba(20,184,166,0.15)]",
     iconBg: "bg-teal-100",
     iconColor: "text-teal-600",
   },
@@ -39,6 +41,7 @@ const AGENTS: Agent[] = [
     progress: 74,
     status: "running",
     gradient: "from-amber-400 to-amber-600",
+    glow: "shadow-[0_0_8px_rgba(245,158,11,0.15)]",
     iconBg: "bg-amber-100",
     iconColor: "text-amber-600",
   },
@@ -48,6 +51,7 @@ const AGENTS: Agent[] = [
     progress: 32,
     status: "running",
     gradient: "from-slate-400 to-slate-600",
+    glow: "shadow-[0_0_8px_rgba(100,116,139,0.15)]",
     iconBg: "bg-slate-100",
     iconColor: "text-slate-600",
   },
@@ -57,6 +61,7 @@ const AGENTS: Agent[] = [
     progress: 0,
     status: "queued",
     gradient: "from-emerald-400 to-emerald-600",
+    glow: "shadow-[0_0_8px_rgba(16,185,129,0.15)]",
     iconBg: "bg-emerald-100",
     iconColor: "text-emerald-600",
   },
@@ -76,9 +81,9 @@ function statusLabel(status: AgentStatus): string {
 }
 
 function statusStyle(status: AgentStatus): string {
-  if (status === "done") return "text-emerald-700 bg-emerald-50"
-  if (status === "running") return "text-amber-700 bg-amber-50"
-  return "text-gray-500 bg-gray-100"
+  if (status === "done") return "text-emerald-700 bg-emerald-50 ring-1 ring-emerald-500/10"
+  if (status === "running") return "text-amber-700 bg-amber-50 ring-1 ring-amber-500/10"
+  return "text-gray-500 bg-gray-100 ring-1 ring-gray-400/10"
 }
 
 export function AiSourcingMockup() {
@@ -94,7 +99,7 @@ export function AiSourcingMockup() {
       <div className="flex items-center justify-between px-5 py-3 border-b border-border/60 bg-gray-50/60">
         <div className="flex items-center gap-3">
           <h3 className="text-sm font-bold text-foreground">Packaging EU</h3>
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[11px] font-semibold">
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[11px] font-semibold ring-1 ring-emerald-500/10">
             <span className="relative flex h-1.5 w-1.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
@@ -120,7 +125,7 @@ export function AiSourcingMockup() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: 0.1 + idx * 0.1 }}
-                className="rounded-xl border border-border/60 bg-white p-3.5 hover:shadow-sm transition-shadow"
+                className="rounded-xl border border-border/60 bg-white p-3.5 hover:shadow-sm hover:-translate-y-0.5 transition-all duration-200"
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -139,7 +144,7 @@ export function AiSourcingMockup() {
                     whileInView={{ width: `${agent.progress}%` }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.9, delay: 0.3 + idx * 0.1, ease: "easeOut" }}
-                    className={`absolute inset-y-0 left-0 rounded-full bg-gradient-to-r ${agent.gradient}`}
+                    className={`absolute inset-y-0 left-0 rounded-full bg-gradient-to-r ${agent.gradient} ${agent.progress > 0 ? agent.glow : ""}`}
                   />
                 </div>
                 <div className="mt-1.5 text-[10px] text-muted-foreground">
@@ -189,7 +194,7 @@ export function AiSourcingMockup() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: 0.7 + idx * 0.1 }}
-                className="flex items-center gap-3 rounded-xl border border-border/60 bg-white p-3 hover:shadow-sm transition-shadow"
+                className="flex items-center gap-3 rounded-xl border border-border/60 bg-white p-3 hover:shadow-sm hover:-translate-y-0.5 transition-all duration-200"
               >
                 <span className="text-lg leading-none">{s.flag}</span>
                 <div className="flex-1 min-w-0">
@@ -209,10 +214,10 @@ export function AiSourcingMockup() {
                 <span
                   className={`text-[11px] font-bold px-1.5 py-0.5 rounded-md shrink-0 ${
                     s.score >= 90
-                      ? "text-emerald-700 bg-emerald-50"
+                      ? "text-emerald-700 bg-emerald-50 ring-1 ring-emerald-500/10"
                       : s.score >= 70
-                        ? "text-amber-700 bg-amber-50"
-                        : "text-gray-600 bg-gray-100"
+                        ? "text-amber-700 bg-amber-50 ring-1 ring-amber-500/10"
+                        : "text-gray-600 bg-gray-100 ring-1 ring-gray-400/10"
                   }`}
                 >
                   {s.score}%

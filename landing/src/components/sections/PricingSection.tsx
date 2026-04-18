@@ -15,8 +15,8 @@ const plans = [
     perCredit: null,
     highlight: false,
     badge: null,
-    cta: "Rozpocznij za darmo",
-    note: "3 procesy sourcingu gratis",
+    cta: "Zacznij za darmo",
+    note: "10 darmowych kredytów na start",
     icon: Gift,
     iconBg: "bg-gradient-to-br from-emerald-500 to-emerald-600",
     iconColor: "text-white",
@@ -70,7 +70,7 @@ const creditIncludes = [
 
 const containerVariants = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.1 } },
+  visible: { transition: { staggerChildren: 0.12 } },
 }
 
 const cardVariants = {
@@ -128,7 +128,7 @@ export function PricingSection() {
               <div
                 className={`relative rounded-2xl bg-card p-7 lg:p-8 h-full flex flex-col transition-all duration-300 ${
                   plan.highlight
-                    ? "border-0 shadow-lg shadow-brand-500/10"
+                    ? "border-0 shadow-lg shadow-brand-500/10 hover:shadow-glow-primary"
                     : `border ${plan.borderAccent} ${plan.lightBg} hover:shadow-lg hover:shadow-black/[0.05]`
                 }`}
               >
@@ -188,7 +188,7 @@ export function PricingSection() {
                   href={appendUtm(APP_URL, 'pricing')}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`mt-auto inline-flex items-center justify-center w-full gap-2 px-5 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 group/btn ${
+                  className={`mt-auto inline-flex items-center justify-center w-full gap-2 px-5 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] group/btn ${
                     plan.highlight
                       ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm hover:shadow-md"
                       : "bg-secondary text-secondary-foreground hover:bg-accent"
