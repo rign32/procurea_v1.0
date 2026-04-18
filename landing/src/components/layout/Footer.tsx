@@ -58,7 +58,7 @@ export function Footer() {
               <input
                 type="email"
                 placeholder={isEN() ? "Your email address" : "Twój adres email"}
-                className="w-full sm:w-72 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors duration-200"
+                className="w-full sm:w-72 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors duration-200 focus-glow"
               />
               <button
                 type="submit"
@@ -98,7 +98,7 @@ export function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="LinkedIn"
-                  className="flex h-8 w-8 items-center justify-center rounded-md bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition-all duration-200"
+                  className="flex h-8 w-8 items-center justify-center rounded-md bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white hover:scale-110 transition-all duration-200"
                 >
                   <svg
                     className="h-4 w-4"

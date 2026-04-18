@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom"
 import { Check, Sparkles, Search, Workflow, Layers, type LucideIcon } from "lucide-react"
+import { motion } from "framer-motion"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
 import { AccordionItem } from "@/components/ui/AccordionItem"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
+import { AnimatedGrid } from "@/components/ui/AnimatedGrid"
 import { appendUtm } from "@/lib/utm"
 import { trackCtaClick } from "@/lib/analytics"
 import { pathFor } from "@/i18n/paths"
@@ -242,15 +244,22 @@ export function PricingPage() {
 
       <main id="main-content" className="pt-32 pb-24">
         {/* Hero — compact */}
-        <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center mb-10">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">
-            {copy.heroTitle}
-          </h1>
-          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
-            {isEN
-              ? 'Start with AI Sourcing — find qualified suppliers. Extend with AI Procurement for full RFQ workflow. Bundle both at 15% off. All features included, pay per campaign.'
-              : 'Zacznij od AI Sourcing — znajdź dostawców. Rozszerz o AI Procurement dla pełnego workflow RFQ. Bundle za oba z 15% rabatem. Wszystkie funkcje dostępne, płać za kampanię.'}
-          </p>
+        <section className="relative overflow-hidden mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center mb-10">
+          <AnimatedGrid color="hsl(var(--foreground) / 0.02)" spacing={48} className="opacity-40" />
+          <div className="absolute -top-20 -right-40 w-[600px] h-[600px] rounded-full bg-primary/[0.06] blur-[120px] pointer-events-none" />
+          <div className="absolute top-40 -left-32 w-[400px] h-[400px] rounded-full bg-emerald-500/[0.04] blur-[100px] pointer-events-none" />
+          <div className="relative">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">
+              {copy.heroTitle}
+            </h1>
+            <RevealOnScroll>
+              <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
+                {isEN
+                  ? 'Start with AI Sourcing — find qualified suppliers. Extend with AI Procurement for full RFQ workflow. Bundle both at 15% off. All features included, pay per campaign.'
+                  : 'Zacznij od AI Sourcing — znajdź dostawców. Rozszerz o AI Procurement dla pełnego workflow RFQ. Bundle za oba z 15% rabatem. Wszystkie funkcje dostępne, płać za kampanię.'}
+              </p>
+            </RevealOnScroll>
+          </div>
         </section>
 
         {/* How the modules work */}
@@ -320,11 +329,19 @@ export function PricingPage() {
 
         {/* Product cards — 4 simplified */}
         <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}
+          >
             {ORDERED_PRODUCTS.map((key: Product) => (
-              <ProductCard key={key} product={PRODUCTS[key]} />
+              <motion.div key={key} variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }}>
+                <ProductCard product={PRODUCTS[key]} />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </section>
 
         {/* Credit packs */}
@@ -338,18 +355,25 @@ export function PricingPage() {
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight">{copy.faqTitle}</h2>
             </div>
           </RevealOnScroll>
-          <div className="rounded-2xl border border-black/[0.08] bg-white divide-y divide-black/[0.05] overflow-hidden">
+          <motion.div
+            className="rounded-2xl border border-black/[0.08] bg-white divide-y divide-black/[0.05] overflow-hidden"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.08 } } }}
+          >
             {copy.faq.map((item) => (
-              <div key={item.q} className="px-5">
+              <motion.div key={item.q} className="px-5" variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}>
                 <AccordionItem question={item.q} answer={item.a} />
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </section>
 
         {/* Final CTA */}
         <section className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white p-10 md:p-16 text-center hover:shadow-2xl transition-shadow duration-300">
+            <AnimatedGrid color="rgba(255,255,255,0.03)" spacing={32} />
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute top-0 left-1/3 w-[400px] h-[400px] bg-brand-500/[0.06] rounded-full blur-[100px]" />
               <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] bg-emerald-500/[0.04] rounded-full blur-[80px]" />
@@ -364,7 +388,7 @@ export function PricingPage() {
             </p>
             <Link
               to={`${pathFor('contact')}#calendar`}
-              className="inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg bg-amber-400 text-amber-950 hover:bg-amber-300 shadow-lg transition-all"
+              className="inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg bg-amber-400 text-amber-950 hover:bg-amber-300 shadow-lg hover:shadow-amber-400/30 hover:shadow-xl transition-all"
             >
               {isEN ? 'Talk to us' : 'Porozmawiaj z nami'}
             </Link>

@@ -66,9 +66,9 @@ export function SavingsCalculator({ variant = "home" }: SavingsCalculatorProps) 
   const fillPercent = sliderPos
 
   return (
-    <div className="relative rounded-2xl border border-black/[0.06] bg-white overflow-hidden">
+    <div className="group relative rounded-2xl border border-black/[0.06] bg-white overflow-hidden">
       {/* Subtle top gradient line */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brand-400 via-emerald-400 to-teal-400" />
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-brand-400 via-emerald-400 to-teal-400" />
 
       <div className="p-6 sm:p-8">
         {/* Header */}
@@ -77,7 +77,7 @@ export function SavingsCalculator({ variant = "home" }: SavingsCalculatorProps) 
             <TrendingDown className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold leading-tight">{heading}</h3>
+            <h3 className="text-base font-bold leading-tight group-hover:text-primary transition-colors duration-300">{heading}</h3>
             <span className="text-xs text-muted-foreground">
               4.6% avg. savings
             </span>
@@ -127,7 +127,7 @@ export function SavingsCalculator({ variant = "home" }: SavingsCalculatorProps) 
         {/* Results flow */}
         <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr_auto_1fr] gap-3 sm:gap-0 sm:items-center">
           {/* Gross Savings */}
-          <div className="rounded-xl bg-slate-50 p-4 text-center hover:shadow-sm transition-shadow duration-200">
+          <div className="rounded-xl bg-slate-50 p-4 text-center cursor-default hover:shadow-sm transition-shadow duration-200">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
               {t.calculator.grossSavings}
             </span>
@@ -143,7 +143,7 @@ export function SavingsCalculator({ variant = "home" }: SavingsCalculatorProps) 
           </div>
 
           {/* Procurea Cost */}
-          <div className="rounded-xl bg-orange-50/60 p-4 text-center hover:shadow-sm transition-shadow duration-200">
+          <div className="rounded-xl bg-orange-50/60 p-4 text-center cursor-default hover:shadow-sm transition-shadow duration-200">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-orange-600 block mb-1">
               {t.calculator.procureaCost}
             </span>
@@ -159,7 +159,7 @@ export function SavingsCalculator({ variant = "home" }: SavingsCalculatorProps) 
           </div>
 
           {/* Net Savings — hero element */}
-          <div className="relative rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 p-4 text-center overflow-hidden hover:shadow-sm transition-shadow duration-200">
+          <div className="relative rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 p-4 text-center cursor-default overflow-hidden ring-1 ring-emerald-500/10 hover:shadow-sm transition-shadow duration-200">
             {/* Subtle pulse glow */}
             <motion.div
               className="absolute inset-0 rounded-xl bg-emerald-400/[0.06]"

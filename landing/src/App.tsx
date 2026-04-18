@@ -19,9 +19,9 @@ function AnimatedRoutes({ children }: { children: React.ReactNode }) {
     <AnimatePresence mode="wait">
       <motion.div
         key={location.pathname}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+        initial={{ opacity: 0, scale: 0.99 }}
+        animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+        exit={{ opacity: 0, scale: 0.99, filter: "blur(2px)" }}
         transition={{ duration: 0.2, ease: "easeInOut" }}
       >
         {children}
