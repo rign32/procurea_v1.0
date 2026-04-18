@@ -13,9 +13,9 @@ const INDUSTRIES = [
   { icon: Wrench, key: 'mro' as const },
 ]
 
-function IndustryPill({ icon: Icon, label }: { icon: typeof Factory; label: string }) {
+function IndustryPill({ icon: Icon, label, ...rest }: { icon: typeof Factory; label: string; 'aria-hidden'?: boolean }) {
   return (
-    <div className="relative overflow-hidden flex items-center gap-2.5 px-5 py-2.5 rounded-full border border-white/60 bg-white/70 backdrop-blur-sm shadow-[0_1px_3px_rgba(0,0,0,0.04)] shrink-0 hover:border-brand-200 hover:bg-white/90 hover:shadow-md transition-all duration-300 group cursor-default">
+    <div {...rest} className="relative overflow-hidden flex items-center gap-2.5 px-5 py-2.5 rounded-full border border-white/60 bg-white/70 backdrop-blur-sm shadow-[0_1px_3px_rgba(0,0,0,0.04)] shrink-0 hover:border-brand-200 hover:bg-white/90 hover:shadow-md transition-all duration-300 group cursor-default">
       <span className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none" />
       <div className="flex items-center justify-center h-6 w-6 rounded-full bg-gradient-to-br from-brand-50 to-brand-100/80 group-hover:from-brand-100 group-hover:to-brand-200/60 transition-colors duration-300">
         <Icon className="h-3.5 w-3.5 text-brand-600" strokeWidth={1.8} />
@@ -52,9 +52,9 @@ export function IndustryTrustBar() {
           <div className="absolute right-0 top-0 bottom-0 w-24 md:w-40 z-10 bg-gradient-to-l from-slate-50/95 via-slate-50/60 to-transparent pointer-events-none" />
 
           {/* Scrolling track */}
-          <div className="flex gap-4 animate-marquee hover:[animation-play-state:paused] w-max">
+          <div className="flex gap-4 animate-marquee hover:[animation-play-state:paused] w-max" role="list" aria-label={t.homeTrustBar.heading}>
             {doubled.map(({ icon, label, key }, idx) => (
-              <IndustryPill key={`${key}-${idx}`} icon={icon} label={label} />
+              <IndustryPill key={`${key}-${idx}`} icon={icon} label={label} aria-hidden={idx >= items.length ? true : undefined} />
             ))}
           </div>
         </div>
