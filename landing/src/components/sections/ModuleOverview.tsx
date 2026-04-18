@@ -52,7 +52,7 @@ export function ModuleOverview() {
             const colors = ICON_COLORS[mod.iconName] ?? ICON_COLORS.search
 
             return (
-              <RevealOnScroll key={mod.title} delay={idx * 0.08}>
+              <RevealOnScroll key={mod.title} delay={idx * 0.12}>
                 <TiltCard className="h-full">
                   <Link
                     to={mod.href}

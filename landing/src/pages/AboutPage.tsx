@@ -4,6 +4,7 @@ import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
+import { AnimatedGrid } from "@/components/ui/AnimatedGrid"
 import { appendUtm } from "@/lib/utm"
 import { trackCtaClick } from "@/lib/analytics"
 import { pathFor } from "@/i18n/paths"
@@ -96,8 +97,9 @@ export function AboutPage() {
 
       <main id="main-content">
         {/* Hero */}
-        <section className="relative pt-32 pb-16 bg-gradient-to-b from-white to-slate-50/30 overflow-hidden">
+        <section className="relative pt-32 pb-16 bg-gradient-to-b from-white to-slate-50/30 bg-mesh-gradient overflow-hidden">
           <div className="absolute top-20 -right-40 w-[500px] h-[500px] rounded-full opacity-[0.06] blur-[100px] bg-primary pointer-events-none" />
+          <AnimatedGrid color="hsl(var(--foreground) / 0.02)" spacing={48} className="opacity-50" />
 
           <div className="relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
             <span className="inline-block text-xs font-bold uppercase tracking-[0.15em] text-primary mb-4">
@@ -141,9 +143,9 @@ export function AboutPage() {
                 return (
                   <div
                     key={v.title}
-                    className="rounded-2xl border border-black/[0.08] bg-white p-6 md:p-7"
+                    className="rounded-2xl border border-black/[0.08] bg-white p-6 md:p-7 hover:shadow-lg hover:-translate-y-1 hover:border-primary/20 transition-all duration-300 group"
                   >
-                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4">
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                       <Icon className="h-5 w-5 text-primary" />
                     </div>
                     <h3 className="text-lg font-bold mb-2">{v.title}</h3>
@@ -183,7 +185,11 @@ export function AboutPage() {
         {/* CTA */}
         <section className="py-20">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-            <div className="rounded-3xl bg-gradient-to-br from-slate-900 to-slate-800 text-white p-10 md:p-16 text-center">
+            <div className="rounded-3xl bg-gradient-to-br from-slate-900 to-slate-800 relative overflow-hidden text-white p-10 md:p-16 text-center">
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-brand-500/[0.06] rounded-full blur-[100px]" />
+                <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] bg-emerald-500/[0.04] rounded-full blur-[80px]" />
+              </div>
               <h2 className="text-2xl md:text-3xl font-bold mb-3">{copy.ctaTitle}</h2>
               <p className="text-white/80 mb-8 max-w-2xl mx-auto">{copy.ctaBody}</p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">

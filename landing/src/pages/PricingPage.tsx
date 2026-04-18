@@ -236,7 +236,7 @@ function CreditPacksSection() {
 
 export function PricingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50/50">
+    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50/50 bg-mesh-gradient">
       <RouteMeta />
       <Navbar />
 
@@ -248,45 +248,72 @@ export function PricingPage() {
           </h1>
           <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
             {isEN
-              ? 'AI Sourcing credits for supplier discovery. AI Procurement credits for RFQ workflow. Bundle for both at 15% off. All features included — pay per campaign.'
-              : 'Kredyty AI Sourcing na wyszukiwanie dostawców. Kredyty AI Procurement na workflow RFQ. Bundle za oba z 15% rabatem. Wszystkie funkcje w każdym planie — płać za kampanię.'}
+              ? 'Start with AI Sourcing — find qualified suppliers. Extend with AI Procurement for full RFQ workflow. Bundle both at 15% off. All features included, pay per campaign.'
+              : 'Zacznij od AI Sourcing — znajdź dostawców. Rozszerz o AI Procurement dla pełnego workflow RFQ. Bundle za oba z 15% rabatem. Wszystkie funkcje dostępne, płać za kampanię.'}
           </p>
         </section>
 
-        {/* How the two modules work together */}
+        {/* How the modules work */}
         <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 mb-14">
           <RevealOnScroll>
             <div className="rounded-2xl border border-black/[0.06] bg-white p-6 md:p-8">
-              <h2 className="text-xl md:text-2xl font-bold text-center mb-6">
-                {isEN ? 'Two complementary modules, one platform' : 'Dwa komplementarne moduły, jedna platforma'}
+              <h2 className="text-xl md:text-2xl font-bold text-center mb-8">
+                {isEN ? 'How the modules work together' : 'Jak moduły współpracują'}
               </h2>
-              <div className="grid md:grid-cols-3 gap-6 items-center">
-                {/* Module 1 */}
-                <div className="text-center p-4 rounded-xl bg-emerald-50/50 border border-emerald-100">
-                  <Search className="h-8 w-8 text-emerald-600 mx-auto mb-3" />
-                  <h3 className="font-bold mb-1">AI Sourcing</h3>
-                  <p className="text-xs text-muted-foreground">{isEN ? 'Find qualified suppliers in 26 languages. Get a verified shortlist.' : 'Znajdź dostawców w 26 językach. Otrzymaj zweryfikowaną listę.'}</p>
+
+              <div className="flex flex-col md:flex-row items-stretch gap-4 mb-6">
+                {/* Step 1: AI Sourcing */}
+                <div className="flex-1 rounded-xl bg-emerald-50/60 border border-emerald-200/60 p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Search className="h-5 w-5 text-emerald-600" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">Base</span>
+                  </div>
+                  <h3 className="font-bold text-lg mb-1">AI Sourcing</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {isEN
+                      ? 'Find qualified suppliers in 26 languages. Get a verified shortlist with contacts and certifications. Works standalone.'
+                      : 'Znajdź zweryfikowanych dostawców w 26 językach. Otrzymaj listę z kontaktami i certyfikatami. Działa samodzielnie.'}
+                  </p>
                 </div>
+
                 {/* Arrow */}
-                <div className="hidden md:flex items-center justify-center">
-                  <div className="flex items-center gap-2 text-muted-foreground/40">
-                    <div className="h-px w-8 bg-current" />
-                    <span className="text-xs font-bold">+</span>
-                    <div className="h-px w-8 bg-current" />
+                <div className="flex items-center justify-center px-2">
+                  <div className="text-xs font-bold text-muted-foreground/50 md:rotate-0 rotate-90">
+                    {isEN ? '+ extend with' : '+ rozszerz o'}
                   </div>
                 </div>
-                {/* Module 2 */}
-                <div className="text-center p-4 rounded-xl bg-primary/5 border border-primary/10">
-                  <Workflow className="h-8 w-8 text-primary mx-auto mb-3" />
-                  <h3 className="font-bold mb-1">AI Procurement</h3>
-                  <p className="text-xs text-muted-foreground">{isEN ? 'Send RFQs, collect offers via portal, compare and negotiate.' : 'Wyślij RFQ, zbieraj oferty przez portal, porównuj i negocjuj.'}</p>
+
+                {/* Step 2: AI Procurement */}
+                <div className="flex-1 rounded-xl bg-primary/[0.04] border border-primary/10 p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Workflow className="h-5 w-5 text-primary" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-primary">Extension</span>
+                  </div>
+                  <h3 className="font-bold text-lg mb-1">AI Procurement</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {isEN
+                      ? 'Extend any Sourcing campaign with RFQ outreach, Supplier Portal, offer collection, and AI-powered comparison. Requires AI Sourcing.'
+                      : 'Rozszerz dowolną kampanię Sourcingową o outreach RFQ, Supplier Portal, zbieranie ofert i porównanie AI. Wymaga AI Sourcing.'}
+                  </p>
                 </div>
               </div>
-              <p className="text-center text-sm text-muted-foreground mt-5">
-                {isEN
-                  ? 'Use each module independently, or bundle them for end-to-end procurement at 15% savings. All features included in every plan — you only pay per campaign.'
-                  : 'Używaj każdego modułu niezależnie, albo połącz je w Bundle za 15% taniej. Wszystkie funkcje dostępne w każdym planie — płacisz tylko za kampanię.'}
-              </p>
+
+              {/* Bundle callout */}
+              <div className="rounded-xl bg-gradient-to-r from-emerald-500/5 via-primary/5 to-emerald-500/5 border border-primary/10 p-4 text-center mb-4">
+                <span className="text-sm font-semibold">
+                  <Layers className="h-4 w-4 inline-block mr-1.5 -mt-0.5 text-primary" />
+                  Bundle = {isEN ? 'AI Sourcing + AI Procurement for every campaign. Save 15%.' : 'AI Sourcing + AI Procurement za każdą kampanię. Oszczędź 15%.'}
+                </span>
+              </div>
+
+              {/* Key message */}
+              <div className="rounded-lg bg-amber-50 border border-amber-200/60 px-4 py-3 text-center">
+                <p className="text-sm font-medium text-amber-900">
+                  {isEN
+                    ? 'All features included in every plan. No feature gating — you pay per campaign, not per feature.'
+                    : 'Wszystkie funkcje dostępne w każdym planie. Bez ograniczeń funkcji — płacisz za kampanię, nie za funkcje.'}
+                </p>
+              </div>
             </div>
           </RevealOnScroll>
         </section>
@@ -322,7 +349,11 @@ export function PricingPage() {
 
         {/* Final CTA */}
         <section className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <div className="rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white p-10 md:p-16 text-center hover:shadow-2xl transition-shadow duration-300">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white p-10 md:p-16 text-center hover:shadow-2xl transition-shadow duration-300">
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-0 left-1/3 w-[400px] h-[400px] bg-brand-500/[0.06] rounded-full blur-[100px]" />
+              <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] bg-emerald-500/[0.04] rounded-full blur-[80px]" />
+            </div>
             <h2 className="text-2xl md:text-3xl font-bold mb-3">
               {isEN ? 'Not sure which product fits?' : 'Nie wiesz który produkt Ci pasuje?'}
             </h2>

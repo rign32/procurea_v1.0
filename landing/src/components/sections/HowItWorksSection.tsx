@@ -45,7 +45,7 @@ const cardVariants = {
     scale: 1,
     transition: {
       duration: 0.6,
-      delay: i * 0.15,
+      delay: i * 0.2,
       ease: [0.21, 0.47, 0.32, 0.98] as const,
     },
   }),
@@ -57,7 +57,7 @@ const lineVariants = {
     scaleX: 1,
     transition: {
       duration: 0.8,
-      delay: 0.3 + i * 0.15,
+      delay: 0.3 + i * 0.2,
       ease: [0.21, 0.47, 0.32, 0.98] as const,
     },
   }),
@@ -69,7 +69,7 @@ const lineVerticalVariants = {
     scaleY: 1,
     transition: {
       duration: 0.8,
-      delay: 0.3 + i * 0.15,
+      delay: 0.3 + i * 0.2,
       ease: [0.21, 0.47, 0.32, 0.98] as const,
     },
   }),

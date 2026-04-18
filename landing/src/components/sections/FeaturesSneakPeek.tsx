@@ -178,7 +178,7 @@ export function FeaturesSneakPeek() {
                         key={bi}
                         initial={{ opacity: 0, x: 8 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.1 + bi * 0.07 }}
+                        transition={{ delay: 0.12 + bi * 0.09 }}
                         className="flex items-start gap-2.5"
                       >
                         <span

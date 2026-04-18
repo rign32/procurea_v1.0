@@ -126,7 +126,7 @@ export function ContactPage() {
         <main id="main-content" className="pt-32 pb-24">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-10">
-              <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-emerald-100 mb-6 animate-[bounce_0.6s_ease-out]">
+              <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-emerald-100 mb-6 animate-pulse-glow">
                 <CheckCircle2 className="h-8 w-8 text-emerald-600" />
               </div>
               <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
@@ -158,7 +158,7 @@ export function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-mesh-gradient">
       <RouteMeta />
       <Navbar />
       <main id="main-content" className="pt-32 pb-24">
@@ -190,7 +190,8 @@ export function ContactPage() {
             <div className="h-px flex-1 bg-black/[0.06]" />
           </div>
 
-          <form onSubmit={handleSubmit} className="rounded-2xl border border-black/[0.08] bg-white p-6 md:p-8 shadow-sm">
+          <form onSubmit={handleSubmit} className="relative overflow-hidden rounded-2xl border border-black/[0.08] bg-white p-6 md:p-8 shadow-sm">
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brand-400 via-emerald-400 to-teal-400" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <label className="block text-sm font-medium mb-1.5">{isEN ? 'Full name' : 'Imię i nazwisko'} *</label>
