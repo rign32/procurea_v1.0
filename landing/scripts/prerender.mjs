@@ -38,6 +38,7 @@ const ROUTES_PL = [
   '/dla-kogo/gastronomia', '/dla-kogo/ochrona-zdrowia', '/dla-kogo/logistyka', '/dla-kogo/mro-utrzymanie-ruchu',
   '/funkcje/ai-sourcing', '/funkcje/outreach-mailowy', '/funkcje/supplier-portal', '/funkcje/porownywarka-ofert',
   '/porownanie',
+  '/partnerzy',
 ]
 
 const ROUTES_EN = [
@@ -47,6 +48,7 @@ const ROUTES_EN = [
   '/industries/horeca', '/industries/healthcare', '/industries/logistics', '/industries/mro',
   '/features/ai-sourcing', '/features/email-outreach', '/features/supplier-portal', '/features/offer-comparison',
   '/vs-manual-sourcing',
+  '/partners',
 ]
 
 const META = {
@@ -105,6 +107,8 @@ const META = {
   '/compliance': { title: 'Compliance & Data Protection — Procurea', description: 'GDPR compliance, EU data residency, data retention policies, sub-processors, and right to deletion.' },
   '/porownanie': { title: 'Procurea vs Reczny Sourcing — Porownanie', description: 'Porownanie AI procurement automation z tradycyjnym sourcingiem dostawcow. 30 godzin vs 20 minut.' },
   '/vs-manual-sourcing': { title: 'Procurea vs Manual Sourcing — Comparison', description: 'Compare AI procurement automation to traditional supplier sourcing. 30 hours vs 20 minutes.' },
+  '/partnerzy': { title: 'Program partnerski — Procurea', description: 'Zostań partnerem Procurea. Współpracujemy z konsultantami ERP, agencjami procurement i partnerami technologicznymi.' },
+  '/partners': { title: 'Partner Program — Procurea', description: 'Partner with Procurea. We work with ERP consultants, procurement agencies, and technology partners to bring AI sourcing to more teams.' },
 }
 
 // hreflang alternate mapping (PL slug ↔ EN slug)
@@ -130,6 +134,7 @@ const ALT_MAP = {
   '/dla-kogo/logistyka': '/industries/logistics', '/industries/logistics': '/dla-kogo/logistyka',
   '/dla-kogo/mro-utrzymanie-ruchu': '/industries/mro', '/industries/mro': '/dla-kogo/mro-utrzymanie-ruchu',
   '/porownanie': '/vs-manual-sourcing', '/vs-manual-sourcing': '/porownanie',
+  '/partnerzy': '/partners', '/partners': '/partnerzy',
   '/funkcje/ai-sourcing': '/features/ai-sourcing', '/features/ai-sourcing': '/funkcje/ai-sourcing',
   '/funkcje/outreach-mailowy': '/features/email-outreach', '/features/email-outreach': '/funkcje/outreach-mailowy',
   '/funkcje/supplier-portal': '/features/supplier-portal', '/features/supplier-portal': '/funkcje/supplier-portal',

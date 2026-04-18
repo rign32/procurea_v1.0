@@ -265,6 +265,19 @@ export function metaFor(path: string): RouteMeta {
         canonical,
       }
 
+    case '/partnerzy':
+      return {
+        title: 'Program partnerski — Procurea',
+        description: 'Zostań partnerem Procurea. Współpracujemy z konsultantami ERP, agencjami procurement i partnerami technologicznymi.',
+        canonical,
+      }
+    case '/partners':
+      return {
+        title: 'Partner Program — Procurea',
+        description: 'Partner with Procurea. We work with ERP consultants, procurement agencies, and technology partners to bring AI sourcing to more teams.',
+        canonical,
+      }
+
     case '/porownanie':
       return {
         title: 'Procurea vs Reczny Sourcing — Porownanie',
@@ -319,6 +332,8 @@ export const STATIC_ROUTES_PL = [
   '/funkcje/porownywarka-ofert',
   // Comparison
   '/porownanie',
+  // Partners
+  '/partnerzy',
 ]
 
 export const STATIC_ROUTES_EN = [
@@ -351,4 +366,6 @@ export const STATIC_ROUTES_EN = [
   '/features/offer-comparison',
   // Comparison
   '/vs-manual-sourcing',
+  // Partners
+  '/partners',
 ]

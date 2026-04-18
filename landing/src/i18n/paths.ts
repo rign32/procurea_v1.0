@@ -50,6 +50,7 @@ export type PathKey =
   | 'intDynamicsBc'
   | 'intDynamicsFo'
   | 'intSalesforce'
+  | 'partners'
 
 export const pathMappings: Record<PathKey, { pl: string; en: string }> = {
   // Meta
@@ -106,6 +107,7 @@ export const pathMappings: Record<PathKey, { pl: string; en: string }> = {
   intDynamicsBc: { pl: '/integracje/dynamics-365-bc', en: '/integrations/dynamics-365-bc' },
   intDynamicsFo: { pl: '/integracje/dynamics-365-fo', en: '/integrations/dynamics-365-fo' },
   intSalesforce: { pl: '/integracje/salesforce', en: '/integrations/salesforce' },
+  partners: { pl: '/partnerzy', en: '/partners' },
 }
 
 const LANGUAGE = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'

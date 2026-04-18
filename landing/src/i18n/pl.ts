@@ -456,6 +456,8 @@ export const PL = {
       { label: 'Cennik', to: '/cennik' },
       { label: 'O nas', to: '/o-nas' },
       { label: 'Kontakt', to: '/kontakt' },
+      { label: 'Partnerzy', to: '/partnerzy' },
+      { label: 'Status', external: 'https://stats.uptimerobot.com/procurea' },
     ],
     legalLinks: [
       { label: 'Regulamin', to: '/regulamin' },

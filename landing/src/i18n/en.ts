@@ -448,6 +448,8 @@ export const EN: LandingTranslations = {
       { label: 'Pricing', to: '/pricing' },
       { label: 'About', to: '/about' },
       { label: 'Contact', to: '/contact' },
+      { label: 'Partners', to: '/partners' },
+      { label: 'Status', external: 'https://stats.uptimerobot.com/procurea' },
     ],
     legalLinks: [
       { label: 'Terms of Service', to: '/terms' },

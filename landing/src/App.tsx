@@ -51,6 +51,9 @@ const GdprPage = lazy(() => import("@/pages/GdprPage").then(m => ({ default: m.G
 const SecurityPage = lazy(() => import("@/pages/SecurityPage").then(m => ({ default: m.SecurityPage })))
 const CompliancePage = lazy(() => import("@/pages/CompliancePage").then(m => ({ default: m.CompliancePage })))
 const ComparisonPage = lazy(() => import("@/pages/ComparisonPage").then(m => ({ default: m.ComparisonPage })))
+const PartnerPage = lazy(() => import("@/pages/PartnerPage").then(m => ({ default: m.PartnerPage })))
+const BlogIndexPage = lazy(() => import("@/pages/BlogIndexPage").then(m => ({ default: m.BlogIndexPage })))
+const BlogPostPage = lazy(() => import("@/pages/BlogPostPage").then(m => ({ default: m.BlogPostPage })))
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage").then(m => ({ default: m.NotFoundPage })))
 
 const isEN = t.meta.lang === 'en'
@@ -107,6 +110,11 @@ export default function App() {
         <Route path={p('security')} element={<SecurityPage />} />
         <Route path={p('compliance')} element={<CompliancePage />} />
         <Route path={p('comparison')} element={<ComparisonPage />} />
+        <Route path={p('partners')} element={<PartnerPage />} />
+
+        {/* Blog */}
+        <Route path={p('blogIndex')} element={<BlogIndexPage />} />
+        <Route path={`${p('blogIndex')}/:slug`} element={<BlogPostPage />} />
 
         {/* 404 */}
         <Route path="*" element={<NotFoundPage />} />
