@@ -34,7 +34,7 @@ export function TestimonialSection() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/[0.02] blur-[120px] pointer-events-none" />
 
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center relative z-10">
-        <RevealOnScroll>
+        <RevealOnScroll parallax>
           {/* Star rating */}
           <div className="flex items-center justify-center gap-1 text-amber-400 mb-8">
             {[...Array(5)].map((_, i) => (

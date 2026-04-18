@@ -143,7 +143,7 @@ export function BenefitsSection() {
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section header */}
-        <RevealOnScroll>
+        <RevealOnScroll scale>
           <div className="text-center max-w-3xl mx-auto mb-20">
             <p className="text-sm font-semibold text-brand-500 tracking-widest uppercase mb-4">
               {t.benefits.sectionLabel}
