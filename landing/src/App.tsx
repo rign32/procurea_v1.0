@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, lazy, Suspense } from "react"
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { pathMappings } from "@/i18n/paths"
@@ -30,35 +30,28 @@ function AnimatedRoutes({ children }: { children: React.ReactNode }) {
   )
 }
 
-// Home (migrated from inline LandingPage in this file)
+// Home — eagerly loaded (above the fold)
 import { HomePage } from "@/pages/HomePage"
 
-// Meta pages
-import { PricingPage } from "@/pages/PricingPage"
-import { AboutPage } from "@/pages/AboutPage"
-import { ContactPage } from "@/pages/ContactPage"
-
-// Hub pages
-import { FeaturesHubPage } from "@/pages/FeaturesHubPage"
-import { IndustriesHubPage } from "@/pages/IndustriesHubPage"
-import { IntegrationsHubPage } from "@/pages/IntegrationsHubPage"
-
-// Parametrized templates
-import { IndustryPage } from "@/pages/IndustryPage"
-import { FeaturePage } from "@/pages/FeaturePage"
-
-// Legal (PL)
-import { RegulaminPage } from "@/pages/RegulaminPage"
-import { PolitykaPrywatnosciPage } from "@/pages/PolitykaPrywatnosciPage"
-import { RodoPage } from "@/pages/RodoPage"
-
-// Legal (EN)
-import { TermsPage } from "@/pages/TermsPage"
-import { PrivacyPolicyPage } from "@/pages/PrivacyPolicyPage"
-import { GdprPage } from "@/pages/GdprPage"
-
-// 404
-import { NotFoundPage } from "@/pages/NotFoundPage"
+// Lazy-loaded pages (code-split)
+const PricingPage = lazy(() => import("@/pages/PricingPage").then(m => ({ default: m.PricingPage })))
+const AboutPage = lazy(() => import("@/pages/AboutPage").then(m => ({ default: m.AboutPage })))
+const ContactPage = lazy(() => import("@/pages/ContactPage").then(m => ({ default: m.ContactPage })))
+const FeaturesHubPage = lazy(() => import("@/pages/FeaturesHubPage").then(m => ({ default: m.FeaturesHubPage })))
+const IndustriesHubPage = lazy(() => import("@/pages/IndustriesHubPage").then(m => ({ default: m.IndustriesHubPage })))
+const IntegrationsHubPage = lazy(() => import("@/pages/IntegrationsHubPage").then(m => ({ default: m.IntegrationsHubPage })))
+const IndustryPage = lazy(() => import("@/pages/IndustryPage").then(m => ({ default: m.IndustryPage })))
+const FeaturePage = lazy(() => import("@/pages/FeaturePage").then(m => ({ default: m.FeaturePage })))
+const RegulaminPage = lazy(() => import("@/pages/RegulaminPage").then(m => ({ default: m.RegulaminPage })))
+const PolitykaPrywatnosciPage = lazy(() => import("@/pages/PolitykaPrywatnosciPage").then(m => ({ default: m.PolitykaPrywatnosciPage })))
+const RodoPage = lazy(() => import("@/pages/RodoPage").then(m => ({ default: m.RodoPage })))
+const TermsPage = lazy(() => import("@/pages/TermsPage").then(m => ({ default: m.TermsPage })))
+const PrivacyPolicyPage = lazy(() => import("@/pages/PrivacyPolicyPage").then(m => ({ default: m.PrivacyPolicyPage })))
+const GdprPage = lazy(() => import("@/pages/GdprPage").then(m => ({ default: m.GdprPage })))
+const SecurityPage = lazy(() => import("@/pages/SecurityPage").then(m => ({ default: m.SecurityPage })))
+const CompliancePage = lazy(() => import("@/pages/CompliancePage").then(m => ({ default: m.CompliancePage })))
+const ComparisonPage = lazy(() => import("@/pages/ComparisonPage").then(m => ({ default: m.ComparisonPage })))
+const NotFoundPage = lazy(() => import("@/pages/NotFoundPage").then(m => ({ default: m.NotFoundPage })))
 
 const isEN = t.meta.lang === 'en'
 const lang = isEN ? 'en' : 'pl'
@@ -75,6 +68,7 @@ export default function App() {
     <BrowserRouter>
       <ScrollToTop />
       <BackToTop />
+      <Suspense fallback={<div className="min-h-screen" />}>
       <AnimatedRoutes>
       <Routes>
         {/* Home */}
@@ -110,11 +104,15 @@ export default function App() {
             <Route path={p('gdpr')} element={<RodoPage />} />
           </>
         )}
+        <Route path={p('security')} element={<SecurityPage />} />
+        <Route path={p('compliance')} element={<CompliancePage />} />
+        <Route path={p('comparison')} element={<ComparisonPage />} />
 
         {/* 404 */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
       </AnimatedRoutes>
+      </Suspense>
     </BrowserRouter>
   )
 }

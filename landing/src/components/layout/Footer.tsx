@@ -1,6 +1,11 @@
+import { useState, type FormEvent } from "react"
 import { Link } from "react-router-dom"
 import { t } from "@/i18n"
 import { CookieConsent } from "@/lib/cookieconsent"
+
+const API_URL = import.meta.env.VITE_API_URL || '/api'
+const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 type FooterLink = { label: string; to?: string; external?: string }
 
@@ -33,6 +38,45 @@ function FooterLinks({ links }: { links: readonly FooterLink[] }) {
 const isEN = () => t.meta.lang === "en"
 
 export function Footer() {
+  const [nlEmail, setNlEmail] = useState('')
+  const [nlStatus, setNlStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [nlError, setNlError] = useState('')
+
+  async function handleNewsletterSubmit(e: FormEvent) {
+    e.preventDefault()
+    const trimmed = nlEmail.trim()
+    if (!EMAIL_RE.test(trimmed)) {
+      setNlStatus('error')
+      setNlError(isEN() ? 'Please enter a valid email' : 'Podaj prawidłowy adres email')
+      return
+    }
+
+    setNlStatus('loading')
+    setNlError('')
+
+    try {
+      const res = await fetch(`${API_URL}/leads`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'Newsletter subscriber',
+          email: trimmed,
+          company: '',
+          interest: 'newsletter',
+          message: 'Newsletter signup from landing page',
+          source: 'newsletter_footer',
+          language: LANG,
+        }),
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      setNlStatus('success')
+      setNlEmail('')
+    } catch {
+      setNlStatus('error')
+      setNlError(isEN() ? 'Something went wrong. Try again.' : 'Coś poszło nie tak. Spróbuj ponownie.')
+    }
+  }
+
   return (
     <>
       {/* Pre-footer CTA strip — newsletter signup */}
@@ -51,22 +95,38 @@ export function Footer() {
                   : "Trendy, aktualizacje produktu i nowości z branży. Bez spamu."}
               </p>
             </div>
-            <form
-              onSubmit={(e) => e.preventDefault()}
-              className="flex w-full sm:w-auto gap-2"
-            >
-              <input
-                type="email"
-                placeholder={isEN() ? "Your email address" : "Twój adres email"}
-                className="w-full sm:w-72 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors duration-200 focus-glow"
-              />
-              <button
-                type="submit"
-                className="shrink-0 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-500 transition-colors duration-200"
+            {nlStatus === 'success' ? (
+              <p className="text-sm font-medium text-emerald-400">
+                {isEN() ? "Subscribed!" : "Zapisano!"}
+              </p>
+            ) : (
+              <form
+                onSubmit={handleNewsletterSubmit}
+                className="flex flex-col w-full sm:w-auto gap-2"
               >
-                {isEN() ? "Subscribe" : "Subskrybuj"}
-              </button>
-            </form>
+                <div className="flex w-full sm:w-auto gap-2">
+                  <input
+                    type="email"
+                    value={nlEmail}
+                    onChange={(e) => { setNlEmail(e.target.value); if (nlStatus === 'error') setNlStatus('idle') }}
+                    placeholder={isEN() ? "Your email address" : "Twój adres email"}
+                    className="w-full sm:w-72 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors duration-200 focus-glow"
+                  />
+                  <button
+                    type="submit"
+                    disabled={nlStatus === 'loading'}
+                    className="shrink-0 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-500 transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {nlStatus === 'loading'
+                      ? (isEN() ? "Sending…" : "Wysyłanie…")
+                      : (isEN() ? "Subscribe" : "Subskrybuj")}
+                  </button>
+                </div>
+                {nlStatus === 'error' && nlError && (
+                  <p className="text-xs text-red-400">{nlError}</p>
+                )}
+              </form>
+            )}
           </div>
         </div>
       </section>

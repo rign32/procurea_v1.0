@@ -461,6 +461,8 @@ export const PL = {
       { label: 'Regulamin', to: '/regulamin' },
       { label: 'Polityka prywatności', to: '/polityka-prywatnosci' },
       { label: 'RODO', to: '/rodo' },
+      { label: 'Bezpieczeństwo', to: '/bezpieczenstwo' },
+      { label: 'Zgodność', to: '/zgodnosc' },
     ],
     cookieSettings: 'Ustawienia cookies',
     copyright: 'Procurea sp. z o.o. Wszelkie prawa zastrzeżone.',

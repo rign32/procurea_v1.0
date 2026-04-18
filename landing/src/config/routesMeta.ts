@@ -29,6 +29,15 @@ export function metaFor(path: string): RouteMeta {
         title: 'Procurea — AI-powered procurement automation',
         description: 'AI Sourcing + Procurement automation for global teams. Find verified suppliers in minutes. Integrates with SAP, Oracle, Dynamics, Salesforce.',
         canonical,
+        jsonLd: {
+          '@context': 'https://schema.org',
+          '@type': 'Organization',
+          name: 'Procurea',
+          url: S,
+          description: 'AI-powered procurement automation platform',
+          foundingDate: '2025',
+          founder: { '@type': 'Person', name: 'Rafał Reiwer' },
+        },
       }
 
     case '/cennik':
@@ -37,6 +46,18 @@ export function metaFor(path: string): RouteMeta {
         title: 'Pricing — Procurea',
         description: 'AI Sourcing from $89 / 10 credits. Bundle (Sourcing + Procurement) from $399 / 10 credits. Enterprise Custom from $25k/year. Pay-as-you-go, no subscription.',
         canonical,
+        jsonLd: {
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: 'Procurea',
+          description: 'AI procurement automation platform',
+          offers: {
+            '@type': 'AggregateOffer',
+            priceCurrency: 'USD',
+            lowPrice: '89',
+            offerCount: '4',
+          },
+        },
       }
 
     case '/o-nas':
@@ -219,6 +240,44 @@ export function metaFor(path: string): RouteMeta {
         canonical,
       }
 
+    case '/bezpieczenstwo':
+      return {
+        title: 'Bezpieczenstwo — Procurea',
+        description: 'Infrastruktura Google Cloud, szyfrowanie AES-256, OAuth 2.0, izolacja danych i monitoring 24/7.',
+        canonical,
+      }
+    case '/security':
+      return {
+        title: 'Security — Procurea',
+        description: 'Google Cloud infrastructure, AES-256 encryption, OAuth 2.0 authentication, data isolation, and 24/7 monitoring.',
+        canonical,
+      }
+    case '/zgodnosc':
+      return {
+        title: 'Zgodnosc i ochrona danych — Procurea',
+        description: 'Zgodnosc z RODO, rezydencja danych w UE, retencja danych, podprocesory i prawo do usuniecia danych.',
+        canonical,
+      }
+    case '/compliance':
+      return {
+        title: 'Compliance & Data Protection — Procurea',
+        description: 'GDPR compliance, EU data residency, data retention policies, sub-processors, and right to deletion.',
+        canonical,
+      }
+
+    case '/porownanie':
+      return {
+        title: 'Procurea vs Reczny Sourcing — Porownanie',
+        description: 'Porownanie AI procurement automation z tradycyjnym sourcingiem dostawcow. 30 godzin vs 20 minut. 5-15 vs 50-250 dostawcow.',
+        canonical,
+      }
+    case '/vs-manual-sourcing':
+      return {
+        title: 'Procurea vs Manual Sourcing — Comparison',
+        description: 'Compare AI procurement automation to traditional supplier sourcing. 30 hours vs 20 minutes. 5-15 vs 50-250 suppliers found.',
+        canonical,
+      }
+
     default:
       return {
         title: 'Procurea',
@@ -241,6 +300,8 @@ export const STATIC_ROUTES_PL = [
   '/regulamin',
   '/polityka-prywatnosci',
   '/rodo',
+  '/bezpieczenstwo',
+  '/zgodnosc',
   // MVP P0 industries
   '/dla-kogo/produkcja',
   '/dla-kogo/eventy',
@@ -256,6 +317,8 @@ export const STATIC_ROUTES_PL = [
   '/funkcje/outreach-mailowy',
   '/funkcje/supplier-portal',
   '/funkcje/porownywarka-ofert',
+  // Comparison
+  '/porownanie',
 ]
 
 export const STATIC_ROUTES_EN = [
@@ -269,6 +332,8 @@ export const STATIC_ROUTES_EN = [
   '/terms',
   '/privacy',
   '/gdpr',
+  '/security',
+  '/compliance',
   // MVP P0 industries
   '/industries/manufacturing',
   '/industries/events',
@@ -284,4 +349,6 @@ export const STATIC_ROUTES_EN = [
   '/features/email-outreach',
   '/features/supplier-portal',
   '/features/offer-comparison',
+  // Comparison
+  '/vs-manual-sourcing',
 ]

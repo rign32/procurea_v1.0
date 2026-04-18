@@ -37,7 +37,9 @@ export function RouteMeta({ override }: Props = {}) {
       <meta name="twitter:description" content={meta.description} />
       {meta.ogImage && <meta name="twitter:image" content={meta.ogImage} />}
 
-      {meta.noindex && <meta name="robots" content="noindex, nofollow" />}
+      {(meta.noindex || import.meta.env.VITE_IS_STAGING === 'true') && (
+        <meta name="robots" content="noindex, nofollow" />
+      )}
 
       {meta.jsonLd && (
         <script

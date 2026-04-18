@@ -4,12 +4,15 @@
 export type PathKey =
   // Meta
   | 'home'
+  | 'comparison'
   | 'pricing'
   | 'about'
   | 'contact'
   | 'terms'
   | 'privacy'
   | 'gdpr'
+  | 'security'
+  | 'compliance'
   // Hubs
   | 'featuresHub'
   | 'industriesHub'
@@ -57,6 +60,9 @@ export const pathMappings: Record<PathKey, { pl: string; en: string }> = {
   terms: { pl: '/regulamin', en: '/terms' },
   privacy: { pl: '/polityka-prywatnosci', en: '/privacy' },
   gdpr: { pl: '/rodo', en: '/gdpr' },
+  security: { pl: '/bezpieczenstwo', en: '/security' },
+  compliance: { pl: '/zgodnosc', en: '/compliance' },
+  comparison: { pl: '/porownanie', en: '/vs-manual-sourcing' },
 
   // Hubs
   featuresHub: { pl: '/funkcje', en: '/features' },

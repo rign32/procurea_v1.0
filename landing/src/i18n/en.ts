@@ -453,6 +453,8 @@ export const EN: LandingTranslations = {
       { label: 'Terms of Service', to: '/terms' },
       { label: 'Privacy Policy', to: '/privacy' },
       { label: 'GDPR', to: '/gdpr' },
+      { label: 'Security', to: '/security' },
+      { label: 'Compliance', to: '/compliance' },
     ],
     cookieSettings: 'Cookie Settings',
     copyright: 'Procurea sp. z o.o. All rights reserved.',

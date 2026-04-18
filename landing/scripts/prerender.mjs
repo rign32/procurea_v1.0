@@ -33,18 +33,20 @@ const LANG = isEN ? 'en' : 'pl'
 // Keep in sync when adding routes.
 const ROUTES_PL = [
   '/', '/cennik', '/o-nas', '/kontakt', '/funkcje', '/dla-kogo', '/integracje',
-  '/regulamin', '/polityka-prywatnosci', '/rodo',
+  '/regulamin', '/polityka-prywatnosci', '/rodo', '/bezpieczenstwo', '/zgodnosc',
   '/dla-kogo/produkcja', '/dla-kogo/eventy', '/dla-kogo/budownictwo', '/dla-kogo/retail-ecommerce',
   '/dla-kogo/gastronomia', '/dla-kogo/ochrona-zdrowia', '/dla-kogo/logistyka', '/dla-kogo/mro-utrzymanie-ruchu',
   '/funkcje/ai-sourcing', '/funkcje/outreach-mailowy', '/funkcje/supplier-portal', '/funkcje/porownywarka-ofert',
+  '/porownanie',
 ]
 
 const ROUTES_EN = [
   '/', '/pricing', '/about', '/contact', '/features', '/industries', '/integrations',
-  '/terms', '/privacy', '/gdpr',
+  '/terms', '/privacy', '/gdpr', '/security', '/compliance',
   '/industries/manufacturing', '/industries/events', '/industries/construction', '/industries/retail-ecommerce',
   '/industries/horeca', '/industries/healthcare', '/industries/logistics', '/industries/mro',
   '/features/ai-sourcing', '/features/email-outreach', '/features/supplier-portal', '/features/offer-comparison',
+  '/vs-manual-sourcing',
 ]
 
 const META = {
@@ -97,6 +99,12 @@ const META = {
   '/privacy': { title: 'Privacy Policy — Procurea', description: 'Procurea privacy policy.' },
   '/rodo': { title: 'RODO — Procurea', description: 'Informacje o przetwarzaniu danych osobowych zgodnie z RODO.' },
   '/gdpr': { title: 'GDPR — Procurea', description: 'GDPR compliance information.' },
+  '/bezpieczenstwo': { title: 'Bezpieczenstwo — Procurea', description: 'Infrastruktura Google Cloud, szyfrowanie AES-256, OAuth 2.0, izolacja danych i monitoring 24/7.' },
+  '/security': { title: 'Security — Procurea', description: 'Google Cloud infrastructure, AES-256 encryption, OAuth 2.0 authentication, data isolation, and 24/7 monitoring.' },
+  '/zgodnosc': { title: 'Zgodnosc i ochrona danych — Procurea', description: 'Zgodnosc z RODO, rezydencja danych w UE, retencja danych, podprocesory i prawo do usuniecia danych.' },
+  '/compliance': { title: 'Compliance & Data Protection — Procurea', description: 'GDPR compliance, EU data residency, data retention policies, sub-processors, and right to deletion.' },
+  '/porownanie': { title: 'Procurea vs Reczny Sourcing — Porownanie', description: 'Porownanie AI procurement automation z tradycyjnym sourcingiem dostawcow. 30 godzin vs 20 minut.' },
+  '/vs-manual-sourcing': { title: 'Procurea vs Manual Sourcing — Comparison', description: 'Compare AI procurement automation to traditional supplier sourcing. 30 hours vs 20 minutes.' },
 }
 
 // hreflang alternate mapping (PL slug ↔ EN slug)
@@ -111,6 +119,8 @@ const ALT_MAP = {
   '/regulamin': '/terms', '/terms': '/regulamin',
   '/polityka-prywatnosci': '/privacy', '/privacy': '/polityka-prywatnosci',
   '/rodo': '/gdpr', '/gdpr': '/rodo',
+  '/bezpieczenstwo': '/security', '/security': '/bezpieczenstwo',
+  '/zgodnosc': '/compliance', '/compliance': '/zgodnosc',
   '/dla-kogo/produkcja': '/industries/manufacturing', '/industries/manufacturing': '/dla-kogo/produkcja',
   '/dla-kogo/eventy': '/industries/events', '/industries/events': '/dla-kogo/eventy',
   '/dla-kogo/budownictwo': '/industries/construction', '/industries/construction': '/dla-kogo/budownictwo',
@@ -119,6 +129,7 @@ const ALT_MAP = {
   '/dla-kogo/ochrona-zdrowia': '/industries/healthcare', '/industries/healthcare': '/dla-kogo/ochrona-zdrowia',
   '/dla-kogo/logistyka': '/industries/logistics', '/industries/logistics': '/dla-kogo/logistyka',
   '/dla-kogo/mro-utrzymanie-ruchu': '/industries/mro', '/industries/mro': '/dla-kogo/mro-utrzymanie-ruchu',
+  '/porownanie': '/vs-manual-sourcing', '/vs-manual-sourcing': '/porownanie',
   '/funkcje/ai-sourcing': '/features/ai-sourcing', '/features/ai-sourcing': '/funkcje/ai-sourcing',
   '/funkcje/outreach-mailowy': '/features/email-outreach', '/features/email-outreach': '/funkcje/outreach-mailowy',
   '/funkcje/supplier-portal': '/features/supplier-portal', '/features/supplier-portal': '/funkcje/supplier-portal',
@@ -209,6 +220,41 @@ function main() {
   }
 
   console.log(`[prerender] generated ${count} HTML files in ${DIST} (lang=${LANG})`)
+
+  // --- Sitemap generation (production only, overwritten for staging below) ---
+  {
+    const LASTMOD = '2026-04-18'
+
+    // Priority / changefreq rules
+    function getSitemapMeta(route) {
+      if (route === '/') return { priority: '1.0', changefreq: 'weekly' }
+
+      // Hub pages
+      const hubPages = ['/pricing', '/cennik', '/features', '/funkcje', '/industries', '/dla-kogo']
+      if (hubPages.includes(route)) return { priority: '0.8', changefreq: 'weekly' }
+
+      // Secondary pages
+      const secondaryPages = ['/integrations', '/integracje', '/about', '/o-nas', '/contact', '/kontakt']
+      if (secondaryPages.includes(route)) return { priority: '0.7', changefreq: 'monthly' }
+
+      // Legal
+      const legalPages = ['/terms', '/regulamin', '/privacy', '/polityka-prywatnosci', '/gdpr', '/rodo', '/security', '/bezpieczenstwo', '/compliance', '/zgodnosc']
+      if (legalPages.includes(route)) return { priority: '0.3', changefreq: 'yearly' }
+
+      // Individual feature / industry pages (everything else)
+      return { priority: '0.6', changefreq: 'monthly' }
+    }
+
+    const urls = routes.map(route => {
+      const { priority, changefreq } = getSitemapMeta(route)
+      const loc = `${SITE}${route === '/' ? '/' : route}`
+      return `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${LASTMOD}</lastmod>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`
+    }).join('\n')
+
+    const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`
+    writeFileSync(join(DIST, 'sitemap.xml'), sitemapXml, 'utf8')
+    console.log(`[prerender] sitemap.xml generated with ${routes.length} URLs`)
+  }
 
   // Staging: replace robots.txt and sitemap.xml with noindex versions.
   // Search engines should never see staging content.
