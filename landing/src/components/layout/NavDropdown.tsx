@@ -138,7 +138,7 @@ export function NavDropdown({ label, sections, columns = 2 }: NavDropdownProps) 
               panelWidth
             )}
           >
-            <div className="rounded-2xl bg-white/80 backdrop-blur-xl shadow-[0_16px_70px_-12px_rgba(0,0,0,0.12)] border border-black/[0.06] overflow-hidden ring-1 ring-black/[0.03]">
+            <div className="rounded-2xl bg-white shadow-[0_20px_60px_-12px_rgba(15,23,42,0.18),0_8px_20px_-8px_rgba(15,23,42,0.12)] border border-slate-200/80 overflow-hidden ring-1 ring-slate-900/[0.03]">
               <div className={cn("grid gap-0", colsClass)}>
                 {sections.map((section, idx) => (
                   <div

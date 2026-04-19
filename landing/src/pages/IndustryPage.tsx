@@ -12,6 +12,7 @@ import { trackCtaClick } from "@/lib/analytics"
 import { pathFor, pathMappings, type PathKey } from "@/i18n/paths"
 import { getIndustry, resolveSlug } from "@/content/industries"
 import { getFeature } from "@/content/features"
+import { ConstructionIndustryPage } from "@/pages/industries/ConstructionIndustryPage"
 
 const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
@@ -76,6 +77,12 @@ function getIndustryLink(slug: string): { to: string; label: string } | null {
 export function IndustryPage() {
   const { slug = '' } = useParams<{ slug: string }>()
   const resolvedSlug = resolveSlug(slug)
+
+  // Dispatch to bespoke industry pages (unique layout, infographics, content)
+  if (resolvedSlug === 'budownictwo') {
+    return <ConstructionIndustryPage />
+  }
+
   const industry = getIndustry(resolvedSlug)
 
   if (!industry) {
