@@ -1,0 +1,1902 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Procurea — AI supplier sourcing for SMBs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<script>
+  // Tweakable defaults — persisted via host
+  window.TWEAKS = /*EDITMODE-BEGIN*/{
+    "accent": "navy",
+    "hero": "split",
+    "typography": "manrope"
+  }/*EDITMODE-END*/;
+</script>
+
+<style>
+  /* ─────────────────────────────────────────────
+     Design System — Procurea (SMB procurement)
+     Light, practical SaaS. No agentic-AI buzzwords.
+     Accent palettes toggleable via Tweaks.
+  ───────────────────────────────────────────── */
+  :root {
+    /* Neutrals — warm-cool gray, slightly off-white */
+    --bg:          #fafaf7;
+    --bg-2:        #f3f3ee;
+    --bg-3:        #ebebe4;
+    --surface:     #ffffff;
+    --ink:         #0e1614;
+    --ink-2:       #2a3330;
+    --ink-3:       #4a5551;
+    --muted:       #6b7672;
+    --muted-2:     #98a19c;
+    --rule:        #e4e4dc;
+    --rule-2:      #d6d6cc;
+
+    /* Accent: Evergreen (default, like procurea.io) */
+    --accent:      #0f4d3f;
+    --accent-2:    #1b6b57;
+    --accent-soft: #e3efea;
+    --accent-ink:  #ffffff;
+    --cta:         #f4c842;    /* procurea-yellow */
+    --cta-ink:     #0e1614;
+    --cta-hover:   #e6b82e;
+
+    /* Signals */
+    --good:        #2f7a4f;
+    --warn:        #c97b1a;
+    --bad:         #b94a3a;
+
+    /* Type */
+    --sans: 'Manrope', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+    --edge: clamp(20px, 4vw, 72px);
+    --maxw: 1240px;
+    --radius: 14px;
+    --radius-sm: 8px;
+    --radius-lg: 22px;
+    --shadow-sm: 0 1px 2px rgba(14,22,20,0.04), 0 2px 6px rgba(14,22,20,0.03);
+    --shadow-md: 0 4px 12px rgba(14,22,20,0.06), 0 12px 32px rgba(14,22,20,0.05);
+    --shadow-lg: 0 8px 28px rgba(14,22,20,0.08), 0 28px 70px rgba(14,22,20,0.08);
+  }
+
+  /* Alt accent: Navy */
+  :root[data-accent="navy"] {
+    --accent:      #162a52;
+    --accent-2:    #27417a;
+    --accent-soft: #e7ecf5;
+    --cta:         #f4c842;
+  }
+  /* Alt accent: Warm Orange */
+  :root[data-accent="orange"] {
+    --accent:      #b84a18;
+    --accent-2:    #d45a22;
+    --accent-soft: #fbece2;
+    --cta:         #0e1614;
+    --cta-ink:     #ffffff;
+    --cta-hover:   #2a3330;
+  }
+
+  /* Typography alt: Geist-like (use system grotesque + mono) */
+  :root[data-type="inter"] {
+    --sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  }
+  :root[data-type="grotesk"] {
+    --sans: 'Space Grotesk', 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body { overflow-x: hidden; }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
+  img { max-width: 100%; display: block; }
+  ::selection { background: var(--accent); color: #fff; }
+
+  .mono { font-family: var(--mono); font-feature-settings: "ss01"; }
+  .num  { font-family: var(--mono); font-variant-numeric: tabular-nums; font-weight: 500; }
+
+  /* ─────────── Nav ─────────── */
+  .nav {
+    position: sticky; top: 0; z-index: 80;
+    background: rgba(250,250,247,0.85);
+    backdrop-filter: saturate(1.4) blur(10px);
+    -webkit-backdrop-filter: saturate(1.4) blur(10px);
+    border-bottom: 1px solid var(--rule);
+  }
+  .nav-inner {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 12px var(--edge);
+    display: flex; align-items: center; gap: 32px;
+  }
+  .brand {
+    display: inline-flex; align-items: center; gap: 9px;
+    font-weight: 700; font-size: 17px;
+    letter-spacing: -0.01em;
+  }
+  .brand-mark {
+    width: 24px; height: 24px;
+    border-radius: 7px;
+    background: var(--accent);
+    color: #fff;
+    display: grid; place-items: center;
+    font-family: var(--mono);
+    font-weight: 600; font-size: 13px;
+  }
+  .brand-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 6px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .nav-links {
+    display: flex; gap: 4px;
+    margin-left: 12px;
+  }
+  .nav-link {
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--ink-2);
+    transition: background 0.15s, color 0.15s;
+  }
+  .nav-link:hover { background: var(--bg-2); }
+  .nav-link.active { background: var(--bg-2); color: var(--ink); font-weight: 600; }
+  .nav-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .nav-ghost {
+    font-size: 14px; color: var(--ink-2);
+    padding: 8px 12px; border-radius: 8px;
+  }
+  .nav-ghost:hover { background: var(--bg-2); }
+
+  /* ─────────── Buttons ─────────── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 18px;
+    border-radius: 10px;
+    font-size: 14.5px; font-weight: 600;
+    letter-spacing: -0.005em;
+    transition: transform 0.1s, background 0.15s, box-shadow 0.15s;
+    white-space: nowrap;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary {
+    background: var(--cta); color: var(--cta-ink);
+    box-shadow: 0 1px 0 rgba(14,22,20,0.08), inset 0 -2px 0 rgba(14,22,20,0.08);
+  }
+  .btn-primary:hover { background: var(--cta-hover); }
+  .btn-secondary {
+    background: var(--accent); color: var(--accent-ink);
+  }
+  .btn-secondary:hover { background: var(--accent-2); }
+  .btn-ghost {
+    background: var(--surface); color: var(--ink);
+    border: 1px solid var(--rule-2);
+  }
+  .btn-ghost:hover { border-color: var(--ink-3); }
+  .btn-sm { padding: 7px 12px; font-size: 13px; border-radius: 8px; }
+  .btn .arrow { display: inline-block; transition: transform 0.15s; }
+  .btn:hover .arrow { transform: translateX(3px); }
+
+  /* ─────────── Common blocks ─────────── */
+  .section {
+    padding: clamp(56px, 8vw, 112px) var(--edge);
+  }
+  .wrap { max-width: var(--maxw); margin: 0 auto; }
+
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 11px; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--accent);
+    padding: 5px 10px;
+    background: var(--accent-soft);
+    border-radius: 999px;
+  }
+  .eyebrow .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  h1, h2, h3 { margin: 0; letter-spacing: -0.025em; text-wrap: balance; }
+  h1 {
+    font-size: clamp(36px, 5.2vw, 64px);
+    line-height: 1.04;
+    font-weight: 700;
+  }
+  h2 {
+    font-size: clamp(28px, 3.4vw, 42px);
+    line-height: 1.1;
+    font-weight: 700;
+  }
+  h3 {
+    font-size: 19px; line-height: 1.3; font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+  p { margin: 0; color: var(--ink-2); text-wrap: pretty; }
+  .lede { font-size: 18px; line-height: 1.55; color: var(--ink-3); max-width: 58ch; }
+  .muted { color: var(--muted); }
+
+  /* Section header */
+  .section-head {
+    text-align: center;
+    margin-bottom: clamp(36px, 5vw, 64px);
+    display: grid;
+    gap: 14px;
+    justify-items: center;
+  }
+  .section-head p { max-width: 58ch; }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+
+  /* Pills */
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    font-family: var(--mono);
+    font-size: 11px; font-weight: 500;
+    letter-spacing: 0.02em;
+    border-radius: 999px;
+    background: var(--bg-2);
+    color: var(--ink-2);
+    border: 1px solid var(--rule);
+  }
+  .chip-good { background: #e6f2ec; color: var(--good); border-color: #c9e3d4; }
+  .chip-warn { background: #fbeed9; color: var(--warn); border-color: #ecd6ae; }
+
+  /* Page routing */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ─────────── HERO (variants) ─────────── */
+  .hero {
+    padding: clamp(48px, 7vw, 96px) var(--edge) clamp(40px, 5vw, 72px);
+    border-bottom: 1px solid var(--rule);
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, var(--accent-soft) 0%, transparent 60%),
+      var(--bg);
+  }
+  .hero-inner { max-width: var(--maxw); margin: 0 auto; }
+
+  /* split */
+  .hero.split .hero-inner {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: clamp(32px, 5vw, 72px);
+    align-items: center;
+  }
+  .hero-copy .eyebrow { margin-bottom: 20px; }
+  .hero-copy h1 { margin-bottom: 18px; }
+  .hero-copy .lede { margin-bottom: 28px; max-width: 46ch; }
+  .hero-cta-row {
+    display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+    margin-bottom: 24px;
+  }
+  .hero-mini {
+    display: flex; gap: 22px; flex-wrap: wrap;
+    font-size: 13px; color: var(--muted);
+  }
+  .hero-mini .dot { color: var(--accent); margin-right: 6px; }
+
+  /* centered */
+  .hero.centered .hero-inner {
+    text-align: center;
+    max-width: 920px;
+  }
+  .hero.centered .hero-copy .lede,
+  .hero.centered .hero-copy h1 {
+    margin-left: auto; margin-right: auto;
+  }
+  .hero.centered .hero-cta-row { justify-content: center; }
+  .hero.centered .hero-mini { justify-content: center; }
+  .hero.centered .product-shot { margin-top: 56px; }
+
+  /* animated */
+  .hero.animated .hero-inner {
+    display: grid; grid-template-columns: 1.05fr 1fr;
+    gap: clamp(32px, 5vw, 72px); align-items: center;
+  }
+  @media (max-width: 880px) {
+    .hero.split .hero-inner,
+    .hero.animated .hero-inner { grid-template-columns: 1fr; }
+    .product-shot { margin-top: 8px; }
+  }
+
+  /* Product shot (mocked UI) */
+  .product-shot {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+  }
+  .ps-chrome {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--bg-2);
+  }
+  .ps-dots { display: flex; gap: 6px; }
+  .ps-dots span { width: 10px; height: 10px; border-radius: 50%; background: var(--rule-2); }
+  .ps-tab {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--muted);
+    padding: 3px 9px; border-radius: 5px;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+  }
+  .ps-body { padding: 18px; }
+
+  /* Sourcing widget (reused across pages) */
+  .sourcer {
+    display: grid; gap: 14px;
+  }
+  .sourcer-row {
+    display: grid; grid-template-columns: 130px 1fr; gap: 14px; align-items: center;
+  }
+  .sourcer-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .sourcer-input {
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 13px;
+    color: var(--ink);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .sourcer-input .chip { margin-left: auto; }
+  .sourcer-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 999px;
+    font-weight: 500;
+  }
+  .tag .x { opacity: 0.5; cursor: pointer; }
+  .sourcer-cta {
+    display: flex; justify-content: flex-end; gap: 8px;
+    margin-top: 4px;
+  }
+
+  /* Results table */
+  .results-box {
+    margin-top: 18px;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .results-head, .results-row {
+    display: grid;
+    grid-template-columns: 1.4fr 0.9fr 0.7fr 0.6fr 0.7fr;
+    gap: 14px;
+    align-items: center;
+    padding: 11px 14px;
+    font-size: 12.5px;
+  }
+  .results-head {
+    background: var(--bg-2);
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .results-row { border-top: 1px solid var(--rule); }
+  .results-row:first-of-type { border-top: 0; }
+  .supplier { display: flex; align-items: center; gap: 10px; }
+  .supplier-logo {
+    width: 26px; height: 26px; border-radius: 6px;
+    background: var(--bg-2);
+    display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 600; font-size: 11px;
+    color: var(--ink-2);
+    border: 1px solid var(--rule);
+  }
+  .supplier-name { font-weight: 600; font-size: 13px; }
+  .supplier-meta { font-size: 11px; color: var(--muted); }
+  .score-bar {
+    height: 6px; background: var(--bg-2); border-radius: 999px;
+    position: relative; overflow: hidden;
+  }
+  .score-bar i {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    background: var(--accent);
+    border-radius: 999px;
+  }
+
+  /* Trust bar */
+  .trust {
+    padding: 28px var(--edge);
+    border-bottom: 1px solid var(--rule);
+    background: var(--bg);
+  }
+  .trust-inner {
+    max-width: var(--maxw); margin: 0 auto;
+    display: flex; align-items: center; gap: 40px; flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  .trust-label {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.12em;
+  }
+  .trust-logos {
+    display: flex; gap: 36px; flex-wrap: wrap;
+    align-items: center;
+  }
+  .trust-logo {
+    font-weight: 700; font-size: 16px;
+    color: var(--muted-2);
+    letter-spacing: -0.01em;
+    opacity: 0.8;
+  }
+
+  /* ───── Before/After ───── */
+  .ba-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .ba-col { padding: 28px; }
+  .ba-col.before {
+    background: var(--bg-2);
+    border-right: 1px solid var(--rule);
+  }
+  .ba-col.after { background: var(--surface); }
+  .ba-h {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 16px;
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .ba-h.before { color: var(--muted); }
+  .ba-h.after { color: var(--accent); }
+  .ba-h strong { font-weight: 600; }
+  .ba-col h3 {
+    font-size: 22px; margin-bottom: 10px;
+    letter-spacing: -0.02em;
+  }
+  .ba-col .t-line {
+    display: flex; align-items: baseline; gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--rule);
+    font-size: 14px;
+  }
+  .ba-col .t-line:last-child { border-bottom: 0; }
+  .ba-col .t-time {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--muted); width: 72px; flex: none;
+  }
+  @media (max-width: 780px) {
+    .ba-grid { grid-template-columns: 1fr; }
+    .ba-col.before { border-right: 0; border-bottom: 1px solid var(--rule); }
+  }
+
+  /* ───── Stats strip ───── */
+  .stats {
+    background: var(--ink);
+    color: #fff;
+    border-radius: var(--radius-lg);
+    padding: 40px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 28px;
+  }
+  .stat .value {
+    font-family: var(--mono);
+    font-size: clamp(32px, 4vw, 44px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--cta);
+  }
+  .stats[data-accent="orange"] .value { color: #ffb47a; }
+  .stat .label {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.65);
+    max-width: 22ch;
+  }
+  @media (max-width: 780px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+
+  /* ───── Feature grid ───── */
+  .feat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 880px) { .feat-grid { grid-template-columns: 1fr; } }
+  .feat {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 22px;
+    display: flex; flex-direction: column;
+    gap: 10px;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  .feat:hover { border-color: var(--ink-3); }
+  .feat-num {
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 600; font-size: 13px;
+  }
+  .feat h3 { margin-top: 4px; }
+  .feat p { font-size: 14.5px; }
+  .feat-meta {
+    margin-top: auto;
+    padding-top: 14px;
+    display: flex; gap: 8px;
+    border-top: 1px dashed var(--rule);
+    font-family: var(--mono); font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* ───── How it works ───── */
+  .steps {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .step {
+    padding: 28px;
+    border-right: 1px solid var(--rule);
+    position: relative;
+  }
+  .step:last-child { border-right: 0; }
+  .step-num {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--accent); letter-spacing: 0.1em;
+    margin-bottom: 14px;
+  }
+  .step h3 { margin-bottom: 8px; }
+  .step p { font-size: 13.5px; }
+  @media (max-width: 880px) {
+    .steps { grid-template-columns: 1fr 1fr; }
+    .step:nth-child(2) { border-right: 0; }
+    .step:nth-child(1), .step:nth-child(2) { border-bottom: 1px solid var(--rule); }
+  }
+  @media (max-width: 560px) {
+    .steps { grid-template-columns: 1fr; }
+    .step { border-right: 0; border-bottom: 1px solid var(--rule); }
+    .step:last-child { border-bottom: 0; }
+  }
+
+  /* ───── Pricing ───── */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  @media (max-width: 880px) { .pricing-grid { grid-template-columns: 1fr; } }
+  .plan {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 28px;
+    display: flex; flex-direction: column;
+    gap: 16px;
+  }
+  .plan.featured {
+    border: 1.5px solid var(--accent);
+    box-shadow: var(--shadow-md);
+    position: relative;
+  }
+  .plan.featured::before {
+    content: "Most popular";
+    position: absolute;
+    top: -11px; left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--mono); font-size: 10.5px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    background: var(--accent); color: #fff;
+    padding: 4px 10px; border-radius: 999px;
+    font-weight: 500;
+  }
+  .plan h3 { font-size: 16px; color: var(--ink); }
+  .plan .price {
+    display: flex; align-items: baseline; gap: 6px;
+  }
+  .plan .price .v {
+    font-family: var(--mono); font-size: 40px; font-weight: 600;
+    color: var(--ink); letter-spacing: -0.02em;
+  }
+  .plan .price .u { font-size: 13px; color: var(--muted); }
+  .plan ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .plan li {
+    font-size: 13.5px; color: var(--ink-2);
+    display: flex; align-items: start; gap: 9px;
+  }
+  .plan li::before {
+    content: "";
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--accent-soft);
+    flex: none;
+    margin-top: 3px;
+    background-image: radial-gradient(circle, var(--accent) 0 28%, transparent 30%);
+  }
+
+  /* FAQ */
+  .faq { max-width: 760px; margin: 0 auto; display: grid; gap: 8px; }
+  .faq details {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 14px 18px;
+    transition: border-color 0.15s;
+  }
+  .faq details[open] { border-color: var(--ink-3); }
+  .faq summary {
+    cursor: pointer; font-weight: 600;
+    list-style: none;
+    display: flex; justify-content: space-between; gap: 16px;
+    font-size: 15px;
+  }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after {
+    content: "+"; font-family: var(--mono);
+    font-weight: 400; font-size: 20px;
+    color: var(--muted);
+    transition: transform 0.2s;
+  }
+  .faq details[open] summary::after { content: "−"; }
+  .faq details p { margin-top: 10px; font-size: 14px; line-height: 1.6; }
+
+  /* CTA block */
+  .cta-block {
+    background: var(--ink);
+    color: #fff;
+    border-radius: var(--radius-lg);
+    padding: clamp(32px, 5vw, 56px);
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 32px; align-items: center;
+  }
+  @media (max-width: 780px) { .cta-block { grid-template-columns: 1fr; } }
+  .cta-block h2 { color: #fff; max-width: 18ch; }
+  .cta-block p { color: rgba(255,255,255,0.7); }
+  .cta-block .row { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--rule);
+    padding: 56px var(--edge) 36px;
+    background: var(--bg);
+  }
+  .footer-inner {
+    max-width: var(--maxw); margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.4fr repeat(4, 1fr);
+    gap: 32px;
+  }
+  @media (max-width: 880px) { .footer-inner { grid-template-columns: 1fr 1fr; } }
+  .footer-col h4 {
+    font-family: var(--mono); font-size: 10.5px; font-weight: 500;
+    color: var(--muted); letter-spacing: 0.12em;
+    text-transform: uppercase; margin: 0 0 14px;
+  }
+  .footer-col a {
+    display: block; padding: 5px 0;
+    font-size: 13.5px; color: var(--ink-2);
+  }
+  .footer-col a:hover { color: var(--accent); }
+  .footer-bottom {
+    max-width: var(--maxw); margin: 40px auto 0;
+    padding-top: 22px;
+    border-top: 1px solid var(--rule);
+    font-size: 12px; color: var(--muted);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  }
+
+  /* Hero animation */
+  .hero-anim-stack { position: relative; height: 480px; }
+  .hero-anim-frame {
+    position: absolute; inset: 0;
+    opacity: 0; transform: translateY(12px);
+    transition: opacity 0.4s, transform 0.4s;
+  }
+  .hero-anim-frame.on { opacity: 1; transform: none; }
+
+  .hero-steps-indicator {
+    display: flex; gap: 8px;
+    margin-top: 18px;
+    justify-content: center;
+  }
+  .hero-steps-indicator i {
+    width: 24px; height: 3px; border-radius: 2px;
+    background: var(--rule-2);
+    transition: background 0.2s, width 0.2s;
+  }
+  .hero-steps-indicator i.on { background: var(--accent); width: 36px; }
+
+  /* Use-case filters */
+  .filters {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 32px;
+  }
+  .filter {
+    padding: 8px 14px; border-radius: 999px;
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    font-size: 13px; font-weight: 500;
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+  .filter.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+  /* Industry hero spec cards */
+  .spec-row {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 28px;
+  }
+  @media (max-width: 780px) { .spec-row { grid-template-columns: repeat(2, 1fr); } }
+  .spec {
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+  }
+  .spec .label {
+    font-family: var(--mono); font-size: 10.5px;
+    color: var(--muted); letter-spacing: 0.1em;
+    text-transform: uppercase; margin-bottom: 6px;
+  }
+  .spec .value { font-family: var(--mono); font-size: 18px; font-weight: 600; color: var(--ink); }
+
+  /* Breakdown table */
+  .bdown {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .bdown-head {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    padding: 14px 20px;
+    background: var(--bg-2);
+    font-family: var(--mono); font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em; text-transform: uppercase;
+    font-weight: 500;
+  }
+  .bdown-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    padding: 14px 20px;
+    border-top: 1px solid var(--rule);
+    align-items: center;
+    font-size: 14px;
+  }
+  .bdown-row.best {
+    background: var(--accent-soft);
+  }
+  .bdown-row .num { font-weight: 600; color: var(--ink); }
+
+  /* Pricing inline widget */
+  .credits {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  @media (max-width: 880px) { .credits { grid-template-columns: repeat(2, 1fr); } }
+  .credit-card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 18px;
+    position: relative;
+  }
+  .credit-card.best { border-color: var(--accent); }
+  .credit-card .c-val {
+    font-family: var(--mono); font-size: 22px; font-weight: 600;
+  }
+  .credit-card .c-save {
+    position: absolute; top: 10px; right: 10px;
+    font-family: var(--mono); font-size: 10px;
+    padding: 3px 7px;
+    background: #e6f2ec; color: var(--good);
+    border-radius: 999px;
+    font-weight: 500;
+  }
+
+  /* Tweaks panel */
+  #tweaks {
+    position: fixed; bottom: 18px; right: 18px;
+    width: 280px;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    padding: 16px;
+    z-index: 200;
+    font-size: 13px;
+    display: none;
+  }
+  #tweaks.on { display: block; }
+  #tweaks h4 {
+    margin: 0 0 12px;
+    font-family: var(--mono); font-size: 10.5px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); font-weight: 500;
+  }
+  #tweaks .group { margin-bottom: 14px; }
+  #tweaks .label {
+    font-size: 11px; font-weight: 600;
+    color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 6px;
+    font-family: var(--mono);
+  }
+  #tweaks .opts { display: flex; gap: 6px; flex-wrap: wrap; }
+  #tweaks .opt {
+    flex: 1;
+    padding: 7px 8px;
+    font-size: 12px;
+    border-radius: 7px;
+    border: 1px solid var(--rule);
+    background: var(--bg);
+    color: var(--ink-2);
+    cursor: pointer;
+    text-align: center;
+    font-weight: 500;
+  }
+  #tweaks .opt.on {
+    background: var(--ink); color: #fff; border-color: var(--ink);
+  }
+  #tweaks .swatch {
+    width: 14px; height: 14px; border-radius: 4px;
+    display: inline-block; vertical-align: -2px; margin-right: 5px;
+  }
+
+  /* Little UI primitives for product shots */
+  .skele-line {
+    height: 10px; background: var(--bg-2); border-radius: 3px;
+  }
+
+  /* Helpers */
+  .row { display: flex; gap: 10px; align-items: center; }
+  .gap-lg { display: grid; gap: 24px; }
+  .hr { border-top: 1px solid var(--rule); }
+  .big-num {
+    font-family: var(--mono); font-size: 44px; font-weight: 600;
+    color: var(--accent); line-height: 1; letter-spacing: -0.02em;
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="#" onclick="go('home');return false;">
+      <span class="brand-mark">P</span>
+      Procurea <span class="brand-badge">Beta</span>
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" data-nav="home" href="#" onclick="go('home');return false;">Home</a>
+      <a class="nav-link" data-nav="sourcing" href="#" onclick="go('sourcing');return false;">AI Sourcing</a>
+      <a class="nav-link" data-nav="manufacturing" href="#" onclick="go('manufacturing');return false;">Manufacturing</a>
+      <a class="nav-link" data-nav="construction" href="#" onclick="go('construction');return false;">Construction</a>
+      <a class="nav-link" data-nav="pricing" href="#" onclick="go('pricing');return false;">Pricing</a>
+    </div>
+    <div class="nav-right">
+      <a class="nav-ghost" href="#">Sign in</a>
+      <a class="btn btn-primary btn-sm" href="#">Start free <span class="arrow">→</span></a>
+    </div>
+  </div>
+</nav>
+
+<!-- ================ HOME ================ -->
+<main id="page-home" class="page active" data-screen-label="01 Home">
+  <!-- Hero -->
+  <section class="hero" id="hero">
+    <div class="hero-inner" id="hero-inner"><!-- injected by JS based on tweak --></div>
+  </section>
+
+  <!-- Trust bar -->
+  <div class="trust">
+    <div class="trust-inner">
+      <div class="trust-label">Trusted by procurement teams at 400+ SMBs across US, CA, UK &amp; AU</div>
+      <div class="trust-logos">
+        <div class="trust-logo">WESTRIDGE</div>
+        <div class="trust-logo">Belmar&amp;Co</div>
+        <div class="trust-logo">VECTRA/MFG</div>
+        <div class="trust-logo">Oakridge</div>
+        <div class="trust-logo">Sterncast</div>
+        <div class="trust-logo">GRID·42</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pain -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot"></span>The problem</span>
+        <h2>Procurement at SMBs still runs on spreadsheets, forwarded PDFs and a gut feeling.</h2>
+        <p class="lede">You're one person (maybe two). You're sourcing steel, adhesives, packaging, subcontractors — all at once. Every new request starts with the same week-long scramble.</p>
+      </div>
+      <div class="feat-grid">
+        <div class="feat">
+          <div class="feat-num">01</div>
+          <h3>Manual supplier search burns a week</h3>
+          <p>Google, trade directories, old emails, LinkedIn. By Friday you have 5 quotes — three of which are identical reseller markups.</p>
+          <div class="feat-meta"><span>Avg time:</span><strong>4.8 days</strong></div>
+        </div>
+        <div class="feat">
+          <div class="feat-num">02</div>
+          <h3>Single-source dependency is a risk</h3>
+          <p>One supplier on a critical SKU. Their lead time slips by 3 weeks and your line stops. You knew this — you just never had time to fix it.</p>
+          <div class="feat-meta"><span>Typical exposure:</span><strong>47% of spend</strong></div>
+        </div>
+        <div class="feat">
+          <div class="feat-num">03</div>
+          <h3>Local databases are thin &amp; stale</h3>
+          <p>The tier-2 directory you've paid for the last 3 years hasn't been re-verified since 2023. Half the phone numbers are dead.</p>
+          <div class="feat-meta"><span>Outdated records:</span><strong>~38%</strong></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Before / After -->
+  <section class="section" style="padding-top: 0;">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot"></span>Before / After</span>
+        <h2>A new RFQ shouldn't eat your whole week.</h2>
+        <p class="lede">Same procurement manager, same industrial gasket request, two timelines.</p>
+      </div>
+
+      <div class="ba-grid">
+        <div class="ba-col before">
+          <div class="ba-h before">Without Procurea · <strong>5 days</strong></div>
+          <h3>The old way</h3>
+          <div class="t-line"><span class="t-time">Mon 09:00</span><span>Dig through 3 directories and old email threads</span></div>
+          <div class="t-line"><span class="t-time">Tue</span><span>Send 22 cold emails, get 4 autoresponders</span></div>
+          <div class="t-line"><span class="t-time">Wed</span><span>Phone-tag with 6 distributors for datasheets</span></div>
+          <div class="t-line"><span class="t-time">Thu</span><span>Receive 5 quotes in 5 different formats &amp; currencies</span></div>
+          <div class="t-line"><span class="t-time">Fri 17:30</span><span>Normalize into a spreadsheet, hope nothing is missed</span></div>
+        </div>
+        <div class="ba-col after">
+          <div class="ba-h after">With Procurea · <strong>20 minutes</strong></div>
+          <h3>What it looks like now</h3>
+          <div class="t-line"><span class="t-time">00:00</span><span>Paste the spec sheet, set region &amp; budget</span></div>
+          <div class="t-line"><span class="t-time">00:02</span><span>Procurea returns 50–250 verified suppliers, ranked</span></div>
+          <div class="t-line"><span class="t-time">00:06</span><span>Shortlist 12; auto-generated RFQs sent in your template</span></div>
+          <div class="t-line"><span class="t-time">00:14</span><span>Side-by-side comparison of responses as they land</span></div>
+          <div class="t-line"><span class="t-time">00:20</span><span>Shortlist exported to your ERP / e-mail chain</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="section" style="padding-top: 0;">
+    <div class="wrap">
+      <div class="stats" data-accent-stats>
+        <div class="stat"><div class="value">4.9%</div><div class="label">avg. cost reduction on the first RFQ vs. incumbent</div></div>
+        <div class="stat"><div class="value">37%</div><div class="label">faster end-to-end sourcing cycle (internal benchmark, n=128)</div></div>
+        <div class="stat"><div class="value">47%</div><div class="label">of buyers reduced single-source dependency within 8 weeks</div></div>
+        <div class="stat"><div class="value">$62B+</div><div class="label">of SMB procurement spend across indexed categories</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="section" style="padding-top: 0;">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot"></span>How it works</span>
+        <h2>Four steps. One afternoon.</h2>
+        <p class="lede">Built for the procurement manager who is also the office manager, the category lead, and the person who orders coffee.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">STEP 01</div>
+          <h3>Describe what you need</h3>
+          <p>Paste a spec, drop a drawing, or pick a category. No taxonomy to learn.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 02</div>
+          <h3>Get a shortlist of verified suppliers</h3>
+          <p>50–250 candidates, already deduplicated and re-verified within the last 90 days.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 03</div>
+          <h3>Send RFQs in one click</h3>
+          <p>Procurea uses your template, your terms, your currency. Responses land in one inbox.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 04</div>
+          <h3>Compare side-by-side</h3>
+          <p>Normalized price, lead time, MOQ, certifications. Export to PDF or your ERP.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Industries -->
+  <section class="section" style="padding-top: 0;">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot"></span>Use cases</span>
+        <h2>Built for the way SMBs actually buy.</h2>
+      </div>
+      <div class="filters">
+        <button class="filter active">All</button>
+        <button class="filter">Manufacturing</button>
+        <button class="filter">Construction</button>
+        <button class="filter">MRO</button>
+        <button class="filter">Packaging</button>
+        <button class="filter">Logistics</button>
+      </div>
+      <div class="feat-grid">
+        <a class="feat" href="#" onclick="go('manufacturing');return false;">
+          <div class="chip">Manufacturing</div>
+          <h3>Diversify a single-source OEM</h3>
+          <p>Find alternates for raw materials, components and MRO — pre-qualified against ISO 9001, IATF 16949, RoHS, REACH.</p>
+          <div class="feat-meta"><span>Avg time to alt:</span><strong>3 weeks</strong></div>
+        </a>
+        <a class="feat" href="#" onclick="go('construction');return false;">
+          <div class="chip">Construction</div>
+          <h3>Subcontractors &amp; materials, one brief</h3>
+          <p>Side-by-side pricing for steel, concrete, glazing — plus local subs with insurance &amp; references verified.</p>
+          <div class="feat-meta"><span>Per-project savings:</span><strong>2–6%</strong></div>
+        </a>
+        <a class="feat" href="#">
+          <div class="chip">MRO</div>
+          <h3>Stop overpaying on tail spend</h3>
+          <p>Auto-reorder loops for bearings, adhesives, PPE. Price-check against 12 distributors every time.</p>
+          <div class="feat-meta"><span>Tail-spend cut:</span><strong>11–18%</strong></div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section" style="padding-top: 0;">
+    <div class="wrap">
+      <div class="cta-block">
+        <div>
+          <h2>Try one RFQ. See the shortlist in 20 minutes.</h2>
+          <p style="margin-top: 12px;">No card, no sales call. 3 free sourcing runs included when you sign up.</p>
+        </div>
+        <div style="display: grid; gap: 14px;">
+          <div class="row">
+            <a class="btn btn-primary" href="#">Start free <span class="arrow">→</span></a>
+            <a class="btn btn-ghost" href="#" style="background: transparent; color: #fff; border-color: rgba(255,255,255,0.3);">Book a 20-min demo</a>
+          </div>
+          <div style="font-size: 12px; color: rgba(255,255,255,0.55);">
+            SOC 2 Type II · Data residency in your region · US, CA, UK &amp; AU support
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ================ AI SOURCING ================ -->
+<main id="page-sourcing" class="page" data-screen-label="02 AI Sourcing">
+  <section class="hero split">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <span class="eyebrow"><span class="dot"></span>Feature · AI Sourcing</span>
+        <h1>50–250 verified suppliers, ranked, in 20 minutes.</h1>
+        <p class="lede">Paste a spec, set a region. Procurea returns a deduplicated, pre-qualified shortlist with price, lead time and certifications. You pick who gets the RFQ.</p>
+        <div class="hero-cta-row">
+          <a class="btn btn-primary" href="#">Start free <span class="arrow">→</span></a>
+          <a class="btn btn-ghost" href="#">See sample output</a>
+        </div>
+        <div class="hero-mini">
+          <span><span class="dot">●</span>Re-verified every 90 days</span>
+          <span><span class="dot">●</span>US · CA · UK · AU · 12 categories</span>
+        </div>
+      </div>
+      <div id="product-shot-sourcer"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot"></span>What's inside</span>
+        <h2>A sourcing engine that treats procurement like the data problem it is.</h2>
+      </div>
+      <div class="feat-grid">
+        <div class="feat"><div class="feat-num">A</div><h3>Parametric spec matching</h3><p>Material grade, tolerance, MOQ, lead-time window — matched against supplier capability data, not keyword search.</p></div>
+        <div class="feat"><div class="feat-num">B</div><h3>Re-verified supplier data</h3><p>Active contacts, valid certificates, working websites. Records older than 90 days are re-checked before they're served to you.</p></div>
+        <div class="feat"><div class="feat-num">C</div><h3>Dedup &amp; reseller detection</h3><p>Distributors, resellers and rebranded OEMs are flagged so you're not just comparing the same factory five times.</p></div>
+        <div class="feat"><div class="feat-num">D</div><h3>Certifications &amp; compliance filters</h3><p>ISO 9001, IATF 16949, CE, RoHS, REACH, FSC, BRC. Filter in, or hard-require.</p></div>
+        <div class="feat"><div class="feat-num">E</div><h3>RFQ auto-generation</h3><p>Your template, your terms, your currency. Sent in your domain, replies land in one inbox.</p></div>
+        <div class="feat"><div class="feat-num">F</div><h3>Side-by-side comparison</h3><p>Price, lead time, MOQ, freight, certifications — normalized. Export to PDF, CSV, your ERP.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Deep sample -->
+  <section class="section" style="padding-top: 0;">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot"></span>Example output</span>
+        <h2>Industrial gaskets, 5k units, US &amp; Canadian suppliers.</h2>
+      </div>
+      <div class="bdown">
+        <div class="bdown-head">
+          <div>Supplier</div><div>Unit price</div><div>Lead time</div><div>MOQ</div><div>Match</div>
+        </div>
+        <div class="bdown-row best">
+          <div class="supplier"><div class="supplier-logo">GM</div><div><div class="supplier-name">Great Lakes Mfg. Co.</div><div class="supplier-meta">Michigan, US · ISO 9001 · IATF 16949</div></div></div>
+          <div class="num">$2.08</div><div class="num">9d</div><div class="num">2,500</div><div class="num" style="color: var(--good);">97%</div>
+        </div>
+        <div class="bdown-row">
+          <div class="supplier"><div class="supplier-logo">MR</div><div><div class="supplier-name">Maple Ridge Rubber Inc.</div><div class="supplier-meta">Ontario, CA · ISO 9001</div></div></div>
+          <div class="num">$2.14</div><div class="num">11d</div><div class="num">1,000</div><div class="num">94%</div>
+        </div>
+        <div class="bdown-row">
+          <div class="supplier"><div class="supplier-logo">SC</div><div><div class="supplier-name">Sunbelt Components LLC</div><div class="supplier-meta">Texas, US · ISO 9001</div></div></div>
+          <div class="num">$1.96</div><div class="num">7d</div><div class="num">5,000</div><div class="num">91%</div>
+        </div>
+        <div class="bdown-row">
+          <div class="supplier"><div class="supplier-logo">PS</div><div><div class="supplier-name">Pacific Seals Ltd.</div><div class="supplier-meta">California, US · ISO 9001 · RoHS</div></div></div>
+          <div class="num">$2.28</div><div class="num">12d</div><div class="num">1,500</div><div class="num">88%</div>
+        </div>
+        <div class="bdown-row">
+          <div class="supplier"><div class="supplier-logo">BE</div><div><div class="supplier-name">Blackrock Elastomers</div><div class="supplier-meta">Alberta, CA · ISO 9001</div></div></div>
+          <div class="num">$1.89</div><div class="num">14d</div><div class="num">3,000</div><div class="num">85%</div>
+        </div>
+      </div>
+      <p class="muted" style="margin-top: 14px; font-size: 13px; text-align: center;">Normalized to USD, freight to Columbus, OH included. Full list has 87 suppliers.</p>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section" style="padding-top: 0;">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot"></span>FAQ</span>
+        <h2>Frequent questions</h2>
+      </div>
+      <div class="faq">
+        <details open><summary>Where does supplier data come from?</summary><p>A mix of public registries, indexed trade directories, scraped OEM/distributor catalogs, partner verification firms, and our own re-verification loop. Every record shown to you is less than 90 days old.</p></details>
+        <details><summary>Can I bring my own supplier list?</summary><p>Yes. Upload a CSV of your incumbents and we'll merge them with our index so you can compare like-for-like.</p></details>
+        <details><summary>Is my RFQ data shared with suppliers?</summary><p>Only the fields you mark as shareable. Internal notes, budget ceilings and comparison scores stay with you.</p></details>
+        <details><summary>Which regions &amp; categories are covered?</summary><p>United States, Canada, United Kingdom and Australia today across 12 categories (manufacturing, construction, packaging, MRO, logistics, electronics, plastics, metals, chemicals, textiles, food-grade, facilities).</p></details>
+        <details><summary>Does it work with my ERP?</summary><p>CSV export works with any system. Native connectors for NetSuite, QuickBooks Enterprise, Microsoft Dynamics 365 BC, Sage Intacct, Acumatica, Xero.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section" style="padding-top: 0;">
+    <div class="wrap">
+      <div class="cta-block">
+        <div>
+          <h2>Run your next RFQ on Procurea.</h2>
+          <p style="margin-top: 12px;">3 free sourcing runs included. No card.</p>
+        </div>
+        <div class="row"><a class="btn btn-primary" href="#">Start free <span class="arrow">→</span></a><a class="btn btn-ghost" href="#" style="background: transparent; color: #fff; border-color: rgba(255,255,255,0.3);">Book a demo</a></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ================ MANUFACTURING ================ -->
+<main id="page-manufacturing" class="page" data-screen-label="03 Manufacturing">
+  <section class="hero split">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <span class="eyebrow"><span class="dot"></span>Industry · Manufacturing</span>
+        <h1>AI procurement automation for SMB manufacturing.</h1>
+        <p class="lede">Alternate suppliers for raw materials, components, and MRO — pre-qualified against ISO 9001, IATF 16949, RoHS, REACH. Diversify in weeks, not months.</p>
+        <div class="hero-cta-row">
+          <a class="btn btn-primary" href="#">Start free <span class="arrow">→</span></a>
+          <a class="btn btn-ghost" href="#">Talk to sales</a>
+        </div>
+        <div class="spec-row">
+          <div class="spec"><div class="label">Verified MFGs</div><div class="value">38,400</div></div>
+          <div class="spec"><div class="label">Avg. alt-sourcing</div><div class="value">21 days</div></div>
+          <div class="spec"><div class="label">Cost delta vs. incumbent</div><div class="value">−4.9%</div></div>
+          <div class="spec"><div class="label">ISO 9001 coverage</div><div class="value">94%</div></div>
+        </div>
+      </div>
+      <div id="product-shot-mfg"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot"></span>The problem</span>
+        <h2>What slows down procurement in manufacturing</h2>
+      </div>
+      <div class="feat-grid">
+        <div class="feat"><div class="feat-num">01</div><h3>Manual supplier search burns a week</h3><p>Every new BOM line item means cold-emailing distributors, chasing datasheets, and re-normalizing quotes.</p></div>
+        <div class="feat"><div class="feat-num">02</div><h3>Single-source dependency is a risk</h3><p>One supplier on a critical SKU, no approved alternate. One late shipment stops the line.</p></div>
+        <div class="feat"><div class="feat-num">03</div><h3>Local databases are thin &amp; stale</h3><p>Tier-2 directories haven't been re-verified in years. Phone numbers, certs and contacts go dead quietly.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How Procurea helps -->
+  <section class="section" style="padding-top: 0;">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot"></span>How Procurea helps</span>
+        <h2>From a single-source exposure to a ranked alternate list in under a month.</h2>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <h3>Qualified alternates in minutes</h3>
+          <p>By material, IATF/ISO, MOQ, region. Not keyword search.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <h3>RFQ to 10–30 suppliers in one click</h3>
+          <p>Your template, your terms, your currency. Replies normalized as they land.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <h3>Side-by-side offer comparison</h3>
+          <p>Price, lead time, MOQ, certs, freight — on one page. Export to PDF or ERP.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">04</div>
+          <h3>Onboard the alternate</h3>
+          <p>Compliance docs, NDAs, QA samples tracked in one thread. Close the loop in weeks.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quote -->
+  <section class="section" style="padding-top: 0;">
+    <div class="wrap">
+      <div style="background: var(--accent-soft); border-radius: var(--radius); padding: 40px; display: grid; grid-template-columns: 180px 1fr; gap: 32px; align-items: start;">
+        <div>
+          <div class="big-num">80%</div>
+          <div style="margin-top: 8px; font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase;">OEM Case Study</div>
+        </div>
+        <div>
+          <p style="font-size: 19px; color: var(--ink); line-height: 1.4; letter-spacing: -0.01em;">"A Midwest OEM building commercial HVAC units rebuilt their qualified supplier base in 5 weeks. 80% of single-source exposure addressed with zero production interruption."</p>
+          <div style="margin-top: 14px; font-size: 13px; color: var(--muted);">Anonymized case — full write-up on request.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories -->
+  <section class="section" style="padding-top: 0;">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot"></span>Categories covered</span>
+        <h2>Your BOM, our index.</h2>
+      </div>
+      <div class="filters" style="justify-content: center;">
+        <span class="filter">Raw metals</span>
+        <span class="filter">Plastics &amp; polymers</span>
+        <span class="filter">Electronics</span>
+        <span class="filter">Fasteners</span>
+        <span class="filter">Adhesives</span>
+        <span class="filter">Packaging</span>
+        <span class="filter">Contract machining</span>
+        <span class="filter">Logistics</span>
+        <span class="filter">MRO</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top: 0;">
+    <div class="wrap">
+      <div class="cta-block">
+        <div><h2>Ready to diversify your supplier base?</h2><p style="margin-top: 12px;">Book a 20-min call. We'll run a sample against your actual BOM and show you where the risk is.</p></div>
+        <div class="row"><a class="btn btn-primary" href="#">Start free <span class="arrow">→</span></a><a class="btn btn-ghost" href="#" style="background: transparent; color: #fff; border-color: rgba(255,255,255,0.3);">Book a demo</a></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ================ CONSTRUCTION ================ -->
+<main id="page-construction" class="page" data-screen-label="04 Construction">
+  <section class="hero split">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <span class="eyebrow"><span class="dot"></span>Industry · Construction</span>
+        <h1>Procurement for construction — subcontractors and materials in one workflow.</h1>
+        <p class="lede">Send one brief, get ranked offers for steel, concrete, glazing and verified local subcontractors — insurance, references and certs checked.</p>
+        <div class="hero-cta-row">
+          <a class="btn btn-primary" href="#">Start free <span class="arrow">→</span></a>
+          <a class="btn btn-ghost" href="#">Talk to sales</a>
+        </div>
+        <div class="spec-row">
+          <div class="spec"><div class="label">Verified subs</div><div class="value">12,800</div></div>
+          <div class="spec"><div class="label">Material suppliers</div><div class="value">9,400</div></div>
+          <div class="spec"><div class="label">Avg. RFQ turnaround</div><div class="value">38 hrs</div></div>
+          <div class="spec"><div class="label">Project savings</div><div class="value">2–6%</div></div>
+        </div>
+      </div>
+      <div id="product-shot-construction"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot"></span>What construction teams use it for</span>
+        <h2>Procurement for construction — one platform.</h2>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="card" style="border-left: 3px solid var(--warn);">
+          <div class="chip chip-warn">For GCs &amp; project managers</div>
+          <h3 style="margin-top: 14px; font-size: 22px;">Win the bid with better numbers</h3>
+          <p style="margin-top: 10px;">Run a full material + sub RFQ in an afternoon. Under-bid competitors by sourcing 8–12 suppliers instead of the 2 you already know.</p>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--accent);">
+          <div class="chip" style="background: var(--accent-soft); color: var(--accent);">For procurement leads</div>
+          <h3 style="margin-top: 14px; font-size: 22px;">Keep site moving, not waiting</h3>
+          <p style="margin-top: 10px;">Procurea flags when your preferred sub is over-allocated and suggests insurance-verified backups before the site runs out of work.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top: 0;">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot"></span>The checks we run</span>
+        <h2>Every sub, pre-vetted before it hits your shortlist.</h2>
+      </div>
+      <div class="feat-grid">
+        <div class="feat"><div class="feat-num">✓</div><h3>Insurance &amp; liability</h3><p>OC cover, liability cap, effective dates — verified, not just claimed.</p></div>
+        <div class="feat"><div class="feat-num">✓</div><h3>Licenses &amp; certifications</h3><p>Trade licenses, state/provincial contractor registrations, OSHA 30, environmental permits. Re-checked before display.</p></div>
+        <div class="feat"><div class="feat-num">✓</div><h3>Reference projects</h3><p>Two recent comparable projects, with a reachable contact. We call them.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top: 0;">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot"></span>Side-by-side</span>
+        <h2>The comparison your PM actually needs.</h2>
+      </div>
+      <div class="bdown">
+        <div class="bdown-head"><div>Vendor</div><div>Unit</div><div>Total</div><div>Lead</div><div>Risk</div></div>
+        <div class="bdown-row best"><div class="supplier"><div class="supplier-logo">AC</div><div><div class="supplier-name">Ashford Construction</div><div class="supplier-meta">Subcontractor · Ohio, US · 4 refs verified</div></div></div><div class="num">$34/sqft</div><div class="num">$68k</div><div class="num">3w</div><div><span class="chip chip-good">Low</span></div></div>
+        <div class="bdown-row"><div class="supplier"><div class="supplier-logo">MS </div><div><div class="supplier-name">Meridian Steel Co.</div><div class="supplier-meta">Structural steel · AISC-certified</div></div></div><div class="num">$2,140/t</div><div class="num">$72k</div><div class="num">2w</div><div><span class="chip chip-good">Low</span></div></div>
+        <div class="bdown-row"><div class="supplier"><div class="supplier-logo">RC</div><div><div class="supplier-name">Redwood Concrete</div><div class="supplier-meta">Ready-mix · 4,000 psi</div></div></div><div class="num">$145/yd³</div><div class="num">$41k</div><div class="num">1w</div><div><span class="chip">Medium</span></div></div>
+        <div class="bdown-row"><div class="supplier"><div class="supplier-logo">AF</div><div><div class="supplier-name">Atlas Facades Ltd.</div><div class="supplier-meta">Glazing · NFRC · Energy Star</div></div></div><div class="num">$172/sqft</div><div class="num">$108k</div><div class="num">5w</div><div><span class="chip chip-warn">Watch</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top: 0;">
+    <div class="wrap">
+      <div class="cta-block">
+        <div><h2>Your next bid — won in the spreadsheet.</h2><p style="margin-top: 12px;">Run one live RFQ on us. We'll set it up for your spec in a 20-minute call.</p></div>
+        <div class="row"><a class="btn btn-primary" href="#">Start free <span class="arrow">→</span></a><a class="btn btn-ghost" href="#" style="background: transparent; color: #fff; border-color: rgba(255,255,255,0.3);">Book a demo</a></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ================ PRICING ================ -->
+<main id="page-pricing" class="page" data-screen-label="05 Pricing">
+  <section class="hero centered">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <span class="eyebrow"><span class="dot"></span>Pricing</span>
+        <h1>Transparent credit-based pricing.</h1>
+        <p class="lede">Start with 3 free sourcing runs. When you need more, pick a plan — or buy a credit pack. No per-seat fees, no 12-month lock-in, no "contact sales".</p>
+        <div class="hero-cta-row" style="justify-content: center;">
+          <a class="btn btn-primary" href="#">Start free <span class="arrow">→</span></a>
+          <a class="btn btn-ghost" href="#">Compare plans</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="pricing-grid">
+        <div class="plan">
+          <div>
+            <h3>Starter</h3>
+            <div class="price"><span class="v">€89</span><span class="u">/ month</span></div>
+          </div>
+          <p class="muted" style="font-size: 13px;">For a single buyer running a handful of RFQs.</p>
+          <ul>
+            <li>20 sourcing runs / month</li>
+            <li>Up to 50 suppliers per run</li>
+            <li>2 RFQ templates</li>
+            <li>CSV export</li>
+            <li>Email support</li>
+          </ul>
+          <a class="btn btn-ghost" href="#" style="margin-top: auto;">Start free</a>
+        </div>
+        <div class="plan featured">
+          <div>
+            <h3>Growth</h3>
+            <div class="price"><span class="v">€349</span><span class="u">/ month</span></div>
+          </div>
+          <p class="muted" style="font-size: 13px;">For procurement teams of 2–5 at an SMB manufacturer or builder.</p>
+          <ul>
+            <li>100 sourcing runs / month</li>
+            <li>Up to 250 suppliers per run</li>
+            <li>Unlimited RFQ templates</li>
+            <li>ERP connectors (NetSuite, Dynamics 365 BC, QuickBooks Enterprise, Xero)</li>
+            <li>Shared inbox &amp; approval flows</li>
+            <li>Priority support + onboarding</li>
+          </ul>
+          <a class="btn btn-secondary" href="#" style="margin-top: auto;">Start Growth</a>
+        </div>
+        <div class="plan">
+          <div>
+            <h3>Scale</h3>
+            <div class="price"><span class="v">€890</span><span class="u">/ month</span></div>
+          </div>
+          <p class="muted" style="font-size: 13px;">Multiple sites, multiple categories, custom compliance.</p>
+          <ul>
+            <li>Unlimited sourcing runs</li>
+            <li>Custom supplier verification rules</li>
+            <li>SSO &amp; audit log</li>
+            <li>Dedicated category manager</li>
+            <li>99.9% SLA</li>
+          </ul>
+          <a class="btn btn-ghost" href="#" style="margin-top: auto;">Talk to sales</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Credit packs -->
+  <section class="section" style="padding-top: 0;">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot"></span>Credit packs</span>
+        <h2>Or: pay only for what you source.</h2>
+        <p class="lede">Buy credits up front. One credit = one sourcing run (up to 250 suppliers).</p>
+      </div>
+      <div class="credits">
+        <div class="credit-card">
+          <div class="mono muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;">Starter pack</div>
+          <div class="c-val" style="margin: 8px 0;">10 credits</div>
+          <div class="muted" style="font-size: 13px;">€69 · €6.90 / run</div>
+        </div>
+        <div class="credit-card best">
+          <div class="c-save">Save 24%</div>
+          <div class="mono muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;">Team pack</div>
+          <div class="c-val" style="margin: 8px 0;">25 credits</div>
+          <div class="muted" style="font-size: 13px;">€132 · €5.28 / run</div>
+        </div>
+        <div class="credit-card">
+          <div class="mono muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;">Scale pack</div>
+          <div class="c-val" style="margin: 8px 0;">50 credits</div>
+          <div class="muted" style="font-size: 13px;">€220 · €4.40 / run</div>
+        </div>
+        <div class="credit-card">
+          <div class="mono muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;">Enterprise</div>
+          <div class="c-val" style="margin: 8px 0;">100+ credits</div>
+          <div class="muted" style="font-size: 13px;">Custom · from €3.80 / run</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section" style="padding-top: 0;">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot"></span>Pricing FAQ</span>
+        <h2>Common questions</h2>
+      </div>
+      <div class="faq">
+        <details open><summary>What counts as a "sourcing run"?</summary><p>One spec / category + region combination, returning a ranked list of up to 250 suppliers. You can export, shortlist and send RFQs from that same run without consuming extra credits.</p></details>
+        <details><summary>What if I run out of credits mid-month?</summary><p>Top up with any credit pack — they stack. Or switch to a plan, and we'll prorate.</p></details>
+        <details><summary>Do you offer a free trial?</summary><p>Yes. 3 free sourcing runs when you sign up. No credit card.</p></details>
+        <details><summary>Annual billing discount?</summary><p>Yes — 15% off all plans billed annually.</p></details>
+        <details><summary>Is there a setup fee?</summary><p>No. On Growth and Scale, onboarding is included.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top: 0;">
+    <div class="wrap">
+      <div class="cta-block">
+        <div><h2>Not sure which plan fits?</h2><p style="margin-top: 12px;">Tell us your category volume — we'll pick a plan and show you a projected ROI in 15 minutes.</p></div>
+        <div class="row"><a class="btn btn-primary" href="#">Start free <span class="arrow">→</span></a><a class="btn btn-ghost" href="#" style="background: transparent; color: #fff; border-color: rgba(255,255,255,0.3);">Book a demo</a></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="brand" style="margin-bottom: 14px;">
+        <span class="brand-mark">P</span>
+        Procurea <span class="brand-badge">Beta</span>
+      </div>
+      <p class="muted" style="font-size: 13px; max-width: 26ch;">AI supplier sourcing for SMB procurement teams across North America, UK and Australia.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Product</h4>
+      <a href="#" onclick="go('sourcing');return false;">AI Sourcing</a>
+      <a href="#">RFQ Manager</a>
+      <a href="#">Supplier Verification</a>
+      <a href="#">Compliance Filters</a>
+      <a href="#">Integrations</a>
+    </div>
+    <div class="footer-col">
+      <h4>Industries</h4>
+      <a href="#" onclick="go('manufacturing');return false;">Manufacturing</a>
+      <a href="#" onclick="go('construction');return false;">Construction</a>
+      <a href="#">MRO</a>
+      <a href="#">Packaging</a>
+      <a href="#">Logistics</a>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <a href="#">About</a>
+      <a href="#">Careers</a>
+      <a href="#">Press</a>
+      <a href="#">Contact</a>
+    </div>
+    <div class="footer-col">
+      <h4>Resources</h4>
+      <a href="#">Case studies</a>
+      <a href="#">Buyer's playbook</a>
+      <a href="#">Supplier guide</a>
+      <a href="#">Changelog</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div>© 2026 Procurea, Inc. · SOC 2 Type II · Data residency in US, CA, UK &amp; AU</div>
+    <div>Terms · Privacy · Security</div>
+  </div>
+</footer>
+
+<!-- Tweaks panel -->
+<div id="tweaks">
+  <h4>Tweaks</h4>
+  <div class="group">
+    <div class="label">Accent</div>
+    <div class="opts" data-tweak="accent">
+      <button class="opt" data-val="evergreen"><span class="swatch" style="background:#0f4d3f"></span>Evergreen</button>
+      <button class="opt" data-val="navy"><span class="swatch" style="background:#162a52"></span>Navy</button>
+      <button class="opt" data-val="orange"><span class="swatch" style="background:#b84a18"></span>Warm</button>
+    </div>
+  </div>
+  <div class="group">
+    <div class="label">Hero layout</div>
+    <div class="opts" data-tweak="hero">
+      <button class="opt" data-val="split">Split</button>
+      <button class="opt" data-val="centered">Centered</button>
+      <button class="opt" data-val="animated">Animated</button>
+    </div>
+  </div>
+  <div class="group">
+    <div class="label">Typography</div>
+    <div class="opts" data-tweak="typography">
+      <button class="opt" data-val="manrope">Manrope</button>
+      <button class="opt" data-val="inter">Inter</button>
+      <button class="opt" data-val="grotesk">Grotesk</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ───── Routing ─────
+  const pages = ['home','sourcing','manufacturing','construction','pricing'];
+  function go(name) {
+    if (!pages.includes(name)) name = 'home';
+    pages.forEach(p => {
+      document.getElementById('page-' + p).classList.toggle('active', p === name);
+    });
+    document.querySelectorAll('[data-nav]').forEach(a => {
+      a.classList.toggle('active', a.dataset.nav === name);
+    });
+    localStorage.setItem('procurea_page', name);
+    window.scrollTo(0, 0);
+  }
+  // init from storage
+  (function() {
+    const stored = localStorage.getItem('procurea_page');
+    if (stored) go(stored);
+    else go('home');
+  })();
+
+  // ───── Product shot templates ─────
+  function sourcerShot(extra) {
+    return `
+      <div class="product-shot">
+        <div class="ps-chrome">
+          <div class="ps-dots"><span></span><span></span><span></span></div>
+          <div class="ps-tab">app.procurea.io / new-rfq</div>
+        </div>
+        <div class="ps-body">
+          <div class="sourcer">
+            <div class="sourcer-row">
+              <div class="sourcer-label">Category</div>
+              <div class="sourcer-input">Industrial gaskets · NBR · Shore A 70 <span class="chip">auto</span></div>
+            </div>
+            <div class="sourcer-row">
+              <div class="sourcer-label">Region</div>
+              <div class="sourcer-input">
+                <div class="sourcer-tags">
+                  <span class="tag">US <span class="x">×</span></span>
+                  <span class="tag">Canada <span class="x">×</span></span>
+                  <span class="tag">UK <span class="x">×</span></span>
+                  <span class="tag">+ 1 more</span>
+                </div>
+              </div>
+            </div>
+            <div class="sourcer-row">
+              <div class="sourcer-label">Quantity</div>
+              <div class="sourcer-input">5,000 units <span class="chip">MOQ ≤ 2,500</span></div>
+            </div>
+            <div class="sourcer-row">
+              <div class="sourcer-label">Compliance</div>
+              <div class="sourcer-input">
+                <div class="sourcer-tags">
+                  <span class="tag">ISO 9001</span>
+                  <span class="tag">REACH</span>
+                  <span class="tag">RoHS</span>
+                </div>
+              </div>
+            </div>
+            <div class="sourcer-cta">
+              <button class="btn btn-sm btn-ghost">Save draft</button>
+              <button class="btn btn-sm btn-secondary">Run sourcing <span class="arrow">→</span></button>
+            </div>
+          </div>
+
+          <div class="results-box">
+            <div class="results-head"><div>Supplier</div><div>Price</div><div>Lead</div><div>MOQ</div><div>Match</div></div>
+            <div class="results-row">
+              <div class="supplier"><div class="supplier-logo">GM</div><div><div class="supplier-name">Great Lakes Mfg.</div><div class="supplier-meta">MI, US · ISO 9001 · IATF</div></div></div>
+              <div class="num">$2.08</div><div class="num">9d</div><div class="num">2,500</div>
+              <div><div class="score-bar"><i style="width: 97%;"></i></div></div>
+            </div>
+            <div class="results-row">
+              <div class="supplier"><div class="supplier-logo">MR</div><div><div class="supplier-name">Maple Ridge Rubber</div><div class="supplier-meta">ON, CA · ISO 9001</div></div></div>
+              <div class="num">$2.14</div><div class="num">11d</div><div class="num">1,000</div>
+              <div><div class="score-bar"><i style="width: 94%;"></i></div></div>
+            </div>
+            <div class="results-row">
+              <div class="supplier"><div class="supplier-logo">SC</div><div><div class="supplier-name">Sunbelt Components</div><div class="supplier-meta">TX, US · ISO 9001</div></div></div>
+              <div class="num">$1.96</div><div class="num">7d</div><div class="num">5,000</div>
+              <div><div class="score-bar"><i style="width: 91%;"></i></div></div>
+            </div>
+          </div>
+
+          ${extra || ''}
+        </div>
+      </div>
+    `;
+  }
+
+  function comparisonShot() {
+    return `
+      <div class="product-shot">
+        <div class="ps-chrome"><div class="ps-dots"><span></span><span></span><span></span></div><div class="ps-tab">app.procurea.io / compare</div></div>
+        <div class="ps-body">
+          <div class="bdown">
+            <div class="bdown-head"><div>Supplier</div><div>Price</div><div>Lead</div><div>MOQ</div><div>Match</div></div>
+            <div class="bdown-row best"><div class="supplier"><div class="supplier-logo">GM</div><div><div class="supplier-name">Great Lakes Mfg.</div><div class="supplier-meta">MI, US · ISO · IATF</div></div></div><div class="num">$2.08</div><div class="num">9d</div><div class="num">2,500</div><div class="num" style="color:var(--good);">97%</div></div>
+            <div class="bdown-row"><div class="supplier"><div class="supplier-logo">MR</div><div><div class="supplier-name">Maple Ridge Rubber</div><div class="supplier-meta">ON, CA · ISO</div></div></div><div class="num">$2.14</div><div class="num">11d</div><div class="num">1,000</div><div class="num">94%</div></div>
+            <div class="bdown-row"><div class="supplier"><div class="supplier-logo">SC</div><div><div class="supplier-name">Sunbelt Components</div><div class="supplier-meta">TX, US · ISO</div></div></div><div class="num">$1.96</div><div class="num">7d</div><div class="num">5,000</div><div class="num">91%</div></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function briefShot() {
+    return `
+      <div class="product-shot">
+        <div class="ps-chrome"><div class="ps-dots"><span></span><span></span><span></span></div><div class="ps-tab">app.procurea.io / brief</div></div>
+        <div class="ps-body" style="padding: 22px;">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase;">New RFQ · Draft</div>
+          <h3 style="margin-top: 10px; margin-bottom: 18px;">Industrial gaskets — 5k units, US &amp; Canadian suppliers</h3>
+          <div style="display: grid; gap: 10px;">
+            <div class="skele-line" style="width: 95%;"></div>
+            <div class="skele-line" style="width: 88%;"></div>
+            <div class="skele-line" style="width: 72%;"></div>
+          </div>
+          <div style="margin-top: 22px; display: flex; gap: 8px; flex-wrap: wrap;">
+            <span class="tag">NBR rubber</span><span class="tag">Shore A 70</span><span class="tag">DIN 3760</span><span class="tag">ISO 9001</span>
+          </div>
+          <div style="margin-top: 24px; display: flex; justify-content: space-between; align-items: center;">
+            <div class="mono muted" style="font-size: 11px;">Auto-parsed from PDF spec</div>
+            <button class="btn btn-sm btn-secondary">Continue <span class="arrow">→</span></button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function mfgShot() {
+    return sourcerShot();
+  }
+
+  function constructionShot() {
+    return `
+      <div class="product-shot">
+        <div class="ps-chrome"><div class="ps-dots"><span></span><span></span><span></span></div><div class="ps-tab">app.procurea.io / project · Austin Retail Retrofit</div></div>
+        <div class="ps-body">
+          <div style="display: grid; gap: 12px;">
+            <div class="sourcer-row"><div class="sourcer-label">Project</div><div class="sourcer-input">Austin Retail Retrofit · 129,000 sqft</div></div>
+            <div class="sourcer-row"><div class="sourcer-label">Scope</div><div class="sourcer-input"><div class="sourcer-tags"><span class="tag">Steel frame</span><span class="tag">Concrete C30/37</span><span class="tag">Glazing</span><span class="tag">MEP subs</span></div></div></div>
+            <div class="sourcer-row"><div class="sourcer-label">Target</div><div class="sourcer-input">$1.2M · 14 weeks</div></div>
+          </div>
+          <div class="results-box" style="margin-top: 16px;">
+            <div class="results-head"><div>Vendor</div><div>Unit</div><div>Lead</div><div>Ins.</div><div>Match</div></div>
+            <div class="results-row"><div class="supplier"><div class="supplier-logo">AC</div><div><div class="supplier-name">Ashford Const.</div><div class="supplier-meta">Sub · 4 refs</div></div></div><div class="num">$34/sqft</div><div class="num">3w</div><div><span class="chip chip-good">OK</span></div><div><div class="score-bar"><i style="width:94%"></i></div></div></div>
+            <div class="results-row"><div class="supplier"><div class="supplier-logo">MS</div><div><div class="supplier-name">Meridian Steel</div><div class="supplier-meta">Steel · AISC</div></div></div><div class="num">$2,140/t</div><div class="num">2w</div><div><span class="chip chip-good">OK</span></div><div><div class="score-bar"><i style="width:89%"></i></div></div></div>
+            <div class="results-row"><div class="supplier"><div class="supplier-logo">RC</div><div><div class="supplier-name">Redwood Concrete</div><div class="supplier-meta">4,000 psi · ready-mix</div></div></div><div class="num">$145/yd³</div><div class="num">1w</div><div><span class="chip">Pending</span></div><div><div class="score-bar"><i style="width:78%"></i></div></div></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // ───── Hero variants ─────
+  function renderHero(variant) {
+    const inner = document.getElementById('hero-inner');
+    const hero = document.getElementById('hero');
+    hero.className = 'hero ' + variant;
+
+    const commonCopy = `
+      <div class="hero-copy">
+        <span class="eyebrow"><span class="dot"></span>For SMB procurement teams</span>
+        <h1>Source verified suppliers, compare quotes, and send RFQs — in one afternoon.</h1>
+        <p class="lede">Procurea gives you 50–250 pre-qualified suppliers for any spec or category. Built for procurement managers at SMB manufacturers and builders who don't have a ten-person sourcing team.</p>
+        <div class="hero-cta-row">
+          <a class="btn btn-primary" href="#">Start free <span class="arrow">→</span></a>
+          <a class="btn btn-ghost" href="#">Book a 20-min demo</a>
+        </div>
+        <div class="hero-mini">
+          <span><span class="dot">●</span>3 free sourcing runs</span>
+          <span><span class="dot">●</span>No credit card</span>
+          <span><span class="dot">●</span>SOC 2 · regional data residency</span>
+        </div>
+      </div>
+    `;
+
+    if (variant === 'split') {
+      inner.innerHTML = commonCopy + sourcerShot();
+    } else if (variant === 'centered') {
+      inner.innerHTML = commonCopy + `<div style="grid-column: 1 / -1;">${sourcerShot()}</div>`;
+    } else { // animated
+      inner.innerHTML = commonCopy + `
+        <div>
+          <div class="hero-anim-stack">
+            <div class="hero-anim-frame" data-frame="0">${briefShot()}</div>
+            <div class="hero-anim-frame" data-frame="1">${sourcerShot()}</div>
+            <div class="hero-anim-frame" data-frame="2">${comparisonShot()}</div>
+          </div>
+          <div class="hero-steps-indicator">
+            <i data-i="0"></i><i data-i="1"></i><i data-i="2"></i>
+          </div>
+        </div>
+      `;
+      // cycle
+      let f = 0;
+      const frames = inner.querySelectorAll('.hero-anim-frame');
+      const dots = inner.querySelectorAll('.hero-steps-indicator i');
+      function tick() {
+        frames.forEach((el, i) => el.classList.toggle('on', i === f));
+        dots.forEach((el, i) => el.classList.toggle('on', i === f));
+        f = (f + 1) % frames.length;
+      }
+      tick();
+      clearInterval(window._heroInt);
+      window._heroInt = setInterval(tick, 2400);
+    }
+  }
+
+  // ───── Static product shots on other pages ─────
+  document.getElementById('product-shot-sourcer').innerHTML = sourcerShot();
+  document.getElementById('product-shot-mfg').innerHTML = mfgShot();
+  document.getElementById('product-shot-construction').innerHTML = constructionShot();
+
+  // ───── Tweaks ─────
+  function applyTweaks(t) {
+    document.documentElement.dataset.accent = t.accent || 'evergreen';
+    document.documentElement.dataset.type = t.typography || 'manrope';
+    renderHero(t.hero || 'split');
+
+    // sync panel
+    document.querySelectorAll('#tweaks .opts').forEach(grp => {
+      const key = grp.dataset.tweak;
+      grp.querySelectorAll('.opt').forEach(btn => {
+        btn.classList.toggle('on', btn.dataset.val === t[key]);
+      });
+    });
+  }
+
+  applyTweaks(window.TWEAKS);
+
+  // Tweak panel listeners
+  document.querySelectorAll('#tweaks .opts').forEach(grp => {
+    grp.addEventListener('click', e => {
+      const btn = e.target.closest('.opt'); if (!btn) return;
+      const key = grp.dataset.tweak;
+      window.TWEAKS[key] = btn.dataset.val;
+      applyTweaks(window.TWEAKS);
+      try {
+        window.parent.postMessage({type: '__edit_mode_set_keys', edits: { [key]: btn.dataset.val }}, '*');
+      } catch (_) {}
+    });
+  });
+
+  // Edit mode host protocol
+  window.addEventListener('message', e => {
+    const msg = e.data;
+    if (!msg || typeof msg !== 'object') return;
+    if (msg.type === '__activate_edit_mode') document.getElementById('tweaks').classList.add('on');
+    if (msg.type === '__deactivate_edit_mode') document.getElementById('tweaks').classList.remove('on');
+  });
+  try { window.parent.postMessage({type: '__edit_mode_available'}, '*'); } catch (_) {}
+
+  // Add Inter + Space Grotesk dynamically if user switches typography
+  (function loadExtraFonts() {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap';
+    document.head.appendChild(link);
+  })();
+</script>
+</body>
+</html>
