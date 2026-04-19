@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Loader2, ShoppingCart, Plus, ChevronDown, ChevronUp, ArrowRight, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { Loader2, ShoppingCart, Plus, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -80,7 +80,7 @@ export function PurchaseOrdersPage() {
   const { data: purchaseOrders, isLoading, error } = usePurchaseOrders(statusFilter);
   const generateMutation = useGeneratePO();
   const statusMutation = useUpdatePOStatus();
-  const syncMutation = useSyncToErp();
+  const _syncMutation = useSyncToErp();
 
   // Get signed/active contracts for PO generation
   const { data: signedContracts } = useContracts('SIGNED' as any);

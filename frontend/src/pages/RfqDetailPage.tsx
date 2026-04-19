@@ -240,7 +240,7 @@ export function RfqDetailPage() {
     }
   };
 
-  const handleSuggestCounter = async (offerId: string) => {
+  const _handleSuggestCounter = async (offerId: string) => {
     try {
       const result = await suggestCounterMutation.mutateAsync(offerId);
       setAiSuggestion(prev => ({ ...prev, [offerId]: result }));
