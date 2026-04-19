@@ -6,7 +6,6 @@ import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
 import { AccordionItem } from "@/components/ui/AccordionItem"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
-import { AnimatedGrid } from "@/components/ui/AnimatedGrid"
 import { appendUtm } from "@/lib/utm"
 import { trackCtaClick } from "@/lib/analytics"
 import { pathFor } from "@/i18n/paths"
@@ -239,22 +238,23 @@ function CreditPacksSection() {
 
 export function PricingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50/50 bg-mesh-gradient">
+    <div className="min-h-screen bg-[hsl(var(--ds-bg))]">
       <RouteMeta />
       <Navbar />
 
-      <main id="main-content" className="pt-32 pb-24">
-        {/* Hero — compact */}
-        <section className="relative overflow-hidden mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center mb-10">
-          <AnimatedGrid color="hsl(var(--foreground) / 0.02)" spacing={48} className="opacity-40" />
-          <div className="absolute -top-20 -right-40 w-[600px] h-[600px] rounded-full bg-primary/[0.06] blur-[120px] pointer-events-none" />
-          <div className="absolute top-40 -left-32 w-[400px] h-[400px] rounded-full bg-emerald-500/[0.04] blur-[100px] pointer-events-none" />
-          <div className="relative">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">
+      <main id="main-content" className="pb-24">
+        {/* Hero — centered, evergreen wash */}
+        <section className="hero-wash border-b border-[hsl(var(--ds-rule))]">
+          <div className="mx-auto max-w-[920px] px-[clamp(20px,4vw,72px)] pt-[clamp(96px,10vw,144px)] pb-[clamp(32px,4vw,56px)] text-center">
+            <span className="eyebrow mb-5 inline-flex">
+              <span className="eyebrow-dot" />
+              {isEN ? "Pricing" : "Cennik"}
+            </span>
+            <h1 className="font-display text-[clamp(36px,5.2vw,64px)] font-bold leading-[1.04] tracking-[-0.03em] mb-[18px] text-balance text-[hsl(var(--ds-ink))]">
               {copy.heroTitle}
             </h1>
             <RevealOnScroll>
-              <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-[18px] leading-[1.55] text-[hsl(var(--ds-ink-3))] max-w-[58ch] mx-auto">
                 {isEN
                   ? 'Start with AI Sourcing — find qualified suppliers. Extend with AI Procurement for full RFQ workflow. Bundle both at 15% off. All features included, pay per campaign.'
                   : 'Zacznij od AI Sourcing — znajdź dostawców. Rozszerz o AI Procurement dla pełnego workflow RFQ. Bundle za oba z 15% rabatem. Wszystkie funkcje dostępne, płać za kampanię.'}
@@ -262,6 +262,8 @@ export function PricingPage() {
             </RevealOnScroll>
           </div>
         </section>
+
+        <div className="pt-[clamp(48px,6vw,80px)]" />
 
         {/* How the modules work */}
         <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 mb-14">
@@ -372,27 +374,35 @@ export function PricingPage() {
         </section>
 
         {/* Final CTA */}
-        <section className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white p-10 md:p-16 text-center hover:shadow-2xl transition-shadow duration-300">
-            <AnimatedGrid color="rgba(255,255,255,0.03)" spacing={32} />
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute top-0 left-1/3 w-[400px] h-[400px] bg-brand-500/[0.06] rounded-full blur-[100px]" />
-              <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] bg-emerald-500/[0.04] rounded-full blur-[80px]" />
+        <section className="mx-auto max-w-[1240px] px-[clamp(20px,4vw,72px)]">
+          <div className="cta-block-ds grid md:grid-cols-[1.2fr_1fr] gap-8 items-center">
+            <div>
+              <h2 className="text-[clamp(24px,2.8vw,34px)] font-bold leading-[1.15] text-white max-w-[18ch]">
+                {isEN ? 'Not sure which product fits?' : 'Nie wiesz, który produkt pasuje?'}
+              </h2>
+              <p className="mt-3 text-white/70">
+                {isEN
+                  ? 'Book a 15-minute call. We walk through your procurement volume and recommend Sourcing-only, Bundle, or Enterprise Custom.'
+                  : 'Umów 15-minutowe spotkanie. Przejdziemy przez Twój wolumen procurement i polecimy Sourcing-only, Bundle, lub Enterprise Custom.'}
+              </p>
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold mb-3">
-              {isEN ? 'Not sure which product fits?' : 'Nie wiesz który produkt Ci pasuje?'}
-            </h2>
-            <p className="text-white/80 mb-8 max-w-2xl mx-auto">
-              {isEN
-                ? 'Book a 15-minute call. We walk through your procurement volume and recommend Sourcing-only, Bundle, or Enterprise Custom.'
-                : 'Umów 15-minutowe spotkanie. Przejdziemy przez Twój wolumen procurement i polecimy Sourcing-only, Bundle, lub Enterprise Custom.'}
-            </p>
-            <Link
-              to={`${pathFor('contact')}#calendar`}
-              className="inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg bg-amber-400 text-amber-950 hover:bg-amber-300 shadow-lg hover:shadow-amber-400/30 hover:shadow-xl transition-all"
-            >
-              {isEN ? 'Talk to us' : 'Porozmawiaj z nami'}
-            </Link>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                to={`${pathFor('contact')}#calendar`}
+                className="btn-ds btn-ds-primary"
+              >
+                {isEN ? 'Talk to us' : 'Porozmawiaj z nami'}
+                <span className="arrow" aria-hidden>→</span>
+              </Link>
+              <a
+                href={appendUtm(APP_URL, 'pricing_final_signup')}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-ds btn-ds-dark"
+              >
+                {isEN ? 'Start free' : 'Zacznij za darmo'}
+              </a>
+            </div>
           </div>
         </section>
       </main>
