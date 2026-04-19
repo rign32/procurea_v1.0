@@ -6,11 +6,26 @@ import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { NewsletterSignupInline } from "@/components/content/NewsletterSignupInline"
+import {
+  PullQuote,
+  StatBlock,
+  KeyTakeawayBox,
+  WarningBox,
+  BeforeAfter,
+  StepByStep,
+  ComparisonTable,
+  CountryCard,
+  StatsTimeline,
+  ProcessDiagram,
+} from "@/components/content/BlogInlineComponents"
 import { trackCtaClick } from "@/lib/analytics"
 import { getRichBlogPost, getRelatedPosts, type RichBlogPost } from "@/content/blog"
+import type { BlogSection } from "@/content/blog-data/types"
 import { getResource } from "@/content/resources"
 import { pathMappings, type PathKey } from "@/i18n/paths"
 import { AuthorAvatar } from "@/assets/content-hub/AuthorAvatars"
+import { getInfographic } from "@/assets/content-hub/InfographicRegistry"
+import { BLOG_HEROES } from "@/assets/content-hub/BlogHeroes"
 
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
 const isEN = LANG === 'en'
@@ -89,6 +104,169 @@ function buildFaqJsonLd(post: RichBlogPost): object | null {
   }
 }
 
+// Renders all optional inline visual components configured on a BlogSection
+// in a deterministic order — language-aware.
+function SectionInlineComponents({ section }: { section: BlogSection }) {
+  const Infographic = getInfographic(section.infographicKey)
+  const infographicCaption = isEN
+    ? section.infographicCaption
+    : section.infographicCaptionPl || section.infographicCaption
+  return (
+    <>
+      {Infographic && (
+        <figure className="my-10 not-prose">
+          <Infographic className="mx-auto" />
+          {infographicCaption && (
+            <figcaption className="mt-3 text-center text-xs sm:text-sm text-slate-500 italic">
+              {infographicCaption}
+            </figcaption>
+          )}
+        </figure>
+      )}
+
+      {section.pullQuote && (
+        <PullQuote
+          text={isEN ? section.pullQuote.text : section.pullQuote.textPl || section.pullQuote.text}
+          author={section.pullQuote.author}
+          role={isEN ? section.pullQuote.role : section.pullQuote.rolePl || section.pullQuote.role}
+        />
+      )}
+
+      {section.statBlock && (
+        <StatBlock
+          stats={section.statBlock.stats.map(s => ({
+            value: s.value,
+            label: isEN ? s.label : s.labelPl || s.label,
+          }))}
+          columns={section.statBlock.columns}
+        />
+      )}
+
+      {section.beforeAfter && (
+        <BeforeAfter
+          before={isEN ? section.beforeAfter.before : section.beforeAfter.beforePl || section.beforeAfter.before}
+          after={isEN ? section.beforeAfter.after : section.beforeAfter.afterPl || section.beforeAfter.after}
+          beforeLabel={
+            isEN
+              ? section.beforeAfter.beforeLabel
+              : section.beforeAfter.beforeLabelPl || section.beforeAfter.beforeLabel
+          }
+          afterLabel={
+            isEN
+              ? section.beforeAfter.afterLabel
+              : section.beforeAfter.afterLabelPl || section.beforeAfter.afterLabel
+          }
+        />
+      )}
+
+      {section.stepByStep && (
+        <StepByStep
+          steps={section.stepByStep.steps.map(s => ({
+            title: isEN ? s.title : s.titlePl || s.title,
+            description: isEN ? s.description : s.descriptionPl || s.description,
+          }))}
+        />
+      )}
+
+      {section.comparisonTable && (
+        <ComparisonTable
+          headers={
+            isEN
+              ? section.comparisonTable.headers
+              : section.comparisonTable.headersPl || section.comparisonTable.headers
+          }
+          rows={
+            isEN
+              ? section.comparisonTable.rows
+              : section.comparisonTable.rowsPl || section.comparisonTable.rows
+          }
+          highlighted={section.comparisonTable.highlighted}
+          caption={
+            isEN
+              ? section.comparisonTable.caption
+              : section.comparisonTable.captionPl || section.comparisonTable.caption
+          }
+        />
+      )}
+
+      {section.statsTimeline && (
+        <StatsTimeline
+          data={section.statsTimeline.data.map(d => ({
+            label: isEN ? d.label : d.labelPl || d.label,
+            value: d.value,
+            display: isEN ? d.display : d.displayPl || d.display,
+          }))}
+          title={
+            isEN ? section.statsTimeline.title : section.statsTimeline.titlePl || section.statsTimeline.title
+          }
+        />
+      )}
+
+      {section.countryCards && section.countryCards.length > 0 && (
+        <div className="my-8 not-prose grid grid-cols-1 md:grid-cols-2 gap-4">
+          {section.countryCards.map((c, i) => (
+            <CountryCard
+              key={i}
+              flag={c.flag}
+              country={isEN ? c.country : c.countryPl || c.country}
+              tagline={isEN ? c.tagline : c.taglinePl || c.tagline}
+              highlights={c.highlights.map(h => ({
+                label: isEN ? h.label : h.labelPl || h.label,
+                value: isEN ? h.value : h.valuePl || h.value,
+              }))}
+            />
+          ))}
+        </div>
+      )}
+
+      {section.processDiagram && (
+        <ProcessDiagram
+          nodes={section.processDiagram.nodes.map(n => ({
+            id: n.id,
+            label: isEN ? n.label : n.labelPl || n.label,
+            x: n.x,
+            y: n.y,
+          }))}
+          edges={section.processDiagram.edges.map(e => ({
+            from: e.from,
+            to: e.to,
+            label: isEN ? e.label : e.labelPl || e.label,
+          }))}
+          height={section.processDiagram.height}
+          title={
+            isEN
+              ? section.processDiagram.title
+              : section.processDiagram.titlePl || section.processDiagram.title
+          }
+        />
+      )}
+
+      {section.warning && (
+        <WarningBox
+          title={isEN ? section.warning.title : section.warning.titlePl || section.warning.title}
+          text={isEN ? section.warning.text : section.warning.textPl || section.warning.text}
+          tone={section.warning.tone}
+        />
+      )}
+
+      {section.keyTakeaway && (
+        <KeyTakeawayBox
+          title={
+            isEN
+              ? section.keyTakeaway.title
+              : section.keyTakeaway.titlePl || section.keyTakeaway.title
+          }
+          items={
+            isEN
+              ? section.keyTakeaway.items
+              : section.keyTakeaway.itemsPl || section.keyTakeaway.items
+          }
+        />
+      )}
+    </>
+  )
+}
+
 function InlineCtaBlock({ text, href, variant }: { text: string; href: string; variant: string }) {
   const gradient =
     variant === 'magnet'
@@ -165,6 +343,8 @@ export function BlogPostPage() {
 
   const pillarBadgeClass = PILLAR_BADGE[post.pillar] || PILLAR_BADGE['supply-chain-strategy']
 
+  const Hero = BLOG_HEROES[post.slug]
+
   const isSkeleton = post.status === 'skeleton' || !post.sections || post.sections.length === 0
 
   return (
@@ -208,6 +388,11 @@ export function BlogPostPage() {
         {/* Article header */}
         <header className="pb-10">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+            {Hero && (
+              <div className="relative aspect-[16/9] rounded-2xl overflow-hidden mb-8 shadow-[0_20px_60px_-12px_rgba(0,0,0,0.18)] ring-1 ring-black/5">
+                <Hero className="w-full h-full" />
+              </div>
+            )}
             <div className="flex flex-wrap items-center gap-2 mb-5">
               <span
                 className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider ${pillarBadgeClass}`}
@@ -289,6 +474,7 @@ export function BlogPostPage() {
                           dangerouslySetInnerHTML={{ __html: para }}
                         />
                       ))}
+                      <SectionInlineComponents section={section} />
                       {section.subSections?.map((sub, k) => (
                         <div key={k}>
                           <h3 className="text-xl font-bold font-display tracking-tight mt-8 mb-3 text-slate-900">

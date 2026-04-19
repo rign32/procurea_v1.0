@@ -56,11 +56,11 @@ export const RESOURCES: Resource[] = [
       : 'Sprawdzony w boju szablon Excel i Notion do porównywania ofert dostawców obok siebie. 10 pól porównawczych, wbudowana formuła scoringu, eksport do PPTX dla interesariuszy.',
     format: 'xlsx',
     formatLabel: isEN ? 'Excel + Notion Template' : 'Szablon Excel + Notion',
-    fileSize: '86 KB',
+    fileSize: '16 KB',
     primaryKeyword: 'rfq comparison template',
     secondaryKeywords: ['supplier offer comparison', 'rfq scoring', 'vendor evaluation excel'],
     isGated: true,
-    gatedDownloadUrl: '/resources/downloads/rfq-comparison-template/rfq-comparison-template.csv',
+    gatedDownloadUrl: '/resources/downloads/rfq-comparison-template/rfq-comparison-template.xlsx',
     valueProps: isEN
       ? [
           '10 comparison fields covering price, lead time, MOQ, certs, payment terms',
@@ -95,13 +95,13 @@ export const RESOURCES: Resource[] = [
       ? 'The comprehensive 20-point supplier risk verification checklist used by procurement teams to prevent supply chain disruption. Financial, operational, geopolitical, ESG, cyber.'
       : 'Kompleksowa 20-punktowa checklista weryfikacji ryzyka dostawcy używana przez zespoły procurement do zapobiegania zakłóceniom łańcucha dostaw.',
     format: 'pdf',
-    formatLabel: isEN ? 'PDF Checklist · 6 pages' : 'Checklista PDF · 6 stron',
-    fileSize: '420 KB',
-    pageCount: 6,
+    formatLabel: isEN ? 'PDF Checklist · 9 pages' : 'Checklista PDF · 9 stron',
+    fileSize: '53 KB',
+    pageCount: 9,
     primaryKeyword: 'supplier risk checklist',
     secondaryKeywords: ['vendor risk assessment', 'supplier due diligence checklist', 'supplier qualification'],
     isGated: true,
-    gatedDownloadUrl: '/resources/downloads/supplier-risk-checklist-2026/supplier-risk-checklist-2026.md',
+    gatedDownloadUrl: '/resources/downloads/supplier-risk-checklist-2026/supplier-risk-checklist-2026.pdf',
     valueProps: isEN
       ? [
           '20 verification points across 5 risk dimensions',
@@ -137,11 +137,11 @@ export const RESOURCES: Resource[] = [
       : 'Interaktywny kalkulator Excel ujawniający prawdziwy Total Cost of Ownership ofert dostawców. Wychodzi poza cenę jednostkową.',
     format: 'xlsx',
     formatLabel: isEN ? 'Excel Calculator · 3 tabs' : 'Kalkulator Excel · 3 zakładki',
-    fileSize: '124 KB',
+    fileSize: '17 KB',
     primaryKeyword: 'tco calculator procurement',
     secondaryKeywords: ['total cost of ownership', 'landed cost calculator', 'supplier tco'],
     isGated: true,
-    gatedDownloadUrl: '/resources/downloads/tco-calculator/tco-calculator-tab2-comparison.csv',
+    gatedDownloadUrl: '/resources/downloads/tco-calculator/tco-calculator.xlsx',
     valueProps: isEN
       ? [
           'Pre-configured cost categories: price, freight, duties, quality, payment, switching',
@@ -176,13 +176,13 @@ export const RESOURCES: Resource[] = [
       ? 'A defensible 10-criteria vendor scoring framework with weighting logic, ready for your procurement audit. Used to standardize supplier selection across categories.'
       : 'Obronny framework scoringu dostawcy z 10 kryteriami i logiką ważenia, gotowy na twój audyt procurement.',
     format: 'pdf',
-    formatLabel: isEN ? 'PDF Framework · 8 pages' : 'Framework PDF · 8 stron',
-    fileSize: '380 KB',
-    pageCount: 8,
+    formatLabel: isEN ? 'PDF Framework · 15 pages' : 'Framework PDF · 15 stron',
+    fileSize: '54 KB',
+    pageCount: 15,
     primaryKeyword: 'vendor scoring framework',
     secondaryKeywords: ['supplier scorecard', 'supplier evaluation criteria', 'vendor rating template'],
     isGated: true,
-    gatedDownloadUrl: '/resources/downloads/vendor-scoring-framework/vendor-scoring-framework.md',
+    gatedDownloadUrl: '/resources/downloads/vendor-scoring-framework/vendor-scoring-framework.pdf',
     valueProps: isEN
       ? [
           '10 criteria: price, quality, lead time, MOQ, payment terms, certs, capacity, financial, ESG, responsiveness',
@@ -218,12 +218,12 @@ export const RESOURCES: Resource[] = [
       : 'Playbook krok po kroku dla dywersyfikacji łańcucha dostaw z Chin do europejskich alternatyw. Porównanie krajów, strategia sekwencjonowania, business case gotowy na zarząd.',
     format: 'pdf',
     formatLabel: isEN ? 'PDF Playbook · 14 pages' : 'Playbook PDF · 14 stron',
-    fileSize: '1.2 MB',
+    fileSize: '100 KB',
     pageCount: 14,
     primaryKeyword: 'nearshoring playbook',
     secondaryKeywords: ['china plus one strategy', 'supply chain diversification', 'nearshore sourcing europe'],
     isGated: true,
-    gatedDownloadUrl: '/resources/downloads/nearshore-migration-playbook/nearshore-migration-playbook.md',
+    gatedDownloadUrl: '/resources/downloads/nearshore-migration-playbook/nearshore-migration-playbook.pdf',
     valueProps: isEN
       ? [
           'Country comparison matrix: Poland, Turkey, Portugal, Romania, Hungary, Czech Republic',

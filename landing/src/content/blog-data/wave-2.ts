@@ -24,7 +24,7 @@ const post1: RichBlogPost = {
     'A three-minute VIES check on every new EU supplier is the cheapest fraud control in procurement. Here is the step-by-step flow, country quirks, and how to batch-verify at scale.',
   excerptPl:
     'Trzyminutowa kontrola VIES na każdym nowym dostawcy z UE to najtańszy mechanizm antyfraudowy w procurement. Oto krok po kroku, niuanse krajowe i jak weryfikować masowo.',
-  date: '2026-05-11',
+  date: '2025-11-03',
   readTime: '6 min read',
   readTimePl: '6 min czytania',
   wordCount: 1500,
@@ -96,6 +96,9 @@ Do this once and it takes four minutes. Do it on your tenth supplier and it take
 <strong>Krok 4 — Zachowaj dowód.</strong> VIES zwraca numer zapytania (Niemcy, Austria, Francja i kilka innych). Zrób screenshot odpowiedzi z numerem i datą. To dowód audytowy, jeśli inspektor skarbowy kiedyś zapyta. Zapisz przy rekordzie dostawcy w ERP lub narzędziu sourcingowym.
 
 Za pierwszym razem cztery minuty. Przy dziesiątym dostawcy — dziewięćdziesiąt sekund.`,
+      infographicKey: 'vat-vies-verification-steps',
+      infographicCaption: 'Input VAT → VIES check → result. Under 3 minutes for any EU supplier.',
+      infographicCaptionPl: 'Wpisz VAT → kontrola VIES → wynik. Poniżej 3 minut dla każdego dostawcy z UE.',
       inlineCta: {
         text: 'Run VIES + registry checks on 100+ suppliers in one click — free 10 credits, no card required.',
         textPl: 'Sprawdź VIES + rejestry na 100+ dostawcach jednym kliknięciem — 10 darmowych kredytów, bez karty.',
@@ -249,7 +252,7 @@ const post2: RichBlogPost = {
     'A buyer-side teardown of the 2026 AI procurement market — the 7 features that move the needle, the 3 that are buzzword theater, and how to run a fair evaluation.',
   excerptPl:
     'Teardown rynku AI procurement 2026 z perspektywy kupca — 7 funkcji, które realnie zmieniają wynik, 3 które są teatrem buzzwordów, i jak zrobić uczciwą ewaluację.',
-  date: '2026-05-18',
+  date: '2025-11-26',
   readTime: '9 min read',
   readTimePl: '9 min czytania',
   wordCount: 2200,
@@ -295,6 +298,9 @@ Co faktycznie zmieniło się między 2022 a 2026: LLM-y stały się wystarczają
 Uczciwa rama: AI procurement w 2026 to mocny analityk researchowy, nie mocny negocjator. Poszerza lejek 10x, skraca cykl 5x, wyłapuje sygnały fraudowe, które dawniej umykały. Nie zastępuje 20% pracy, która jest faktycznie procurementem — scope, relacja, osąd, negocjacja. Każdy vendor mówiący inaczej sprzedaje ci półkownika.
 
 Siedem funkcji poniżej to te, które w beta cohorcie realnie zmieniają wyniki. Trzy „marketingowe" na końcu to te, które pojawiają się na pitch deckach i nie robią nic w praktyce.`,
+      infographicKey: 'ai-features-matrix',
+      infographicCaption: 'Seven AI procurement features that move the needle — the rest is pitch-deck noise.',
+      infographicCaptionPl: 'Siedem funkcji AI procurement, które realnie zmieniają wyniki — reszta to szum pitch-decków.',
     },
     {
       heading: 'Feature 1 — AI-assisted supplier discovery (multilingual)',
@@ -514,7 +520,7 @@ const post3: RichBlogPost = {
     'Four risk categories, 20 practical checks, and the CSDDD impact on workflows. The 2026 playbook for supplier risk — with clear lines between "automate this" and "keep this human."',
   excerptPl:
     'Cztery kategorie ryzyka, 20 praktycznych kontroli, wpływ CSDDD na workflow. Playbook 2026 dla ryzyka dostawcy — z jasną granicą między „zautomatyzuj" a „zostaw człowiekowi".',
-  date: '2026-05-25',
+  date: '2025-12-29',
   readTime: '11 min read',
   readTimePl: '11 min czytania',
   wordCount: 2500,
@@ -594,6 +600,9 @@ None of these categories are new. What is new in 2026 is that all four must be <
 <strong>Ryzyko ESG.</strong> Czy narażają cię na odpowiedzialność środowiskową, społeczną lub reputacyjną w ramach CSDDD, LkSG, lub ekspozycję medialną? Sygnały: newsy o kontrowersjach pracowniczych, kary środowiskowe, intensywność GHG (gdzie ujawniona), różnorodność zarządu, przejrzystość własności, krajowy indeks praw człowieka, widoczność tier-2 dostawcy. Tempo: miesięczny monitoring mediów, roczny ustrukturyzowany kwestionariusz, kwartalna rotacja audytów na miejscu dla strategicznych. Trigger: każdy news o prawach człowieka, naruszenie środowiskowe w ostatnich 24 miesiącach, kampania NGO wymieniająca dostawcę.
 
 Żadna z kategorii nie jest nowa. Nowe w 2026 jest to, że wszystkie cztery muszą być <em>udokumentowane</em>, <em>kaskadowe</em> i <em>ciągle odświeżane</em> pod CSDDD. Raz-do-roku checkboxy nie przechodzą już audytu.`,
+      infographicKey: 'supplier-risk-radar',
+      infographicCaption: 'A radar profile across 5 risk axes — financial, operational, geopolitical, ESG, cyber.',
+      infographicCaptionPl: 'Profil radarowy na 5 osiach ryzyka — finansowe, operacyjne, geopolityczne, ESG, cyber.',
     },
     {
       heading: 'How to assess supplier risk — a decision tree',
@@ -828,7 +837,7 @@ const post4: RichBlogPost = {
     'German Mittelstand suppliers are worth the effort — if you know where to find them, how to read a Handelsregister extract, and how to write an RFQ they will actually reply to.',
   excerptPl:
     'Niemieccy dostawcy z Mittelstandu są warci wysiłku — jeśli wiesz, gdzie ich szukać, jak czytać wypis z Handelsregister i jak napisać RFQ, na które odpiszą.',
-  date: '2026-06-01',
+  date: '2025-12-05',
   readTime: '7 min read',
   readTimePl: '7 min czytania',
   wordCount: 1700,
@@ -878,6 +887,9 @@ Gdzie niemiecki sourcing się opłaca: kategorie, gdzie 5-15% premii jednostkowe
 Gdzie się nie opłaca: commodity, gdzie inżynieria dostawcy nic nie dodaje; wrażliwe cenowo dobra konsumenckie z presją marżową; bardzo małe wolumeny, na które Mittelstand nie będzie kwotował (typowy floor MOQ dla eksportu przemysłowego to 500-2000 szt. dla części przemysłowych, czasem więcej).
 
 Błąd kupców mid-market: traktowanie Niemiec jako jednego rynku. To sieć regionalnych klastrów przemysłowych, każdy z własną specjalizacją i normami komunikacji. Trafienie we właściwy klaster to połowa sukcesu.`,
+      infographicKey: 'german-sourcing-map',
+      infographicCaption: 'Germany as a network of manufacturing hubs — not one market.',
+      infographicCaptionPl: 'Niemcy jako sieć klastrów produkcyjnych — nie jeden rynek.',
     },
     {
       heading: 'Where to find German manufacturers online',
@@ -1061,7 +1073,7 @@ const post5: RichBlogPost = {
     'Ten comparison criteria, tiered pricing fields, MOQ/lead-time/Incoterms normalization, and a weighted scoring formula that does not collapse under real quotes. With a free download.',
   excerptPl:
     'Dziesięć kryteriów porównawczych, pola pricing tiered, normalizacja MOQ/lead time/Incoterms, ważona formuła scoringu, która nie pada pod realnymi ofertami. Do darmowego pobrania.',
-  date: '2026-06-08',
+  date: '2025-12-17',
   readTime: '7 min read',
   readTimePl: '7 min czytania',
   wordCount: 1600,
@@ -1323,7 +1335,7 @@ const post6: RichBlogPost = {
     'The 2025 tariff shocks made China+1 mandatory for mid-market procurement. Here is the 6-week operational playbook, five country options compared, and the three pitfalls that sink most transitions.',
   excerptPl:
     'Szoki celne 2025 uczyniły China+1 obowiązkowym dla procurement mid-market. Oto 6-tygodniowy playbook operacyjny, pięć krajów porównanych i trzy pułapki, które zatapiają większość transitions.',
-  date: '2026-06-15',
+  date: '2026-02-16',
   readTime: '12 min read',
   readTimePl: '12 min czytania',
   wordCount: 2400,
@@ -1429,6 +1441,9 @@ One more honorable mention for specific categories: <strong>Morocco</strong> (te
 <strong>Turcja.</strong> Najlepsza dla: tekstyliów (pełne spektrum), AGD, wyrobów stalowych, wiązek auto, chemii, mebli. Koszt: praca ok. 65% polskiej, porównywalna lub lekko poniżej chińskiej dla tekstyliów w skali. Lead time do UE: 5-7 dni ciężarówką. Krytyczna przewaga: status unii celnej UE oznacza, że większość towarów przemysłowych wchodzi bez cła. Baza: 80k+ producentów; największa baza nearshore po liczbie fabryk. Wyzwanie: zmienność liry wprowadza presję renegocjacji w cyklu 12-miesięcznym; hedguj kontraktem w EUR.
 
 Wzmianki honorowe dla konkretnych kategorii: <strong>Maroko</strong> (tekstylia i wiązki auto, bez cła do UE, 6-9 dni morzem/ciężarówką), <strong>Bangladesz</strong> (odzież basic w wolumenie, najniższy koszt w kategorii, lead time 30-40 dni), <strong>Malezja</strong> (montaż elektroniki, pakowanie półprzewodników, średni koszt z doskonałą ochroną IP).`,
+      infographicKey: 'nearshore-country-comparison',
+      infographicCaption: 'Three EU-nearshore anchors for China+1 (cost, MOQ, lead time).',
+      infographicCaptionPl: 'Trzy kotwice nearshore UE dla China+1 (koszt, MOQ, lead time).',
       inlineCta: {
         text: 'Build your diversification plan — 30-min strategy call, free.',
         textPl: 'Zbuduj plan dywersyfikacji — 30-min rozmowa strategiczna, za darmo.',
@@ -1591,7 +1606,7 @@ const post7: RichBlogPost = {
     'Why most vendor scorecards fail at audit, the 10 criteria that actually change selection decisions, and three preset weightings you can adapt in 20 minutes.',
   excerptPl:
     'Dlaczego większość scorecardów dostawców nie przechodzi audytu, 10 kryteriów realnie zmieniających decyzje, i trzy gotowe wagi do adaptacji w 20 minut.',
-  date: '2026-06-22',
+  date: '2026-02-25',
   readTime: '8 min read',
   readTimePl: '8 min czytania',
   wordCount: 1800,
@@ -1691,6 +1706,9 @@ Ten criteria, each with a measurable signal, each with a 0-5 rubric that a secon
 <strong>10. Ryzyko zależności / wyjścia.</strong> Źródło: twoja własna analiza — ile kosztowałoby wyjście od tego dostawcy w 6 miesięcy? Rubryka: 5 = wymienny jak commodity, 3 = 3-miesięczne przełączenie, 0 = single-source z niestandardowym oprzyrządowaniem.
 
 Dziesięć kryteriów, każde z mierzalnym sygnałem, każde z rubryką 0-5, którą drugi oceniający zastosuje i wyląduje w ±1 punkt od pierwszego. To test użytecznego frameworku.`,
+      infographicKey: 'vendor-scoring-scorecard',
+      infographicCaption: 'Sample weighted scorecard — 10 criteria, locked weights, total out of 100.',
+      infographicCaptionPl: 'Przykładowy ważony scorecard — 10 kryteriów, zablokowane wagi, wynik na 100.',
       inlineCta: {
         text: 'Download the 10-criteria scoring template — pre-wired with three weighting presets.',
         textPl: 'Pobierz szablon 10-kryteriów — z trzema presetami wag.',
@@ -1875,7 +1893,7 @@ const post8: RichBlogPost = {
     'What each certification actually guarantees (and does not), how to verify claims against issuer registries, the red flags, and an industry-by-industry cheat sheet for mandatory vs nice-to-have.',
   excerptPl:
     'Co każdy certyfikat naprawdę gwarantuje (a czego nie), jak weryfikować deklaracje w rejestrach wydających, czerwone flagi, i cheat sheet per branża co obowiązkowe vs nice-to-have.',
-  date: '2026-07-06',
+  date: '2026-01-28',
   readTime: '9 min read',
   readTimePl: '9 min czytania',
   wordCount: 2200,
@@ -1921,6 +1939,9 @@ Czego certyfikat nie robi: nie gwarantuje jakości, nie gwarantuje wypłacalnoś
 Praktyczna zasada: certyfikaty są konieczne, ale nie wystarczające. Certyfikowany dostawca jest w grze; niecertyfikowany zwykle poza dla kategorii regulowanych. Realna due diligence to weryfikacja, że certyfikat jest aktualny, wydany przez akredytowaną jednostkę i nie został wycofany — oraz że twoje konkretne oczekiwania jakościowe są spełnione przez realną pracę dostawcy, czego żaden certyfikat nie zagwarantuje.
 
 Kiedy certyfikaty to teatr: długa lista na stronie dostawcy bez weryfikowalnych numerów, bez dat wygaśnięcia, bez linków do jednostki wydającej. Traktuj to jak CV z tytułem doktora bez nazwy uczelni. Brak weryfikowalnych konkretów <em>jest</em> czerwoną flagą.`,
+      infographicKey: 'compliance-shield',
+      infographicCaption: 'Five certifications that matter most for B2B buyers in 2026.',
+      infographicCaptionPl: 'Pięć certyfikatów, które liczą się najbardziej dla B2B w 2026.',
     },
     {
       heading: 'ISO 9001 — the quality management baseline',

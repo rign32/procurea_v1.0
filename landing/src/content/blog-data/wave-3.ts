@@ -24,7 +24,7 @@ const post1: RichBlogPost = {
     'Supplier master data decays at roughly 40% per year. Here is why — broken into five decay vectors — and a 4-hour weekend triage that fixes the top 100 suppliers without a consultant.',
   excerptPl:
     'Master data dostawców starzeje się w tempie około 40% rocznie. Oto dlaczego — rozbite na pięć wektorów — i 4-godzinny weekendowy triage, który naprawia top 100 dostawców bez konsultanta.',
-  date: '2026-07-20',
+  date: '2026-02-06',
   readTime: '7 min read',
   readTimePl: '7 min czytania',
   wordCount: 1600,
@@ -78,6 +78,9 @@ Te 40% to nie jedna duża porażka. To pięć mniejszych, które się składają
 - <strong>~5%</strong> — zmiany adresu, telefonu lub strony bez formalnego powiadomienia.
 
 Dodaj to — wychodzi 40%. Nie każdy rok to dokładnie 40% — stabilny makroekonomicznie rok to 32%, rok kryzysowy (2020, 2022) uderza w 48%. Kierunek ten sam.`,
+      infographicKey: 'database-decay-chart',
+      infographicCaption: 'Supplier data freshness over 12 months — ~40% of records go stale if untouched.',
+      infographicCaptionPl: 'Świeżość danych dostawców w 12 miesięcy — ~40% rekordów starzeje się bez odświeżenia.',
     },
     {
       heading: 'What stale supplier data actually costs you',
@@ -275,7 +278,7 @@ const post2: RichBlogPost = {
     "NetSuite's native Vendor record is built for accounting, not sourcing. Here are the six procurement capabilities it does not ship — and how to layer a sourcing tool over NetSuite without replacing it.",
   excerptPl:
     'Natywny Vendor record w NetSuite jest zbudowany pod księgowość, nie sourcing. Oto sześć możliwości procurement, których brakuje — i jak nałożyć narzędzie sourcingowe na NetSuite bez zastępowania go.',
-  date: '2026-08-03',
+  date: '2026-03-09',
   readTime: '8 min read',
   readTimePl: '8 min czytania',
   wordCount: 1800,
@@ -389,6 +392,9 @@ Most mid-market NetSuite shops start on Path 1 (CSV) and graduate to Path 2 (Mer
 <strong>Ścieżka 3 — Custom SuiteScript (enterprise custom).</strong> Endpoint REST w SuiteScript przyjmujący payloady dostawców z twojego narzędzia i zapisujący Vendor records + sub-obiekty (adresy, kontakty, custom fields). Maksymalna kontrola. Maksymalne obciążenie IT — potrzebujesz developera NetSuite, sandboxa i strategii bundle-vs-script. Ma sens, gdy masz custom Vendor fields, do których Merge nie dociera, albo rygorystyczną politykę security wykluczającą middleware third-party. Licz 4-8 tygodni developmentu SuiteScript na integrację, bez testów.
 
 Większość mid-marketowych shopów NetSuite startuje na Ścieżce 1 (CSV) i przechodzi na Ścieżkę 2 (Merge.dev) po tym, jak pilot udowadnia workflow. Ścieżka 3 jest dla enterprise'ów ze specyficznymi wymaganiami technicznymi lub security — nie domyślna.`,
+      infographicKey: 'erp-comparison-grid',
+      infographicCaption: 'Procurea sync status across the three ERPs mid-market buyers ask about most often.',
+      infographicCaptionPl: 'Status synchronizacji Procurea dla trzech ERP-ów najczęściej pytanych przez mid-market.',
       inlineCta: {
         text: "Book a NetSuite integration call — we'll map your Vendor record fields and scope a 30-day pilot.",
         textPl: 'Umów rozmowę o integracji NetSuite — zmapujemy pola Vendor record i rozpiszemy 30-dniowy pilot.',
@@ -538,7 +544,7 @@ const post3: RichBlogPost = {
     'SAP Ariba is built for the Fortune 500. If you are a mid-market buyer, here is the honest trade-off — what you get, what you lose, and why a sourcing layer over your existing SAP is usually the right answer until you outgrow it.',
   excerptPl:
     'SAP Ariba jest zbudowane dla Fortune 500. Jeśli jesteś kupcem mid-market, oto uczciwy trade-off — co dostajesz, co tracisz i dlaczego warstwa sourcingowa nad istniejącym SAP jest zwykle właściwą odpowiedzią, aż z niej nie wyrośniesz.',
-  date: '2026-08-10',
+  date: '2025-11-14',
   readTime: '9 min read',
   readTimePl: '9 min czytania',
   wordCount: 1800,
@@ -829,7 +835,7 @@ const post4: RichBlogPost = {
     'A 3% unit-price "win" routinely turns into a 12% TCO loss once you count freight, defects, inventory carrying, and payment terms. Here is the CFO-defensible math — with a worked example that flips the winner.',
   excerptPl:
     'Wygrana 3% na cenie jednostkowej rutynowo staje się 12% stratą TCO, kiedy policzysz fracht, wady, koszty magazynu i terminy płatności. Oto matematyka obroniąca się przed CFO — z działającym przykładem, który odwraca zwycięzcę.',
-  date: '2026-08-17',
+  date: '2026-03-18',
   readTime: '10 min read',
   readTimePl: '10 min czytania',
   wordCount: 2000,
@@ -879,6 +885,9 @@ Błąd to nie dbanie o cenę jednostkową — to <em>tylko</em> dbanie o cenę j
 Powód, dla którego dzieje się to tak często w mid-market procurement, jest strukturalny. Kupiec ma dwa dni na przygotowanie porównania. Finanse pytają „co najtańsze". Kupiec oddaje porównanie cen jednostkowych, bo to da się zbudować w dwie godziny. Nikt nie buduje modelu TCO, bo nikt nie ma szablonu.
 
 Po to jest ten post — szablon, matematyka i obronny pod CFO sposób uruchomienia tego w dwie godziny.`,
+      infographicKey: 'tco-iceberg',
+      infographicCaption: 'Unit price is ~15% of what you actually pay. The other 85% sits below the waterline.',
+      infographicCaptionPl: 'Cena jednostkowa to ~15% tego, co faktycznie płacisz. Pozostałe 85% siedzi pod wodą.',
     },
     {
       heading: 'The 7 hidden cost buckets in a real TCO model',
@@ -1198,7 +1207,7 @@ const post5: RichBlogPost = {
     'How a single user brief becomes 120 verified suppliers — stage by stage, with honest conversion rates at each step and the places where the pipeline still misses.',
   excerptPl:
     'Jak pojedynczy brief zamienia się w 120 zweryfikowanych dostawców — etap po etapie, z uczciwymi wskaźnikami konwersji i miejscami, gdzie pipeline nadal się myli.',
-  date: '2026-09-07',
+  date: '2026-03-30',
   readTime: '8 min read',
   readTimePl: '8 min czytania',
   wordCount: 1700,
@@ -1254,6 +1263,9 @@ Spadek na każdym etapie to nie bug. To jest puenta. Surowa lista wyników Googl
 Matematyka konwersji przez cztery etapy wychodzi na około <strong>24% łącznie</strong> — 500 URL-i na wejściu, 120 zweryfikowanych na wyjściu. Dla kupca 120 zweryfikowanych to 10-15x więcej niż może wyprodukować ręcznie w tym samym budżecie czasu. Dla systemu 24% to uczciwy yield rate, kiedy egzekwujesz „zweryfikowane" rygorystycznie.
 
 Przejdźmy przez każdy etap.`,
+      infographicKey: 'sourcing-funnel',
+      infographicCaption: 'Four-stage sourcing funnel — how 500 raw URLs narrow to ~120 verified suppliers (24% yield).',
+      infographicCaptionPl: 'Czteroetapowy lejek sourcingowy — jak 500 surowych URL-i staje się ~120 zweryfikowanymi dostawcami (24% yield).',
     },
     {
       heading: 'Stage 1 — Strategy: from 1 brief to 32 localized queries',
@@ -1495,7 +1507,7 @@ const post6: RichBlogPost = {
     'Salesforce Accounts can technically hold suppliers — but the pattern breaks at the first real RFQ. Three scenarios where it works, four where it does not, and the integration pattern for adding a sourcing layer without duplicating data.',
   excerptPl:
     'Salesforce Accounts technicznie utrzymują dostawców — ale wzorzec pęka przy pierwszym realnym RFQ. Trzy scenariusze, kiedy to działa, cztery, kiedy nie, i wzorzec integracji dodania warstwy sourcingowej bez duplikowania danych.',
-  date: '2026-09-21',
+  date: '2026-04-07',
   readTime: '7 min read',
   readTimePl: '7 min czytania',
   wordCount: 1500,
@@ -1695,7 +1707,7 @@ const post7: RichBlogPost = {
     'Every AI sourcing demo looks the same. These are the 12 questions that separate real capability from cosmetic polish — and the specific answers that should make you walk away.',
   excerptPl:
     'Każde demo AI sourcing wygląda podobnie. Oto 12 pytań, które oddzielają realną funkcjonalność od kosmetycznego połysku — i konkretne odpowiedzi, które powinny być sygnałem do wyjścia.',
-  date: '2026-10-05',
+  date: '2026-04-14',
   readTime: '10 min read',
   readTimePl: '10 min czytania',
   wordCount: 2000,
@@ -1741,6 +1753,9 @@ Problem polega na tym, że każdy vendor AI sourcingowy umie zbudować takie dem
 Ten przewodnik to 12 pytań ułożonych tak, żeby vendorzy nie mogli się wykręcić. Każde pytanie ma „dobrą odpowiedź", „żółtą flagę" i „odpowiedź do wyjścia". Użyj jako scorecard: 3 punkty za dobrą, 1 za żółtą, 0 za wyjście. Max 36. Vendor poniżej 24 to nie. Vendor na 36 jest albo idealny, albo kłamie — sprawdzaj referencje twardo.
 
 Struktura: cztery tematy, po trzy pytania. Źródła danych, AI + transparentność, integracja + workflow, commercials + dowód klienta.`,
+      infographicKey: 'buyers-guide-questions',
+      infographicCaption: '12 questions across four themes — data, AI, workflow, proof.',
+      infographicCaptionPl: '12 pytań w czterech tematach — dane, AI, workflow, dowód.',
     },
     {
       heading: 'Theme 1 — Data sources (3 questions)',

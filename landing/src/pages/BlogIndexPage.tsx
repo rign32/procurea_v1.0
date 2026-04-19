@@ -8,6 +8,7 @@ import { AnimatedGrid } from "@/components/ui/AnimatedGrid"
 import { NewsletterSignupInline } from "@/components/content/NewsletterSignupInline"
 import { getAllBlogPosts } from "@/content/blog"
 import { pathMappings } from "@/i18n/paths"
+import { BLOG_HEROES } from "@/assets/content-hub/BlogHeroes"
 import type { BlogPillar, BlogPersona, BlogFunnel } from "@/content/blog-data/types"
 import { BookOpen, ArrowRight, Clock3, Calendar } from "lucide-react"
 
@@ -185,6 +186,7 @@ export function BlogIndexPage() {
                   const readTime = isEN ? post.readTime : post.readTimePl || post.readTime
                   const pillarInfo = PILLAR_LABELS[post.pillar]
                   const isScheduled = post.status === 'skeleton'
+                  const Hero = BLOG_HEROES[post.slug]
                   return (
                     <RevealOnScroll key={post.slug}>
                       <Link
@@ -192,15 +194,21 @@ export function BlogIndexPage() {
                         className="group flex flex-col rounded-2xl border border-black/[0.08] bg-white overflow-hidden h-full hover:shadow-[0_12px_40px_-8px_rgba(0,0,0,0.15)] hover:-translate-y-1 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                       >
                         <div className="relative aspect-[16/10] bg-gradient-to-br from-brand-400 via-brand-600 to-slate-800 overflow-hidden">
-                          <svg className="absolute inset-0 w-full h-full opacity-20 mix-blend-overlay" aria-hidden="true">
-                            <defs>
-                              <pattern id={`pat-${post.slug}`} x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-                                <circle cx="20" cy="20" r="1.5" fill="white" />
-                              </pattern>
-                            </defs>
-                            <rect width="100%" height="100%" fill={`url(#pat-${post.slug})`} />
-                          </svg>
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" aria-hidden="true" />
+                          {Hero ? (
+                            <Hero className="w-full h-full" />
+                          ) : (
+                            <>
+                              <svg className="absolute inset-0 w-full h-full opacity-20 mix-blend-overlay" aria-hidden="true">
+                                <defs>
+                                  <pattern id={`pat-${post.slug}`} x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+                                    <circle cx="20" cy="20" r="1.5" fill="white" />
+                                  </pattern>
+                                </defs>
+                                <rect width="100%" height="100%" fill={`url(#pat-${post.slug})`} />
+                              </svg>
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" aria-hidden="true" />
+                            </>
+                          )}
                           {isScheduled && (
                             <div className="absolute top-3 right-3">
                               <span className="inline-flex items-center rounded-full bg-white/95 backdrop-blur-sm px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-800 shadow-sm">

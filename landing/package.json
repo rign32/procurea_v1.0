@@ -9,7 +9,12 @@
     "build:en": "tsc -b && vite build --mode production-en && node scripts/prerender.mjs --mode=production-en",
     "build:staging": "tsc -b && vite build --mode staging && node scripts/prerender.mjs --mode=staging",
     "build:staging-en": "tsc -b && vite build --mode staging-en && node scripts/prerender.mjs --mode=staging-en",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate:rfq-template": "node scripts/generate-rfq-template.mjs",
+    "generate:tco-calculator": "node scripts/generate-tco-calculator.mjs",
+    "generate:vendor-scoring": "node scripts/generate-vendor-scoring-framework.mjs",
+    "generate:supplier-risk-checklist": "node scripts/generate-supplier-risk-checklist.mjs",
+    "generate:nearshore-playbook": "node scripts/generate-nearshore-playbook.mjs"
   },
   "dependencies": {
     "@calcom/embed-react": "^1.5.3",
@@ -24,11 +29,13 @@
     "vanilla-cookieconsent": "^3.1.0"
   },
   "devDependencies": {
+    "@react-pdf/renderer": "^4.5.1",
     "@types/node": "^25.5.0",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.17",
+    "exceljs": "^4.4.0",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.17",
     "typescript": "~5.6.0",

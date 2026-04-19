@@ -24,7 +24,7 @@ const post1: RichBlogPost = {
     'A practical 4-step funnel — discover, screen, enrich, verify — that turns one Google query into a shortlist of 100+ suppliers with real emails and certifications.',
   excerptPl:
     'Praktyczny 4-krokowy lejek — odkryj, przesiej, wzbogać, zweryfikuj — który z jednego zapytania Google daje shortlistę 100+ dostawców z realnymi mailami i certyfikatami.',
-  date: '2026-04-23',
+  date: '2025-10-07',
   readTime: '10 min read',
   readTimePl: '10 min czytania',
   wordCount: 2240,
@@ -174,6 +174,52 @@ Done manually, this is four to six weeks. Done in Procurea, it is roughly <stron
 <strong>Krok 4 — Weryfikacja.</strong> Sprawdź każde wzbogacenie krzyżowo z niezależnymi źródłami: VIES dla VAT, IAF CertSearch dla deklaracji ISO/IATF, oficjalny rejestr dla statusu firmy. Oznacz rozbieżności. Wynik: zweryfikowana shortlista z trust score na dostawcę.
 
 Ręcznie to cztery do sześciu tygodni. W Procurei to około <strong>20 minut</strong> czasu obliczeniowego od kliknięcia do gotowej shortlisty — z około 90 sekundami pracy kupca na starcie.`,
+      stepByStep: {
+        steps: [
+          {
+            title: 'Discover',
+            titlePl: 'Odkrywanie',
+            description:
+              '25-40 targeted search queries per country, in the local language. Parallel across Google, regional directories, and trade registries. Output: 500-2,000 raw URLs.',
+            descriptionPl:
+              '25-40 celowanych zapytań wyszukiwania na kraj, w języku lokalnym. Równolegle w Google, regionalnych katalogach i rejestrach handlowych. Wynik: 500-2 000 surowych URL-i.',
+          },
+          {
+            title: 'Screen',
+            titlePl: 'Przesiewanie',
+            description:
+              'Scrape + relevance filter. Is this a real manufacturer, right size, right certifications? Output: 150-300 candidates that pass screening.',
+            descriptionPl:
+              'Scraping + filtr trafności. Czy to realny producent, o właściwym rozmiarze, z właściwymi certyfikatami? Wynik: 150-300 kandydatów po przesiewie.',
+          },
+          {
+            title: 'Enrich',
+            titlePl: 'Wzbogacanie',
+            description:
+              'Find the decision-maker email, VAT, trade-registry entry, and a capability summary for each survivor. Output: 100-250 enriched records.',
+            descriptionPl:
+              'Znajdź mail osoby decyzyjnej, VAT, wpis w rejestrze i krótkie podsumowanie kompetencji. Wynik: 100-250 wzbogaconych rekordów.',
+          },
+          {
+            title: 'Verify',
+            titlePl: 'Weryfikacja',
+            description:
+              'Cross-check every claim against independent sources: VIES for VAT, IAF CertSearch for ISO/IATF, trade registry for status. Output: verified shortlist with trust score.',
+            descriptionPl:
+              'Cross-check każdej deklaracji z niezależnymi źródłami: VIES dla VAT, IAF CertSearch dla ISO/IATF, rejestr dla statusu. Wynik: zweryfikowana shortlista z trust score.',
+          },
+        ],
+      },
+      statsTimeline: {
+        title: 'Sourcing funnel — typical single-campaign output',
+        titlePl: 'Lejek sourcingu — typowy wynik jednej kampanii',
+        data: [
+          { label: 'Raw URLs', labelPl: 'Surowe URL-e', value: 1500, display: '1,500' },
+          { label: 'Screened', labelPl: 'Po screeningu', value: 300, display: '300' },
+          { label: 'Enriched', labelPl: 'Wzbogacone', value: 180, display: '180' },
+          { label: 'Verified', labelPl: 'Zweryfikowane', value: 120, display: '120' },
+        ],
+      },
       subSections: [
         {
           heading: 'Step 1 — Define a brief AI can actually use',
@@ -358,7 +404,7 @@ const post2: RichBlogPost = {
     'Break one sourcing campaign into 7 tasks, calculate the fully-loaded cost, and see honestly where AI saves time — and where it does not.',
   excerptPl:
     'Rozłóż jedną kampanię sourcingową na 7 zadań, policz pełny koszt wewnętrzny i zobacz uczciwie, gdzie AI oszczędza czas — a gdzie nie.',
-  date: '2026-04-27',
+  date: '2026-01-08',
   readTime: '8 min read',
   readTimePl: '8 min czytania',
   wordCount: 1820,
@@ -424,6 +470,18 @@ Total: <strong>30 hours</strong>. Ranges vary — simple commodity campaigns lan
 <strong>7. Decyzja i handoff — 2 godziny.</strong> Zbudowanie końcowego porównania dla decydenta, udokumentowanie uzasadnienia, start onboardingu.
 
 Razem: <strong>30 godzin</strong>. Zakresy się różnią — proste kampanie commodity to bliżej 18h, złożony sourcing wielokrajowy potrafi bić 50h. 30 to średnia mid-market.`,
+      infographicKey: 'thirty-hour-breakdown',
+      infographicCaption: 'Where 30 hours of manual sourcing actually go — across 5 activity clusters.',
+      infographicCaptionPl: 'Gdzie faktycznie uciekają 30 godzin ręcznego sourcingu — 5 głównych grup aktywności.',
+      statBlock: {
+        columns: 4,
+        stats: [
+          { value: '30h', label: 'Per campaign', labelPl: 'Na kampanię' },
+          { value: '7', label: 'Discrete tasks', labelPl: 'Zadań' },
+          { value: '150-200', label: 'Context switches', labelPl: 'Przełączeń kontekstu' },
+          { value: '60-70%', label: 'Emails ignored', labelPl: 'Ignorowanych maili' },
+        ],
+      },
     },
     {
       heading: 'The hidden cost math',
@@ -446,6 +504,26 @@ Prawdziwe pytanie brzmi: czego te pieniądze nie kupują. 21-dniowy cykl sourcin
 <strong>Szybszy sourcing → więcej rund konkurencyjnych rocznie → więcej wydatków objętych wynegocjowanymi cenami → wyższa marża.</strong>
 
 Jeśli zespół sourcuje €50M adresowalnych wydatków rocznie i możesz przesunąć dodatkowe 30% przez konkurencyjne rundy zamiast odnowień, przy 8% oszczędności — zostawiasz <strong>€1.2M na stole</strong> — nie dlatego, że kupcy są słabi, tylko że nie mają godzin.`,
+      beforeAfter: {
+        before: '30 hours of manual research, 5-supplier shortlist, 21-day sourcing cycle',
+        beforePl: '30 godzin ręcznego researchu, shortlista 5 dostawców, 21-dniowy cykl',
+        after: '45 minutes of AI pipeline, 100+ verified suppliers, 7-day sourcing cycle',
+        afterPl: '45 minut pipeline AI, 100+ zweryfikowanych dostawców, 7-dniowy cykl',
+      },
+      keyTakeaway: {
+        items: [
+          'One manual campaign costs ~€1,800 in internal time before a single RFQ is sent.',
+          'A 3-buyer team burns ~€110k/yr on Google searches and follow-up chasing.',
+          'Halving sourcing cycle time doubles the number of categories sourced competitively.',
+          'At an 8% savings rate on extra competitive spend, typical mid-market teams leave €1M+ on the table.',
+        ],
+        itemsPl: [
+          'Jedna ręczna kampania kosztuje ~€1 800 czasu wewnętrznego, zanim pójdzie pierwsze RFQ.',
+          'Zespół 3 kupców spala ~€110k rocznie na Google i follow-upy.',
+          'Skrócenie cyklu sourcingowego o połowę = 2x więcej kategorii sourcowanych konkurencyjnie.',
+          'Przy 8% oszczędności na dodatkowych rundach — mid-market zostawia €1M+ na stole.',
+        ],
+      },
     },
     {
       heading: 'The 5 biggest time sinks in manual procurement',
@@ -640,7 +718,7 @@ const post3: RichBlogPost = {
     'A category-by-category operator guide for 7 European sourcing countries — plastics, textiles, electronics, metals, packaging — with real trade-offs, cost math, and a decision framework.',
   excerptPl:
     'Operacyjny przewodnik po 7 krajach Europy dla kategorii — tworzywa, tekstylia, elektronika, metale, opakowania — z realnymi trade-offami, matematyką kosztów i ramą decyzyjną.',
-  date: '2026-04-30',
+  date: '2025-10-24',
   readTime: '14 min read',
   readTimePl: '14 min czytania',
   wordCount: 2840,
@@ -758,6 +836,60 @@ None of this is ranked. A plastics buyer with automotive certification needs pic
 <strong>Bułgaria</strong> — tanie tekstylia, montaż elektroniki, proste wyroby mechaniczne. Najtańsza praca w UE dla produkcji. Baza dostawców cieńsza niż Polska czy Turcja; najlepsza dla kupców, którzy już znają kraj.
 
 Nic z tego nie jest rankingiem. Kupiec tworzyw z certyfikacją automotive wybiera Polskę lub Czechy. Kupiec dzianin z priorytetami ESG — Portugalię. Kupiec wysokowolumenowych basic t-shirtów — Turcję lub Bułgarię. Decyzja jest najpierw po kategorii, potem po kraju.`,
+      countryCards: [
+        {
+          flag: '\u{1F1F5}\u{1F1F1}',
+          country: 'Poland',
+          countryPl: 'Polska',
+          tagline: 'Volume nearshore — plastics, metals, assembly',
+          taglinePl: 'Nearshore dla wolumenu — tworzywa, metale, montaż',
+          highlights: [
+            { label: 'Manufacturers', labelPl: 'Producenci', value: '45,000+', valuePl: '45 000+' },
+            { label: 'Avg wage', labelPl: 'Śr. pensja', value: '€1,850/mo', valuePl: '€1 850/mies.' },
+            { label: 'Lead time', labelPl: 'Lead time', value: '1-3 days', valuePl: '1-3 dni' },
+            { label: 'Labor index', labelPl: 'Indeks pracy', value: '100', valuePl: '100' },
+          ],
+        },
+        {
+          flag: '\u{1F1F9}\u{1F1F7}',
+          country: 'Turkey',
+          countryPl: 'Turcja',
+          tagline: 'Scale nearshore — textiles, white goods, steel',
+          taglinePl: 'Nearshore dla skali — tekstylia, AGD, stal',
+          highlights: [
+            { label: 'Manufacturers', labelPl: 'Producenci', value: '80,000+', valuePl: '80 000+' },
+            { label: 'Avg wage', labelPl: 'Śr. pensja', value: '€650/mo', valuePl: '€650/mies.' },
+            { label: 'Lead time', labelPl: 'Lead time', value: '5-7 days', valuePl: '5-7 dni' },
+            { label: 'Labor index', labelPl: 'Indeks pracy', value: '65', valuePl: '65' },
+          ],
+        },
+        {
+          flag: '\u{1F1F5}\u{1F1F9}',
+          country: 'Portugal',
+          countryPl: 'Portugalia',
+          tagline: 'Premium nearshore — knitwear, footwear, technical textile',
+          taglinePl: 'Premium nearshore — dzianiny, obuwie, tekstylia techniczne',
+          highlights: [
+            { label: 'Factory size', labelPl: 'Rozmiar fabryk', value: '50-300 emp.', valuePl: '50-300 os.' },
+            { label: 'Avg wage', labelPl: 'Śr. pensja', value: '€1,100/mo', valuePl: '€1 100/mies.' },
+            { label: 'Specialty', labelPl: 'Specjalność', value: 'Short runs', valuePl: 'Krótkie serie' },
+            { label: 'ESG', labelPl: 'ESG', value: 'GOTS strong', valuePl: 'GOTS mocne' },
+          ],
+        },
+        {
+          flag: '\u{1F1F7}\u{1F1F4}',
+          country: 'Romania',
+          countryPl: 'Rumunia',
+          tagline: 'Low-cost EU — automotive wiring, electronics, basic apparel',
+          taglinePl: 'Tani kraj UE — wiązki auto, elektronika, basic',
+          highlights: [
+            { label: 'Labor index', labelPl: 'Indeks pracy', value: '55', valuePl: '55' },
+            { label: 'Languages', labelPl: 'Języki', value: 'EN + FR', valuePl: 'EN + FR' },
+            { label: 'Lead time', labelPl: 'Lead time', value: '3-5 days', valuePl: '3-5 dni' },
+            { label: 'Strength', labelPl: 'Mocna strona', value: 'Auto harnesses', valuePl: 'Wiązki auto' },
+          ],
+        },
+      ],
       subSections: [
         {
           heading: 'Poland — the volume nearshore',
@@ -864,6 +996,38 @@ Lead time on top: China is 45-60 days door-to-door including customs. Poland is 
 Zwróć uwagę na efekt CBAM, szczególnie dla stali. Chińska stal niesie teraz koszt korekty węglowej, który znosi większość przewagi ceny jednostkowej. Ta sama matematyka dotyczy aluminium, cementu i nawozów spoza UE.
 
 Lead time na wierzchu: Chiny 45-60 dni drzwi-drzwi z clem. Polska 2-4 dni. Turcja 5-7. Dla kategorii, gdzie sygnały popytowe przychodzą w oknie 30-dniowym, 45 dni z Chin nie jest premium — jest strukturalną dyskwalifikacją.`,
+      comparisonTable: {
+        caption: 'Landed cost vs lead time — 1,000-unit reference, EUR, delivery Hamburg',
+        captionPl: 'Landed cost vs lead time — 1 000 szt., EUR, dostawa Hamburg',
+        headers: ['Category · Origin', 'Unit price', 'Landed price', 'Lead time'],
+        headersPl: ['Kategoria · Pochodzenie', 'Cena jedn.', 'Landed', 'Lead time'],
+        rows: [
+          ['Plastic injection — China', '€0.62', '€0.89', '45-60 d'],
+          ['Plastic injection — Poland', '€0.81', '€0.87', '2-4 d'],
+          ['Plastic injection — Turkey', '€0.74', '€0.82', '5-7 d'],
+          ['Cotton T-shirt — China', '€2.10', '€2.60', '45-60 d'],
+          ['Cotton T-shirt — Turkey', '€2.30', '€2.45', '5-7 d'],
+          ['Steel bracket — China (+CBAM)', '€4.20', '€6.20', '45-60 d'],
+          ['Steel bracket — Poland', '€5.10', '€5.25', '2-4 d'],
+        ],
+        rowsPl: [
+          ['Wtrysk tworzyw — Chiny', '€0,62', '€0,89', '45-60 d'],
+          ['Wtrysk tworzyw — Polska', '€0,81', '€0,87', '2-4 d'],
+          ['Wtrysk tworzyw — Turcja', '€0,74', '€0,82', '5-7 d'],
+          ['T-shirt bawełniany — Chiny', '€2,10', '€2,60', '45-60 d'],
+          ['T-shirt bawełniany — Turcja', '€2,30', '€2,45', '5-7 d'],
+          ['Wspornik stalowy — Chiny (+CBAM)', '€4,20', '€6,20', '45-60 d'],
+          ['Wspornik stalowy — Polska', '€5,10', '€5,25', '2-4 d'],
+        ],
+        highlighted: 6,
+      },
+      warning: {
+        tone: 'warning',
+        title: 'CBAM reshapes steel, aluminum, and cement math',
+        titlePl: 'CBAM przekształca matematykę dla stali, aluminium i cementu',
+        text: 'From 2026, non-EU imports of steel, aluminum, cement, and fertilizers carry a carbon-adjustment cost that erases most of the Chinese unit-price advantage. Re-run your landed-cost models before renewing any 2026 contracts.',
+        textPl: 'Od 2026 importy stali, aluminium, cementu i nawozów spoza UE niosą korektę węglową, która znosi większość chińskiej przewagi cenowej. Przelicz landed cost przed odnowieniem kontraktów 2026.',
+      },
     },
     {
       heading: 'A 6-week nearshoring migration playbook',
@@ -1042,7 +1206,7 @@ const post4: RichBlogPost = {
     'Three real automation layers — template, sequence, scoring — and five concrete workflows for sourcing teams of 1, 2-5, and 5+ people. Honest trade-offs included.',
   excerptPl:
     'Trzy realne warstwy automatyzacji — szablon, sekwencja, scoring — i pięć konkretnych workflow dla zespołów 1, 2-5 i 5+ osób. Z uczciwymi trade-offami.',
-  date: '2026-05-04',
+  date: '2025-10-15',
   readTime: '9 min read',
   readTimePl: '9 min czytania',
   wordCount: 2010,
@@ -1080,6 +1244,9 @@ That is the whole definition. Everything vendors add to it — "AI-powered," "co
       bodyPl: `Automatyzacja RFQ to użycie software\'u do robienia trzech rzeczy szybciej niż mail i Excel: (1) wysłanie tego samego RFQ do wielu dostawców w ich języku, (2) ścigania niereagujących według harmonogramu bez ręcznego pisania i (3) zbierania i normalizacji odpowiedzi w jednym porównywalnym formacie do decyzji.
 
 To cała definicja. Wszystko, co dostawcy dokładają — „AI-powered", „cognitive sourcing", „end-to-end procurement transformation" — to marketing na wierzchu tych trzech operacji.`,
+      infographicKey: 'rfq-automation-flow',
+      infographicCaption: 'The five stages of automated RFQ: Spec → Distribute → Collect → Score → Select.',
+      infographicCaptionPl: 'Pięć etapów zautomatyzowanego RFQ: Spec → Dystrybucja → Zbiórka → Scoring → Wybór.',
     },
     {
       heading: 'The anatomy of a manual RFQ workflow — and where it breaks',
@@ -1370,7 +1537,7 @@ const post5: RichBlogPost = {
     'A side-by-side category comparison for knits, wovens, technical fabrics, activewear, basics, and outerwear — with real MOQs, lead times, labor cost indexes, and certification coverage.',
   excerptPl:
     'Porównanie kategoria po kategorii dla dzianin, tkanin, tekstyliów technicznych, activewear, basic i outerwear — z realnymi MOQ, lead time, indeksami kosztów pracy i pokryciem certyfikatów.',
-  date: '2026-05-07',
+  date: '2026-01-19',
   readTime: '10 min read',
   readTimePl: '10 min czytania',
   wordCount: 2030,
@@ -1506,6 +1673,9 @@ Praktyczny rezultat: Turcja, Polska i Portugalia pokrywają 85% wolumenu nearsho
 - Turcja: wysoka (TRY) — dostawcy wyceniają w EUR/USD, co stabilizuje stronę kupca.
 - Polska: umiarkowana (PLN) — około 5-10% rocznej zmienności wobec EUR.
 - Portugalia: brak (EUR).`,
+      infographicKey: 'nearshore-country-comparison',
+      infographicCaption: 'Turkey vs Poland vs Portugal — side-by-side on cost, MOQ, and lead time.',
+      infographicCaptionPl: 'Turcja vs Polska vs Portugalia — obok siebie: koszt, MOQ, lead time.',
     },
     {
       heading: 'Where each country wins — by category',
