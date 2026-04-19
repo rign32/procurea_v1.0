@@ -13,6 +13,13 @@ import { pathFor, pathMappings, type PathKey } from "@/i18n/paths"
 import { getIndustry, resolveSlug } from "@/content/industries"
 import { getFeature } from "@/content/features"
 import { ConstructionIndustryPage } from "@/pages/industries/ConstructionIndustryPage"
+import { ManufacturingIndustryPage } from "@/pages/industries/ManufacturingIndustryPage"
+import { EventsIndustryPage } from "@/pages/industries/EventsIndustryPage"
+import { RetailIndustryPage } from "@/pages/industries/RetailIndustryPage"
+import { HorecaIndustryPage } from "@/pages/industries/HorecaIndustryPage"
+import { HealthcareIndustryPage } from "@/pages/industries/HealthcareIndustryPage"
+import { LogisticsIndustryPage } from "@/pages/industries/LogisticsIndustryPage"
+import { MroIndustryPage } from "@/pages/industries/MroIndustryPage"
 
 const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
@@ -79,8 +86,15 @@ export function IndustryPage() {
   const resolvedSlug = resolveSlug(slug)
 
   // Dispatch to bespoke industry pages (unique layout, infographics, content)
-  if (resolvedSlug === 'budownictwo') {
-    return <ConstructionIndustryPage />
+  switch (resolvedSlug) {
+    case 'budownictwo': return <ConstructionIndustryPage />
+    case 'produkcja': return <ManufacturingIndustryPage />
+    case 'eventy': return <EventsIndustryPage />
+    case 'retail-ecommerce': return <RetailIndustryPage />
+    case 'gastronomia': return <HorecaIndustryPage />
+    case 'ochrona-zdrowia': return <HealthcareIndustryPage />
+    case 'logistyka': return <LogisticsIndustryPage />
+    case 'mro-utrzymanie-ruchu': return <MroIndustryPage />
   }
 
   const industry = getIndustry(resolvedSlug)
