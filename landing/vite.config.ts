@@ -132,6 +132,33 @@ export default defineConfig(({ mode }) => {
     ],
     build: {
       outDir,
+      rollupOptions: {
+        output: {
+          manualChunks: (id) => {
+            // Split blog content waves into separate chunks so main bundle stays lean
+            if (id.includes('/blog-data/wave-1.ts')) return 'blog-wave-1'
+            if (id.includes('/blog-data/wave-2.ts')) return 'blog-wave-2'
+            if (id.includes('/blog-data/wave-3.ts')) return 'blog-wave-3'
+            if (id.includes('/blog-data/skeletons.ts')) return 'blog-skeletons'
+            // Content data files
+            if (id.includes('/content/features.ts')) return 'content-features'
+            if (id.includes('/content/industries.ts')) return 'content-industries'
+            if (id.includes('/content/integrations.ts')) return 'content-integrations'
+            if (id.includes('/content/caseStudies.ts')) return 'content-case-studies'
+            if (id.includes('/content/resources.ts')) return 'content-resources'
+            // Content hub assets (SVG components)
+            if (id.includes('/assets/content-hub/')) return 'content-hub-assets'
+            // Framer Motion — heavy and rarely used critical-path
+            if (id.includes('node_modules/framer-motion')) return 'vendor-framer'
+            // React Router — critical, keep with React core
+            if (id.includes('node_modules/react-router')) return 'vendor-router'
+            if (id.includes('node_modules/react') || id.includes('node_modules/scheduler')) return 'vendor-react'
+            // Lucide icons
+            if (id.includes('node_modules/lucide-react')) return 'vendor-icons'
+            return undefined
+          },
+        },
+      },
     },
     resolve: {
       alias: {

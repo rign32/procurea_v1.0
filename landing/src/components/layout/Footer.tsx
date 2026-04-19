@@ -137,7 +137,7 @@ export function Footer() {
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-16 pb-12">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-x-8 gap-y-10">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-x-8 gap-y-10">
             {/* Brand column */}
             <div className="col-span-2 md:col-span-1">
               <Link to="/" className="inline-flex items-center gap-2.5 mb-4">
@@ -186,6 +186,35 @@ export function Footer() {
                 {t.footer.industries}
               </h3>
               <FooterLinks links={t.footer.industryLinks} />
+            </div>
+
+            {/* Resources */}
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 text-gray-500">
+                {isEN() ? 'Resources' : 'Materialy'}
+              </h3>
+              <ul className="space-y-2.5">
+                <li>
+                  <Link to={isEN() ? '/resources' : '/materialy'} className="text-sm text-gray-400 hover:text-white transition-colors duration-200">
+                    {isEN() ? 'All resources' : 'Wszystkie materialy'}
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/blog" className="text-sm text-gray-400 hover:text-white transition-colors duration-200">
+                    Blog
+                  </Link>
+                </li>
+                <li>
+                  <Link to={isEN() ? '/resources/library' : '/materialy/library'} className="text-sm text-gray-400 hover:text-white transition-colors duration-200">
+                    {isEN() ? 'Guides & Templates' : 'Przewodniki i szablony'}
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/case-studies" className="text-sm text-gray-400 hover:text-white transition-colors duration-200">
+                    {isEN() ? 'Case Studies' : 'Case Studies'}
+                  </Link>
+                </li>
+              </ul>
             </div>
 
             {/* Integrations & Company */}

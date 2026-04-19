@@ -54,6 +54,11 @@ const ComparisonPage = lazy(() => import("@/pages/ComparisonPage").then(m => ({ 
 const PartnerPage = lazy(() => import("@/pages/PartnerPage").then(m => ({ default: m.PartnerPage })))
 const BlogIndexPage = lazy(() => import("@/pages/BlogIndexPage").then(m => ({ default: m.BlogIndexPage })))
 const BlogPostPage = lazy(() => import("@/pages/BlogPostPage").then(m => ({ default: m.BlogPostPage })))
+const ContentHubPage = lazy(() => import("@/pages/ContentHubPage").then(m => ({ default: m.ContentHubPage })))
+const ResourcesIndexPage = lazy(() => import("@/pages/ResourcesIndexPage").then(m => ({ default: m.ResourcesIndexPage })))
+const ResourcePage = lazy(() => import("@/pages/ResourcePage").then(m => ({ default: m.ResourcePage })))
+const CaseStudiesIndexPage = lazy(() => import("@/pages/CaseStudiesIndexPage").then(m => ({ default: m.CaseStudiesIndexPage })))
+const CaseStudyPage = lazy(() => import("@/pages/CaseStudyPage").then(m => ({ default: m.CaseStudyPage })))
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage").then(m => ({ default: m.NotFoundPage })))
 
 const isEN = t.meta.lang === 'en'
@@ -115,6 +120,15 @@ export default function App() {
         {/* Blog */}
         <Route path={p('blogIndex')} element={<BlogIndexPage />} />
         <Route path={`${p('blogIndex')}/:slug`} element={<BlogPostPage />} />
+
+        {/* Content Hub (unified /resources page) */}
+        <Route path={p('resourcesHub')} element={<ContentHubPage />} />
+        <Route path={`${p('resourcesHub')}/library`} element={<ResourcesIndexPage />} />
+        <Route path={`${p('resourcesHub')}/library/:slug`} element={<ResourcePage />} />
+
+        {/* Case Studies */}
+        <Route path={p('caseStudiesHub')} element={<CaseStudiesIndexPage />} />
+        <Route path={`${p('caseStudiesHub')}/:slug`} element={<CaseStudyPage />} />
 
         {/* 404 */}
         <Route path="*" element={<NotFoundPage />} />

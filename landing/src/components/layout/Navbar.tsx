@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 import { useScrollProgress } from "@/hooks/useScrollProgress"
 import { MobileMenu } from "./MobileMenu"
 import { NavDropdown, type DropdownSection } from "./NavDropdown"
-import { Menu, Search, Mail, LayoutGrid, Zap, Sparkles, Building2 } from "lucide-react"
+import { Menu, Search, Mail, LayoutGrid, Zap, Sparkles, Building2, BookOpen, Download, TrendingUp, Newspaper } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { trackCtaClick } from "@/lib/analytics"
 import { appendUtm } from "@/lib/utm"
@@ -63,6 +63,39 @@ const modulesSections: DropdownSection[] = [
       },
     ],
     footer: { label: isEN ? 'All modules →' : 'Wszystkie moduly →', to: pathFor('featuresHub') },
+  },
+]
+
+const resourcesSections: DropdownSection[] = [
+  {
+    label: isEN ? 'Content Hub' : 'Centrum Wiedzy',
+    items: [
+      {
+        label: isEN ? 'All Resources' : 'Wszystkie Materialy',
+        to: pathFor('resourcesHub'),
+        description: isEN ? 'Articles, guides, and case studies' : 'Artykuly, przewodniki i case studies',
+        icon: <Newspaper className="h-4 w-4" />,
+      },
+      {
+        label: 'Blog',
+        to: pathFor('blogIndex'),
+        description: isEN ? 'Procurement insights from the field' : 'Wiedza o procurement z terenu',
+        icon: <BookOpen className="h-4 w-4" />,
+      },
+      {
+        label: isEN ? 'Guides & Templates' : 'Przewodniki i szablony',
+        to: pathFor('resourcesHub') + '/library',
+        description: isEN ? 'RFQ template, TCO calculator, playbooks' : 'Szablon RFQ, kalkulator TCO, playbooki',
+        icon: <Download className="h-4 w-4" />,
+      },
+      {
+        label: isEN ? 'Case Studies' : 'Case Studies',
+        to: pathFor('caseStudiesHub'),
+        description: isEN ? 'Real sourcing outcomes from pilot cohort' : 'Prawdziwe wyniki z beta cohort',
+        icon: <TrendingUp className="h-4 w-4" />,
+      },
+    ],
+    footer: { label: isEN ? 'Browse all →' : 'Przeglądaj wszystkie →', to: pathFor('resourcesHub') },
   },
 ]
 
@@ -152,6 +185,11 @@ export function Navbar() {
               <Link to={pathFor('integrationsHub')} className={linkClass}>
                 {t.nav.integrations}
               </Link>
+              <NavDropdown
+                label={isEN ? 'Resources' : 'Materialy'}
+                sections={resourcesSections}
+                columns={1}
+              />
               <Link to={pathFor('about')} className={linkClass}>
                 {t.nav.company}
               </Link>

@@ -11,6 +11,7 @@ import { BenefitsSection } from "@/components/sections/BenefitsSection"
 import { SavingsCalculator } from "@/components/sections/SavingsCalculator"
 import { TestimonialSection } from "@/components/sections/TestimonialSection"
 import { DemoSection } from "@/components/sections/DemoSection"
+import { LatestContentSection } from "@/components/sections/LatestContentSection"
 import { CtaSection } from "@/components/sections/CtaSection"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { initSectionTracking, initScrollDepthTracking } from "@/lib/analytics"
@@ -39,6 +40,7 @@ export function HomePage() {
         <div data-track-section="calculator" className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-12 md:py-16"><RevealOnScroll scale><SavingsCalculator /></RevealOnScroll></div>
         <div data-track-section="testimonials"><TestimonialSection /></div>
         <div data-track-section="demo"><DemoSection /></div>
+        <div data-track-section="latest-content"><LatestContentSection /></div>
         <div data-track-section="cta"><CtaSection /></div>
       </main>
       <Footer />

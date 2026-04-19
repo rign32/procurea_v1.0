@@ -291,6 +291,72 @@ export function metaFor(path: string): RouteMeta {
         canonical,
       }
 
+    // Content Hub — unified resources page
+    case '/materialy':
+      return {
+        title: 'Materialy — Wiedza, przewodniki i case studies | Procurea',
+        description: 'Praktyczne materialy procurement: artykuly, przewodniki do pobrania i rzeczywiste case studies z beta cohort Procurea.',
+        canonical,
+        jsonLd: {
+          '@context': 'https://schema.org',
+          '@type': 'CollectionPage',
+          name: 'Materialy Procurement',
+          url: canonical,
+        },
+      }
+    case '/resources':
+      return {
+        title: 'Resources — Procurement Insights, Guides & Case Studies | Procurea',
+        description: 'Practical procurement resources: articles, downloadable guides, and real case studies from Procurea beta cohort.',
+        canonical,
+        jsonLd: {
+          '@context': 'https://schema.org',
+          '@type': 'CollectionPage',
+          name: 'Procurement Resources',
+          url: canonical,
+        },
+      }
+
+    // Blog index
+    case '/blog':
+      return {
+        title: isEN() ? 'Procurement Blog — Insights for Buyers | Procurea' : 'Blog Procurement — Wiedza dla kupcow | Procurea',
+        description: isEN()
+          ? 'Sharp analysis of sourcing, supplier management, and procurement automation — written by practitioners, for practitioners.'
+          : 'Analizy sourcingu, zarzadzania dostawcami i automatyzacji procurement. Pisane przez praktykow, dla praktykow.',
+        canonical,
+        jsonLd: {
+          '@context': 'https://schema.org',
+          '@type': 'Blog',
+          name: 'Procurea Blog',
+          url: canonical,
+        },
+      }
+
+    // Resources library (lead magnets index)
+    case '/materialy/library':
+      return {
+        title: 'Przewodniki i szablony procurement — Procurea',
+        description: 'Darmowe szablony, playbooki, checklisty i kalkulatory procurement. Do pobrania w formacie Excel, PDF, Notion.',
+        canonical,
+      }
+    case '/resources/library':
+      return {
+        title: 'Procurement Guides & Templates — Free Downloads | Procurea',
+        description: 'Free procurement templates, playbooks, checklists, and calculators. RFQ comparison template, TCO calculator, supplier risk checklist, nearshore migration playbook.',
+        canonical,
+      }
+
+    // Case studies index
+    case '/case-studies':
+      return {
+        title: isEN() ? 'Case Studies — How Procurement Teams Use Procurea' : 'Case Studies — Jak zespoly zakupowe uzywaja Procurea',
+        description: isEN()
+          ? 'Real sourcing outcomes from the Procurea beta cohort: 8 automotive suppliers in 5 days, Barcelona event vendors in 72h, 14% HoReCa cost reduction.'
+          : 'Rzeczywiste wyniki sourcingowe z beta cohort Procurea: 8 dostawcow automotive w 5 dni, vendorzy eventowi w 72h, 14% redukcji kosztow HoReCa.',
+        canonical,
+      }
+
     default:
       return {
         title: 'Procurea',
@@ -299,6 +365,10 @@ export function metaFor(path: string): RouteMeta {
         noindex: true,
       }
   }
+}
+
+function isEN(): boolean {
+  return import.meta.env.VITE_LANGUAGE === 'en'
 }
 
 // List of all static routes for prerender script
@@ -334,6 +404,11 @@ export const STATIC_ROUTES_PL = [
   '/porownanie',
   // Partners
   '/partnerzy',
+  // Content Hub
+  '/materialy',
+  '/blog',
+  '/materialy/library',
+  '/case-studies',
 ]
 
 export const STATIC_ROUTES_EN = [
@@ -368,4 +443,9 @@ export const STATIC_ROUTES_EN = [
   '/vs-manual-sourcing',
   // Partners
   '/partners',
+  // Content Hub
+  '/resources',
+  '/blog',
+  '/resources/library',
+  '/case-studies',
 ]

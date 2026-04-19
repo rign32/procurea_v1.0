@@ -31,6 +31,48 @@ const LANG = isEN ? 'en' : 'pl'
 
 // Mirror of routesMeta.ts (lightweight — we can't import TS here).
 // Keep in sync when adding routes.
+// Blog slugs (20 posts — mirrors landing/src/content/blog-data/skeletons.ts)
+const BLOG_SLUGS = [
+  'how-to-find-100-verified-suppliers-in-under-an-hour',
+  'the-30-hour-problem',
+  'european-nearshoring-guide-2026',
+  'rfq-automation-workflows',
+  'turkey-vs-poland-vs-portugal-textiles',
+  'vat-vies-verification-3-minute-check',
+  'ai-procurement-software-7-features-2026',
+  'supplier-risk-management-2026',
+  'german-manufacturer-sourcing',
+  'rfq-comparison-template-buyers-use',
+  'china-plus-one-strategy',
+  'vendor-scoring-10-criteria',
+  'supplier-certifications-guide',
+  'supplier-database-stale-40-percent',
+  'netsuite-supplier-management',
+  'sap-ariba-alternative-procurement',
+  'tco-beat-lowest-price-trap',
+  'sourcing-funnel-explained',
+  'salesforce-for-procurement',
+  'buyers-guide-12-questions-ai-sourcing',
+]
+
+// Resource slugs (5 lead magnets — mirrors landing/src/content/resources.ts)
+const RESOURCE_SLUGS = [
+  'rfq-comparison-template',
+  'supplier-risk-checklist-2026',
+  'tco-calculator',
+  'vendor-scoring-framework',
+  'nearshore-migration-playbook',
+]
+
+// Case study slugs (5 — mirrors landing/src/content/caseStudies.ts)
+const CASE_STUDY_SLUGS = [
+  'automotive-8-suppliers-5-days',
+  'event-agency-barcelona-72h',
+  'hvac-subcontractors-developer',
+  'restaurant-chain-12-vendors',
+  'd2c-cosmetics-nearshore-migration',
+]
+
 const ROUTES_PL = [
   '/', '/cennik', '/o-nas', '/kontakt', '/funkcje', '/dla-kogo', '/integracje',
   '/regulamin', '/polityka-prywatnosci', '/rodo', '/bezpieczenstwo', '/zgodnosc',
@@ -39,6 +81,14 @@ const ROUTES_PL = [
   '/funkcje/ai-sourcing', '/funkcje/outreach-mailowy', '/funkcje/supplier-portal', '/funkcje/porownywarka-ofert',
   '/porownanie',
   '/partnerzy',
+  // Content Hub
+  '/materialy', '/blog', '/materialy/library', '/case-studies',
+  // Blog posts
+  ...BLOG_SLUGS.map(slug => `/blog/${slug}`),
+  // Resources (lead magnets)
+  ...RESOURCE_SLUGS.map(slug => `/materialy/library/${slug}`),
+  // Case studies
+  ...CASE_STUDY_SLUGS.map(slug => `/case-studies/${slug}`),
 ]
 
 const ROUTES_EN = [
@@ -49,6 +99,14 @@ const ROUTES_EN = [
   '/features/ai-sourcing', '/features/email-outreach', '/features/supplier-portal', '/features/offer-comparison',
   '/vs-manual-sourcing',
   '/partners',
+  // Content Hub
+  '/resources', '/blog', '/resources/library', '/case-studies',
+  // Blog posts
+  ...BLOG_SLUGS.map(slug => `/blog/${slug}`),
+  // Resources (lead magnets)
+  ...RESOURCE_SLUGS.map(slug => `/resources/library/${slug}`),
+  // Case studies
+  ...CASE_STUDY_SLUGS.map(slug => `/case-studies/${slug}`),
 ]
 
 const META = {
@@ -109,6 +167,112 @@ const META = {
   '/vs-manual-sourcing': { title: 'Procurea vs Manual Sourcing — Comparison', description: 'Compare AI procurement automation to traditional supplier sourcing. 30 hours vs 20 minutes.' },
   '/partnerzy': { title: 'Program partnerski — Procurea', description: 'Zostań partnerem Procurea. Współpracujemy z konsultantami ERP, agencjami procurement i partnerami technologicznymi.' },
   '/partners': { title: 'Partner Program — Procurea', description: 'Partner with Procurea. We work with ERP consultants, procurement agencies, and technology partners to bring AI sourcing to more teams.' },
+  // Content Hub index pages
+  '/materialy': { title: 'Materialy — Wiedza, przewodniki i case studies | Procurea', description: 'Praktyczne materialy procurement: artykuly, przewodniki do pobrania i rzeczywiste case studies z beta cohort Procurea.' },
+  '/resources': { title: 'Resources — Procurement Insights, Guides & Case Studies | Procurea', description: 'Practical procurement resources for buyers: articles, downloadable guides, and real case studies from Procurea beta cohort.' },
+  '/blog': { title: 'Procurement Blog — Insights for Buyers | Procurea', description: 'Sharp analysis of sourcing, supplier management, and procurement automation — written by practitioners, for practitioners.' },
+  '/materialy/library': { title: 'Przewodniki i szablony procurement — Procurea', description: 'Darmowe szablony, playbooki, checklisty i kalkulatory procurement. Excel, PDF, Notion — do pobrania.' },
+  '/resources/library': { title: 'Procurement Guides & Templates — Free Downloads | Procurea', description: 'Free procurement templates, playbooks, checklists, and calculators. RFQ template, TCO calculator, supplier risk checklist, nearshore playbook.' },
+  '/case-studies': { title: 'Case Studies — How Procurement Teams Use Procurea', description: 'Real sourcing outcomes from the Procurea beta cohort: 8 automotive suppliers in 5 days, Barcelona event vendors in 72h, 14% HoReCa cost reduction.' },
+}
+
+// Blog post titles per slug — mirrors landing/src/content/blog-data/skeletons.ts
+const BLOG_META_EN = {
+  'how-to-find-100-verified-suppliers-in-under-an-hour': { title: 'How to Find 100+ Verified Suppliers in Under an Hour | Procurea Blog', description: 'The 30-hour manual Excel baseline is dead. Here is the 4-step AI workflow that replaces it — without hiring, without enterprise software, without losing sourcing quality.' },
+  'the-30-hour-problem': { title: 'The 30-Hour Problem: Why Manual Sourcing Is Killing Your Margin | Procurea', description: 'Anatomy of a 30-hour sourcing campaign. Cost breakdown, where time goes, and the ROI math that makes automation a no-brainer.' },
+  'european-nearshoring-guide-2026': { title: "A Procurement Manager's Guide to European Nearshoring in 2026 | Procurea", description: 'Post-COVID, tariffs, CSRD are pushing production out of China. Country-by-country playbook — Poland, Czech Republic, Turkey, Portugal, Romania, Hungary.' },
+  'rfq-automation-workflows': { title: "RFQ Automation: What It Is, Why Excel Won't Cut It, and 5 Workflows That Work | Procurea", description: 'Define RFQ automation. Problem with Excel RFQs. 5 workflows: bulk outreach, templated offers, scoring, follow-ups, comparison. Plus free template.' },
+  'turkey-vs-poland-vs-portugal-textiles': { title: 'Turkey vs Poland vs Portugal: Where to Source Textiles in 2026 | Procurea', description: 'Category-specific deep-dive. Country-by-country: capacity, MOQ, certs (GOTS, OEKO-TEX), lead time, price ranges. Decision matrix included.' },
+  'vat-vies-verification-3-minute-check': { title: 'VAT VIES Verification: The 3-Minute Check That Saves You €50k | Procurea', description: 'Why VAT verification matters for cross-border procurement, how VIES works, when it gets wrong answers, and how to automate verification at scale.' },
+  'ai-procurement-software-7-features-2026': { title: 'AI Procurement Software: 7 Features Worth Paying For in 2026 | Procurea', description: '2026 AI procurement landscape. 7 must-have features, hype vs real, vendor shortlist framework. Honest teardown.' },
+  'supplier-risk-management-2026': { title: 'Supplier Risk Management: A 2026 Checklist for Procurement Teams | Procurea', description: 'Risk categories: financial, operational, geopolitical, ESG, cyber. CSDDD, tariffs, CSRD. 20-point checklist + monitoring ops.' },
+  'german-manufacturer-sourcing': { title: 'How to Source from German Manufacturers Without Speaking German | Procurea', description: 'Why German suppliers are worth the effort. Where to find them. Language barriers, Mittelstand culture, email templates.' },
+  'rfq-comparison-template-buyers-use': { title: 'The Free RFQ Comparison Template Buyers Actually Use [Excel + Notion] | Procurea', description: '10 comparison criteria, tiered pricing, MOQ / lead time / Incoterms, scoring formula. Excel limits + when to upgrade.' },
+  'china-plus-one-strategy': { title: 'China+1 Strategy: A Practical Playbook for 2026 Diversification | Procurea', description: 'Context: 2025 tariff shocks. What China+1 means (not China-out). Alt countries by category. Sequencing. Board-ready template.' },
+  'vendor-scoring-10-criteria': { title: 'Vendor Scoring: A 10-Criteria Framework for Fair Supplier Evaluation | Procurea', description: 'Why ad-hoc scoring fails audit. 10 criteria, weighting logic, defensibility, template.' },
+  'supplier-certifications-guide': { title: 'ISO 9001 vs IATF 16949 vs FDA: Supplier Certifications That Actually Matter | Procurea', description: 'Certification landscape: when each matters, how to verify, expiration tracking, red flags.' },
+  'supplier-database-stale-40-percent': { title: 'Why 40% of Your Supplier Database Goes Stale Every Year | Procurea', description: 'The 40% stat. Why data decays. Impact. Continuous refresh vs annual audit. Self-audit template.' },
+  'netsuite-supplier-management': { title: 'Oracle NetSuite Supplier Management: What Procurement Teams Actually Need | Procurea', description: 'NetSuite vendor record capabilities + gaps. Third-party tools vs native. Procurea + NetSuite specifics.' },
+  'sap-ariba-alternative-procurement': { title: 'SAP Ariba Alternative: Mid-Market Enterprise Sourcing Without the SAP Bill | Procurea', description: 'SAP Ariba cost + complexity reality. What mid-market actually needs. How Procurea delivers 80% of value at 10% of cost.' },
+  'tco-beat-lowest-price-trap': { title: 'Total Cost of Ownership (TCO): How to Beat the Lowest-Price Trap | Procurea', description: 'Why lowest unit price ≠ best value. TCO components + worked example + calculator.' },
+  'sourcing-funnel-explained': { title: 'From 500 Google Results to 120 Verified Suppliers: The Sourcing Funnel Explained | Procurea', description: 'The funnel: queries → URLs → screened → verified → contacted. Conversion rates at each stage. Where most buyers fail.' },
+  'salesforce-for-procurement': { title: 'Salesforce for Procurement: When It Works (And When You Need Something Else) | Procurea', description: 'Why some teams run procurement in Salesforce. When it works vs breaks. Procurea + Salesforce sync patterns.' },
+  'buyers-guide-12-questions-ai-sourcing': { title: "Buyer's Guide: 12 Questions to Ask Before Picking an AI Sourcing Tool | Procurea", description: '12-question framework. Search, verification, outreach, comparison, integration, security. How vendors dodge each.' },
+}
+
+const BLOG_META_PL = {
+  'how-to-find-100-verified-suppliers-in-under-an-hour': { title: 'Jak znalezc 100+ zweryfikowanych dostawcow w godzine | Procurea Blog', description: '30-godzinny baseline Excel umarl. 4-krokowy workflow AI ktory go zastepuje — bez zatrudniania, bez enterprise software.' },
+  'the-30-hour-problem': { title: 'Problem 30 godzin: dlaczego reczny sourcing zabija twoja marze | Procurea', description: 'Anatomia 30-godzinnej kampanii sourcingowej. Podzial kosztow, gdzie naprawde idzie czas, matematyka ROI.' },
+  'european-nearshoring-guide-2026': { title: 'Przewodnik po europejskim nearshoringu w 2026 | Procurea', description: 'Post-COVID, cla i CSRD wypychaja produkcje z Chin. Playbook kraj-po-kraju — Polska, Czechy, Turcja, Portugalia.' },
+  'rfq-automation-workflows': { title: 'Automatyzacja RFQ: 5 workflow ktore dzialaja | Procurea', description: 'Definicja automatyzacji RFQ. 5 workflow: bulk outreach, szablonowe oferty, scoring, follow-upy, porownanie. Darmowy szablon.' },
+  'turkey-vs-poland-vs-portugal-textiles': { title: 'Turcja vs Polska vs Portugalia: gdzie szukac tekstyliow | Procurea', description: 'Dogłębna analiza sourcingu tekstyliow. Kraj-po-kraju: moce, MOQ, certyfikaty, lead time, ceny.' },
+  'vat-vies-verification-3-minute-check': { title: 'Weryfikacja VAT VIES: 3-minutowa kontrola | Procurea', description: 'Dlaczego weryfikacja VAT ma znaczenie, jak dziala VIES, kiedy sie myli, jak zautomatyzowac.' },
+  'ai-procurement-software-7-features-2026': { title: 'Oprogramowanie AI do procurement: 7 funkcji 2026 | Procurea', description: 'Krajobraz AI procurement 2026. 7 must-have funkcji, framework wyboru vendorow. Uczciwy teardown.' },
+  'supplier-risk-management-2026': { title: 'Zarzadzanie ryzykiem dostawcow: checklista 2026 | Procurea', description: 'Kategorie ryzyka: finansowe, operacyjne, geopolityczne, ESG, cyber. Ryzyka 2026. 20-punktowa checklista.' },
+  'german-manufacturer-sourcing': { title: 'Jak pozyskiwac od niemieckich producentow | Procurea', description: 'Gdzie szukac niemieckich dostawcow, bariery jezykowe, kultura Mittelstand, szablony emaili.' },
+  'rfq-comparison-template-buyers-use': { title: 'Darmowy szablon porownania RFQ | Procurea', description: '10 kryteriow porownawczych, pola pricing tiered, MOQ, Incoterms, formula scoringu.' },
+  'china-plus-one-strategy': { title: 'Strategia China+1: playbook dywersyfikacji 2026 | Procurea', description: 'Szoki celne 2025. Alt kraje per kategoria. Sekwencjonowanie. Szablon gotowy na zarzad.' },
+  'vendor-scoring-10-criteria': { title: 'Scoring dostawcow: framework 10 kryteriow | Procurea', description: 'Dlaczego ad-hoc scoring nie przechodzi audytu. 10 kryteriow + logika wazenia + szablon.' },
+  'supplier-certifications-guide': { title: 'ISO 9001, IATF 16949, FDA: certyfikaty dostawcow | Procurea', description: 'Krajobraz certyfikacji: kiedy kazdy ma znaczenie, jak weryfikowac, sledzenie wygasniec.' },
+  'supplier-database-stale-40-percent': { title: 'Dlaczego 40% bazy dostawcow starzeje sie co rok | Procurea', description: 'Statystyka 40% — dlaczego dane starzeja sie, konsekwencje, jak naprawic.' },
+  'netsuite-supplier-management': { title: 'NetSuite zarzadzanie dostawcami: co naprawde potrzebne | Procurea', description: 'Mozliwosci NetSuite vendor record + luki. Narzedzia third-party vs native.' },
+  'sap-ariba-alternative-procurement': { title: 'Alternatywa dla SAP Ariba: enterprise sourcing bez rachunku SAP | Procurea', description: 'Koszty i zlozonosc SAP Ariba. Jak Procurea dostarcza 80% wartosci za 10% kosztow.' },
+  'tco-beat-lowest-price-trap': { title: 'Total Cost of Ownership: pokonaj pulapke najnizszej ceny | Procurea', description: 'Dlaczego najnizsza cena ≠ najlepsza wartosc. Komponenty TCO + kalkulator.' },
+  'sourcing-funnel-explained': { title: 'Lejek sourcingowy: od 500 wynikow Google do 120 dostawcow | Procurea', description: 'Lejek: zapytania → URL-e → screened → verified → kontakt. Wskazniki konwersji.' },
+  'salesforce-for-procurement': { title: 'Salesforce dla procurement: kiedy dziala (i kiedy nie) | Procurea', description: 'Dlaczego niektore zespoly prowadza procurement w Salesforce. Kiedy dziala vs kiedy sie lamie.' },
+  'buyers-guide-12-questions-ai-sourcing': { title: 'Przewodnik kupujacego: 12 pytan do AI sourcing | Procurea', description: '12-pytan framework. Jak vendorzy uciekaja przed kazdym pytaniem. Szablon scoringu.' },
+}
+
+const RESOURCE_META_EN = {
+  'rfq-comparison-template': { title: 'RFQ Comparison Template — Free Excel & Notion | Procurea', description: 'Battle-tested Excel and Notion template for comparing supplier offers side-by-side. 10 criteria, built-in scoring.' },
+  'supplier-risk-checklist-2026': { title: 'Supplier Risk Checklist 2026 — 20-Point Verification Guide | Procurea', description: 'Comprehensive 20-point supplier risk verification checklist used by procurement teams to prevent supply chain disruption.' },
+  'tco-calculator': { title: 'TCO Calculator — Beat the Lowest-Price Trap | Procurea', description: 'Interactive Excel calculator revealing true Total Cost of Ownership. Beyond unit price: logistics, duties, quality, switching cost.' },
+  'vendor-scoring-framework': { title: 'Vendor Scoring Framework — 10-Criteria Template | Procurea', description: 'Defensible 10-criteria vendor scoring framework with weighting logic, ready for your procurement audit.' },
+  'nearshore-migration-playbook': { title: 'Nearshore Migration Playbook — China+1 Made Practical | Procurea', description: 'Step-by-step playbook for diversifying supply chain from China to European alternatives. Country comparison + business case.' },
+}
+
+const RESOURCE_META_PL = {
+  'rfq-comparison-template': { title: 'Szablon porownania RFQ — Excel i Notion | Procurea', description: 'Sprawdzony w boju szablon Excel i Notion do porownywania ofert. 10 kryteriow, wbudowany scoring.' },
+  'supplier-risk-checklist-2026': { title: 'Checklista ryzyka dostawcy 2026 — 20 punktow | Procurea', description: 'Kompleksowa 20-punktowa checklista weryfikacji ryzyka dostawcy.' },
+  'tco-calculator': { title: 'Kalkulator TCO — pokonaj pulapke najnizszej ceny | Procurea', description: 'Interaktywny kalkulator Excel ujawniajacy prawdziwy Total Cost of Ownership.' },
+  'vendor-scoring-framework': { title: 'Framework scoringu dostawcy — szablon 10 kryteriow | Procurea', description: 'Obronny framework scoringu dostawcy z 10 kryteriami i logika wazenia.' },
+  'nearshore-migration-playbook': { title: 'Playbook migracji nearshore — China+1 w praktyce | Procurea', description: 'Playbook krok po kroku dla dywersyfikacji lancucha dostaw z Chin do europejskich alternatyw.' },
+}
+
+const CASE_STUDY_META_EN = {
+  'automotive-8-suppliers-5-days': { title: 'Automotive OEM: 8 Qualified Suppliers in 5 Days | Procurea', description: 'Following termination of a critical Chinese partner, European automotive OEM used Procurea to build diversified supplier base in days.' },
+  'event-agency-barcelona-72h': { title: 'Event Agency: Complete Vendor Stack in 72 Hours | Procurea', description: 'London event agency needed catering, AV, stage, branded gifts in Barcelona — 3 days notice. Procurea delivered.' },
+  'hvac-subcontractors-developer': { title: 'Real Estate Developer: 15 HVAC Subcontractors in 2 Weeks | Procurea', description: 'Polish real estate developer qualified 15 HVAC subcontractors for major residential development in time to keep construction schedule.' },
+  'restaurant-chain-12-vendors': { title: 'Restaurant Chain: 14% Cost Reduction via 12 Vendors | Procurea', description: '40-location restaurant chain used Procurea to qualify alternative produce and meat suppliers — 14% average cost reduction.' },
+  'd2c-cosmetics-nearshore-migration': { title: 'D2C Cosmetics: China to Europe Migration in 3 Weeks | Procurea', description: 'Growing D2C cosmetics brand found 18 qualified European private-label manufacturers in 3 weeks — replacing a planned 4-month sourcing.' },
+}
+
+const CASE_STUDY_META_PL = {
+  'automotive-8-suppliers-5-days': { title: 'OEM automotive: 8 dostawcow w 5 dni | Procurea', description: 'Po zerwaniu z krytycznym partnerem chinskim, europejski OEM automotive zbudowal zdywersyfikowana baze w dni.' },
+  'event-agency-barcelona-72h': { title: 'Agencja eventowa: kompletny stack dostawcow w 72h | Procurea', description: 'Londynska agencja eventowa potrzebowala cateringu, AV, scenografii w Barcelonie — z 3-dniowym wyprzedzeniem.' },
+  'hvac-subcontractors-developer': { title: 'Deweloper: 15 podwykonawcow HVAC w 2 tygodnie | Procurea', description: 'Polski deweloper zakwalifikowal 15 podwykonawcow HVAC dla osiedla 200-lokalowego w 2 tygodnie.' },
+  'restaurant-chain-12-vendors': { title: 'Siec restauracji: 14% redukcji kosztow przez 12 vendorow | Procurea', description: 'Siec 40-lokalowa obnizyla koszty zywnosci o 14% dzieki dywersyfikacji z 3 do 12 vendorow.' },
+  'd2c-cosmetics-nearshore-migration': { title: 'Marka D2C: migracja z Chin do Europy w 3 tygodnie | Procurea', description: 'Marka D2C kosmetykow znalazla 18 zakwalifikowanych europejskich producentow private-label w 3 tygodnie.' },
+}
+
+// Merge blog/resource/case-study meta into main META based on locale
+for (const slug of BLOG_SLUGS) {
+  const en = BLOG_META_EN[slug]
+  const pl = BLOG_META_PL[slug]
+  if (en) META[`/blog/${slug}__en`] = en
+  if (pl) META[`/blog/${slug}__pl`] = pl
+}
+for (const slug of RESOURCE_SLUGS) {
+  const en = RESOURCE_META_EN[slug]
+  const pl = RESOURCE_META_PL[slug]
+  if (en) META[`/resources/library/${slug}`] = en
+  if (pl) META[`/materialy/library/${slug}`] = pl
+}
+for (const slug of CASE_STUDY_SLUGS) {
+  const en = CASE_STUDY_META_EN[slug]
+  const pl = CASE_STUDY_META_PL[slug]
+  if (en) META[`/case-studies/${slug}__en`] = en
+  if (pl) META[`/case-studies/${slug}__pl`] = pl
 }
 
 // hreflang alternate mapping (PL slug ↔ EN slug)
@@ -139,6 +303,22 @@ const ALT_MAP = {
   '/funkcje/outreach-mailowy': '/features/email-outreach', '/features/email-outreach': '/funkcje/outreach-mailowy',
   '/funkcje/supplier-portal': '/features/supplier-portal', '/features/supplier-portal': '/funkcje/supplier-portal',
   '/funkcje/porownywarka-ofert': '/features/offer-comparison', '/features/offer-comparison': '/funkcje/porownywarka-ofert',
+  // Content Hub (PL ↔ EN)
+  '/materialy': '/resources', '/resources': '/materialy',
+  '/materialy/library': '/resources/library', '/resources/library': '/materialy/library',
+  // /blog and /case-studies are the same URL in both languages (no alt needed — handled via canonical)
+}
+
+// Add blog + case-study self-alternates (same URL both languages)
+for (const slug of BLOG_SLUGS) ALT_MAP[`/blog/${slug}`] = `/blog/${slug}`
+for (const slug of CASE_STUDY_SLUGS) ALT_MAP[`/case-studies/${slug}`] = `/case-studies/${slug}`
+ALT_MAP['/blog'] = '/blog'
+ALT_MAP['/case-studies'] = '/case-studies'
+
+// Add resource library alt for each slug
+for (const slug of RESOURCE_SLUGS) {
+  ALT_MAP[`/materialy/library/${slug}`] = `/resources/library/${slug}`
+  ALT_MAP[`/resources/library/${slug}`] = `/materialy/library/${slug}`
 }
 
 function escapeHtml(s) {
@@ -204,7 +384,12 @@ function main() {
 
   let count = 0
   for (const path of routes) {
-    const meta = META[path]
+    // Blog and case-study slugs share the same URL structure in PL/EN, so look up localized META
+    let meta = META[path]
+    if (!meta) {
+      const localizedKey = `${path}__${LANG}`
+      meta = META[localizedKey]
+    }
     if (!meta) {
       console.warn(`[prerender] no meta for ${path} — skipping`)
       continue

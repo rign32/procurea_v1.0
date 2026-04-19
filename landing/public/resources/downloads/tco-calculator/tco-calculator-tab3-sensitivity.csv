@@ -1,0 +1,14 @@
+Scenario,FX Rate Change,Lead Time Change,Supplier A TCO,Supplier B TCO,Supplier C TCO,Winner,Note
+Baseline,0%,0 days,11.64,11.89,12.83,Supplier A,"Baseline assumptions: USD/EUR 1.08, lead times as quoted"
+USD strengthens 5% (China quote in USD base),+5%,0 days,12.09,11.89,12.83,Supplier B,"When USD strengthens, China quote gets more expensive in EUR terms; Turkey takes lead"
+USD strengthens 10%,+10%,0 days,12.54,11.89,12.83,Supplier B,"Double digit FX move flips the ranking decisively"
+TRY weakens 15% (Turkey quote),-15% TRY,0 days,11.64,11.65,12.83,"Close call — Turkey vs China","Turkish lira volatility is structural — buyers who quote in EUR see price cuts but supplier margin compresses and may renegotiate mid-contract"
+Red Sea disruption (+14 days China),0%,+14d China,12.01,11.89,12.83,Supplier B,"China lead time goes to 70 days. Carrying cost +0.37 per unit. Turkey's 28-day lead becomes proportionally more valuable"
+Red Sea + USD +5%,+5%,+14d China,12.46,11.89,12.83,Supplier B,"Compound effect — two stressors together"
+China tariff +15% (hypothetical Section 301 expansion),+15% duties,0 days,13.06,11.89,12.83,Supplier C,"Poland becomes winner when tariffs escalate — note Poland was rank 5 in baseline. Diversification creates optionality value"
+CBAM steps up to €75/tonne,0%,0 days,11.95,11.95,12.83,Tie A/B,"CBAM escalation squeezes both non-EU options"
+Inflation in Poland labor (supplier requests +8% price),0%,0 days,11.64,11.89,13.30,Supplier A,"Poland supplier remains costlier than baseline but only if Turkish & Chinese prices hold — rarely happens in practice"
+All-in bad case (Red Sea + USD +10% + CBAM +€25),+10%,+14d China,12.91,11.95,12.83,Supplier B,"Combining likely 2026 stressors: China option loses its price advantage entirely"
+,,,,,,
+SENSITIVITY ANALYSIS HOW TO READ,,,,,,
+"The winner under baseline (Supplier A, China) changes under every stress scenario tested. A procurement strategy that selects Supplier A on unit price alone is fragile. A strategy that selects Supplier B (Turkey) is robust across 7 of 10 scenarios. That robustness has a cost — €0.25 per unit more than baseline — which is the insurance premium for optionality.",,,,,,

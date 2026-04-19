@@ -1,0 +1,110 @@
+/* Procurea lead magnet print stylesheet */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&display=swap');
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 11pt;
+  line-height: 1.55;
+  color: #0F172B;
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 40px;
+}
+
+h1, h2, h3 {
+  font-family: 'Inter Tight', -apple-system, sans-serif;
+  letter-spacing: -0.02em;
+  color: #2A5C5D;
+  margin-top: 2em;
+  margin-bottom: 0.5em;
+  page-break-after: avoid;
+}
+
+h1 {
+  font-size: 28pt;
+  color: #5E8C8F;
+  border-bottom: 3px solid #5E8C8F;
+  padding-bottom: 0.3em;
+}
+
+h2 {
+  font-size: 18pt;
+  border-bottom: 1px solid #E2E8F0;
+  padding-bottom: 0.2em;
+}
+
+h3 { font-size: 14pt; }
+
+p, ul, ol { margin: 0 0 1em 0; }
+
+code {
+  background: #F1F5F9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 10pt;
+}
+
+pre {
+  background: #F1F5F9;
+  padding: 1em;
+  border-radius: 8px;
+  overflow-x: auto;
+  page-break-inside: avoid;
+}
+
+blockquote {
+  border-left: 4px solid #5E8C8F;
+  margin: 1em 0;
+  padding: 0.5em 1em;
+  background: #F8FAFC;
+  font-style: italic;
+  color: #475569;
+  page-break-inside: avoid;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+  page-break-inside: avoid;
+}
+
+th {
+  background: #5E8C8F;
+  color: white;
+  padding: 0.6em;
+  text-align: left;
+  font-weight: 600;
+}
+
+td {
+  border-bottom: 1px solid #E2E8F0;
+  padding: 0.5em 0.6em;
+}
+
+tr:nth-child(even) td { background: #F8FAFC; }
+
+hr { border: none; border-top: 2px solid #E2E8F0; margin: 2em 0; }
+
+strong { color: #2A5C5D; font-weight: 600; }
+
+a { color: #5E8C8F; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Print specifics */
+@page {
+  size: A4;
+  margin: 20mm;
+  @bottom-center {
+    content: counter(page);
+    font-size: 9pt;
+    color: #94A3B8;
+  }
+}
+
+@media print {
+  body { padding: 0; max-width: none; }
+  h1 { page-break-before: always; }
+  h1:first-of-type { page-break-before: avoid; }
+}
