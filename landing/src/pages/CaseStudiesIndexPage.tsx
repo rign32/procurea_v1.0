@@ -30,7 +30,7 @@ export function CaseStudiesIndexPage() {
       />
       <Navbar />
 
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         <section className="relative pt-28 sm:pt-32 pb-12 sm:pb-16 bg-gradient-to-b from-white to-emerald-50/20 overflow-hidden">
           <div
             className="absolute top-20 -right-40 w-[600px] h-[600px] rounded-full bg-emerald-500/[0.08] blur-[120px] pointer-events-none"

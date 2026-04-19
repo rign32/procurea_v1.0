@@ -546,17 +546,84 @@ export function VatViesVerificationHero({ className, title }: HeroProps) {
 }
 
 /* 7. ai-procurement-software-7-features-2026
-   Metaphor: 7 feature tiles arranged as radar/dashboard */
+   Metaphor: 7 feature tiles on radar dashboard; inline lucide-style SVG icons */
 export function AiProcurement7FeaturesHero({ className, title }: HeroProps) {
-  const features = [
-    { x: 600, y: 180, label: "AI Sourcing", icon: "∇" },
-    { x: 780, y: 230, label: "RFQ", icon: "◧" },
-    { x: 820, y: 370, label: "Compare", icon: "⇌" },
-    { x: 700, y: 470, label: "Verify", icon: "✓" },
-    { x: 500, y: 470, label: "ERP Sync", icon: "⇄" },
-    { x: 380, y: 370, label: "Score", icon: "★" },
-    { x: 420, y: 230, label: "Outreach", icon: "@" },
-  ]
+  // Inline path-based glyph per feature (lucide-inspired, 24-unit viewbox centered on 0,0)
+  const Icon = ({ kind }: { kind: string }) => {
+    const s = "rgba(255,255,255,0.98)"
+    const w = 1.8
+    switch (kind) {
+      case "search": // magnifier
+        return (
+          <g fill="none" stroke={s} strokeWidth={w} strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="-2" cy="-2" r="7" />
+            <path d="M 3.2 3.2 L 8 8" />
+          </g>
+        )
+      case "mail": // envelope
+        return (
+          <g fill="none" stroke={s} strokeWidth={w} strokeLinecap="round" strokeLinejoin="round">
+            <rect x="-9" y="-6" width="18" height="12" rx="2" />
+            <path d="M -9 -5 L 0 2 L 9 -5" />
+          </g>
+        )
+      case "compare": // scale / double-arrow
+        return (
+          <g fill="none" stroke={s} strokeWidth={w} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M -8 -3 L 8 -3 M 4 -6 L 8 -3 L 4 0" />
+            <path d="M 8 4 L -8 4 M -4 1 L -8 4 L -4 7" />
+          </g>
+        )
+      case "shield-check": // shield with check
+        return (
+          <g fill="none" stroke={s} strokeWidth={w} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M 0 -9 L 8 -6 L 8 2 C 8 6 4 9 0 10 C -4 9 -8 6 -8 2 L -8 -6 Z" />
+            <path d="M -3.5 0 L -1 2.5 L 4 -2.5" />
+          </g>
+        )
+      case "sync": // rotate / sync arrows
+        return (
+          <g fill="none" stroke={s} strokeWidth={w} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M 8 -3 A 8 8 0 1 0 8 4" />
+            <path d="M 8 -7 L 8 -3 L 4 -3" />
+            <path d="M -8 7 L -8 3 L -4 3" />
+          </g>
+        )
+      case "chart": // bar chart
+        return (
+          <g fill="none" stroke={s} strokeWidth={w} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M -8 8 L 8 8" />
+            <rect x="-6" y="0" width="3" height="8" />
+            <rect x="-1" y="-4" width="3" height="12" />
+            <rect x="4" y="-7" width="3" height="15" />
+          </g>
+        )
+      case "send": // paper plane / outreach
+        return (
+          <g fill="none" stroke={s} strokeWidth={w} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M 9 -8 L -8 -1 L -1 1 L 2 8 Z" />
+            <path d="M 9 -8 L -1 1" />
+          </g>
+        )
+      default:
+        return null
+    }
+  }
+
+  // 7 features on circle of radius R around center (600,330), starting at top
+  const R = 230
+  const kinds = ["search", "mail", "compare", "shield-check", "sync", "chart", "send"]
+  const labels = ["Sourcing", "RFQ", "Compare", "Verify", "ERP Sync", "Score", "Outreach"]
+  const features = kinds.map((kind, i) => {
+    const a = ((i * 360) / 7 - 90) * (Math.PI / 180)
+    return {
+      x: 600 + Math.cos(a) * R,
+      y: 330 + Math.sin(a) * R,
+      kind,
+      label: labels[i],
+    }
+  })
+
   return (
     <HeroFrame
       className={className}
@@ -566,47 +633,70 @@ export function AiProcurement7FeaturesHero({ className, title }: HeroProps) {
     >
       <defs>
         <radialGradient id="w2h7-radar" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="rgba(122,173,175,0.25)" />
+          <stop offset="0%" stopColor="rgba(122,173,175,0.35)" />
           <stop offset="100%" stopColor="rgba(122,173,175,0)" />
         </radialGradient>
+        <pattern id="w2h7-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M40 0 L0 0 0 40" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+        </pattern>
       </defs>
+      <rect width="1200" height="675" fill="url(#w2h7-grid)" />
+
       {/* concentric rings */}
-      <g transform="translate(600 330)" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="1">
-        <circle r="80" />
-        <circle r="150" />
-        <circle r="220" />
-        <circle r="290" />
+      <g transform="translate(600 330)" fill="none" stroke="rgba(255,255,255,0.16)" strokeWidth="1">
+        <circle r="90" />
+        <circle r="160" />
+        <circle r="230" />
+        <circle r="300" />
       </g>
-      <circle cx="600" cy="330" r="290" fill="url(#w2h7-radar)" />
+      <circle cx="600" cy="330" r="300" fill="url(#w2h7-radar)" />
+
+      {/* radar sweep arc */}
+      <g transform="translate(600 330)">
+        <path
+          d="M 0 0 L 300 0 A 300 300 0 0 0 212 -212 Z"
+          fill="rgba(245,196,81,0.12)"
+          stroke="rgba(245,196,81,0.3)"
+          strokeWidth="1"
+        />
+      </g>
 
       {/* 7 rays */}
-      <g transform="translate(600 330)" stroke="rgba(255,255,255,0.15)" strokeWidth="1">
+      <g transform="translate(600 330)" stroke="rgba(255,255,255,0.14)" strokeWidth="1">
         {Array.from({ length: 7 }).map((_, i) => {
           const a = ((i * 360) / 7 - 90) * (Math.PI / 180)
           return (
             <line key={i} x1="0" y1="0"
-              x2={Math.cos(a) * 290} y2={Math.sin(a) * 290} />
+              x2={Math.cos(a) * 300} y2={Math.sin(a) * 300} />
           )
         })}
       </g>
 
-      {/* center hub "7" */}
+      {/* center hub — AI badge */}
       <g transform="translate(600 330)">
-        <circle r="64" fill="rgba(255,255,255,0.15)" stroke="white" strokeWidth="2.5" />
-        <text textAnchor="middle" y="22" fill="white"
-          fontFamily="Inter, sans-serif" fontWeight="800" fontSize="72" letterSpacing="-3">7</text>
+        <circle r="74" fill="rgba(245,196,81,0.22)" stroke="#F5C451" strokeWidth="2.5" />
+        <circle r="58" fill="rgba(26,58,59,0.6)" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" />
+        <text textAnchor="middle" y="-2" fill="white"
+          fontFamily="Inter, sans-serif" fontWeight="900" fontSize="34" letterSpacing="-1">AI</text>
+        <text textAnchor="middle" y="22" fill="rgba(255,255,255,0.8)"
+          fontFamily="Inter, sans-serif" fontWeight="700" fontSize="11" letterSpacing="2">7 FEATURES</text>
       </g>
 
-      {/* feature tiles around */}
+      {/* feature nodes around the ring */}
       {features.map((f, i) => (
         <g key={i} transform={`translate(${f.x} ${f.y})`}>
-          <rect x="-62" y="-26" width="124" height="52" rx="26"
-            fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.55)" strokeWidth="1.5" />
-          <circle cx="-42" cy="0" r="14" fill="rgba(255,255,255,0.22)" />
-          <text x="-42" y="6" textAnchor="middle" fill="white"
-            fontFamily="Inter, sans-serif" fontWeight="700" fontSize="15">{f.icon}</text>
-          <text x="-18" y="5" fill="white"
-            fontFamily="Inter, sans-serif" fontWeight="600" fontSize="13">{f.label}</text>
+          {/* outer accent ring */}
+          <circle r="36" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.28)" strokeWidth="1" />
+          {/* icon disc */}
+          <circle r="28" fill="rgba(255,255,255,0.14)" stroke="rgba(255,255,255,0.75)" strokeWidth="2" />
+          <Icon kind={f.kind} />
+          {/* label pill */}
+          <g transform="translate(0 58)">
+            <rect x="-48" y="-14" width="96" height="28" rx="14"
+              fill="rgba(15,23,43,0.55)" stroke="rgba(255,255,255,0.35)" strokeWidth="1" />
+            <text textAnchor="middle" y="5" fill="white"
+              fontFamily="Inter, sans-serif" fontWeight="700" fontSize="13">{f.label}</text>
+          </g>
         </g>
       ))}
     </HeroFrame>
@@ -614,65 +704,179 @@ export function AiProcurement7FeaturesHero({ className, title }: HeroProps) {
 }
 
 /* 8. supplier-risk-management-2026
-   Metaphor: Shield with multiple risk icons (financial, ops, cyber, ESG) */
+   Metaphor: Shield with 5 risk axes radiating out; inline lucide-style SVG icons */
 export function SupplierRiskManagementHero({ className, title }: HeroProps) {
+  // Risk axis glyphs as pure SVG paths
+  const RiskIcon = ({ kind }: { kind: string }) => {
+    const s = "white"
+    const w = 2
+    switch (kind) {
+      case "financial": // trending down / bar with arrow
+        return (
+          <g fill="none" stroke={s} strokeWidth={w} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M -8 -6 L -3 -1 L 1 -4 L 8 3" />
+            <path d="M 4 3 L 8 3 L 8 -1" />
+          </g>
+        )
+      case "operations": // gear
+        return (
+          <g fill="none" stroke={s} strokeWidth={w} strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="0" cy="0" r="3.2" />
+            <path d="M 0 -8 L 0 -5 M 0 5 L 0 8 M -8 0 L -5 0 M 5 0 L 8 0 M -5.6 -5.6 L -3.5 -3.5 M 3.5 3.5 L 5.6 5.6 M 5.6 -5.6 L 3.5 -3.5 M -3.5 3.5 L -5.6 5.6" />
+          </g>
+        )
+      case "geopolitical": // globe
+        return (
+          <g fill="none" stroke={s} strokeWidth={w} strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="0" cy="0" r="8" />
+            <path d="M -8 0 L 8 0" />
+            <path d="M 0 -8 C 4 -4 4 4 0 8 C -4 4 -4 -4 0 -8 Z" />
+          </g>
+        )
+      case "esg": // leaf
+        return (
+          <g fill="none" stroke={s} strokeWidth={w} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M 8 -8 C 8 4 4 8 -4 8 C -8 8 -8 4 -8 0 C -8 -6 0 -8 8 -8 Z" />
+            <path d="M -6 6 L 6 -6" />
+          </g>
+        )
+      case "cyber": // lock
+        return (
+          <g fill="none" stroke={s} strokeWidth={w} strokeLinecap="round" strokeLinejoin="round">
+            <rect x="-6" y="-1" width="12" height="9" rx="1.5" />
+            <path d="M -4 -1 L -4 -5 A 4 4 0 0 1 4 -5 L 4 -1" />
+            <circle cx="0" cy="3.5" r="1" fill={s} stroke="none" />
+          </g>
+        )
+      default:
+        return null
+    }
+  }
+
+  // 5 axes radiating from shield center (600,330), endpoints on circle
+  const cx = 600
+  const cy = 330
+  const axes = [
+    { kind: "financial", label: "FINANCIAL", sub: "Credit & liquidity", score: 92, angle: -90 },
+    { kind: "operations", label: "OPERATIONS", sub: "Delivery & quality", score: 78, angle: -18 },
+    { kind: "geopolitical", label: "GEOPOLITICAL", sub: "Country & trade", score: 64, angle: 54 },
+    { kind: "esg", label: "ESG", sub: "Compliance", score: 86, angle: 126 },
+    { kind: "cyber", label: "CYBER", sub: "Data & IT", score: 71, angle: 198 },
+  ]
+
   return (
     <HeroFrame
       className={className}
       bg="linear-gradient(135deg, #F5C451 0%, #D69722 50%, #5C3D08 100%)"
-      ariaLabel="Supplier risk shield with financial operational cyber ESG risks"
+      ariaLabel="Supplier risk shield with five radiating risk axes"
       title={title}
     >
       <defs>
         <pattern id="w2h8-grid" width="36" height="36" patternUnits="userSpaceOnUse">
           <path d="M36 0 L0 0 0 36" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="1" />
         </pattern>
+        <radialGradient id="w2h8-glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="rgba(255,255,255,0.18)" />
+          <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+        </radialGradient>
       </defs>
       <rect width="1200" height="675" fill="url(#w2h8-grid)" />
 
+      {/* soft glow behind shield */}
+      <circle cx={cx} cy={cy} r="300" fill="url(#w2h8-glow)" />
+
+      {/* concentric reference circles for "radar" feel */}
+      <g transform={`translate(${cx} ${cy})`} fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="1">
+        <circle r="150" />
+        <circle r="220" />
+        <circle r="290" strokeDasharray="3 6" />
+      </g>
+
+      {/* axis connector lines — endpoint radius modulated by score (risk endpoint sizing) */}
+      <g stroke="rgba(255,255,255,0.42)" strokeWidth="1.5" strokeDasharray="4 5" fill="none">
+        {axes.map((a, i) => {
+          const rad = (a.angle * Math.PI) / 180
+          const endR = 230 + (100 - a.score) * 0.6
+          return (
+            <line
+              key={i}
+              x1={cx + Math.cos(rad) * 90}
+              y1={cy + Math.sin(rad) * 90}
+              x2={cx + Math.cos(rad) * endR}
+              y2={cy + Math.sin(rad) * endR}
+            />
+          )
+        })}
+      </g>
+
       {/* Central shield */}
-      <g transform="translate(600 320)">
+      <g transform={`translate(${cx} ${cy})`}>
+        {/* outer shield outline */}
         <path
-          d="M 0 -200 L 170 -140 L 170 40 C 170 140 90 200 0 230 C -90 200 -170 140 -170 40 L -170 -140 Z"
-          fill="rgba(255,255,255,0.14)"
+          d="M 0 -155 L 130 -110 L 130 30 C 130 110 70 160 0 180 C -70 160 -130 110 -130 30 L -130 -110 Z"
+          fill="rgba(255,255,255,0.18)"
           stroke="white"
           strokeWidth="3"
         />
-        <text textAnchor="middle" y="-40" fill="white"
-          fontFamily="Inter, sans-serif" fontWeight="800" fontSize="22" letterSpacing="3">RISK</text>
-        <text textAnchor="middle" y="10" fill="white"
-          fontFamily="Inter, sans-serif" fontWeight="800" fontSize="22" letterSpacing="3">MONITORING</text>
-        <path d="M -45 55 L -10 90 L 55 20"
-          fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+        {/* inner shield accent */}
+        <path
+          d="M 0 -130 L 108 -92 L 108 25 C 108 92 60 135 0 152 C -60 135 -108 92 -108 25 L -108 -92 Z"
+          fill="none"
+          stroke="rgba(255,255,255,0.45)"
+          strokeWidth="1.5"
+          strokeDasharray="2 4"
+        />
+        {/* check mark */}
+        <path d="M -38 8 L -8 38 L 44 -22"
+          fill="none" stroke="white" strokeWidth="10"
+          strokeLinecap="round" strokeLinejoin="round" />
+        {/* caption */}
+        <text textAnchor="middle" y="80" fill="white"
+          fontFamily="Inter, sans-serif" fontWeight="800" fontSize="14" letterSpacing="3">RISK MONITORING</text>
+        <text textAnchor="middle" y="108" fill="rgba(255,255,255,0.8)"
+          fontFamily="Inter, sans-serif" fontWeight="600" fontSize="11" letterSpacing="2">5 DIMENSIONS</text>
       </g>
 
-      {/* 4 risk category chips at corners */}
-      {[
-        { x: 180, y: 150, t: "FINANCIAL", sub: "Credit", icon: "€" },
-        { x: 1020, y: 150, t: "OPERATIONS", sub: "Delivery", icon: "⚙" },
-        { x: 180, y: 520, t: "CYBER", sub: "Data", icon: "🔒" },
-        { x: 1020, y: 520, t: "ESG", sub: "Compliance", icon: "♻" },
-      ].map((c, i) => (
-        <g key={i} transform={`translate(${c.x} ${c.y})`}>
-          <rect x="-95" y="-40" width="190" height="80" rx="12"
-            fill="rgba(0,0,0,0.32)" stroke="rgba(255,255,255,0.55)" strokeWidth="1.5" />
-          <circle cx="-65" cy="0" r="20" fill="rgba(255,255,255,0.25)" />
-          <text x="-65" y="6" textAnchor="middle" fill="white"
-            fontFamily="Inter, sans-serif" fontWeight="800" fontSize="18">{c.icon}</text>
-          <text x="-35" y="-5" fill="white"
-            fontFamily="Inter, sans-serif" fontWeight="700" fontSize="14" letterSpacing="1.2">{c.t}</text>
-          <text x="-35" y="16" fill="rgba(255,255,255,0.72)"
-            fontFamily="Inter, sans-serif" fontWeight="500" fontSize="12">{c.sub}</text>
-        </g>
-      ))}
-
-      {/* lines connecting chips to shield */}
-      <g fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" strokeDasharray="3 5">
-        <line x1="280" y1="170" x2="470" y2="240" />
-        <line x1="920" y1="170" x2="730" y2="240" />
-        <line x1="280" y1="500" x2="470" y2="400" />
-        <line x1="920" y1="500" x2="730" y2="400" />
-      </g>
+      {/* axis endpoint cards with icon + label + score chip */}
+      {axes.map((a, i) => {
+        const rad = (a.angle * Math.PI) / 180
+        const endR = 230 + (100 - a.score) * 0.6
+        const ex = cx + Math.cos(rad) * endR
+        const ey = cy + Math.sin(rad) * endR
+        // card anchoring offset based on angle quadrant to avoid shield overlap
+        const right = Math.cos(rad) >= 0
+        const down = Math.sin(rad) >= 0
+        const cardOffsetX = right ? 24 : -24 - 170
+        const cardOffsetY = down ? 24 : -24 - 72
+        // icon disc sized by risk (lower score = larger dot = higher risk emphasis)
+        const discR = 22 + (100 - a.score) * 0.12
+        return (
+          <g key={i}>
+            {/* endpoint disc */}
+            <g transform={`translate(${ex} ${ey})`}>
+              <circle r={discR + 4} fill="rgba(255,255,255,0.15)" />
+              <circle r={discR} fill="rgba(26,58,59,0.75)" stroke="white" strokeWidth="2" />
+              <RiskIcon kind={a.kind} />
+            </g>
+            {/* label card */}
+            <g transform={`translate(${ex + cardOffsetX} ${ey + cardOffsetY})`}>
+              <rect width="170" height="72" rx="12"
+                fill="rgba(15,23,43,0.7)" stroke="rgba(255,255,255,0.45)" strokeWidth="1.5" />
+              <text x="16" y="26" fill="white"
+                fontFamily="Inter, sans-serif" fontWeight="800" fontSize="13" letterSpacing="1.4">{a.label}</text>
+              <text x="16" y="46" fill="rgba(255,255,255,0.72)"
+                fontFamily="Inter, sans-serif" fontWeight="500" fontSize="11">{a.sub}</text>
+              {/* score chip */}
+              <g transform="translate(120 44)">
+                <rect x="0" y="0" width="40" height="20" rx="10"
+                  fill={a.score >= 80 ? "rgba(122,173,175,0.85)" : a.score >= 70 ? "rgba(245,196,81,0.9)" : "rgba(231,110,110,0.9)"} />
+                <text x="20" y="14" textAnchor="middle" fill="#1A3A3B"
+                  fontFamily="Inter, sans-serif" fontWeight="800" fontSize="12">{a.score}</text>
+              </g>
+            </g>
+          </g>
+        )
+      })}
     </HeroFrame>
   )
 }
@@ -1134,65 +1338,150 @@ export function NetSuiteSupplierHero({ className, title }: HeroProps) {
 }
 
 /* 16. sap-ariba-alternative-procurement
-   Metaphor: SAP-inspired hex grid with "alternative" highlighted */
+   Metaphor: Side-by-side comparison — enterprise complexity (left) vs mid-market focus (right) */
 export function SapAribaAlternativeHero({ className, title }: HeroProps) {
-  const hexes: { x: number; y: number; active?: boolean; label?: string }[] = []
-  for (let r = 0; r < 5; r++) {
-    for (let c = 0; c < 9; c++) {
-      hexes.push({
-        x: 160 + c * 120 + (r % 2) * 60,
-        y: 130 + r * 104,
-        active: false,
-      })
-    }
-  }
-  // highlight center hex
-  const centerIdx = 22
-  hexes[centerIdx].active = true
-  hexes[centerIdx].label = "Procurea"
+  // Left cluster: dense tangled network of nodes (enterprise complexity)
+  // Deterministic pseudo-random seed → no Math.random in render
+  const leftNodes = [
+    { x: 90, y: 180 }, { x: 150, y: 260 }, { x: 70, y: 330 }, { x: 160, y: 400 },
+    { x: 95, y: 470 }, { x: 220, y: 200 }, { x: 250, y: 340 }, { x: 210, y: 480 },
+    { x: 310, y: 250 }, { x: 320, y: 420 }, { x: 380, y: 330 }, { x: 290, y: 160 },
+  ]
+  const leftEdges: [number, number][] = [
+    [0, 1], [1, 2], [1, 3], [3, 4], [0, 5], [5, 6], [6, 7],
+    [1, 6], [5, 8], [6, 10], [7, 9], [8, 10], [9, 10], [3, 6],
+    [2, 4], [5, 11], [8, 11], [2, 3], [4, 7], [9, 7], [6, 8],
+  ]
+
+  // Right side: clean linear flow with 4 nodes
+  const rightNodes = [
+    { x: 720, y: 320, label: "Sourcing" },
+    { x: 860, y: 320, label: "RFQ" },
+    { x: 1000, y: 320, label: "Compare" },
+    { x: 1140, y: 320, label: "Award" },
+  ]
+
   return (
     <HeroFrame
       className={className}
       bg="linear-gradient(135deg, #2A5C5D 0%, #1A3A3B 50%, #0F2527 100%)"
-      ariaLabel="SAP Ariba alternative with hex grid highlighting Procurea"
+      ariaLabel="SAP Ariba alternative — enterprise complexity vs mid-market clarity"
       title={title}
     >
-      {hexes.map((h, i) => {
-        const size = 56
-        const path = `M ${-size / 2} ${-size * 0.43} L ${size / 2} ${-size * 0.43} L ${size * 0.85} 0 L ${size / 2} ${size * 0.43} L ${-size / 2} ${size * 0.43} L ${-size * 0.85} 0 Z`
-        return (
-          <g key={i} transform={`translate(${h.x} ${h.y})`}>
-            <path
-              d={path}
-              fill={h.active ? "#F5C451" : "rgba(255,255,255,0.06)"}
-              stroke={h.active ? "#FFF" : "rgba(255,255,255,0.3)"}
-              strokeWidth={h.active ? 3 : 1}
-            />
-            {h.active && (
-              <text textAnchor="middle" y="6" fill="#1A3A3B"
-                fontFamily="Inter, sans-serif" fontWeight="800" fontSize="13">
-                {h.label}
-              </text>
-            )}
-          </g>
-        )
-      })}
+      <defs>
+        <pattern id="w3h16-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M40 0 L0 0 0 40" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+        </pattern>
+        <linearGradient id="w3h16-leftFade" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="rgba(0,0,0,0.35)" />
+          <stop offset="100%" stopColor="rgba(0,0,0,0)" />
+        </linearGradient>
+        <linearGradient id="w3h16-rightGlow" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="rgba(245,196,81,0)" />
+          <stop offset="100%" stopColor="rgba(245,196,81,0.14)" />
+        </linearGradient>
+      </defs>
+      <rect width="1200" height="675" fill="url(#w3h16-grid)" />
 
-      {/* glow on highlight */}
-      <g transform={`translate(${hexes[centerIdx].x} ${hexes[centerIdx].y})`}>
-        <circle r="90" fill="none" stroke="rgba(245,196,81,0.4)" strokeWidth="2" />
-        <circle r="120" fill="none" stroke="rgba(245,196,81,0.2)" strokeWidth="1" />
+      {/* background tinting for each side */}
+      <rect x="0" y="0" width="560" height="675" fill="url(#w3h16-leftFade)" />
+      <rect x="640" y="0" width="560" height="675" fill="url(#w3h16-rightGlow)" />
+
+      {/* Vertical divider */}
+      <g transform="translate(600 0)">
+        <line x1="0" y1="40" x2="0" y2="635" stroke="rgba(255,255,255,0.25)" strokeWidth="1" strokeDasharray="4 8" />
+        <g transform="translate(0 338)">
+          <circle r="36" fill="rgba(15,23,43,0.9)" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" />
+          <text textAnchor="middle" y="6" fill="rgba(255,255,255,0.9)"
+            fontFamily="Inter, sans-serif" fontWeight="800" fontSize="16" letterSpacing="1">VS</text>
+        </g>
       </g>
 
-      {/* comparison labels left/right */}
+      {/* ============ LEFT: Enterprise (muted, complex) ============ */}
+      {/* tangled edges */}
+      <g stroke="rgba(255,255,255,0.22)" strokeWidth="1" fill="none">
+        {leftEdges.map(([a, b], i) => (
+          <line key={i}
+            x1={leftNodes[a].x} y1={leftNodes[a].y}
+            x2={leftNodes[b].x} y2={leftNodes[b].y} />
+        ))}
+      </g>
+      {/* dollar/cost spray — small $ glyphs rendered as coin-shape paths (no unicode $ in text nodes actually fine; keep as plain text) */}
       <g>
-        <text x="60" y="80" fill="rgba(255,255,255,0.6)"
-          fontFamily="Inter, sans-serif" fontWeight="700" fontSize="14" letterSpacing="3">THE LEGACY</text>
-        <text x="60" y="108" fill="rgba(255,255,255,0.95)"
-          fontFamily="Inter, sans-serif" fontWeight="800" fontSize="24">SAP Ariba</text>
+        {leftNodes.map((n, i) => (
+          <g key={i} transform={`translate(${n.x} ${n.y})`}>
+            <circle r="10" fill="rgba(255,255,255,0.14)" stroke="rgba(255,255,255,0.45)" strokeWidth="1.2" />
+            <circle r="4" fill="rgba(255,255,255,0.55)" />
+          </g>
+        ))}
+      </g>
+      {/* cost callout */}
+      <g transform="translate(260 560)">
+        <rect x="-130" y="-30" width="260" height="60" rx="10"
+          fill="rgba(0,0,0,0.45)" stroke="rgba(255,255,255,0.35)" strokeWidth="1" />
+        <text x="-110" y="-4" fill="rgba(255,255,255,0.65)"
+          fontFamily="Inter, sans-serif" fontWeight="700" fontSize="10" letterSpacing="2">IMPLEMENTATION</text>
+        <text x="-110" y="20" fill="rgba(255,255,255,0.95)"
+          fontFamily="Inter, sans-serif" fontWeight="800" fontSize="22" letterSpacing="-0.5">6–18 months</text>
+        <text x="120" y="18" textAnchor="end" fill="rgba(255,255,255,0.85)"
+          fontFamily="Inter, sans-serif" fontWeight="700" fontSize="13">50+ modules</text>
+      </g>
 
-        <text x="1140" y="600" textAnchor="end" fill="#F5C451"
-          fontFamily="Inter, sans-serif" fontWeight="700" fontSize="14" letterSpacing="3">THE ALTERNATIVE</text>
+      {/* Left side header */}
+      <g transform="translate(80 100)">
+        <text fill="rgba(255,255,255,0.55)"
+          fontFamily="Inter, sans-serif" fontWeight="700" fontSize="12" letterSpacing="3">ENTERPRISE PATH</text>
+        <g transform="translate(0 28)">
+          <text fill="rgba(255,255,255,0.85)"
+            fontFamily="Inter, sans-serif" fontWeight="800" fontSize="36" letterSpacing="-1">SAP Ariba</text>
+          {/* strikethrough */}
+          <line x1="-6" y1="-10" x2="196" y2="-10" stroke="#F5C451" strokeWidth="3" strokeLinecap="round" />
+        </g>
+      </g>
+
+      {/* ============ RIGHT: Procurea (clean, focused) ============ */}
+      {/* linear flow line */}
+      <g>
+        <line x1="720" y1="320" x2="1140" y2="320"
+          stroke="rgba(245,196,81,0.85)" strokeWidth="2.5" strokeLinecap="round" />
+        {/* arrow heads */}
+        {rightNodes.slice(0, -1).map((n, i) => (
+          <g key={i} transform={`translate(${(n.x + rightNodes[i + 1].x) / 2} 320)`}
+            fill="#F5C451">
+            <path d="M -6 -6 L 6 0 L -6 6 Z" />
+          </g>
+        ))}
+      </g>
+      {/* clean nodes */}
+      {rightNodes.map((n, i) => (
+        <g key={i} transform={`translate(${n.x} ${n.y})`}>
+          <circle r="30" fill="rgba(245,196,81,0.18)" stroke="#F5C451" strokeWidth="2" />
+          <circle r="18" fill="rgba(26,58,59,0.95)" stroke="#F5C451" strokeWidth="1.5" />
+          <text textAnchor="middle" y="5" fill="#F5C451"
+            fontFamily="Inter, sans-serif" fontWeight="800" fontSize="14">{i + 1}</text>
+          <text textAnchor="middle" y="58" fill="rgba(255,255,255,0.95)"
+            fontFamily="Inter, sans-serif" fontWeight="700" fontSize="13">{n.label}</text>
+        </g>
+      ))}
+
+      {/* Right side header — "THE ALTERNATIVE" + Procurea */}
+      <g transform="translate(1120 100)">
+        <text textAnchor="end" fill="#F5C451"
+          fontFamily="Inter, sans-serif" fontWeight="700" fontSize="12" letterSpacing="3">MID-MARKET PATH</text>
+        <text y="32" textAnchor="end" fill="white"
+          fontFamily="Inter, sans-serif" fontWeight="800" fontSize="36" letterSpacing="-1">Procurea</text>
+      </g>
+
+      {/* Right-side cost/speed callout */}
+      <g transform="translate(940 560)">
+        <rect x="-200" y="-30" width="400" height="60" rx="10"
+          fill="rgba(245,196,81,0.14)" stroke="#F5C451" strokeWidth="1.5" />
+        <text x="-180" y="-4" fill="#F5C451"
+          fontFamily="Inter, sans-serif" fontWeight="700" fontSize="10" letterSpacing="2">TIME TO VALUE</text>
+        <text x="-180" y="20" fill="white"
+          fontFamily="Inter, sans-serif" fontWeight="800" fontSize="22" letterSpacing="-0.5">Days, not months</text>
+        <text x="180" y="18" textAnchor="end" fill="rgba(255,255,255,0.9)"
+          fontFamily="Inter, sans-serif" fontWeight="700" fontSize="13">1 focused workflow</text>
       </g>
     </HeroFrame>
   )

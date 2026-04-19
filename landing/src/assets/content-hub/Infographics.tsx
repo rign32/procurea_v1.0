@@ -82,7 +82,7 @@ export function ThirtyHourBreakdown({
       aria-label={ariaLabel}
     >
       {/* donut */}
-      <svg viewBox="0 0 200 200" className="w-48 h-48 mx-auto">
+      <svg viewBox="0 0 200 200" className="w-48 h-48 mx-auto" aria-hidden="true">
         {/* track */}
         <circle
           r={radius}
@@ -393,7 +393,7 @@ export function ContentPillarsDiagram({
       role="img"
       aria-label={ariaLabel}
     >
-      <svg viewBox="0 0 500 440" className="w-full h-auto">
+      <svg viewBox="0 0 500 440" className="w-full h-auto" aria-hidden="true">
         <defs>
           <radialGradient id="center-glow" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="rgba(94,140,143,0.25)" />
@@ -525,7 +525,7 @@ export function ComplianceShield({
       role="img"
       aria-label={ariaLabel}
     >
-      <svg viewBox="0 0 400 400" className="w-full h-auto max-w-md mx-auto">
+      <svg viewBox="0 0 400 400" className="w-full h-auto max-w-md mx-auto" aria-hidden="true">
         <defs>
           <linearGradient id="shield-grad" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" stopColor="#D69722" />
@@ -629,7 +629,7 @@ export function RfqAutomationFlow({
       role="img"
       aria-label={ariaLabel}
     >
-      <svg viewBox="0 0 640 170" className="w-full h-auto">
+      <svg viewBox="0 0 640 170" className="w-full h-auto" aria-hidden="true">
         <defs>
           <marker
             id="rfq-arrow"
@@ -779,7 +779,7 @@ export function VatViesVerificationSteps({
         </ol>
         {/* clock */}
         <div className="flex flex-col items-center">
-          <svg viewBox="0 0 120 120" className="w-28 h-28">
+          <svg viewBox="0 0 120 120" className="w-28 h-28" aria-hidden="true">
             <circle cx="60" cy="60" r="52" fill="none" stroke="#E2E8F0" strokeWidth="6" />
             <circle
               cx="60"
@@ -879,7 +879,7 @@ export function SupplierRiskRadar({
       role="img"
       aria-label={ariaLabel}
     >
-      <svg viewBox="0 0 400 400" className="w-full h-auto max-w-md mx-auto">
+      <svg viewBox="0 0 400 400" className="w-full h-auto max-w-md mx-auto" aria-hidden="true">
         {/* concentric rings */}
         {rings.map((f, i) => {
           const r = f * maxR
@@ -1141,7 +1141,7 @@ export function TcoIceberg({
       role="img"
       aria-label={ariaLabel}
     >
-      <svg viewBox="0 0 500 420" className="w-full h-auto max-w-xl mx-auto">
+      <svg viewBox="0 0 500 420" className="w-full h-auto max-w-xl mx-auto" aria-hidden="true">
         <defs>
           <linearGradient id="tco-sky" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" stopColor="#E9F3F4" />
@@ -1308,7 +1308,7 @@ export function DatabaseDecayChart({
       role="img"
       aria-label={ariaLabel}
     >
-      <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-auto">
+      <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-auto" aria-hidden="true">
         <defs>
           <linearGradient id="decay-area" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" stopColor="rgba(199,111,150,0.35)" />
@@ -1640,7 +1640,7 @@ export function GermanSourcingMap({
       aria-label={ariaLabel}
     >
       <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6 items-center">
-        <svg viewBox="0 0 400 420" className="w-full h-auto max-w-xs mx-auto">
+        <svg viewBox="0 0 400 420" className="w-full h-auto max-w-xs mx-auto" aria-hidden="true">
           {/* stylized germany silhouette (simplified polygon) */}
           <defs>
             <linearGradient id="de-grad" x1="0%" y1="0%" x2="0%" y2="100%">

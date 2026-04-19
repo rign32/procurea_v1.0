@@ -31,6 +31,20 @@ export interface CaseStudy {
     company: string        // anonymized: "European automotive OEM"
   }
 
+  // Optional enrichment sections
+  visualTimeline?: Array<{ day: string; event: string; eventPl?: string }>
+  keyLearnings?: Array<{ text: string; textPl?: string }>
+  whatWentWrong?: { text: string; textPl?: string }
+  financialBreakdown?: {
+    before: string
+    after: string
+    beforePl?: string
+    afterPl?: string
+    saved: string
+    savedPl?: string
+  }
+  technicalDetails?: Array<{ label: string; labelPl?: string; value: string; valuePl?: string }>
+
   // Metadata
   featuresUsed: string[]   // PathKey refs (e.g. 'fAiSourcing')
   relatedPosts: string[]
@@ -74,6 +88,69 @@ export const CASE_STUDIES: CaseStudy[] = [
       role: isEN ? 'Tier-1 Automotive Supplier' : 'Tier-1 Dostawca Automotive',
       company: isEN ? 'European automotive OEM (anonymized)' : 'Europejski OEM automotive (anonimowe)',
     },
+    visualTimeline: [
+      {
+        day: isEN ? 'Day 1' : 'Dzień 1',
+        event: 'Brief intake + AI scoping (IATF 16949, PA66, 500k units/year)',
+        eventPl: 'Przyjęcie briefu + scoping AI (IATF 16949, PA66, 500k szt./rok)',
+      },
+      {
+        day: isEN ? 'Day 2' : 'Dzień 2',
+        event: '3 parallel searches launched: Germany, Poland, Turkey',
+        eventPl: '3 równoległe wyszukiwania: Niemcy, Polska, Turcja',
+      },
+      {
+        day: isEN ? 'Day 3' : 'Dzień 3',
+        event: '47 candidates shortlisted, screening pass narrowed to 12',
+        eventPl: '47 kandydatów na liście, screening zawęził do 12',
+      },
+      {
+        day: isEN ? 'Day 4' : 'Dzień 4',
+        event: 'Multilingual email outreach (DE, PL, TR, EN)',
+        eventPl: 'Outreach mailowy w 4 językach (DE, PL, TR, EN)',
+      },
+      {
+        day: isEN ? 'Day 5' : 'Dzień 5',
+        event: '8 qualified suppliers confirmed with certifications verified',
+        eventPl: '8 zakwalifikowanych dostawców z potwierdzonymi certyfikatami',
+      },
+    ],
+    keyLearnings: [
+      {
+        text: 'Multilingual search captured ~60% more candidates than English-only',
+        textPl: 'Wyszukiwanie wielojęzyczne dało ~60% więcej kandydatów niż samo angielskie',
+      },
+      {
+        text: 'Pre-verification cut wasted RFQ sends by 70%',
+        textPl: 'Wstępna weryfikacja obcięła puste wysyłki RFQ o 70%',
+      },
+      {
+        text: 'Germany had lowest response rate; Turkey the highest',
+        textPl: 'Niemcy miały najniższy response rate; Turcja najwyższy',
+      },
+      {
+        text: 'IATF 16949 certification filter was the single most decisive criterion',
+        textPl: 'Filtr IATF 16949 był najbardziej decydującym kryterium',
+      },
+    ],
+    technicalDetails: [
+      {
+        label: isEN ? 'Searches run' : 'Wyszukiwania',
+        value: '12',
+      },
+      {
+        label: isEN ? 'Languages used' : 'Języki',
+        value: '5 (DE, PL, TR, EN, CS)',
+      },
+      {
+        label: isEN ? 'Credits consumed' : 'Zużyte credits',
+        value: '45',
+      },
+      {
+        label: isEN ? 'Unique companies discovered' : 'Unikalne firmy',
+        value: '247',
+      },
+    ],
     featuresUsed: ['fAiSourcing', 'fMultilingualOutreach', 'fOfferComparison'],
     relatedPosts: ['european-nearshoring-guide-2026', 'china-plus-one-strategy', 'how-to-find-100-verified-suppliers-in-under-an-hour'],
     relatedCaseStudies: ['d2c-cosmetics-nearshore-migration'],
@@ -113,6 +190,75 @@ export const CASE_STUDIES: CaseStudy[] = [
       role: isEN ? 'Event Agency' : 'Agencja Eventowa',
       company: isEN ? 'London-based event agency (anonymized)' : 'Londyńska agencja eventowa (anonimowe)',
     },
+    visualTimeline: [
+      {
+        day: isEN ? 'Hour 0' : 'Godz. 0',
+        event: 'Client brief — Barcelona pivot, 500-person launch, 72h window',
+        eventPl: 'Brief klienta — zwrot na Barcelonę, launch 500 osób, okno 72h',
+      },
+      {
+        day: isEN ? 'Hour 4' : 'Godz. 4',
+        event: 'AI scoping in Spanish + Catalan across 4 vendor categories',
+        eventPl: 'Scoping AI po hiszpańsku i katalońsku dla 4 kategorii vendorów',
+      },
+      {
+        day: isEN ? 'Hour 18' : 'Godz. 18',
+        event: '22 local vendors shortlisted with certifications & capacity match',
+        eventPl: '22 lokalnych vendorów z dopasowanymi certyfikatami i capacity',
+      },
+      {
+        day: isEN ? 'Hour 36' : 'Godz. 36',
+        event: 'RFQ emails sent in native Spanish with event-specific briefs',
+        eventPl: 'RFQ wysłane po hiszpańsku z briefami specyficznymi dla eventu',
+      },
+      {
+        day: isEN ? 'Hour 48' : 'Godz. 48',
+        event: '14 vendor responses collected, price normalization started',
+        eventPl: '14 odpowiedzi od vendorów, start normalizacji cen',
+      },
+      {
+        day: isEN ? 'Hour 60' : 'Godz. 60',
+        event: 'Offer comparison & final shortlist per category',
+        eventPl: 'Porównanie ofert i lista finalna per kategoria',
+      },
+      {
+        day: isEN ? 'Hour 72' : 'Godz. 72',
+        event: 'Contracts signed: 1 catering, 1 AV, 1 stage, 1 gifts vendor',
+        eventPl: 'Podpisane kontrakty: 1 catering, 1 AV, 1 scenografia, 1 gadżety',
+      },
+    ],
+    keyLearnings: [
+      {
+        text: 'Local-language outreach doubled response rate vs English-only emails',
+        textPl: 'Outreach w języku lokalnym podwoił response rate vs samo angielski',
+      },
+      {
+        text: 'Event categories needed true parallel sourcing — sequencing would have missed the window',
+        textPl: 'Kategorie eventowe wymagały prawdziwego równoległego sourcingu — sekwencyjny nie zdążyłby',
+      },
+      {
+        text: '3 of 4 winning vendors had tight MOQs but were flexible on payment terms',
+        textPl: '3 z 4 wygranych vendorów miały ciasne MOQ, ale elastyczne warunki płatności',
+      },
+    ],
+    technicalDetails: [
+      {
+        label: isEN ? 'Categories sourced' : 'Kategorie sourcingowe',
+        value: '4',
+      },
+      {
+        label: isEN ? 'Vendors identified' : 'Zidentyfikowani vendorzy',
+        value: '22',
+      },
+      {
+        label: isEN ? 'Responses collected' : 'Zebrane odpowiedzi',
+        value: '14',
+      },
+      {
+        label: isEN ? 'Total elapsed time' : 'Całkowity czas',
+        value: isEN ? '72 hours' : '72 godziny',
+      },
+    ],
     featuresUsed: ['fAiSourcing', 'fMultilingualOutreach', 'fAutoFollowUp'],
     relatedPosts: ['how-to-find-100-verified-suppliers-in-under-an-hour', 'german-manufacturer-sourcing', 'rfq-automation-workflows'],
     relatedCaseStudies: ['hvac-subcontractors-developer'],
@@ -144,6 +290,74 @@ export const CASE_STUDIES: CaseStudy[] = [
     results: isEN
       ? 'In 2 weeks: 15 qualified subcontractors, 11 responded with detailed bids, final pricing 12% below the developer\'s baseline (budgeted from 2025 historical data). The developer now uses Procurea for all major subcontracting tenders.'
       : 'W 2 tygodnie: 15 zakwalifikowanych podwykonawców, 11 odpowiedziało, finalna cena 12% poniżej baseline.',
+    visualTimeline: [
+      {
+        day: isEN ? 'Week 1 · Day 1-3' : 'Tydz. 1 · Dni 1-3',
+        event: 'AI sourcing across Poland + Czech Republic, 150km radius filter',
+        eventPl: 'Sourcing AI w Polsce i Czechach, filtr promienia 150 km',
+      },
+      {
+        day: isEN ? 'Week 1 · Day 4-5' : 'Tydz. 1 · Dni 4-5',
+        event: 'ISO 9001 + equipment type filters narrow pool to 22',
+        eventPl: 'Filtry ISO 9001 + typ sprzętu zawężają listę do 22',
+      },
+      {
+        day: isEN ? 'Week 1 · Day 6-7' : 'Tydz. 1 · Dni 6-7',
+        event: 'RFQ emails sent in Polish + English with full tech specs',
+        eventPl: 'RFQ po polsku i angielsku z pełnymi specyfikacjami',
+      },
+      {
+        day: isEN ? 'Week 2 · Day 8-10' : 'Tydz. 2 · Dni 8-10',
+        event: '15 subcontractors responded with detailed bids',
+        eventPl: '15 podwykonawców odpowiedziało szczegółowymi ofertami',
+      },
+      {
+        day: isEN ? 'Week 2 · Day 11-13' : 'Tydz. 2 · Dni 11-13',
+        event: 'Offer comparison + site visits with top 3 candidates',
+        eventPl: 'Porównanie ofert + wizyty na placach top 3 kandydatów',
+      },
+      {
+        day: isEN ? 'Week 2 · Day 14' : 'Tydz. 2 · Dzień 14',
+        event: 'Final selection + framework contract signed',
+        eventPl: 'Finalna selekcja + podpisanie umowy ramowej',
+      },
+    ],
+    keyLearnings: [
+      {
+        text: '15 subcontractors responded — ~11x more than the traditional 3-5 invite list',
+        textPl: '15 podwykonawców odpowiedziało — ~11x więcej niż standardowa lista 3-5',
+      },
+      {
+        text: 'Price range was narrower than expected — only 12% spread across 11 bids',
+        textPl: 'Rozrzut cen był węższy niż oczekiwano — tylko 12% pomiędzy 11 ofertami',
+      },
+      {
+        text: 'Lead time, not price, was the decisive factor in the final award',
+        textPl: 'Termin realizacji, nie cena, był decydującym czynnikiem przy wyborze',
+      },
+    ],
+    whatWentWrong: {
+      text: 'One of our top-3 bidders turned out to have overstated their installation capacity. We caught it during the site visit in week 3 and fell back to bidder #4. Lesson: capacity claims need on-site verification, not just RFQ responses.',
+      textPl: 'Jeden z naszych top-3 oferentów przesadził z deklarowaną mocą instalacyjną. Wyłapaliśmy to podczas wizyty w tygodniu 3 i przeszliśmy do oferenta #4. Wniosek: deklarowana moc wymaga weryfikacji na miejscu, nie tylko w odpowiedzi na RFQ.',
+    },
+    technicalDetails: [
+      {
+        label: isEN ? 'Countries searched' : 'Kraje',
+        value: '2 (PL, CZ)',
+      },
+      {
+        label: isEN ? 'Search radius' : 'Promień wyszukiwania',
+        value: '150 km',
+      },
+      {
+        label: isEN ? 'Qualified bids' : 'Zakwalifikowane oferty',
+        value: '15',
+      },
+      {
+        label: isEN ? 'Price spread' : 'Rozrzut cen',
+        value: '12%',
+      },
+    ],
     featuresUsed: ['fAiSourcing', 'fEmailOutreach', 'fOfferComparison'],
     relatedPosts: ['how-to-find-100-verified-suppliers-in-under-an-hour', 'vendor-scoring-10-criteria', 'rfq-automation-workflows'],
     relatedCaseStudies: ['event-agency-barcelona-72h', 'restaurant-chain-12-vendors'],
@@ -175,6 +389,67 @@ export const CASE_STUDIES: CaseStudy[] = [
     results: isEN
       ? 'From 3 primary vendors to 12 qualified alternatives across categories. Vendor mix optimized quarterly based on seasonality and pricing. 14% average cost reduction in year one, with quality scores (measured via kitchen team feedback) improved over the previous benchmark.'
       : 'Z 3 głównych do 12 zakwalifikowanych alternatyw. 14% średnia redukcja kosztów w roku pierwszym.',
+    visualTimeline: [
+      {
+        day: isEN ? 'Month 1' : 'Miesiąc 1',
+        event: 'Audit of existing 3 vendors + gap analysis per category',
+        eventPl: 'Audyt 3 obecnych vendorów + analiza luk per kategoria',
+      },
+      {
+        day: isEN ? 'Month 2' : 'Miesiąc 2',
+        event: 'AI sourcing run for produce, meat, and beverages in parallel',
+        eventPl: 'Sourcing AI równolegle dla warzyw, mięsa i napojów',
+      },
+      {
+        day: isEN ? 'Month 3' : 'Miesiąc 3',
+        event: 'Pilot delivery across 4 locations + framework contracts signed',
+        eventPl: 'Pilot dostaw w 4 lokalizacjach + podpisane umowy ramowe',
+      },
+    ],
+    keyLearnings: [
+      {
+        text: 'HACCP certification filter was fast — only ~20% of candidate vendors held it',
+        textPl: 'Filtr HACCP był szybki — tylko ~20% kandydatów go posiadało',
+      },
+      {
+        text: 'Quarterly produce rotation beat annual contracts on seasonality pricing',
+        textPl: 'Kwartalna rotacja warzyw biła roczne kontrakty na cenach sezonowych',
+      },
+      {
+        text: 'Meat suppliers showed 24% price variance vs just 12% for vegetables',
+        textPl: 'Dostawcy mięsa mieli 24% rozrzut cen vs tylko 12% dla warzyw',
+      },
+      {
+        text: 'Quality scores (kitchen-team measured) improved above the single-vendor baseline',
+        textPl: 'Oceny jakości (mierzone przez zespół kuchni) wzrosły powyżej baseline jednego vendora',
+      },
+    ],
+    financialBreakdown: {
+      before: '€1.2M annual food spend, 3 suppliers, oligopoly pricing',
+      beforePl: '€1,2M roczny wydatek na żywność, 3 dostawców, ceny oligopolowe',
+      after: '€1.03M annual, 12 suppliers, quarterly rotation',
+      afterPl: '€1,03M rocznie, 12 dostawców, kwartalna rotacja',
+      saved: '~€170k / year (≈14%)',
+      savedPl: '~€170k / rok (≈14%)',
+    },
+    technicalDetails: [
+      {
+        label: isEN ? 'Categories sourced' : 'Kategorie',
+        value: isEN ? '3 (produce, meat, beverages)' : '3 (warzywa, mięso, napoje)',
+      },
+      {
+        label: isEN ? 'Qualified vendors' : 'Zakwalifikowani dostawcy',
+        value: '12',
+      },
+      {
+        label: isEN ? 'HACCP pass rate' : 'Odsetek z HACCP',
+        value: '~20%',
+      },
+      {
+        label: isEN ? 'Rotation cadence' : 'Częstotliwość rotacji',
+        value: isEN ? 'Quarterly' : 'Kwartalna',
+      },
+    ],
     featuresUsed: ['fAiSourcing', 'fOfferComparison', 'fAutoFollowUp'],
     relatedPosts: ['how-to-find-100-verified-suppliers-in-under-an-hour', 'supplier-certifications-guide', 'vendor-scoring-10-criteria'],
     relatedCaseStudies: ['hvac-subcontractors-developer', 'd2c-cosmetics-nearshore-migration'],
@@ -214,6 +489,71 @@ export const CASE_STUDIES: CaseStudy[] = [
       role: isEN ? 'D2C Skincare Brand' : 'Marka D2C Skincare',
       company: isEN ? 'D2C cosmetics startup (anonymized)' : 'Startup D2C kosmetyków (anonimowe)',
     },
+    visualTimeline: [
+      {
+        day: isEN ? 'Week 1' : 'Tydzień 1',
+        event: 'AI sourcing across Italy, Poland, Portugal, Czech Republic — 42 candidates',
+        eventPl: 'Sourcing AI we Włoszech, Polsce, Portugalii, Czechach — 42 kandydatów',
+      },
+      {
+        day: isEN ? 'Week 2' : 'Tydzień 2',
+        event: 'GOTS / COSMOS certification verification — 18 qualified',
+        eventPl: 'Weryfikacja certyfikatów GOTS / COSMOS — 18 zakwalifikowanych',
+      },
+      {
+        day: isEN ? 'Week 3' : 'Tydzień 3',
+        event: 'Sample evaluations + factory audits + 3 contracts signed',
+        eventPl: 'Ocena próbek + audyty fabryk + 3 podpisane kontrakty',
+      },
+    ],
+    keyLearnings: [
+      {
+        text: 'Italian contract manufacturers had the highest GOTS coverage of any country sampled',
+        textPl: 'Włoscy producenci kontraktowi mieli najwyższe pokrycie GOTS ze wszystkich krajów',
+      },
+      {
+        text: 'Small-batch MOQ (<5k units) was rare — only 9 of 42 manufacturers offered it',
+        textPl: 'Małe MOQ (<5k szt.) było rzadkie — tylko 9 z 42 producentów to oferowało',
+      },
+      {
+        text: 'Vegan formulation requirement cut candidate pool by ~40%',
+        textPl: 'Wymóg formulacji wegańskich obciął pulę kandydatów o ~40%',
+      },
+      {
+        text: 'Factory audits in week 3 changed the final ranking vs. paper scoring',
+        textPl: 'Audyty fabryk w tygodniu 3 zmieniły finalny ranking vs. scoring na papierze',
+      },
+    ],
+    whatWentWrong: {
+      text: 'One Italian candidate refused to share formulation data under NDA — dropped from shortlist week 2. Lesson: NDA acceptance should be a hard pre-qualification step, not a late-stage blocker.',
+      textPl: 'Jeden włoski kandydat odmówił udostępnienia formulacji pod NDA — wypadł z listy w tygodniu 2. Wniosek: akceptacja NDA powinna być twardym wymogiem wstępnej kwalifikacji, nie późnym blokerem.',
+    },
+    financialBreakdown: {
+      before: '€12 / unit from Guangdong, 45-day sea freight, rising tariffs',
+      beforePl: '€12 / szt. z Guangdongu, fracht morski 45 dni, rosnące cła',
+      after: '€13 / unit from Milan, 5-day road freight, ~8% lower TCO after landed cost',
+      afterPl: '€13 / szt. z Mediolanu, fracht drogowy 5 dni, TCO niższe o ~8% po landed cost',
+      saved: '~€84k / year at ~30k units',
+      savedPl: '~€84k / rok przy ~30k szt.',
+    },
+    technicalDetails: [
+      {
+        label: isEN ? 'Countries searched' : 'Kraje',
+        value: '4 (IT, PL, PT, CZ)',
+      },
+      {
+        label: isEN ? 'Candidates found' : 'Znalezionych kandydatów',
+        value: '42',
+      },
+      {
+        label: isEN ? 'GOTS/COSMOS verified' : 'Z certyfikatem GOTS/COSMOS',
+        value: '18',
+      },
+      {
+        label: isEN ? 'Total project cost' : 'Koszt projektu',
+        value: '< €300',
+      },
+    ],
     featuresUsed: ['fAiSourcing', 'fMultilingualOutreach', 'fOfferComparison'],
     relatedPosts: ['european-nearshoring-guide-2026', 'china-plus-one-strategy', 'turkey-vs-poland-vs-portugal-textiles'],
     relatedCaseStudies: ['automotive-8-suppliers-5-days'],

@@ -81,6 +81,26 @@ Dodaj to — wychodzi 40%. Nie każdy rok to dokładnie 40% — stabilny makroek
       infographicKey: 'database-decay-chart',
       infographicCaption: 'Supplier data freshness over 12 months — ~40% of records go stale if untouched.',
       infographicCaptionPl: 'Świeżość danych dostawców w 12 miesięcy — ~40% rekordów starzeje się bez odświeżenia.',
+      statBlock: {
+        columns: 4,
+        stats: [
+          { value: '40%', label: 'Annual decay rate', labelPl: 'Roczne tempo rozpadu' },
+          { value: '23%', label: 'Primary-contact turnover', labelPl: 'Rotacja głównego kontaktu' },
+          { value: '15%', label: 'Cert expiries missed', labelPl: 'Przegapionych wygaśnięć cert.' },
+          { value: '€12k', label: 'Avg cost per failed RFQ', labelPl: 'Średni koszt nieudanego RFQ' },
+        ],
+      },
+      statsTimeline: {
+        title: 'Supplier data freshness — monthly decay curve',
+        titlePl: 'Świeżość danych dostawców — miesięczna krzywa rozpadu',
+        data: [
+          { label: 'Month 0', labelPl: 'Miesiąc 0', value: 100, display: '100%' },
+          { label: 'Month 3', labelPl: 'Miesiąc 3', value: 92, display: '92%' },
+          { label: 'Month 6', labelPl: 'Miesiąc 6', value: 82, display: '82%' },
+          { label: 'Month 9', labelPl: 'Miesiąc 9', value: 70, display: '70%' },
+          { label: 'Month 12', labelPl: 'Miesiąc 12', value: 60, display: '60%' },
+        ],
+      },
     },
     {
       heading: 'What stale supplier data actually costs you',
@@ -139,6 +159,13 @@ Po czterech godzinach: około 25-40 rekordów oznaczonych, garść mergów, gar�
         href: 'https://app.procurea.io/signup',
         variant: 'trial',
       },
+      warning: {
+        tone: 'warning',
+        title: 'Stale data is now a compliance exposure, not just an efficiency problem',
+        titlePl: 'Stare dane to dziś ekspozycja compliance, nie tylko problem efektywności',
+        text: 'Under CSDDD (2026) and CSRD, you must demonstrate due-diligence on supplier status. An auditor pulling a €180k invoice issued to a supplier whose VAT was deregistered 14 months earlier will not accept "we didn\'t know" — remediation bills from findings like this run €20k-€80k per jurisdiction.',
+        textPl: 'Pod CSDDD (2026) i CSRD musisz wykazać due-diligence nad statusem dostawcy. Audytor sprawdzający fakturę €180k wystawioną dostawcy z VAT wyrejestrowanym 14 miesięcy wcześniej nie zaakceptuje „nie wiedzieliśmy" — remediation za takie findingi to €20k-€80k per jurysdykcja.',
+      },
     },
     {
       heading: 'Delete, archive, or re-enrich? A decision framework',
@@ -183,6 +210,22 @@ Total ongoing cost: about <strong>18 hours per year</strong> for a 1500-supplier
 <strong>Co rok — 1 dzień.</strong> Pełny sweep bazy. Uruchom 4-godzinny triage na wszystkich 1500 wierszach, nie tylko top 100. Zbuduj kolejkę archiwum, kolejkę usunięć, kolejkę wzbogaceń. Udokumentuj wynik — „odświeżono X rekordów, zarchiwizowano Y, usunięto Z" — i dołącz do rocznego procurement review.
 
 Łączny koszt ciągły: około <strong>18 godzin rocznie</strong> dla bazy 1500 dostawców. Konsultant za tę samą robotę liczy €8k-€20k. Twój koszt wewnętrzny przy €60/h to około €1,100. Mniej niż koszt jednej nieudanej kampanii RFQ.`,
+      keyTakeaway: {
+        title: 'Refresh cadence by supplier category',
+        titlePl: 'Kadencja odświeżania per kategoria dostawcy',
+        items: [
+          'Top 100 by spend — quarterly VAT + email + cert check (2 hours per quarter).',
+          'Critical single-source and regulated suppliers — monthly registry + cert verification.',
+          'Strategic backups (dormant on purpose) — semi-annual liveness check, never delete.',
+          'Long tail under €10k historical spend — annual bulk sweep, archive on first failure.',
+        ],
+        itemsPl: [
+          'Top 100 po wydatku — kwartalny check VAT + mail + cert (2h na kwartał).',
+          'Krytyczni single-source i dostawcy regulowani — miesięczna weryfikacja rejestru i cert.',
+          'Strategiczne backupy (uśpione celowo) — półroczny check żywotności, nigdy nie usuwaj.',
+          'Długi ogon poniżej €10k historycznego wydatku — roczny zbiorczy sweep, archiwum przy pierwszej porażce.',
+        ],
+      },
     },
     {
       heading: 'Five mistakes that kill a supplier data cleanup',
@@ -336,6 +379,15 @@ Natywny Vendor record w NetSuite był projektowany przez zespół księgowy, nie
 - Wydajność dostawcy wobec PO (fill rate, on-time wobec ship date)
 
 Ta lista pokrywa AP. Nie pokrywa sourcingu. Jeśli twój zespół zakupowy pyta „kogo zaprosić do tego RFQ?" — NetSuite nie ma odpowiedzi. To design intencjonalny; NetSuite jest ERP-em, nie platformą procurement.`,
+      statBlock: {
+        columns: 4,
+        stats: [
+          { value: 'Pilot', label: 'Procurea ↔ NetSuite status', labelPl: 'Status Procurea ↔ NetSuite' },
+          { value: '~20h', label: 'Typical pilot setup', labelPl: 'Typowy setup pilota' },
+          { value: '2', label: 'Early customers live', labelPl: 'Early customers w produkcji' },
+          { value: '12', label: 'Fields mapped in sync', labelPl: 'Pól zmapowanych w sync' },
+        ],
+      },
     },
     {
       heading: 'Six procurement gaps in native NetSuite',
@@ -370,6 +422,29 @@ Each of these gaps is a specialized capability. Trying to build them all in cust
 <strong>6. Ustrukturyzowane porównanie ofert.</strong> Vendor Bills porównują faktury do PO, nie oferty do ofert. Jeśli masz 8 ofert z różnymi tierami, MOQ, Incoterms i warunkami płatności, NetSuite nie ma kanonicznej struktury, żeby je znormalizować. Kupcy wracają do Excela.
 
 Każda z tych luk to wyspecjalizowana funkcja. Budowanie ich wszystkich w custom records + SuiteScript jest technicznie możliwe i ekonomicznie nieracjonalne — odtwarzałbyś platformę procurement wewnątrz NetSuite. Większość klientów albo akceptuje luki i robi pracę w zewnętrznych narzędziach, albo integruje dedykowaną warstwę sourcingową.`,
+      comparisonTable: {
+        caption: 'Native NetSuite vs Procurea-added capabilities by procurement workflow',
+        captionPl: 'Natywne NetSuite vs funkcje dołożone przez Procurea — per workflow procurement',
+        headers: ['Workflow', 'NetSuite native', 'Procurea adds', 'Use case'],
+        headersPl: ['Workflow', 'Natywnie w NetSuite', 'Dokłada Procurea', 'Zastosowanie'],
+        rows: [
+          ['Vendor records + AP', 'Full', '—', 'Accounting, 1099, payments'],
+          ['PO creation + 3-way match', 'Full', '—', 'Receiving, invoice match'],
+          ['Supplier discovery', 'None', 'Full', 'Find new suppliers in new categories'],
+          ['Structured RFQ comparison', 'None', 'Full', 'Side-by-side tiered bid analysis'],
+          ['Multilingual outreach', 'None', 'Full', 'EU/TR suppliers in local language'],
+          ['Cert + VAT verification', 'Manual', 'Full', 'IAF CertSearch + VIES automation'],
+        ],
+        rowsPl: [
+          ['Rekordy Vendor + AP', 'Pełne', '—', 'Księgowość, 1099, płatności'],
+          ['Tworzenie PO + 3-way match', 'Pełne', '—', 'Odbiór, match faktur'],
+          ['Discovery dostawców', 'Brak', 'Pełne', 'Nowi dostawcy w nowych kategoriach'],
+          ['Ustrukturyzowane porównanie RFQ', 'Brak', 'Pełne', 'Side-by-side analiza tierów'],
+          ['Wielojęzyczny outreach', 'Brak', 'Pełne', 'Dostawcy UE/TR w lokalnym języku'],
+          ['Weryfikacja VAT + certyfikatów', 'Ręcznie', 'Pełne', 'Automatyzacja IAF CertSearch + VIES'],
+        ],
+        highlighted: 2,
+      },
     },
     {
       heading: 'Three ways to connect a sourcing tool to NetSuite',
@@ -395,6 +470,57 @@ Większość mid-marketowych shopów NetSuite startuje na Ścieżce 1 (CSV) i pr
       infographicKey: 'erp-comparison-grid',
       infographicCaption: 'Procurea sync status across the three ERPs mid-market buyers ask about most often.',
       infographicCaptionPl: 'Status synchronizacji Procurea dla trzech ERP-ów najczęściej pytanych przez mid-market.',
+      warning: {
+        tone: 'warning',
+        title: 'NetSuite integration is Pilot status (Q2 2026)',
+        titlePl: 'Integracja NetSuite jest w statusie Pilot (Q2 2026)',
+        text: 'CSV export-import works today for any NetSuite customer. Merge.dev-mediated near-real-time sync is running with two early customers and will productize after the pilot stabilizes field coverage. Full SuiteScript custom is 4-8 weeks of developer work. We are not claiming "certified SuiteApp" until we have the Built-for-NetSuite badge.',
+        textPl: 'CSV export-import działa dziś dla każdego klienta NetSuite. Near-real-time sync przez Merge.dev uruchamiamy z dwoma early customers i zproduktujemy po ustabilizowaniu pokrycia pól. Pełny custom SuiteScript to 4-8 tygodni developera. Nie mówimy „certified SuiteApp", dopóki nie mamy badge Built-for-NetSuite.',
+      },
+      stepByStep: {
+        steps: [
+          {
+            title: 'SuiteBundle install + sandbox',
+            titlePl: 'Instalacja SuiteBundle + sandbox',
+            description:
+              'Connect Procurea to your NetSuite sandbox account. Takes 30 minutes with a NetSuite admin — OAuth 2.0 flow, no developer needed.',
+            descriptionPl:
+              'Połącz Procurea z sandboxem NetSuite. 30 minut z adminem NetSuite — flow OAuth 2.0, bez developera.',
+          },
+          {
+            title: 'Custom field creation',
+            titlePl: 'Utworzenie custom fields',
+            description:
+              'Pre-create 4 custom entity fields on the Vendor record: certifications, cert expiry, category code, trust score. ~1 hour.',
+            descriptionPl:
+              'Utwórz 4 custom entity fields na rekordzie Vendor: certyfikaty, data wygaśnięcia, kod kategorii, trust score. ~1h.',
+          },
+          {
+            title: 'Field mapping + test sync',
+            titlePl: 'Mapowanie pól + test sync',
+            description:
+              'Map Procurea supplier card → NetSuite Vendor fields (12 fields standard). Test-sync 20-50 suppliers from a past campaign. ~4 hours.',
+            descriptionPl:
+              'Zmapuj supplier card Procurea → pola Vendor NetSuite (12 pól standardowych). Test-sync 20-50 dostawców z przeszłej kampanii. ~4h.',
+          },
+          {
+            title: 'Pilot category (one SKU family)',
+            titlePl: 'Pilotowa kategoria (jedna rodzina SKU)',
+            description:
+              'Run one real sourcing campaign end-to-end — Procurea discovery → Vendor record sync → first PO against new supplier. ~2 weeks.',
+            descriptionPl:
+              'Uruchom jedną realną kampanię end-to-end — discovery Procurea → sync Vendor → pierwsze PO u nowego dostawcy. ~2 tygodnie.',
+          },
+          {
+            title: 'Full ramp + production switch',
+            titlePl: 'Pełne rampowanie + przełącznik produkcyjny',
+            description:
+              'After pilot validates the workflow, switch the sandbox connection to production NetSuite account. Ongoing ops ~0.25 FTE.',
+            descriptionPl:
+              'Po walidacji workflow przełącz połączenie z sandboxa na produkcyjny NetSuite. Bieżąca operacja ~0,25 FTE.',
+          },
+        ],
+      },
       inlineCta: {
         text: "Book a NetSuite integration call — we'll map your Vendor record fields and scope a 30-day pilot.",
         textPl: 'Umów rozmowę o integracji NetSuite — zmapujemy pola Vendor record i rozpiszemy 30-dniowy pilot.',
@@ -602,6 +728,38 @@ Total cost of ownership SAP Ariba dla wdrożenia mid-market mieści się w <stro
 Łączny koszt pierwszego roku wdrożenia mid-market: zwykle powyżej <strong>€400k</strong>, czasem powyżej €1M przy rollout wielospółkowym. Rok drugi i dalej: €120k-€250k/rok.
 
 To nie krytyka Ariby. To Ariba działająca zgodnie z projektem — platforma wyceniona pod kategorię klienta, dla której była budowana. Mismatch pojawia się, gdy firmy o przychodach €20M-€200M próbują ją wdrożyć. Ekonomia nie gra i wdrożenie rzadko się kończy.`,
+      statBlock: {
+        columns: 4,
+        stats: [
+          { value: '€300-500M', label: 'Spend inflection point (go Ariba)', labelPl: 'Punkt przegięcia wydatku (kup Aribę)' },
+          { value: '€25-100k', label: 'Ariba min annual contract', labelPl: 'Minimum roczny kontrakt Ariba' },
+          { value: '$89-1499', label: 'Procurea credit range', labelPl: 'Zakres paczek Procurea' },
+          { value: '20 min vs 20-90 d', label: 'Setup: Procurea vs Ariba', labelPl: 'Setup: Procurea vs Ariba' },
+        ],
+      },
+      comparisonTable: {
+        caption: 'Procurement tool fit: SAP Ariba vs Procurea vs Excel across 6 dimensions',
+        captionPl: 'Dopasowanie narzędzia procurement: SAP Ariba vs Procurea vs Excel w 6 wymiarach',
+        headers: ['Dimension', 'SAP Ariba', 'Procurea', 'Excel'],
+        headersPl: ['Wymiar', 'SAP Ariba', 'Procurea', 'Excel'],
+        rows: [
+          ['Year-1 cost (mid-market)', '€250k-€900k', '€5k-€30k', '€0 (+ time)'],
+          ['Time to first campaign', '4-9 months', '2 weeks', 'Day one'],
+          ['Supplier discovery', 'Ariba Network only', 'AI + web + registries', 'Manual Google'],
+          ['ERP integration (S/4HANA)', 'Native, productized', 'Pilot (Merge.dev + CSV)', 'Manual re-key'],
+          ['Contract lifecycle mgmt', 'Full', 'None', 'None'],
+          ['Best for (revenue band)', '€500M+ spend', '€20M-€300M spend', '<€10M spend'],
+        ],
+        rowsPl: [
+          ['Koszt roku 1 (mid-market)', '€250k-€900k', '€5k-€30k', '€0 (+ czas)'],
+          ['Czas do pierwszej kampanii', '4-9 miesięcy', '2 tygodnie', 'Pierwszy dzień'],
+          ['Discovery dostawców', 'Tylko Ariba Network', 'AI + web + rejestry', 'Ręczny Google'],
+          ['Integracja ERP (S/4HANA)', 'Natywna, zproduktowana', 'Pilot (Merge.dev + CSV)', 'Ręczne przepisywanie'],
+          ['Contract lifecycle management', 'Pełne', 'Brak', 'Brak'],
+          ['Dopasowanie (pasmo wydatku)', '€500M+ wydatku', '€20M-€300M wydatku', '<€10M wydatku'],
+        ],
+        highlighted: 1,
+      },
     },
     {
       heading: 'What mid-market procurement actually needs (and does not)',
@@ -712,6 +870,13 @@ For most mid-market SAP customers, the CSV path or the Merge.dev pilot is enough
 Dlaczego ci to mówimy: Ariba ma zproduktowane konektory SAP, bo jest SAP-em. Jeśli głęboka, zproduktowana, day-one integracja SAP to twoje non-negotiable requirement, Ariba pobije nas na tym wymiarze dziś. Uczciwie. Co tracisz to rachunek €400k-€900k w pierwszym roku i wdrożenie 6-9 miesięczne.
 
 Dla większości mid-marketowych klientów SAP ścieżka CSV albo pilot Merge.dev wystarczą, żeby udowodnić workflow i dostarczyć wartość w pierwszej kampanii. Jeśli jesteś w tych 5% przypadków, które potrzebują real-time multi-subsidiary BP sync od pierwszego dnia, porozmawiaj z partnerem Ariby.`,
+      warning: {
+        tone: 'warning',
+        title: 'Procurea direct S/4HANA integration is Pilot — not production (Q2 2026)',
+        titlePl: 'Bezpośrednia integracja Procurea S/4HANA jest Pilot — nie produkcyjna (Q2 2026)',
+        text: 'What works today: CSV export with BP-ready columns for standard SAP CSV import or LSMW — day one, any SAP customer. What is in Pilot: Merge.dev REST sync through SAP Integration Suite with two early customers. What does NOT exist yet: SAP-endorsed certified connector, Fiori tile, productized S/4HANA Cloud integration. Certified connector is on our 2027 roadmap. If you need productized SAP on day one, buy Ariba — we will say so.',
+        textPl: 'Co działa dziś: eksport CSV z kolumnami gotowymi pod BP do standardowego importu CSV SAP lub LSMW — od pierwszego dnia, dowolny klient SAP. Co jest w Pilot: REST sync przez Merge.dev przez SAP Integration Suite z dwoma early customers. Czego jeszcze NIE ma: certyfikowanego konektora endorsed przez SAP, kafelka Fiori, zproduktowanej integracji S/4HANA Cloud. Certyfikowany konektor na roadmapie 2027. Jeśli potrzebujesz zproduktowanego SAP od dnia pierwszego — kup Aribę, powiemy to wprost.',
+      },
     },
     {
       heading: 'When Ariba is the right call — and when it is not',
@@ -762,6 +927,13 @@ The mistake is buying Ariba at €40M spend because it is "SAP's procurement." Y
 <strong>Ścieżka „wyrośnięcia" jest uczciwa.</strong> Jeśli dziś jesteś firmą €80M rosnącą do €400M w pięć lat, Procurea zawiezie cię od dziś do mniej więcej trzeciego roku za ułamek kosztu Ariby. Gdzieś między €300M-€500M wydatku twoja złożoność przekroczy to, co pokrywamy. W tym punkcie migracja do Ariby jest właściwą decyzją. Nie będziemy cię odwodzić — €200k/rok za Aribę jest tani dla firmy €500M.
 
 Błędem jest kupno Ariby przy €40M wydatku, bo „to procurement od SAP-a". Nie użyjesz 70% funkcjonalności, wdrożenie się rozciągnie, a trzy lata później nadal nie zrobisz realnej wielojęzycznej kampanii sourcingowej.`,
+      pullQuote: {
+        text: 'If you are already €500M+ spend with SAP-centric IT, buy Ariba. We would rather tell you that than sell you a tool that will not fit.',
+        textPl: 'Jeśli masz już €500M+ wydatku i SAP-centryczne IT, kup Aribę. Wolimy ci to powiedzieć, niż sprzedać ci narzędzie, które nie zadziała.',
+        author: 'Rafał Ignaczak',
+        role: 'Founder, Procurea',
+        rolePl: 'Założyciel, Procurea',
+      },
     },
   ],
   faq: [
@@ -888,6 +1060,15 @@ Po to jest ten post — szablon, matematyka i obronny pod CFO sposób uruchomien
       infographicKey: 'tco-iceberg',
       infographicCaption: 'Unit price is ~15% of what you actually pay. The other 85% sits below the waterline.',
       infographicCaptionPl: 'Cena jednostkowa to ~15% tego, co faktycznie płacisz. Pozostałe 85% siedzi pod wodą.',
+      statBlock: {
+        columns: 4,
+        stats: [
+          { value: '85%', label: 'Cost hidden below unit price', labelPl: 'Koszt schowany pod ceną jedn.' },
+          { value: '22%', label: 'Avg TCO advantage nearshore', labelPl: 'Śr. przewaga TCO nearshore' },
+          { value: '€0.04/u', label: 'Typical TCO delta (winner)', labelPl: 'Typowa delta TCO (zwycięzca)' },
+          { value: '12 mo', label: 'Payback vs lowest-price', labelPl: 'Payback vs najniższa cena' },
+        ],
+      },
     },
     {
       heading: 'The 7 hidden cost buckets in a real TCO model',
@@ -1018,6 +1199,49 @@ Korzyść kapitałowa Net 60 przy 8% koszcie kapitału: ~(−€0,15)/szt. <stro
 Porównanie cen jednostkowych sprawiło, że Dostawca A wyglądał na 12,5% tańszego. Porównanie TCO daje zasadniczo remis — a Dostawca B wygrywa na odporności, jakości i kapitale obrotowym. Decydent patrzący risk-adjusted wybiera B. Decydent czysto-cenowy wybiera A i spędza kolejne 12 miesięcy na tłumaczeniu, dlaczego „oszczędności" się nie pojawiły.
 
 Przykład skalibrowany z dwóch realnych decyzji w cohorcie. Twoja kategoria może mieć strome lub płytsze delty. Matematyka zostaje ta sama.`,
+      beforeAfter: {
+        beforeLabel: 'Lowest unit price',
+        beforeLabelPl: 'Najniższa cena jednostkowa',
+        afterLabel: 'Lowest true TCO',
+        afterLabelPl: 'Najniższe prawdziwe TCO',
+        before:
+          'China FOB at €9.80/unit appears to beat Poland FCA at €11.20/unit by 12.5% — finance signs off, PO goes to China.',
+        beforePl:
+          'Chiny FOB €9,80/szt. wyglądają na pokonanie Polski FCA €11,20/szt. o 12,5% — finanse klepią, PO idzie do Chin.',
+        after:
+          'Full TCO: China lands at €11.51/unit (freight €0.35, duties €0.46, 3% defects €0.29, 55-day inventory €0.22, risk premium €0.20). Poland lands at €11.47/unit (intra-EU, 0.8% defects, Net 60 working-capital benefit). Poland wins by €0.04/unit — with massively better resilience.',
+        afterPl:
+          'Pełne TCO: Chiny €11,51/szt. (fracht €0,35, cła €0,46, 3% wad €0,29, 55-dniowy zapas €0,22, premia ryzyka €0,20). Polska €11,47/szt. (wewnątrzunijne, 0,8% wad, korzyść Net 60 kapitału obrotowego). Polska wygrywa o €0,04/szt. — przy drastycznie lepszej odporności.',
+      },
+      comparisonTable: {
+        caption: 'TCO breakdown per unit — 5 nearshore origins, plastic housing 150k/yr',
+        captionPl: 'Rozbicie TCO per jednostka — 5 źródeł nearshore, obudowa wtryskowa 150k/rok',
+        headers: ['Cost bucket', 'China', 'Turkey', 'Poland', 'Portugal', 'Romania'],
+        headersPl: ['Koszyk kosztu', 'Chiny', 'Turcja', 'Polska', 'Portugalia', 'Rumunia'],
+        rows: [
+          ['Unit price', '€9.80', '€10.40', '€11.20', '€12.10', '€10.80'],
+          ['Freight + handling', '€0.35', '€0.12', '€0.09', '€0.14', '€0.11'],
+          ['Duties', '€0.46', '€0.00', '€0.00', '€0.00', '€0.00'],
+          ['Quality cost (defects)', '€0.29', '€0.18', '€0.09', '€0.08', '€0.12'],
+          ['Inventory carrying', '€0.22', '€0.09', '€0.07', '€0.08', '€0.08'],
+          ['Payment-terms cost', '€0.06', '€-0.08', '€-0.15', '€-0.12', '€-0.10'],
+          ['Risk premium', '€0.20', '€0.09', '€0.06', '€0.06', '€0.08'],
+          ['Admin overhead', '€0.04', '€0.02', '€0.01', '€0.01', '€0.02'],
+          ['TCO per unit', '€11.51', '€10.93', '€11.47', '€12.46', '€11.21'],
+        ],
+        rowsPl: [
+          ['Cena jednostkowa', '€9,80', '€10,40', '€11,20', '€12,10', '€10,80'],
+          ['Fracht + handling', '€0,35', '€0,12', '€0,09', '€0,14', '€0,11'],
+          ['Cła', '€0,46', '€0,00', '€0,00', '€0,00', '€0,00'],
+          ['Koszt jakości (wady)', '€0,29', '€0,18', '€0,09', '€0,08', '€0,12'],
+          ['Trzymanie zapasu', '€0,22', '€0,09', '€0,07', '€0,08', '€0,08'],
+          ['Koszt warunków płatności', '€0,06', '€-0,08', '€-0,15', '€-0,12', '€-0,10'],
+          ['Premia za ryzyko', '€0,20', '€0,09', '€0,06', '€0,06', '€0,08'],
+          ['Overhead admin', '€0,04', '€0,02', '€0,01', '€0,01', '€0,02'],
+          ['TCO per jednostka', '€11,51', '€10,93', '€11,47', '€12,46', '€11,21'],
+        ],
+        highlighted: 8,
+      },
       inlineCta: {
         text: 'Download the TCO calculator (XLSX, 3 tabs, editable) — plug in your numbers, show your CFO.',
         textPl: 'Pobierz kalkulator TCO (XLSX, 3 zakładki, edytowalny) — wprowadź swoje liczby, pokaż CFO.',
@@ -1132,6 +1356,22 @@ Punkt leżący u podstaw: dostawcy negocjują cenę jednostkową defensywnie, bo
 <blockquote>Cena jednostkowa to co finanse pytają. TCO to co twój CEO pamięta sześć miesięcy później, kiedy linia staje.</blockquote>
 
 Cytaty tego typu trafiają na LinkedIn, bo są prawdziwe. Jeśli kiedykolwiek siedziałeś na post-mortemie awarii dostawcy, przeżyłeś drugą połowę tego zdania. TCO to narzędzie, które zapobiega post-mortemowi.`,
+      keyTakeaway: {
+        title: 'Which hidden costs matter most in 2026',
+        titlePl: 'Które ukryte koszty liczą się najbardziej w 2026',
+        items: [
+          'CBAM carbon adjustment — quietly erases 8-12% of China steel/aluminum unit-price advantage in 2026.',
+          'Inventory carrying on 45-60 day lead times — 18-28% of inventory value, typically €25k-€55k per €1M category.',
+          'Payment-terms variance — Net 60 Poland vs 30% deposit China is worth €0.15-€0.25/unit in working capital.',
+          'Quality cost differential — 3% defects vs 0.8% defects is €27k-€39k per €1M category, dwarfs unit-price deltas.',
+        ],
+        itemsPl: [
+          'Korekta węglowa CBAM — po cichu zjada 8-12% chińskiej przewagi ceny na stali/aluminium w 2026.',
+          'Trzymanie zapasu przy 45-60 dniowym lead time — 18-28% wartości zapasu, zwykle €25k-€55k na kategorię €1M.',
+          'Wariancja warunków płatności — Net 60 Polska vs 30% zaliczka Chiny to €0,15-€0,25/szt. w kapitale obrotowym.',
+          'Różnica kosztu jakości — 3% wad vs 0,8% to €27k-€39k na kategorię €1M, przykrywa delty ceny jednostkowej.',
+        ],
+      },
     },
   ],
   faq: [
@@ -1266,6 +1506,36 @@ Przejdźmy przez każdy etap.`,
       infographicKey: 'sourcing-funnel',
       infographicCaption: 'Four-stage sourcing funnel — how 500 raw URLs narrow to ~120 verified suppliers (24% yield).',
       infographicCaptionPl: 'Czteroetapowy lejek sourcingowy — jak 500 surowych URL-i staje się ~120 zweryfikowanymi dostawcami (24% yield).',
+      statsTimeline: {
+        title: 'Sourcing funnel — typical conversion per stage (cosmetic packaging, 5 EU countries)',
+        titlePl: 'Lejek sourcingowy — typowa konwersja per etap (opakowania kosmetyczne, 5 krajów UE)',
+        data: [
+          { label: 'Raw URLs (Google)', labelPl: 'Surowe URL-e (Google)', value: 500, display: '500' },
+          { label: 'Screened relevant', labelPl: 'Trafne po screeningu', value: 280, display: '280' },
+          { label: 'Enriched (contact+VAT)', labelPl: 'Wzbogacone (kontakt+VAT)', value: 180, display: '180' },
+          { label: 'Verified shortlist', labelPl: 'Zweryfikowana shortlista', value: 120, display: '120' },
+        ],
+      },
+      processDiagram: {
+        title: 'Sourcing pipeline — stage gates + drop-off signals',
+        titlePl: 'Pipeline sourcingowy — bramki etapów + sygnały odpadania',
+        nodes: [
+          { id: 'brief', label: 'Brief', labelPl: 'Brief', x: 50, y: 100 },
+          { id: 'search', label: 'Search (500)', labelPl: 'Search (500)', x: 210, y: 100 },
+          { id: 'screen', label: 'Screen (280)', labelPl: 'Screen (280)', x: 370, y: 100 },
+          { id: 'enrich', label: 'Enrich (180)', labelPl: 'Enrich (180)', x: 530, y: 100 },
+          { id: 'verify', label: 'Verify (120)', labelPl: 'Verify (120)', x: 690, y: 100 },
+          { id: 'shortlist', label: 'Shortlist', labelPl: 'Shortlista', x: 850, y: 100 },
+        ],
+        edges: [
+          { from: 'brief', to: 'search', label: '32 queries', labelPl: '32 zapytania' },
+          { from: 'search', to: 'screen', label: '44% drop (noise)', labelPl: '44% odpad (szum)' },
+          { from: 'screen', to: 'enrich', label: '36% drop', labelPl: '36% odpad' },
+          { from: 'enrich', to: 'verify', label: '33% drop', labelPl: '33% odpad' },
+          { from: 'verify', to: 'shortlist', label: 'Send RFQs', labelPl: 'Wysyłaj RFQ' },
+        ],
+        height: 200,
+      },
     },
     {
       heading: 'Stage 1 — Strategy: from 1 brief to 32 localized queries',
@@ -1324,6 +1594,15 @@ Odrzucenia typowo rozkładają się tak:
 Zostaje ~280 istotnych kandydatów. <strong>Precision Screenera to 85-92%</strong> — gdy mówimy, że kandydat jest trafny, mamy rację w 85-92% przypadków. <strong>Recall ~70%</strong> — pomijamy około 30% faktycznie trafnych dostawców, zwykle dlatego, że strona jest cienka, słowa kategorii nie pojawiają się na głównej albo opis używa terminologii, której model nie zważył właściwie.
 
 Mówimy wprost o 70% recall, bo uczciwość tu ma znaczenie. Alternatywne ujęcie — „nasze AI znajduje wszystkich dostawców" — jest fałszywe i szkodliwe. Jeśli chcesz złapać ostatnie 30%, ręcznie rozszerzasz zapytania, obniżasz próg relevance albo używasz pobrań z katalogów regionalnych jako kanału wspomagającego. Wszystkie trzy są dostępne w Procurea. Żadne nie jest magią.`,
+      statBlock: {
+        columns: 4,
+        stats: [
+          { value: '44%', label: 'Screening drop-off (noise cut)', labelPl: 'Odpad screeningu (cut szumu)' },
+          { value: '36%', label: 'Enrichment drop-off', labelPl: 'Odpad enrichmentu' },
+          { value: '33%', label: 'Verification drop-off', labelPl: 'Odpad weryfikacji' },
+          { value: '24%', label: 'End-to-end yield', labelPl: 'Yield end-to-end' },
+        ],
+      },
       inlineCta: {
         text: 'See the funnel live — run a free search and watch 500 raw results filter to ~120 verified suppliers in under 20 minutes.',
         textPl: 'Zobacz lejek na żywo — uruchom darmowe wyszukiwanie i obserwuj, jak 500 surowych wyników filtruje się do ~120 zweryfikowanych w pod 20 minut.',
@@ -1434,6 +1713,22 @@ Time comparison for the same brief: manual produces about 20 suppliers in 30 hou
 <strong>Pokrycie językowe bez zatrudniania.</strong> Największy praktyczny powód uruchomienia wspomaganego pipeline'u to język. Jeśli kategoria wymaga dotarcia do dostawców niemieckich, tureckich i włoskich, robienie tego ręcznie oznacza albo zatrudnienie wielojęzycznych researcherów (€€€), albo zaakceptowanie, że twój angielskojęzyczny proces pomija 60-70% realnej bazy. Pipeline obsługuje to bez etapu zatrudniania.
 
 Porównanie czasu dla tego samego briefu: ręcznie produkuje około 20 dostawców w 30 godzin z ~40% hit rate na maile i bez weryfikacji. Wspomagane produkuje ~120 zweryfikowanych w 1 godzinę z ~85% pokryciem maili i weryfikacją opartą o rejestry. To nie marginalny wzrost efektywności — to inna klasa wyniku.`,
+      keyTakeaway: {
+        title: 'Where most teams fail — and the automation lever at each stage',
+        titlePl: 'Gdzie większość zespołów się myli — i dźwignia automatyzacji na każdym etapie',
+        items: [
+          'Strategy — teams run 5-8 English queries; automation runs 25-40 localized queries per country (biggest single win).',
+          'Screener — teams manually skim 100 Google results; automation scrapes 500 and scores relevance with 85% precision.',
+          'Enrichment — teams find ~40% of emails; automation stacks 4 techniques for ~85% hit rate on decision-makers.',
+          'Auditor — teams skip verification; automation runs VIES, registry, cert, and liveness checks on every record.',
+        ],
+        itemsPl: [
+          'Strategy — zespoły robią 5-8 zapytań po angielsku; automat 25-40 zlokalizowanych zapytań na kraj (największa pojedyncza wygrana).',
+          'Screener — zespoły ręcznie przeglądają 100 wyników Google; automat scrapuje 500 i punktuje trafność z 85% precision.',
+          'Enrichment — zespoły znajdują ~40% maili; automat stackuje 4 techniki dla ~85% hit rate na decydentach.',
+          'Auditor — zespoły pomijają weryfikację; automat robi VIES, rejestr, cert i liveness na każdym rekordzie.',
+        ],
+      },
     },
   ],
   faq: [
@@ -1575,6 +1870,66 @@ In all three cases, the underlying fit is: <em>the team does not do much externa
 <strong>3. Kultura CRM-led, dogmat jednego systemu.</strong> Niektóre organizacje decydują na poziomie CFO, że wszystko handlowe musi żyć w Salesforce. Decyzja nie o tym, co optymalne dla procurement; o redukcji powierzchni integracji i złożoności audytu. Gdy mandat jest, zespoły procurement adaptują się — czasem custom objectami, czasem add-onami z AppExchange. Może działać, jeśli zarząd akceptuje, że procurement będzie wolniejszy niż best-of-breed.
 
 We wszystkich trzech przypadkach fit u podstawy: <em>zespół nie robi dużo zewnętrznego discovery dostawców ani ustrukturyzowanego porównania RFQ</em>. Gdy to staje się miesięczną aktywnością, model pęka.`,
+      statBlock: {
+        columns: 4,
+        stats: [
+          { value: '50-200', label: 'Employee sweet spot', labelPl: 'Sweet spot liczby pracowników' },
+          { value: '80%+', label: 'Services spend = good fit', labelPl: '80%+ wydatku na usługi = dobry fit' },
+          { value: '€100-200k', label: 'Existing Salesforce license', labelPl: 'Istniejąca licencja Salesforce' },
+          { value: '€10-20k', label: 'Procurea add-on range', labelPl: 'Zakres dopłaty Procurea' },
+        ],
+      },
+      comparisonTable: {
+        caption: 'Salesforce Account-as-Supplier vs procurement-native tool — 4 dimensions',
+        captionPl: 'Salesforce Account-as-Supplier vs dedykowane narzędzie procurement — 4 wymiary',
+        headers: ['Dimension', 'Salesforce Account-as-Supplier', 'Procurement-native tool'],
+        headersPl: ['Wymiar', 'Salesforce Account-as-Supplier', 'Dedykowane narzędzie procurement'],
+        rows: [
+          [
+            'Best for',
+            '50-200 employees, services-heavy, <30 new suppliers/yr',
+            '100+ employees, manufacturing, 50+ new suppliers/yr',
+          ],
+          [
+            'Limitations',
+            'No structured RFQ, no multilingual, no cert verification, no external discovery',
+            'Separate system, requires integration',
+          ],
+          [
+            'Cost',
+            'Included in existing Salesforce license (~€150/user/mo for full SF license)',
+            '€5k-€30k/yr for mid-market sourcing layer',
+          ],
+          [
+            'Integration effort',
+            'Zero (native) — but custom objects + Flows multiply',
+            '2-4 weeks (Merge.dev pilot) or 6-10 weeks (custom Apex)',
+          ],
+        ],
+        rowsPl: [
+          [
+            'Dobre dla',
+            '50-200 pracowników, usługi, <30 nowych dostawców/rok',
+            '100+ pracowników, produkcja, 50+ nowych dostawców/rok',
+          ],
+          [
+            'Ograniczenia',
+            'Brak ustrukturyzowanych RFQ, wielojęzyczności, weryfikacji cert., external discovery',
+            'Osobny system, wymaga integracji',
+          ],
+          [
+            'Koszt',
+            'Wliczone w istniejącą licencję Salesforce (~€150/user/mies. za pełną SF)',
+            '€5k-€30k/rok dla mid-market warstwy sourcingowej',
+          ],
+          [
+            'Wysiłek integracyjny',
+            'Zero (natywne) — ale custom objects + Flows mnożą się',
+            '2-4 tyg. (pilot Merge.dev) lub 6-10 tyg. (custom Apex)',
+          ],
+        ],
+        highlighted: 1,
+      },
     },
     {
       heading: 'Four places Salesforce-for-procurement breaks',
@@ -1597,6 +1952,13 @@ The <strong>Account-as-Vendor anti-pattern</strong> is what happens when a compa
 <strong>4. Wielojęzyczny outreach dostawców.</strong> Szablony mailowe Salesforce są single-language per szablon. Możesz zbudować dziesięć szablonów w dziesięciu językach, ale tracisz efektywność, którą miała dać „single system". Wysyłanie 30 RFQ w trzech językach przez Salesforce oznacza utrzymanie 30 Flowów lub 30 ręcznych wysyłek. Narzędzia third-party (Outreach, Salesloft) istnieją, ale są pod kadencje sprzedażowe, nie outreach procurement.
 
 <strong>Anty-wzorzec Account-jako-Vendor</strong> to co się dzieje, gdy firma próbuje wcisnąć wszystkie cztery powyższe do Salesforce. Kończysz z: duplikatami Account, gdy ta sama firma jest jednocześnie klientem i vendorem (wymaga reguł data quality i logiki record-type), proliferacją custom objects (RFQ, Bid, Vendor Scorecard, Certyfikat), złożonością Flow, której nie pilnuje nikt po odejściu konsultanta, i rosnącymi kosztami licencji, bo użytkownicy procurement potrzebują pełnych licencji Sales Cloud (€150+/user/mies.) do dostępu do danych.`,
+      warning: {
+        tone: 'warning',
+        title: 'Account-as-Supplier breaks for manufacturing PO workflows',
+        titlePl: 'Account-as-Supplier pęka przy manufacturingowych workflowach PO',
+        text: 'If you are issuing 100+ POs/month across manufacturing categories with tiered pricing, MOQ variance, and multilingual outreach, you have outgrown this pattern. The sunk cost of "we have Salesforce already" does not justify the custom-object sprawl and license uplift — by month 9, procurement is back in Excel.',
+        textPl: 'Jeśli wystawiasz 100+ PO/miesiąc w manufacturingowych kategoriach z tierowaną ceną, wariancją MOQ i wielojęzycznym outreachem, wyrosłeś z tego wzorca. Koszt zapadły „mamy już Salesforce" nie usprawiedliwia rozrostu custom objects i wzrostu licencji — do miesiąca 9 procurement wraca do Excela.',
+      },
     },
     {
       heading: 'The honest integration pattern: keep Salesforce, add a sourcing layer',
@@ -1627,6 +1989,13 @@ Flow danych wygląda tak:
 <strong>Obecny status integracji Procurea Salesforce: Pilot.</strong> Synchronizujemy przez adapter Salesforce Merge.dev dla early customers. Pokrycie: standardowe pola Account plus custom fields listowane powyżej. Zproduktujemy to, gdy pilotowa cohorta potwierdzi pokrycie mapowania. Dla enterprise'ów ze specyficznymi wymaganiami Apex lub Flow custom Apex trigger po stronie Salesforce jest ścieżką fallback.
 
 Ten wzorzec daje ci korzyści single-system visibility (nikt nie pyta „gdzie są dane dostawcy?") bez zmuszania procurement do ustrukturyzowanego sourcingu w narzędziu zbudowanym pod sprzedaż. Każdy pracuje w systemie, który pasuje do jego jobu.`,
+      pullQuote: {
+        text: 'Service-heavy buyers treat suppliers like a sales pipeline — relationships, renewals, account-level context. For them, Salesforce is the right home. The pattern breaks the moment you start sourcing tooling, raw materials, or anything with an RFQ comparison table.',
+        textPl: 'Kupcy usługowi traktują dostawców jak pipeline sprzedażowy — relacje, odnowienia, kontekst per-konto. Dla nich Salesforce jest właściwym domem. Wzorzec pęka w momencie, gdy zaczynasz sourcować oprzyrządowanie, surowce lub cokolwiek z tabelą porównania RFQ.',
+        author: 'Procurea Research Team',
+        role: 'Integrations',
+        rolePl: 'Integracje',
+      },
       inlineCta: {
         text: "Book a Salesforce integration call — we'll show how to keep Salesforce as your CRM and add a sourcing layer without duplication.",
         textPl: 'Umów rozmowę o integracji Salesforce — pokażemy, jak zachować Salesforce jako CRM i dodać warstwę sourcingową bez duplikowania.',
@@ -1756,6 +2125,15 @@ Struktura: cztery tematy, po trzy pytania. Źródła danych, AI + transparentno�
       infographicKey: 'buyers-guide-questions',
       infographicCaption: '12 questions across four themes — data, AI, workflow, proof.',
       infographicCaptionPl: '12 pytań w czterech tematach — dane, AI, workflow, dowód.',
+      statBlock: {
+        columns: 4,
+        stats: [
+          { value: '12', label: 'Questions to ask', labelPl: 'Pytań do zadania' },
+          { value: '4', label: 'Evaluation themes', labelPl: 'Tematów oceny' },
+          { value: '3-5', label: 'Typical vendor shortlist', labelPl: 'Typowa shortlista vendorów' },
+          { value: '60-90 d', label: 'Full evaluation cycle', labelPl: 'Pełny cykl oceny' },
+        ],
+      },
     },
     {
       heading: 'Theme 1 — Data sources (3 questions)',
@@ -1956,6 +2334,40 @@ Struktura: cztery tematy, po trzy pytania. Źródła danych, AI + transparentno�
 <em>Żółta flaga:</em> „Mamy logo klientów, które możemy udostępnić". Logo to marketing, nie referencje. Zawsze dociskaj do realnych rozmów.
 
 <em>Wychodzisz:</em> „Nie możemy udostępnić detali klienta z powodu NDA". Każdy klient podpisuje NDA; to nie blokuje reference calls. Jeśli vendor nie produkuje trzech klientów gotowych rozmawiać, prawdopodobnie nie ma trzech klientów w twoim rozmiarze.`,
+      comparisonTable: {
+        caption: '12 questions scorecard — what separates real capability from demo polish',
+        captionPl: 'Scorecard 12 pytań — co oddziela realną funkcjonalność od dema',
+        headers: ['#', 'Question', 'Theme', 'What a good answer looks like'],
+        headersPl: ['#', 'Pytanie', 'Temat', 'Jak wygląda dobra odpowiedź'],
+        rows: [
+          ['Q1', 'Which web sources do you actually crawl?', 'Data', 'Names specific sources: Google + directories + registries'],
+          ['Q2', 'Scrape or license directory data?', 'Data', 'Hybrid: public web + licensed registries (VIES, IAF)'],
+          ['Q3', 'How do you handle non-English sources?', 'Data', 'Multilingual queries per country, native-language scraping'],
+          ['Q4', 'Which LLM, and is it swappable?', 'AI', 'Specific model named (GPT-4, Gemini) with multi-provider fallback'],
+          ['Q5', 'Can I see reasoning for each score?', 'AI', 'Per-supplier score decomposition visible in UI'],
+          ['Q6', 'Precision and recall on a category like mine?', 'AI', 'Published numbers with methodology (e.g. 88% / 72%)'],
+          ['Q7', 'Which ERPs have productized connectors?', 'Integration', 'Per-ERP status (productized / pilot / CSV / unsupported)'],
+          ['Q8', 'What does your CSV export schema look like?', 'Integration', 'Shows a real CSV; schema documented'],
+          ['Q9', 'Which plan includes API access?', 'Integration', 'Specific plan + public docs link before contract'],
+          ['Q10', 'Is pricing transparent on your website?', 'Commercial', 'Public Starter + Growth tiers; Enterprise custom OK'],
+          ['Q11', 'Credit-based or seat-based pricing?', 'Commercial', 'Clear model; rationale matches your usage pattern'],
+          ['Q12', 'Show me three live customer references.', 'Commercial', 'Schedules 30-min calls; vendor does not sit in'],
+        ],
+        rowsPl: [
+          ['P1', 'Jakie źródła webowe crawlujecie?', 'Dane', 'Nazywa źródła: Google + katalogi + rejestry'],
+          ['P2', 'Scrape czy licencja danych katalogów?', 'Dane', 'Hybryda: publiczny web + licencjonowane rejestry (VIES, IAF)'],
+          ['P3', 'Jak obsługujecie źródła nie-angielskie?', 'Dane', 'Wielojęzyczne zapytania per kraj, scraping natywny'],
+          ['P4', 'Który LLM i czy wymienny?', 'AI', 'Konkretny model (GPT-4, Gemini) z multi-provider fallback'],
+          ['P5', 'Czy widzę reasoning dla każdego score?', 'AI', 'Dekompozycja score per-dostawca widoczna w UI'],
+          ['P6', 'Precision i recall na kategorii jak moja?', 'AI', 'Opublikowane liczby z metodologią (np. 88% / 72%)'],
+          ['P7', 'Które ERP-y mają zproduktowane konektory?', 'Integracja', 'Status per ERP (zproduktowane / pilot / CSV / brak)'],
+          ['P8', 'Jak wygląda schemat CSV export?', 'Integracja', 'Pokazuje realny CSV; schemat udokumentowany'],
+          ['P9', 'Który plan zawiera API?', 'Integracja', 'Konkretny plan + link do publicznych docs przed kontraktem'],
+          ['P10', 'Czy ceny transparentne na stronie?', 'Commercials', 'Publiczne tiery Starter + Growth; Enterprise custom OK'],
+          ['P11', 'Credit-based czy seat-based?', 'Commercials', 'Jasny model; racjonalizacja pasuje do twojego użycia'],
+          ['P12', 'Pokaż 3 żywe referencje klientów.', 'Commercials', 'Umawia 30-min rozmowy; vendor nie uczestniczy'],
+        ],
+      },
       inlineCta: {
         text: 'See how Procurea answers all 12 — download the scorecard and book a scored demo.',
         textPl: 'Zobacz jak Procurea odpowiada na 12 — pobierz scorecard i umów scorowane demo.',
@@ -2010,6 +2422,50 @@ Zapytaj każdego klienta:
 - <strong>Kupiłbyś to dziś ponownie?</strong> Zapytaj na końcu. Odpowiedź i zawahanie — oba się liczą.
 
 Trzy rozmowy, 90 minut łącznie, powiedzą ci więcej niż pięć godzin dem. Nie pomijaj; vendorzy pewni produktu ułatwią to, a ci, którzy unikają, mówią ci to, co musisz wiedzieć.`,
+      stepByStep: {
+        steps: [
+          {
+            title: 'Score each vendor 1-5 on all 12 questions',
+            titlePl: 'Oceń każdego vendora 1-5 na wszystkich 12 pytaniach',
+            description:
+              '3 = good answer, 1 = yellow flag, 0 = walk-away. Max 36. Fill the scorecard during the demo, not after — memory degrades fast.',
+            descriptionPl:
+              '3 = dobra odpowiedź, 1 = żółta flaga, 0 = wyjście. Max 36. Wypełniaj w trakcie dema, nie po — pamięć szybko się degraduje.',
+          },
+          {
+            title: 'Weight by your top 3 priorities',
+            titlePl: 'Zważ według twoich 3 priorytetów',
+            description:
+              'Pick the 3 questions most critical for your use case (e.g. Q6 precision, Q7 ERP, Q12 references). Double-weight them in the total.',
+            descriptionPl:
+              'Wybierz 3 pytania kluczowe dla twojego use case (np. P6 precision, P7 ERP, P12 referencje). Podwój ich wagę w sumie.',
+          },
+          {
+            title: 'Calculate weighted total per vendor',
+            titlePl: 'Policz ważoną sumę per vendor',
+            description:
+              'Total + weighted bonus. Anyone under 24 (unweighted equivalent) is a no. Anyone over 34 is suspicious — reference-check hard.',
+            descriptionPl:
+              'Suma + bonus ważony. Każdy poniżej 24 (odpowiednik nieważony) to nie. Każdy powyżej 34 jest podejrzany — twardo sprawdzaj referencje.',
+          },
+          {
+            title: 'Eliminate bottom 2, demo final 2',
+            titlePl: 'Wyeliminuj dwóch dolnych, zrób demo finałowej dwójki',
+            description:
+              'If you have 4-5 vendors, drop the bottom 2. Book 60-min deep demos with final 2 using your own real brief, not theirs.',
+            descriptionPl:
+              'Jeśli masz 4-5 vendorów, odpadaj dwóch dolnych. Umów 60-min głębokie demo z dwójką finałową na twoim realnym briefie, nie ich.',
+          },
+          {
+            title: 'Reference calls + honesty test',
+            titlePl: 'Reference calls + test uczciwości',
+            description:
+              '3 references × 30 min per finalist. Ask meta-question: "what is your product NOT good at?" Mature vendors answer honestly.',
+            descriptionPl:
+              '3 referencje × 30 min na finalistę. Zadaj meta-pytanie: „co wasz produkt robi najgorzej?" Dojrzali vendorzy odpowiadają uczciwie.',
+          },
+        ],
+      },
     },
     {
       heading: 'Procurea answers all 12 — here is the scorecard',
@@ -2050,6 +2506,22 @@ Run this scorecard on every vendor you evaluate. Include us. That is the point.`
 Łącznie: <strong>34/36.</strong> Odejmujemy uczciwe żółte na produktyzacji ERP (nadal Pilot na wielkiej trójce) i wolumen referencji (beta cohorta, nie 50 klientów jeszcze). Wolimy powiedzieć teraz niż zaskoczyć w roku pierwszym.
 
 Uruchom scorecard na każdym vendorze, którego ewaluujesz. Wlicz nas. O to chodzi.`,
+      keyTakeaway: {
+        title: 'How vendors dodge questions — and what each dodge signals',
+        titlePl: 'Jak vendorzy unikają pytań — i co każdy unik sygnalizuje',
+        items: [
+          '"Proprietary AI, cannot discuss details" → usually GPT-3.5 or small open model, hiding cost-optimization.',
+          '"Integration details in the SOW" → no productized connectors; every integration is a 3-6 month bespoke engagement.',
+          '"Contact sales for pricing" on every tier → heavy price discrimination; expect first quote at 2-3x the right number.',
+          '"Cannot share customer details due to NDA" → every customer signs NDA; this does not block reference calls. They have no three customers willing to talk.',
+        ],
+        itemsPl: [
+          '„Proprietary AI, nie możemy omawiać detali" → zwykle GPT-3.5 albo mały open model, chowana cost-optimization.',
+          '„Szczegóły integracji w SOW" → brak zproduktowanych konektorów; każda integracja to 3-6-miesięczny custom.',
+          '„Skontaktuj się z sales po cenę" na każdym tierze → ciężka dyskryminacja cenowa; pierwsza oferta 2-3x właściwa.',
+          '„Nie możemy udostępnić detali klienta ze względu na NDA" → każdy klient podpisuje NDA; to nie blokuje rozmów. Nie mają trzech gotowych klientów.',
+        ],
+      },
     },
   ],
   faq: [

@@ -77,7 +77,7 @@ export function ContentHubPage() {
       />
       <Navbar />
 
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         {/* 2. Hero */}
         <section className="relative pt-28 sm:pt-32 pb-16 sm:pb-20 bg-gradient-to-b from-white to-slate-50/50 overflow-hidden">
           {/* Ambient blobs */}

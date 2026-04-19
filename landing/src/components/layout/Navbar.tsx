@@ -119,7 +119,7 @@ const industriesSections: DropdownSection[] = [
 /* ---------- Shared styles ---------- */
 
 const linkClass =
-  "px-3.5 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 rounded-lg hover:bg-black/[0.03] underline-slide"
+  "px-3 py-2 text-sm text-[hsl(var(--ds-ink-2))] hover:text-foreground transition-colors duration-150 rounded-lg hover:bg-[hsl(var(--ds-bg-2))]"
 
 /* ---------- Navbar ---------- */
 
@@ -140,26 +140,27 @@ export function Navbar() {
       <header
         className={cn(
           "fixed top-0 left-0 right-0 z-40 transition-all duration-300",
-          "bg-white/95 backdrop-blur-xl border-b border-black/[0.08]",
-          isScrolled && "bg-white shadow-[0_1px_4px_rgba(0,0,0,0.06)] border-black/[0.06]"
+          "bg-[hsl(var(--ds-bg))]/85 backdrop-blur-[10px] backdrop-saturate-[1.4] border-b border-[hsl(var(--ds-rule))]",
+          isScrolled && "bg-[hsl(var(--ds-bg))]/95 shadow-[0_1px_3px_rgba(14,22,20,0.05)]"
         )}
       >
         <nav role="navigation" aria-label="Main navigation" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between gap-4">
-            {/* Logo */}
+            {/* Logo — evergreen brand mark */}
             <Link
               to={pathFor('home')}
               className="flex items-center gap-2.5 group shrink-0"
             >
-              <img
-                src="/logo-procurea.png"
-                alt="Procurea"
-                className="h-8 w-8 rounded-lg transition-transform duration-200 group-hover:scale-110"
-              />
-              <span className="text-lg font-bold tracking-tight text-foreground">
+              <span
+                aria-hidden
+                className="grid place-items-center h-[26px] w-[26px] rounded-[7px] bg-[hsl(var(--ds-accent))] text-white font-mono text-[13px] font-semibold transition-transform duration-200 group-hover:scale-[1.06]"
+              >
+                P
+              </span>
+              <span className="text-[17px] font-bold tracking-[-0.01em] text-foreground">
                 Procurea
               </span>
-              <span className="ml-0.5 px-1.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-[10px] font-bold text-emerald-700 uppercase tracking-wider hidden sm:inline-flex">
+              <span className="ml-0.5 px-1.5 py-[3px] rounded font-mono bg-[hsl(var(--ds-accent-soft))] text-[hsl(var(--ds-accent))] text-[10px] font-medium uppercase tracking-[0.05em] hidden sm:inline-flex">
                 Beta
               </span>
             </Link>
@@ -202,7 +203,7 @@ export function Navbar() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => trackCtaClick('navbar_login')}
-                className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200"
+                className="px-3 py-2 text-sm text-[hsl(var(--ds-ink-2))] hover:text-foreground hover:bg-[hsl(var(--ds-bg-2))] rounded-lg transition-colors duration-150"
               >
                 {t.nav.login}
               </a>
@@ -211,9 +212,10 @@ export function Navbar() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => trackCtaClick('navbar_signup')}
-                className="relative inline-flex items-center px-5 py-2 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all duration-200 hover:shadow-[0_0_20px_rgba(var(--primary-rgb,34,197,94),0.3)] hover:scale-[1.02] active:scale-[0.98]"
+                className="btn-ds btn-ds-primary btn-ds-sm"
               >
                 {t.nav.cta}
+                <span className="arrow" aria-hidden>→</span>
               </a>
             </div>
 
@@ -231,7 +233,7 @@ export function Navbar() {
         {/* Scroll progress bar */}
         <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-transparent">
           <div
-            className="h-full bg-gradient-to-r from-primary via-brand-400 to-emerald-400 transition-[width] duration-200 ease-out"
+            className="h-full bg-gradient-to-r from-[hsl(var(--ds-accent))] via-[hsl(var(--ds-accent-2))] to-[hsl(var(--ds-cta))] transition-[width] duration-200 ease-out"
             style={{ width: `${progress * 100}%` }}
           />
         </div>

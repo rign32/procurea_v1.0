@@ -5,10 +5,25 @@ import { RouteMeta } from "@/lib/RouteMeta"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { getCaseStudy, CASE_STUDIES } from "@/content/caseStudies"
 import { pathMappings, PathKey } from "@/i18n/paths"
-import { ArrowLeft, ArrowRight, Quote, TrendingUp } from "lucide-react"
+import {
+  ArrowLeft,
+  ArrowRight,
+  Quote,
+  TrendingUp,
+  CheckCircle2,
+  AlertTriangle,
+  TrendingDown,
+  Minus,
+} from "lucide-react"
 
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
 const isEN = LANG === 'en'
+
+// Helper to pick EN/PL variant from fields like { text, textPl }
+function pickLang(en: string | undefined, pl: string | undefined): string {
+  if (isEN) return en ?? pl ?? ''
+  return pl ?? en ?? ''
+}
 
 export function CaseStudyPage() {
   const { slug } = useParams<{ slug: string }>()
@@ -52,7 +67,7 @@ export function CaseStudyPage() {
       />
       <Navbar />
 
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         {/* Breadcrumb */}
         <div className="pt-28 sm:pt-32 pb-4">
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
@@ -131,6 +146,175 @@ export function CaseStudyPage() {
             </div>
           </div>
         </section>
+
+        {/* Visual Timeline */}
+        {caseStudy.visualTimeline && caseStudy.visualTimeline.length > 0 && (
+          <section className="pb-16">
+            <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+              <RevealOnScroll>
+                <h2 className="text-2xl sm:text-3xl font-bold font-display tracking-tight mb-8 text-slate-900">
+                  {isEN ? 'How it unfolded' : 'Jak to przebiegało'}
+                </h2>
+                <ol className="relative border-l-2 border-emerald-200 ml-3 space-y-6">
+                  {caseStudy.visualTimeline.map((step, i) => (
+                    <li key={i} className="ml-6">
+                      <span className="absolute -left-[11px] flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 ring-4 ring-white">
+                        <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden="true" />
+                      </span>
+                      <div className="inline-flex items-center rounded-md bg-emerald-50 border border-emerald-200/70 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-emerald-800 mb-1.5">
+                        {step.day}
+                      </div>
+                      <p className="text-sm sm:text-base text-slate-700 leading-relaxed">
+                        {pickLang(step.event, step.eventPl)}
+                      </p>
+                    </li>
+                  ))}
+                </ol>
+              </RevealOnScroll>
+            </div>
+          </section>
+        )}
+
+        {/* Key Learnings */}
+        {caseStudy.keyLearnings && caseStudy.keyLearnings.length > 0 && (
+          <section className="pb-16">
+            <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+              <RevealOnScroll>
+                <h2 className="text-2xl sm:text-3xl font-bold font-display tracking-tight mb-6 text-slate-900">
+                  {isEN ? 'What we learned' : 'Czego się nauczyliśmy'}
+                </h2>
+                <ul className="grid gap-3 sm:grid-cols-2">
+                  {caseStudy.keyLearnings.map((item, i) => (
+                    <li
+                      key={i}
+                      className="flex gap-3 rounded-xl border border-black/[0.06] bg-white p-4"
+                    >
+                      <CheckCircle2
+                        className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600"
+                        aria-hidden="true"
+                      />
+                      <p className="text-sm sm:text-[0.95rem] text-slate-700 leading-relaxed">
+                        {pickLang(item.text, item.textPl)}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </RevealOnScroll>
+            </div>
+          </section>
+        )}
+
+        {/* What went wrong */}
+        {caseStudy.whatWentWrong && (
+          <section className="pb-16">
+            <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+              <RevealOnScroll>
+                <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-6 sm:p-7">
+                  <div className="flex items-start gap-3 mb-2">
+                    <AlertTriangle
+                      className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600"
+                      aria-hidden="true"
+                    />
+                    <h3 className="text-sm font-bold uppercase tracking-[0.15em] text-amber-800">
+                      {isEN ? 'Where we stumbled' : 'Gdzie się potknęliśmy'}
+                    </h3>
+                  </div>
+                  <p className="text-sm sm:text-base text-amber-900/90 leading-relaxed pl-8">
+                    {pickLang(caseStudy.whatWentWrong.text, caseStudy.whatWentWrong.textPl)}
+                  </p>
+                </div>
+              </RevealOnScroll>
+            </div>
+          </section>
+        )}
+
+        {/* Financial Breakdown */}
+        {caseStudy.financialBreakdown && (
+          <section className="pb-16">
+            <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+              <RevealOnScroll>
+                <h2 className="text-2xl sm:text-3xl font-bold font-display tracking-tight mb-6 text-slate-900">
+                  {isEN ? 'Financial breakdown' : 'Rozbicie finansowe'}
+                </h2>
+                <div className="grid gap-4 md:grid-cols-3">
+                  {/* Before */}
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Minus className="h-4 w-4 text-slate-500" aria-hidden="true" />
+                      <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-slate-600">
+                        {isEN ? 'Before' : 'Przed'}
+                      </h3>
+                    </div>
+                    <p className="text-sm sm:text-base text-slate-800 leading-relaxed">
+                      {pickLang(
+                        caseStudy.financialBreakdown.before,
+                        caseStudy.financialBreakdown.beforePl
+                      )}
+                    </p>
+                  </div>
+                  {/* After */}
+                  <div className="rounded-2xl border border-brand-200 bg-brand-50/60 p-5 sm:p-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <ArrowRight className="h-4 w-4 text-brand-600" aria-hidden="true" />
+                      <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-brand-700">
+                        {isEN ? 'After' : 'Po'}
+                      </h3>
+                    </div>
+                    <p className="text-sm sm:text-base text-slate-800 leading-relaxed">
+                      {pickLang(
+                        caseStudy.financialBreakdown.after,
+                        caseStudy.financialBreakdown.afterPl
+                      )}
+                    </p>
+                  </div>
+                  {/* Saved */}
+                  <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100/60 p-5 sm:p-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingDown className="h-4 w-4 text-emerald-700" aria-hidden="true" />
+                      <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-emerald-800">
+                        {isEN ? 'Saved' : 'Oszczędności'}
+                      </h3>
+                    </div>
+                    <p className="text-base sm:text-lg font-semibold text-emerald-900 leading-relaxed">
+                      {pickLang(
+                        caseStudy.financialBreakdown.saved,
+                        caseStudy.financialBreakdown.savedPl
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </RevealOnScroll>
+            </div>
+          </section>
+        )}
+
+        {/* Technical Details */}
+        {caseStudy.technicalDetails && caseStudy.technicalDetails.length > 0 && (
+          <section className="pb-16">
+            <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+              <RevealOnScroll>
+                <h2 className="text-2xl sm:text-3xl font-bold font-display tracking-tight mb-6 text-slate-900">
+                  {isEN ? 'Pipeline details' : 'Szczegóły pipeline'}
+                </h2>
+                <div className="flex flex-wrap gap-2.5">
+                  {caseStudy.technicalDetails.map((detail, i) => (
+                    <div
+                      key={i}
+                      className="inline-flex items-center gap-2 rounded-full border border-black/[0.08] bg-white px-4 py-2 text-sm"
+                    >
+                      <span className="font-semibold text-slate-500 uppercase tracking-wider text-xs">
+                        {pickLang(detail.label, detail.labelPl)}
+                      </span>
+                      <span className="font-semibold text-slate-900">
+                        {pickLang(detail.value, detail.valuePl)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </RevealOnScroll>
+            </div>
+          </section>
+        )}
 
         {/* Quote */}
         {caseStudy.quote && (

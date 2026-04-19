@@ -110,9 +110,9 @@ export function KeyTakeawayBox({ title = 'Key Takeaway', items }: KeyTakeawayBox
         <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-brand-500 text-white shadow-[0_4px_12px_-2px_rgba(90,140,143,0.5)]">
           <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
         </span>
-        <h4 className="text-xs font-bold uppercase tracking-wider text-brand-700">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-brand-700">
           {title}
-        </h4>
+        </h3>
       </div>
       <ul className="space-y-3">
         {items.map((item, i) => (
@@ -168,9 +168,9 @@ export function WarningBox({ title, text, tone = 'warning' }: WarningBoxProps) {
           <AlertTriangle className="h-5 w-5" aria-hidden="true" />
         </span>
         <div className="flex-1">
-          <h4 className={`font-display font-bold text-lg leading-snug ${toneClasses.title}`}>
+          <h3 className={`font-display font-bold text-lg leading-snug ${toneClasses.title}`}>
             {title}
-          </h4>
+          </h3>
           <p className={`mt-1.5 text-sm sm:text-base leading-relaxed ${toneClasses.body}`}>
             {text}
           </p>
@@ -325,9 +325,9 @@ export function StepByStep({ steps }: StepByStepProps) {
             {i + 1}
           </span>
           <div className="flex-1 pt-1 pb-2">
-            <h4 className="font-display font-bold text-lg sm:text-xl tracking-tight text-slate-900 leading-snug">
+            <h3 className="font-display font-bold text-lg sm:text-xl tracking-tight text-slate-900 leading-snug">
               {step.title}
-            </h4>
+            </h3>
             <p className="mt-1.5 text-base leading-relaxed text-slate-700">
               {step.description}
             </p>
@@ -412,9 +412,9 @@ export function CountryCard({ flag, country, highlights, tagline }: CountryCardP
           {flag}
         </div>
         <div className="flex-1">
-          <h4 className="font-display font-bold text-xl sm:text-2xl tracking-tight text-slate-900 leading-tight">
+          <h3 className="font-display font-bold text-xl sm:text-2xl tracking-tight text-slate-900 leading-tight">
             {country}
-          </h4>
+          </h3>
           {tagline && (
             <p className="mt-1 text-sm text-slate-600 leading-snug">{tagline}</p>
           )}

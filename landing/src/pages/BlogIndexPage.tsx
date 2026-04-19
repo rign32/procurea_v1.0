@@ -103,7 +103,7 @@ export function BlogIndexPage() {
       />
       <Navbar />
 
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         {/* Hero */}
         <section className="relative pt-28 sm:pt-32 pb-16 bg-gradient-to-b from-white to-slate-50/50 overflow-hidden">
           <div className="absolute top-20 -right-40 w-[600px] h-[600px] rounded-full bg-brand-500/[0.06] blur-[120px] pointer-events-none" aria-hidden="true" />

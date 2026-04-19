@@ -40,7 +40,7 @@ export function ResourcesIndexPage() {
       />
       <Navbar />
 
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         {/* Hero */}
         <section className="relative pt-28 sm:pt-32 pb-12 sm:pb-16 bg-gradient-to-b from-white to-amber-50/20 overflow-hidden">
           <div

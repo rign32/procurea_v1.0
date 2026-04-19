@@ -77,7 +77,7 @@ export function ResourcePage() {
       />
       <Navbar />
 
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         {/* Breadcrumb + back link */}
         <div className="pt-28 sm:pt-32 pb-4">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
