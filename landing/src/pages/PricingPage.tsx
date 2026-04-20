@@ -31,29 +31,29 @@ const plans: Plan[] = isEN
   ? [
       {
         name: "Starter",
-        price: "€89",
+        price: "$69",
         unit: "/ month",
-        runs: "10 sourcing runs",
-        perRun: "€8.90 / run",
+        runs: "10 sourcing campaigns",
+        perRun: "$6.90 / campaign",
         tagline: "For a single buyer running occasional RFQs.",
         cta: { label: "Start free", kind: "self-serve" },
       },
       {
         name: "Growth",
-        price: "€349",
+        price: "$159",
         unit: "/ month",
-        runs: "50 sourcing runs",
-        perRun: "€6.98 / run",
+        runs: "50 sourcing campaigns",
+        perRun: "$3.18 / campaign",
         tagline: "For procurement teams of 2–5 at an SMB manufacturer or builder.",
         cta: { label: "Start Growth", kind: "featured", interestTag: "growth_plan" },
         featured: true,
       },
       {
         name: "Scale",
-        price: "€890",
+        price: "$299",
         unit: "/ month",
-        runs: "150 sourcing runs",
-        perRun: "€5.93 / run",
+        runs: "150 sourcing campaigns",
+        perRun: "$1.99 / campaign",
         tagline: "For multi-site, multi-category operations.",
         cta: { label: "Start Scale", kind: "self-serve", interestTag: "scale_plan" },
       },
@@ -61,29 +61,29 @@ const plans: Plan[] = isEN
   : [
       {
         name: "Starter",
-        price: "€89",
+        price: "289 zł",
         unit: "/ miesiąc",
         runs: "10 kampanii sourcingowych",
-        perRun: "€8,90 / kampania",
+        perRun: "28,90 zł / kampania",
         tagline: "Dla jednego kupca prowadzącego kilka RFQ miesięcznie.",
         cta: { label: "Zacznij za darmo", kind: "self-serve" },
       },
       {
         name: "Growth",
-        price: "€349",
+        price: "649 zł",
         unit: "/ miesiąc",
         runs: "50 kampanii sourcingowych",
-        perRun: "€6,98 / kampania",
+        perRun: "12,98 zł / kampania",
         tagline: "Dla 2–5 osobowych zespołów procurement w SMB produkcji lub budownictwie.",
         cta: { label: "Zacznij Growth", kind: "featured", interestTag: "growth_plan" },
         featured: true,
       },
       {
         name: "Scale",
-        price: "€890",
+        price: "1 199 zł",
         unit: "/ miesiąc",
         runs: "150 kampanii sourcingowych",
-        perRun: "€5,93 / kampania",
+        perRun: "7,99 zł / kampania",
         tagline: "Dla multi-site, multi-category operacji.",
         cta: { label: "Zacznij Scale", kind: "self-serve", interestTag: "scale_plan" },
       },
@@ -94,7 +94,7 @@ const plans: Plan[] = isEN
 const sharedFeatures = isEN
   ? [
       "AI pipeline: up to 250 verified suppliers per run",
-      "Research in 26 languages (EU + global markets)",
+      "Worldwide research in 30+ business languages",
       "Supplier Database with AI scores & campaign history",
       "One-click Excel export of the full supplier list",
       "Deduplication against your existing vendor base",
@@ -104,7 +104,7 @@ const sharedFeatures = isEN
     ]
   : [
       "AI pipeline: do 250 zweryfikowanych dostawców na kampanię",
-      "Research w 26 językach (UE + rynki globalne)",
+      "Research na całym świecie — 30+ języków biznesowych",
       "Baza Dostawców z ocenami AI i historią kampanii",
       "Eksport pełnej listy dostawców do Excela jednym kliknięciem",
       "Deduplikacja wobec istniejącej bazy dostawców",
@@ -118,7 +118,7 @@ const sharedFeatures = isEN
 const procurementFeatures = isEN
   ? [
       "Contact enrichment — decision-makers, emails, phones",
-      "Email outreach localized per supplier country (26 languages)",
+      "Email outreach localized per supplier country (30+ languages)",
       "Auto follow-up sequences on your schedule",
       "Supplier Portal (magic link — no login for suppliers)",
       "Structured offer collection (MOQ, lead time, quantity breaks)",
@@ -127,7 +127,7 @@ const procurementFeatures = isEN
     ]
   : [
       "Enrichment kontaktów — decydenci, emaile, telefony",
-      "Email outreach zlokalizowany per kraj dostawcy (26 języków)",
+      "Email outreach zlokalizowany per kraj dostawcy (30+ języków)",
       "Automatyczne sekwencje follow-up na Twoim harmonogramie",
       "Supplier Portal (magic link — dostawcy bez logowania)",
       "Strukturalne zbieranie ofert (MOQ, lead time, quantity breaks)",
@@ -144,20 +144,21 @@ interface CreditPack {
   perRun: string
   save?: string
   best?: boolean
+  cta: { label: string; kind: 'buy' | 'contact'; interestTag?: string }
 }
 
 const creditPacks: CreditPack[] = isEN
   ? [
-      { label: "Starter pack", credits: "10 runs",   price: "€89",    perRun: "€8.90 / run" },
-      { label: "Team pack",    credits: "25 runs",   price: "€199",   perRun: "€7.96 / run", save: "Save 11%", best: true },
-      { label: "Scale pack",   credits: "50 runs",   price: "€299",   perRun: "€5.98 / run", save: "Save 33%" },
-      { label: "Enterprise",   credits: "100+ runs", price: "Custom", perRun: "from €5 / run" },
+      { label: "Starter pack", credits: "10 campaigns",  price: "$179", perRun: "$17.90 / campaign",                       cta: { label: "Buy pack",  kind: "buy",     interestTag: "payg_10" } },
+      { label: "Team pack",    credits: "25 campaigns",  price: "$349", perRun: "$13.96 / campaign", save: "Save 22%", best: true, cta: { label: "Buy pack",  kind: "buy",     interestTag: "payg_25" } },
+      { label: "Scale pack",   credits: "50 campaigns",  price: "$599", perRun: "$11.98 / campaign", save: "Save 33%",      cta: { label: "Buy pack",  kind: "buy",     interestTag: "payg_50" } },
+      { label: "Enterprise",   credits: "Unlimited",     price: "Custom", perRun: "Tailored to your volume",                cta: { label: "Talk to sales", kind: "contact", interestTag: "enterprise_custom" } },
     ]
   : [
-      { label: "Pakiet startowy",  credits: "10 kampanii",   price: "€89",           perRun: "€8,90 / kampania" },
-      { label: "Pakiet zespołu",   credits: "25 kampanii",   price: "€199",          perRun: "€7,96 / kampania", save: "−11%", best: true },
-      { label: "Pakiet skalujący", credits: "50 kampanii",   price: "€299",          perRun: "€5,98 / kampania", save: "−33%" },
-      { label: "Enterprise",       credits: "100+ kampanii", price: "Indywidualnie", perRun: "od €5 / kampania" },
+      { label: "Pakiet startowy",  credits: "10 kampanii",  price: "790 zł",        perRun: "79 zł / kampania",                            cta: { label: "Kup pakiet",         kind: "buy",     interestTag: "payg_10" } },
+      { label: "Pakiet zespołu",   credits: "25 kampanii",  price: "1 499 zł",      perRun: "59,96 zł / kampania", save: "−22%", best: true, cta: { label: "Kup pakiet",         kind: "buy",     interestTag: "payg_25" } },
+      { label: "Pakiet skalujący", credits: "50 kampanii",  price: "2 499 zł",      perRun: "49,98 zł / kampania", save: "−33%",             cta: { label: "Kup pakiet",         kind: "buy",     interestTag: "payg_50" } },
+      { label: "Enterprise",       credits: "Bez limitu",   price: "Indywidualnie", perRun: "Dopasowane do wolumenu",                       cta: { label: "Porozmawiaj z nami", kind: "contact", interestTag: "enterprise_custom" } },
     ]
 
 /* ─────────── FAQ ─────────── */
@@ -165,8 +166,8 @@ const creditPacks: CreditPack[] = isEN
 const faq = isEN
   ? [
       { q: 'What counts as a "sourcing run"?',                     a: 'One spec / category + region combination, returning a ranked list of up to 250 verified suppliers. You can export, shortlist and (if you add AI Procurement) send RFQs from the same run without consuming extra sourcing credits.' },
-      { q: 'What is AI Procurement and when do I need it?',         a: 'AI Procurement extends any sourcing run with the full RFQ workflow — contact enrichment, localized email outreach, Supplier Portal, offer collection, side-by-side comparison, AI Insights reports. €29 per workflow, charged only on runs where you activate it.' },
-      { q: 'Do I have to buy AI Procurement for every run?',         a: 'No. AI Procurement is opt-in per run. Run sourcing alone when you only need a supplier list; add the €29 workflow on the runs where you actually want RFQ outreach and offer collection.' },
+      { q: 'What is AI Procurement and when do I need it?',         a: 'AI Procurement extends any sourcing run with the full RFQ workflow — contact enrichment, localized email outreach, Supplier Portal, offer collection, side-by-side comparison, AI Insights reports. $29 per workflow, charged only on runs where you activate it.' },
+      { q: 'Do I have to buy AI Procurement for every run?',         a: 'No. AI Procurement is opt-in per run. Run sourcing alone when you only need a supplier list; add the $29 workflow on the runs where you actually want RFQ outreach and offer collection.' },
       { q: 'What if I run out of sourcing runs mid-month?',          a: 'Top up with any Sourcing credit pack — they stack. Or upgrade your plan and we\'ll prorate the difference.' },
       { q: 'Do you offer a free trial?',                             a: 'Yes. 3 free sourcing runs on signup. No credit card.' },
       { q: 'Annual billing discount?',                               a: 'Yes — 15% off on all plans billed annually.' },
@@ -174,8 +175,8 @@ const faq = isEN
     ]
   : [
       { q: 'Co liczy się jako „sourcing run"?',                      a: 'Jedna specyfikacja / kategoria + region, zwraca ranking do 250 zweryfikowanych dostawców. Z tego samego runu możesz eksportować, shortlistować i (po dodaniu AI Procurement) wysyłać RFQ bez zużywania dodatkowych kredytów sourcingowych.' },
-      { q: 'Co to jest AI Procurement i kiedy go potrzebuję?',       a: 'AI Procurement rozszerza dowolny run sourcingowy o pełny workflow RFQ — enrichment kontaktów, zlokalizowany outreach email, Supplier Portal, zbieranie ofert, porównanie side-by-side, raporty AI Insights. €29 za workflow, płacone tylko przy runach, w których go aktywujesz.' },
-      { q: 'Czy muszę kupić AI Procurement dla każdego runu?',       a: 'Nie. AI Procurement jest opt-in per run. Uruchom sam sourcing, kiedy potrzebujesz tylko listy dostawców; dodaj workflow €29 na tych runach, na których naprawdę chcesz outreach RFQ i zbieranie ofert.' },
+      { q: 'Co to jest AI Procurement i kiedy go potrzebuję?',       a: 'AI Procurement rozszerza dowolny run sourcingowy o pełny workflow RFQ — enrichment kontaktów, zlokalizowany outreach email, Supplier Portal, zbieranie ofert, porównanie side-by-side, raporty AI Insights. 129 zł za workflow, płacone tylko przy runach, w których go aktywujesz.' },
+      { q: 'Czy muszę kupić AI Procurement dla każdego runu?',       a: 'Nie. AI Procurement jest opt-in per run. Uruchom sam sourcing, kiedy potrzebujesz tylko listy dostawców; dodaj workflow 129 zł na tych runach, na których naprawdę chcesz outreach RFQ i zbieranie ofert.' },
       { q: 'Co jeśli skończą mi się runy w środku miesiąca?',        a: 'Doładuj dowolnym pakietem kredytów Sourcingowych — stakują się. Albo przejdź na wyższy plan, a przeliczymy różnicę proporcjonalnie.' },
       { q: 'Czy oferujecie darmowy trial?',                           a: 'Tak. 3 darmowe runy sourcingowe po rejestracji. Bez karty.' },
       { q: 'Rabat za rozliczenie roczne?',                            a: 'Tak — 15% zniżki na wszystkie plany przy rozliczeniu rocznym.' },
@@ -246,8 +247,8 @@ function PlanCard({ plan }: { plan: Plan }) {
 
       <p className="text-[12.5px] leading-[1.5] text-[hsl(var(--ds-ink-3))] flex-1">
         {isEN
-          ? <>All features included. Add <strong>AI Procurement workflow</strong> (€29 / run) only when you want RFQ outreach.</>
-          : <>Wszystkie funkcje w cenie. Dodaj <strong>AI Procurement workflow</strong> (€29 / run) tylko gdy chcesz outreach RFQ.</>}
+          ? <>All features included. Add <strong>AI Procurement workflow</strong> ($29 / run) only when you want RFQ outreach.</>
+          : <>Wszystkie funkcje w cenie. Dodaj <strong>AI Procurement workflow</strong> (129 zł / run) tylko gdy chcesz outreach RFQ.</>}
       </p>
 
       {ctaElement}
@@ -277,8 +278,8 @@ export function PricingPage() {
             <RevealOnScroll>
               <p className="text-[15.5px] leading-[1.55] text-[hsl(var(--ds-ink-3))] max-w-[56ch] mx-auto">
                 {isEN
-                  ? 'All features in every plan — plans differ only in how many sourcing runs you get per month. Add AI Procurement workflow (€29 / run) when you want full RFQ outreach.'
-                  : 'Wszystkie funkcje w każdym planie — plany różnią się tylko liczbą kampanii sourcingowych na miesiąc. Dodaj AI Procurement workflow (€29 / run) gdy chcesz pełny outreach RFQ.'}
+                  ? 'All features in every plan — plans differ only in how many sourcing runs you get per month. Add AI Procurement workflow ($29 / run) when you want full RFQ outreach.'
+                  : 'Wszystkie funkcje w każdym planie — plany różnią się tylko liczbą kampanii sourcingowych na miesiąc. Dodaj AI Procurement workflow (129 zł / run) gdy chcesz pełny outreach RFQ.'}
               </p>
             </RevealOnScroll>
           </div>
@@ -360,8 +361,8 @@ export function PricingPage() {
               </h2>
               <p className="text-[16px] leading-[1.55] text-[hsl(var(--ds-ink-3))] max-w-[58ch]">
                 {isEN
-                  ? 'Got a supplier list? Turn it into offers. €29 per workflow — activated only on the runs where you want full RFQ outreach and offer collection.'
-                  : 'Masz listę dostawców? Zamień ją w oferty. €29 za workflow — aktywowany tylko na tych runach, na których chcesz pełny outreach RFQ i zbieranie ofert.'}
+                  ? 'Got a supplier list? Turn it into offers. $29 per workflow — activated only on the runs where you want full RFQ outreach and offer collection.'
+                  : 'Masz listę dostawców? Zamień ją w oferty. 129 zł za workflow — aktywowany tylko na tych runach, na których chcesz pełny outreach RFQ i zbieranie ofert.'}
               </p>
             </div>
           </RevealOnScroll>
@@ -373,7 +374,7 @@ export function PricingPage() {
               </span>
               <div className="flex items-baseline gap-2">
                 <span className="font-mono text-[48px] font-semibold tracking-[-0.02em] leading-none text-[hsl(var(--ds-ink))]">
-                  €29
+                  {isEN ? '$29' : '129 zł'}
                 </span>
                 <span className="text-[14px] text-[hsl(var(--ds-muted))]">
                   {isEN ? '/ run' : '/ run'}
@@ -431,8 +432,8 @@ export function PricingPage() {
               </h2>
               <p className="text-[16px] leading-[1.55] text-[hsl(var(--ds-ink-3))] max-w-[58ch]">
                 {isEN
-                  ? 'No subscription — buy a pack, runs never expire. One credit = one sourcing run (up to 250 suppliers). Procurement workflow stays €29 / run.'
-                  : 'Bez subskrypcji — kup pakiet, runy nigdy nie wygasają. Jeden kredyt = jeden run sourcingowy (do 250 dostawców). Procurement workflow pozostaje €29 / run.'}
+                  ? 'No subscription — buy a pack, runs never expire. One credit = one sourcing run (up to 250 suppliers). Procurement workflow stays $29 / run.'
+                  : 'Bez subskrypcji — kup pakiet, runy nigdy nie wygasają. Jeden kredyt = jeden run sourcingowy (do 250 dostawców). Procurement workflow pozostaje 129 zł / run.'}
               </p>
             </div>
           </RevealOnScroll>
@@ -444,32 +445,55 @@ export function PricingPage() {
             viewport={{ once: true }}
             variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.08 } } }}
           >
-            {creditPacks.map((c) => (
-              <motion.div
-                key={c.label}
-                variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}
-                className={`relative rounded-[12px] bg-[hsl(var(--ds-surface))] p-[18px] ${
-                  c.best
-                    ? 'border border-[hsl(var(--ds-accent))]'
-                    : 'border border-[hsl(var(--ds-rule))]'
-                }`}
-              >
-                {c.save && (
-                  <span className="absolute top-2.5 right-2.5 font-mono text-[10px] font-medium px-2 py-[3px] rounded-full bg-[#e6f2ec] text-[hsl(var(--ds-good))]">
-                    {c.save}
-                  </span>
-                )}
-                <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-[hsl(var(--ds-muted))]">
-                  {c.label}
-                </div>
-                <div className="font-mono text-[22px] font-semibold my-2 text-[hsl(var(--ds-ink))]">
-                  {c.credits}
-                </div>
-                <div className="text-[13px] text-[hsl(var(--ds-muted))]">
-                  {c.price} · {c.perRun}
-                </div>
-              </motion.div>
-            ))}
+            {creditPacks.map((c) => {
+              const ctaElement = c.cta.kind === 'contact' ? (
+                <Link
+                  to={`${pathFor('contact')}?interest=${c.cta.interestTag ?? 'enterprise_custom'}#calendar`}
+                  onClick={() => trackCtaClick(`pricing_pack_${c.cta.interestTag ?? 'contact'}`)}
+                  className="btn-ds btn-ds-ghost w-full justify-center mt-4"
+                >
+                  {c.cta.label}
+                </Link>
+              ) : (
+                <a
+                  href={appendUtm(APP_URL, `pricing_pack_${c.cta.interestTag ?? 'payg'}`)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => trackCtaClick(`pricing_pack_${c.cta.interestTag ?? 'payg'}`)}
+                  className={`btn-ds w-full justify-center mt-4 ${c.best ? 'btn-ds-secondary' : 'btn-ds-ghost'}`}
+                >
+                  {c.cta.label}
+                </a>
+              )
+
+              return (
+                <motion.div
+                  key={c.label}
+                  variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}
+                  className={`relative flex flex-col rounded-[12px] bg-[hsl(var(--ds-surface))] p-[18px] ${
+                    c.best
+                      ? 'border border-[hsl(var(--ds-accent))]'
+                      : 'border border-[hsl(var(--ds-rule))]'
+                  }`}
+                >
+                  {c.save && (
+                    <span className="absolute top-2.5 right-2.5 font-mono text-[10px] font-medium px-2 py-[3px] rounded-full bg-[#e6f2ec] text-[hsl(var(--ds-good))]">
+                      {c.save}
+                    </span>
+                  )}
+                  <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-[hsl(var(--ds-muted))]">
+                    {c.label}
+                  </div>
+                  <div className="font-mono text-[22px] font-semibold my-2 text-[hsl(var(--ds-ink))]">
+                    {c.credits}
+                  </div>
+                  <div className="text-[13px] text-[hsl(var(--ds-muted))] flex-1">
+                    {c.price} · {c.perRun}
+                  </div>
+                  {ctaElement}
+                </motion.div>
+              )
+            })}
           </motion.div>
         </section>
 
