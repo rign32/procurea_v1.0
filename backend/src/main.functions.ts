@@ -94,31 +94,16 @@ const createNestServer = async () => {
 };
 
 // Export as 2nd Gen Cloud Function
-// Optimized configuration for cost and performance
+// 2026-04-20: resized 4GiB→2GiB, maxInstances 10→5 for cost optimization (~$13/mo).
+// If pipeline sourcing OOMs at 500+ suppliers, bump memory back to 4GiB.
 export const api = onRequest(
     {
         region: 'europe-west1',
-
-        // Memory: 4GiB for NestJS + sourcing pipeline (AI calls, concurrent scraping, 2000+ URLs in batch)
-        memory: '4GiB',
-
-        // Timeout: 1800s (30 min) — two-phase pipeline: search collection ~60s + batch processing ~10-15 min
+        memory: '2GiB',
         timeoutSeconds: 1800,
-
-        // Concurrency: Handle multiple requests per instance (HUGE cost savings!)
-        // Default is 1, meaning 1 request = 1 instance
-        // With 80, each instance handles up to 80 concurrent requests
         concurrency: 80,
-
-        // Min instances: Keep 1 warm to avoid cold starts (costs ~$5/month but eliminates 2-3s cold starts)
         minInstances: 1,
-
-        // Max instances: Limit to prevent runaway costs
-        maxInstances: 10,
-
-        // CPU: Use 1 CPU for better performance (default is 0.166)
-        // Only needed if you have CPU-intensive operations
-        // cpu: 1,
+        maxInstances: 5,
 
         // Secrets from GCP Secret Manager — automatically injected as env vars
         secrets: [
@@ -153,15 +138,16 @@ export const api = onRequest(
     expressApp
 );
 
-// Staging Cloud Function — separate Cloud Run service with its own database
+// Staging Cloud Function — separate Cloud Run service with its own database.
+// 2026-04-20: staging sized smaller than prod (1GiB vs 2GiB) — no prod load here.
 export const apiStaging = onRequest(
     {
         region: 'europe-west1',
-        memory: '4GiB',
+        memory: '1GiB',
         timeoutSeconds: 1800,
         concurrency: 80,
         minInstances: 0,
-        maxInstances: 3,
+        maxInstances: 2,
         secrets: [
             'DATABASE_URL_STAGING',
             'JWT_SECRET',
