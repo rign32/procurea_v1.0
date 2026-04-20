@@ -118,16 +118,18 @@ export const EN: LandingTranslations = {
     sectionLabel: 'How it works',
     heading: 'From sourcing brief to qualified suppliers',
     headingSub: 'in 3 simple steps',
-    description: 'Describe what you need — AI handles the rest. No manual Googling, no spreadsheets.',
+    description: 'We don\'t keep a supplier database. For every brief, AI builds a fresh search strategy, scans Google in native languages and decides for itself who is a real manufacturer and who isn\'t.',
     stepPrefix: 'STEP',
     steps: [
-      { title: 'Describe what you need', description: 'Enter the product or service category, specifications, and target region. An intuitive wizard guides you step by step.' },
-      { title: 'First results in 2–3 minutes', description: 'AI searches the internet in 26 languages, identifies suppliers and verifies their profiles. First companies appear almost instantly.' },
-      { title: 'Full list in 20 minutes', description: 'Verified suppliers with contact data, AI scores, and certifications. From 20 to 200 companies, depending on the category.' },
+      { title: 'Describe what you need', description: 'Enter the category, specifications and region. From that, a Strategy Agent generates a tailored set of search queries — nothing is pulled from a pre-built supplier list.' },
+      { title: 'AI searches Google live', description: 'The strategy is translated into 26 languages and executed through the Google Search API in real time — exactly how your team would do it, only faster and multilingual.' },
+      { title: 'A second agent qualifies each company', description: 'A separate AI agent opens every result and checks: does the company exist, is it a manufacturer, a distributor, or off-topic. You get back a list of qualified suppliers matched to your brief.' },
     ],
     summaryPart1: 'Full supplier list',
     summaryPart2: ' ready in max ',
     summaryHighlight: '20 minutes',
+    transparencyBadge: 'Data agnostic',
+    transparencyText: 'No curated supplier list — AI searches the web for you, in real time.',
   },
   demo: {
     sectionLabel: 'Demo',
@@ -245,7 +247,7 @@ export const EN: LandingTranslations = {
     items: [
       {
         question: 'How does AI-powered search work?',
-        answer: 'Procurea uses a multi-stage AI agent system. The Strategy Agent generates search queries in multiple languages tailored to your requirements. The Scanning Agent searches the internet and identifies suppliers. The Analysis Agent evaluates their capabilities, and the Enrichment Agent automatically finds contact data. First results appear in 2–3 minutes, full list is ready in max 20 minutes.',
+        answer: 'Procurea is data agnostic — we don\'t keep a supplier database or a list of "preferred" companies. For every brief, the Strategy Agent generates tailored search queries across 26 languages. Those queries hit the Google Search API in real time. A separate AI agent opens each page and judges whether the company exists, whether it\'s a manufacturer, a distributor, or off-topic. The Enrichment Agent then fills in contact data. First results in 2–3 minutes, full list in max 20 minutes — no pre-built lists, no bias.',
       },
       {
         question: 'Which regions are supported?',

@@ -66,21 +66,17 @@ export function SavingsCalculator({ variant = "home" }: SavingsCalculatorProps) 
   const fillPercent = sliderPos
 
   return (
-    <div className="group relative rounded-2xl border border-black/[0.06] bg-white overflow-hidden">
-      {/* Subtle top gradient line */}
-      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-brand-400 via-emerald-400 to-teal-400" />
+    <div className="group relative rounded-[14px] border border-[hsl(var(--ds-rule))] bg-[hsl(var(--ds-surface))] overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-[hsl(var(--ds-accent))]" />
 
       <div className="p-6 sm:p-8">
-        {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 text-emerald-600 shadow-sm">
+          <div className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-[hsl(var(--ds-accent-soft))] text-[hsl(var(--ds-accent))]">
             <TrendingDown className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold leading-tight group-hover:text-primary transition-colors duration-300">{heading}</h3>
-            <span className="text-xs text-muted-foreground">
-              4.6% avg. savings
-            </span>
+            <h3 className="text-[17px] font-bold leading-tight text-[hsl(var(--ds-ink))]">{heading}</h3>
+            <span className="text-xs text-[hsl(var(--ds-muted))]">4.6% avg. savings</span>
           </div>
         </div>
 
@@ -98,9 +94,9 @@ export function SavingsCalculator({ variant = "home" }: SavingsCalculatorProps) 
 
           {/* Custom slider */}
           <div className="relative h-8 flex items-center">
-            <div className="absolute inset-x-0 h-2 rounded-full bg-slate-100 overflow-hidden">
+            <div className="absolute inset-x-0 h-2 rounded-full bg-[hsl(var(--ds-bg-2))] overflow-hidden">
               <motion.div
-                className="h-full rounded-full bg-gradient-to-r from-brand-400 via-emerald-400 to-teal-400"
+                className="h-full rounded-full bg-[hsl(var(--ds-accent))]"
                 style={{ width: `${fillPercent}%` }}
                 transition={{ duration: 0.1 }}
               />
@@ -111,7 +107,7 @@ export function SavingsCalculator({ variant = "home" }: SavingsCalculatorProps) 
               max={100}
               value={sliderPos}
               onChange={(e) => setSliderPos(Number(e.target.value))}
-              className="absolute inset-x-0 w-full h-8 appearance-none bg-transparent cursor-pointer outline-none z-10 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-emerald-500 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:shadow-emerald-500/20 [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-150 [&::-webkit-slider-thumb]:hover:scale-125 [&::-webkit-slider-thumb]:hover:shadow-lg [&::-webkit-slider-thumb]:hover:shadow-emerald-500/30 [&::-webkit-slider-thumb]:hover:ring-2 [&::-webkit-slider-thumb]:hover:ring-emerald-400/30 [&::-webkit-slider-thumb]:active:scale-110 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-emerald-500 [&::-moz-range-thumb]:shadow-md [&::-moz-range-track]:bg-transparent"
+              className="absolute inset-x-0 w-full h-8 appearance-none bg-transparent cursor-pointer outline-none z-10 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-[hsl(var(--ds-accent))] [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-150 [&::-webkit-slider-thumb]:hover:scale-125 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-[hsl(var(--ds-accent))] [&::-moz-range-thumb]:shadow-md [&::-moz-range-track]:bg-transparent"
               aria-label={t.calculator.inputLabel}
             />
           </div>
@@ -127,52 +123,43 @@ export function SavingsCalculator({ variant = "home" }: SavingsCalculatorProps) 
         {/* Results flow */}
         <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr_auto_1fr] gap-3 sm:gap-0 sm:items-center">
           {/* Gross Savings */}
-          <div className="rounded-xl bg-slate-50 p-4 text-center cursor-default hover:shadow-sm transition-shadow duration-200">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
+          <div className="rounded-[10px] bg-[hsl(var(--ds-bg-2))] p-4 text-center cursor-default hover:shadow-sm transition-shadow duration-200">
+            <span className="font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-[hsl(var(--ds-muted))] block mb-1">
               {t.calculator.grossSavings}
             </span>
             <AnimatedValue
               value={formatUSD(annualSavings)}
-              className="text-xl font-bold text-foreground"
+              className="font-mono text-xl font-semibold text-[hsl(var(--ds-ink))]"
             />
           </div>
 
-          {/* Arrow / Minus */}
           <div className="hidden sm:flex items-center justify-center px-2">
-            <Minus className="h-4 w-4 text-orange-400" />
+            <Minus className="h-4 w-4 text-[hsl(var(--ds-muted-2))]" />
           </div>
 
           {/* Procurea Cost */}
-          <div className="rounded-xl bg-orange-50/60 p-4 text-center cursor-default hover:shadow-sm transition-shadow duration-200">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-orange-600 block mb-1">
+          <div className="rounded-[10px] bg-[hsl(var(--ds-bg-3))] p-4 text-center cursor-default hover:shadow-sm transition-shadow duration-200">
+            <span className="font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-[hsl(var(--ds-muted))] block mb-1">
               {t.calculator.procureaCost}
             </span>
             <AnimatedValue
               value={`-${formatUSD(annualCost)}`}
-              className="text-xl font-bold text-orange-600"
+              className="font-mono text-xl font-semibold text-[hsl(var(--ds-ink-2))]"
             />
           </div>
 
-          {/* Arrow / Equals */}
           <div className="hidden sm:flex items-center justify-center px-2">
-            <ArrowRight className="h-4 w-4 text-emerald-400" />
+            <ArrowRight className="h-4 w-4 text-[hsl(var(--ds-accent))]" />
           </div>
 
           {/* Net Savings — hero element */}
-          <div className="relative rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 p-4 text-center cursor-default overflow-hidden ring-1 ring-emerald-500/10 hover:shadow-sm transition-shadow duration-200">
-            {/* Subtle pulse glow */}
+          <div className="relative rounded-[10px] bg-[hsl(var(--ds-accent-soft))] p-4 text-center cursor-default overflow-hidden ring-1 ring-[hsl(var(--ds-accent))]/10 hover:shadow-sm transition-shadow duration-200">
             <motion.div
-              className="absolute inset-0 rounded-xl bg-emerald-400/[0.06]"
-              animate={{
-                opacity: [0, 0.6, 0],
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
+              className="absolute inset-0 rounded-[10px] bg-[hsl(var(--ds-accent))]/[0.06]"
+              animate={{ opacity: [0, 0.6, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             />
-            <span className="relative text-[10px] font-semibold uppercase tracking-wider text-emerald-700 block mb-1">
+            <span className="relative font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-[hsl(var(--ds-accent))] block mb-1">
               {t.calculator.netSavings}
             </span>
             <AnimatePresence mode="wait">
@@ -182,7 +169,7 @@ export function SavingsCalculator({ variant = "home" }: SavingsCalculatorProps) 
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
-                className="relative block text-2xl sm:text-3xl font-extrabold tabular-nums bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 bg-clip-text text-transparent"
+                className="relative block font-mono text-2xl sm:text-3xl font-semibold tabular-nums text-[hsl(var(--ds-accent))]"
               >
                 {formatUSD(netSavings)}
               </motion.span>

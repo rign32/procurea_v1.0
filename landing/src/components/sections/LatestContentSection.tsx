@@ -8,12 +8,12 @@ const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
 const isEN = LANG === 'en'
 
 const PILLAR_COLORS: Record<string, string> = {
-  'ai-sourcing-automation': 'from-brand-400 via-brand-600 to-slate-800',
-  'erp-crm-integration': 'from-purple-400 via-purple-600 to-slate-800',
-  'multilingual-outreach': 'from-emerald-400 via-teal-600 to-slate-800',
-  'supplier-intelligence': 'from-amber-400 via-orange-500 to-rose-600',
-  'offer-comparison': 'from-rose-400 via-pink-500 to-slate-800',
-  'supply-chain-strategy': 'from-slate-400 via-slate-600 to-slate-800',
+  'ai-sourcing-automation': 'from-brand-500 via-brand-700 to-[hsl(var(--ds-ink))]',
+  'erp-crm-integration':    'from-brand-400 via-brand-600 to-[hsl(var(--ds-ink-2))]',
+  'multilingual-outreach':  'from-brand-500 via-brand-700 to-[hsl(var(--ds-ink))]',
+  'supplier-intelligence':  'from-[hsl(var(--ds-cta))] via-brand-500 to-[hsl(var(--ds-ink))]',
+  'offer-comparison':       'from-brand-400 via-brand-600 to-[hsl(var(--ds-ink))]',
+  'supply-chain-strategy':  'from-[hsl(var(--ds-ink-3))] via-[hsl(var(--ds-ink-2))] to-[hsl(var(--ds-ink))]',
 }
 
 function formatDate(dateString: string): string {
@@ -37,22 +37,21 @@ export function LatestContentSection() {
   const resourcesBase = pathMappings.resourcesHub[LANG]
 
   return (
-    <section className="py-20 sm:py-24 bg-gradient-to-b from-white to-slate-50/50 relative overflow-hidden">
-      <div className="absolute top-20 -left-40 w-[500px] h-[500px] rounded-full bg-brand-500/[0.04] blur-[100px] pointer-events-none" aria-hidden="true" />
-
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section className="py-[clamp(56px,8vw,112px)] bg-[hsl(var(--ds-bg-2))]/40 relative overflow-hidden">
+      <div className="relative mx-auto max-w-[1240px] px-[clamp(20px,4vw,72px)]">
         <RevealOnScroll>
-          <div className="flex flex-col items-center text-center mb-12 sm:mb-16">
-            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-brand-600 mb-4">
-              <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
+          <div className="grid justify-items-center text-center gap-3.5 mb-[clamp(36px,5vw,64px)]">
+            <span className="eyebrow">
+              <span className="eyebrow-dot" />
+              <BookOpen className="h-3 w-3" aria-hidden="true" />
               {isEN ? 'From the blog' : 'Z bloga'}
             </span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold font-display tracking-tight mb-5 text-slate-900 max-w-3xl">
+            <h2 className="text-[clamp(28px,3.4vw,42px)] font-bold leading-[1.1] max-w-[26ch] text-[hsl(var(--ds-ink))]">
               {isEN
                 ? 'Procurement insights, written by practitioners'
                 : 'Wiedza o procurement, pisana przez praktyków'}
             </h2>
-            <p className="text-lg text-slate-600 leading-relaxed max-w-2xl">
+            <p className="text-[18px] leading-[1.55] text-[hsl(var(--ds-ink-3))] max-w-[58ch]">
               {isEN
                 ? 'Sharp analysis of sourcing, supplier management, and AI procurement. No corporate voice.'
                 : 'Konkretne analizy sourcingu, zarządzania dostawcami i AI w procurement. Bez corporate voice.'}
@@ -71,7 +70,7 @@ export function LatestContentSection() {
               <RevealOnScroll key={post.slug}>
                 <Link
                   to={`${blogBase}/${post.slug}`}
-                  className="group flex flex-col rounded-2xl border border-black/[0.08] bg-white overflow-hidden h-full hover:shadow-[0_12px_40px_-8px_rgba(0,0,0,0.15)] hover:-translate-y-1 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                  className="group flex flex-col rounded-[14px] border border-[hsl(var(--ds-rule))] bg-[hsl(var(--ds-surface))] overflow-hidden h-full hover:shadow-[0_8px_28px_-4px_rgba(14,22,20,0.10)] hover:-translate-y-1 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ds-accent))] focus-visible:ring-offset-2"
                 >
                   <div className={`relative aspect-[16/10] bg-gradient-to-br ${gradient} overflow-hidden`}>
                     <svg className="absolute inset-0 w-full h-full opacity-20 mix-blend-overlay" aria-hidden="true">
@@ -86,23 +85,23 @@ export function LatestContentSection() {
                   </div>
                   <div className="flex flex-col flex-1 p-6">
                     <div className="flex items-center gap-2 mb-3">
-                      <span className="text-xs font-bold uppercase tracking-wider text-brand-600">
+                      <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.1em] text-[hsl(var(--ds-accent))]">
                         {category}
                       </span>
-                      <span className="text-slate-300" aria-hidden="true">·</span>
-                      <span className="text-xs text-slate-500">{readTime}</span>
+                      <span className="text-[hsl(var(--ds-muted-2))]" aria-hidden="true">·</span>
+                      <span className="font-mono text-[10.5px] text-[hsl(var(--ds-muted))]">{readTime}</span>
                     </div>
-                    <h3 className="font-bold font-display tracking-tight text-lg sm:text-xl leading-tight line-clamp-2 mb-2 text-slate-900 group-hover:text-brand-600 transition-colors">
+                    <h3 className="font-bold font-display tracking-[-0.02em] text-lg sm:text-xl leading-tight line-clamp-2 mb-2 text-[hsl(var(--ds-ink))] group-hover:text-[hsl(var(--ds-accent))] transition-colors">
                       {title}
                     </h3>
-                    <p className="text-sm text-slate-600 leading-relaxed line-clamp-3 flex-1">
+                    <p className="text-[14px] text-[hsl(var(--ds-ink-2))] leading-relaxed line-clamp-3 flex-1">
                       {excerpt}
                     </p>
-                    <div className="mt-5 pt-4 border-t border-black/[0.05] flex items-center justify-between">
-                      <time className="text-xs text-slate-500" dateTime={post.date}>
+                    <div className="mt-5 pt-4 border-t border-[hsl(var(--ds-rule))] flex items-center justify-between">
+                      <time className="font-mono text-[11px] text-[hsl(var(--ds-muted))]" dateTime={post.date}>
                         {formatDate(post.date)}
                       </time>
-                      <span className="text-sm font-semibold text-brand-600 inline-flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                      <span className="text-sm font-semibold text-[hsl(var(--ds-accent))] inline-flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
                         {isEN ? 'Read' : 'Czytaj'}
                         <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                       </span>
@@ -114,20 +113,14 @@ export function LatestContentSection() {
           })}
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link
-            to={blogBase}
-            className="inline-flex items-center gap-2 rounded-xl bg-white border border-black/[0.1] px-6 py-3 text-sm font-semibold text-slate-900 hover:border-brand-500/40 hover:shadow-sm transition-all"
-          >
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <Link to={blogBase} className="btn-ds btn-ds-ghost">
             {isEN ? 'Browse all articles' : 'Wszystkie artykuły'}
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            <span className="arrow" aria-hidden>→</span>
           </Link>
-          <Link
-            to={resourcesBase}
-            className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-600 shadow-sm hover:shadow-md transition-all"
-          >
+          <Link to={resourcesBase} className="btn-ds btn-ds-secondary">
             {isEN ? 'Visit resource hub' : 'Przejdź do centrum wiedzy'}
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            <span className="arrow" aria-hidden>→</span>
           </Link>
         </div>
       </div>

@@ -17,6 +17,16 @@ import { AiSourcingMockup } from "@/components/feature-mockups/AiSourcingMockup"
 import { EmailOutreachMockup } from "@/components/feature-mockups/EmailOutreachMockup"
 import { SupplierPortalMockup } from "@/components/feature-mockups/SupplierPortalMockup"
 import { OfferComparisonMockup } from "@/components/feature-mockups/OfferComparisonMockup"
+import { AiSourcingFeaturePage } from "@/pages/features/AiSourcingFeaturePage"
+import { SupplierDatabaseFeaturePage } from "@/pages/features/SupplierDatabaseFeaturePage"
+import { EmailOutreachFeaturePage } from "@/pages/features/EmailOutreachFeaturePage"
+import { SupplierPortalFeaturePage } from "@/pages/features/SupplierPortalFeaturePage"
+import { OfferComparisonFeaturePage } from "@/pages/features/OfferComparisonFeaturePage"
+import { MultilingualOutreachFeaturePage } from "@/pages/features/MultilingualOutreachFeaturePage"
+import { AutoFollowUpFeaturePage } from "@/pages/features/AutoFollowUpFeaturePage"
+import { ContactEnrichmentFeaturePage } from "@/pages/features/ContactEnrichmentFeaturePage"
+import { OfferCollectionFeaturePage } from "@/pages/features/OfferCollectionFeaturePage"
+import { AiInsightsFeaturePage } from "@/pages/features/AiInsightsFeaturePage"
 
 // Keyed by canonical (PL) slug returned by resolveFeatureSlug()
 const MOCKUPS: Record<string, ComponentType> = {
@@ -83,6 +93,21 @@ function getFeatureLink(key: string): { to: string; label: string } | null {
 export function FeaturePage() {
   const { slug = '' } = useParams<{ slug: string }>()
   const resolvedSlug = resolveFeatureSlug(slug)
+
+  // Dispatch to bespoke feature pages (unique layout, infographics, content)
+  switch (resolvedSlug) {
+    case 'ai-sourcing': return <AiSourcingFeaturePage />
+    case 'company-registry': return <SupplierDatabaseFeaturePage />
+    case 'outreach-mailowy': return <EmailOutreachFeaturePage />
+    case 'supplier-portal': return <SupplierPortalFeaturePage />
+    case 'porownywarka-ofert': return <OfferComparisonFeaturePage />
+    case 'wielojezyczny-outreach': return <MultilingualOutreachFeaturePage />
+    case 'auto-follow-up': return <AutoFollowUpFeaturePage />
+    case 'enrichment-kontaktow': return <ContactEnrichmentFeaturePage />
+    case 'zbieranie-ofert': return <OfferCollectionFeaturePage />
+    case 'ai-insights': return <AiInsightsFeaturePage />
+  }
+
   const feature = getFeature(resolvedSlug)
 
   if (!feature) {

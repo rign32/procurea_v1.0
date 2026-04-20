@@ -1,398 +1,543 @@
 import { Link } from "react-router-dom"
-import { Check, Sparkles, Search, Workflow, Layers, type LucideIcon } from "lucide-react"
 import { motion } from "framer-motion"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
-import { AccordionItem } from "@/components/ui/AccordionItem"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
-import { AnimatedGrid } from "@/components/ui/AnimatedGrid"
 import { appendUtm } from "@/lib/utm"
 import { trackCtaClick } from "@/lib/analytics"
 import { pathFor } from "@/i18n/paths"
-import { t } from "@/i18n"
-import {
-  PRODUCTS,
-  ORDERED_PRODUCTS,
-  copy,
-  formatUSD,
-  type Product,
-  type ProductDefinition,
-} from "@/content/pricing"
 
 const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
 const isEN = LANG === 'en'
 
-const PRODUCT_ICONS: Record<Product, LucideIcon> = {
-  sourcing: Search,
-  procurement: Workflow,
-  bundle: Layers,
-  enterprise: Sparkles,
+/* ─────────── Plans — same features across tiers, differ only in volume ─────────── */
+
+type PlanCta = 'self-serve' | 'featured'
+
+interface Plan {
+  name: string
+  price: string
+  unit: string
+  runs: string
+  perRun: string
+  tagline: string
+  cta: { label: string; kind: PlanCta; interestTag?: string }
+  featured?: boolean
 }
 
-function accentClasses(accent: ProductDefinition['accent']) {
-  switch (accent) {
-    case 'primary':
-      return {
-        card: 'bg-white border border-primary/20 shadow-md',
-        badge: 'bg-primary/10 text-primary border-primary/20',
-        cta: 'bg-primary text-primary-foreground hover:bg-primary/90',
-        iconWrap: 'bg-primary/10 text-primary',
-      }
-    case 'bundle':
-      return {
-        card: 'bg-primary text-primary-foreground shadow-2xl ring-2 ring-primary/30 lg:scale-[1.02]',
-        badge: 'bg-amber-400 text-amber-950',
-        cta: 'bg-white text-primary hover:bg-white/90',
-        iconWrap: 'bg-white/15 text-white',
-      }
-    case 'enterprise':
-      return {
-        card: 'bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-2xl border border-amber-400/20',
-        badge: 'bg-amber-400/10 border border-amber-400/30 text-amber-300',
-        cta: 'bg-amber-400 text-amber-950 hover:bg-amber-300',
-        iconWrap: 'bg-amber-400/15 text-amber-300',
-      }
-    default:
-      return {
-        card: 'bg-white border border-black/[0.08] shadow-sm',
-        badge: 'bg-emerald-50 border border-emerald-200 text-emerald-800',
-        cta: 'bg-primary text-primary-foreground hover:bg-primary/90',
-        iconWrap: 'bg-slate-100 text-slate-700',
-      }
-  }
+const plans: Plan[] = isEN
+  ? [
+      {
+        name: "Starter",
+        price: "€89",
+        unit: "/ month",
+        runs: "10 sourcing runs",
+        perRun: "€8.90 / run",
+        tagline: "For a single buyer running occasional RFQs.",
+        cta: { label: "Start free", kind: "self-serve" },
+      },
+      {
+        name: "Growth",
+        price: "€349",
+        unit: "/ month",
+        runs: "50 sourcing runs",
+        perRun: "€6.98 / run",
+        tagline: "For procurement teams of 2–5 at an SMB manufacturer or builder.",
+        cta: { label: "Start Growth", kind: "featured", interestTag: "growth_plan" },
+        featured: true,
+      },
+      {
+        name: "Scale",
+        price: "€890",
+        unit: "/ month",
+        runs: "150 sourcing runs",
+        perRun: "€5.93 / run",
+        tagline: "For multi-site, multi-category operations.",
+        cta: { label: "Start Scale", kind: "self-serve", interestTag: "scale_plan" },
+      },
+    ]
+  : [
+      {
+        name: "Starter",
+        price: "€89",
+        unit: "/ miesiąc",
+        runs: "10 kampanii sourcingowych",
+        perRun: "€8,90 / kampania",
+        tagline: "Dla jednego kupca prowadzącego kilka RFQ miesięcznie.",
+        cta: { label: "Zacznij za darmo", kind: "self-serve" },
+      },
+      {
+        name: "Growth",
+        price: "€349",
+        unit: "/ miesiąc",
+        runs: "50 kampanii sourcingowych",
+        perRun: "€6,98 / kampania",
+        tagline: "Dla 2–5 osobowych zespołów procurement w SMB produkcji lub budownictwie.",
+        cta: { label: "Zacznij Growth", kind: "featured", interestTag: "growth_plan" },
+        featured: true,
+      },
+      {
+        name: "Scale",
+        price: "€890",
+        unit: "/ miesiąc",
+        runs: "150 kampanii sourcingowych",
+        perRun: "€5,93 / kampania",
+        tagline: "Dla multi-site, multi-category operacji.",
+        cta: { label: "Zacznij Scale", kind: "self-serve", interestTag: "scale_plan" },
+      },
+    ]
+
+/* ─────────── Shared features — same for every plan ─────────── */
+
+const sharedFeatures = isEN
+  ? [
+      "AI pipeline: up to 250 verified suppliers per run",
+      "Research in 26 languages (EU + global markets)",
+      "Supplier Database with AI scores & campaign history",
+      "One-click Excel export of the full supplier list",
+      "Deduplication against your existing vendor base",
+      "ERP connectors (NetSuite, Dynamics 365 BC, QuickBooks, Xero)",
+      "Shared inbox, approvals, team comments",
+      "3 free sourcing runs on signup — no credit card",
+    ]
+  : [
+      "AI pipeline: do 250 zweryfikowanych dostawców na kampanię",
+      "Research w 26 językach (UE + rynki globalne)",
+      "Baza Dostawców z ocenami AI i historią kampanii",
+      "Eksport pełnej listy dostawców do Excela jednym kliknięciem",
+      "Deduplikacja wobec istniejącej bazy dostawców",
+      "Konektory ERP (NetSuite, Dynamics 365 BC, QuickBooks, Xero)",
+      "Wspólny inbox, approvals, komentarze zespołu",
+      "3 darmowe kampanie sourcingowe po rejestracji — bez karty",
+    ]
+
+/* ─────────── AI Procurement add-on ─────────── */
+
+const procurementFeatures = isEN
+  ? [
+      "Contact enrichment — decision-makers, emails, phones",
+      "Email outreach localized per supplier country (26 languages)",
+      "Auto follow-up sequences on your schedule",
+      "Supplier Portal (magic link — no login for suppliers)",
+      "Structured offer collection (MOQ, lead time, quantity breaks)",
+      "Side-by-side offer comparison with weighted ranking",
+      "AI Insights PDF/PPTX reports — ready for your CFO",
+    ]
+  : [
+      "Enrichment kontaktów — decydenci, emaile, telefony",
+      "Email outreach zlokalizowany per kraj dostawcy (26 języków)",
+      "Automatyczne sekwencje follow-up na Twoim harmonogramie",
+      "Supplier Portal (magic link — dostawcy bez logowania)",
+      "Strukturalne zbieranie ofert (MOQ, lead time, quantity breaks)",
+      "Porównanie ofert side-by-side z rankingiem ważonym",
+      "Raporty AI Insights PDF/PPTX — gotowe dla CFO",
+    ]
+
+/* ─────────── Credit packs — AI Sourcing pay-as-you-go only ─────────── */
+
+interface CreditPack {
+  label: string
+  credits: string
+  price: string
+  perRun: string
+  save?: string
+  best?: boolean
 }
 
-function headlinePrice(product: ProductDefinition): string {
-  if (product.packs.length > 0) {
-    const first = product.packs[0]
-    return `${isEN ? 'From' : 'Od'} ${formatUSD(first.price)}`
-  }
-  // Enterprise
-  return isEN ? 'From $25k / year' : 'Od $25k / rok'
-}
+const creditPacks: CreditPack[] = isEN
+  ? [
+      { label: "Starter pack", credits: "10 runs",   price: "€89",    perRun: "€8.90 / run" },
+      { label: "Team pack",    credits: "25 runs",   price: "€199",   perRun: "€7.96 / run", save: "Save 11%", best: true },
+      { label: "Scale pack",   credits: "50 runs",   price: "€299",   perRun: "€5.98 / run", save: "Save 33%" },
+      { label: "Enterprise",   credits: "100+ runs", price: "Custom", perRun: "from €5 / run" },
+    ]
+  : [
+      { label: "Pakiet startowy",  credits: "10 kampanii",   price: "€89",           perRun: "€8,90 / kampania" },
+      { label: "Pakiet zespołu",   credits: "25 kampanii",   price: "€199",          perRun: "€7,96 / kampania", save: "−11%", best: true },
+      { label: "Pakiet skalujący", credits: "50 kampanii",   price: "€299",          perRun: "€5,98 / kampania", save: "−33%" },
+      { label: "Enterprise",       credits: "100+ kampanii", price: "Indywidualnie", perRun: "od €5 / kampania" },
+    ]
 
-function headlineSub(product: ProductDefinition): string {
-  if (product.packs.length > 0) {
-    const first = product.packs[0]
-    return `${first.credits} ${isEN ? 'campaigns' : 'kampanii'} · $${first.perCredit.toFixed(2)}${copy.perCreditLabel}`
-  }
-  return isEN ? 'Unlimited · custom contract' : 'Bez limitu · custom kontrakt'
-}
+/* ─────────── FAQ ─────────── */
 
-function ProductCard({ product }: { product: ProductDefinition }) {
-  const styles = accentClasses(product.accent)
-  const isBundle = product.accent === 'bundle'
-  const isEnterprise = product.accent === 'enterprise'
-  const isDark = isBundle || isEnterprise
-  const Icon = PRODUCT_ICONS[product.key]
+const faq = isEN
+  ? [
+      { q: 'What counts as a "sourcing run"?',                     a: 'One spec / category + region combination, returning a ranked list of up to 250 verified suppliers. You can export, shortlist and (if you add AI Procurement) send RFQs from the same run without consuming extra sourcing credits.' },
+      { q: 'What is AI Procurement and when do I need it?',         a: 'AI Procurement extends any sourcing run with the full RFQ workflow — contact enrichment, localized email outreach, Supplier Portal, offer collection, side-by-side comparison, AI Insights reports. €29 per workflow, charged only on runs where you activate it.' },
+      { q: 'Do I have to buy AI Procurement for every run?',         a: 'No. AI Procurement is opt-in per run. Run sourcing alone when you only need a supplier list; add the €29 workflow on the runs where you actually want RFQ outreach and offer collection.' },
+      { q: 'What if I run out of sourcing runs mid-month?',          a: 'Top up with any Sourcing credit pack — they stack. Or upgrade your plan and we\'ll prorate the difference.' },
+      { q: 'Do you offer a free trial?',                             a: 'Yes. 3 free sourcing runs on signup. No credit card.' },
+      { q: 'Annual billing discount?',                               a: 'Yes — 15% off on all plans billed annually.' },
+      { q: 'Is there a setup fee?',                                  a: 'No. On Growth and Scale, onboarding is included.' },
+    ]
+  : [
+      { q: 'Co liczy się jako „sourcing run"?',                      a: 'Jedna specyfikacja / kategoria + region, zwraca ranking do 250 zweryfikowanych dostawców. Z tego samego runu możesz eksportować, shortlistować i (po dodaniu AI Procurement) wysyłać RFQ bez zużywania dodatkowych kredytów sourcingowych.' },
+      { q: 'Co to jest AI Procurement i kiedy go potrzebuję?',       a: 'AI Procurement rozszerza dowolny run sourcingowy o pełny workflow RFQ — enrichment kontaktów, zlokalizowany outreach email, Supplier Portal, zbieranie ofert, porównanie side-by-side, raporty AI Insights. €29 za workflow, płacone tylko przy runach, w których go aktywujesz.' },
+      { q: 'Czy muszę kupić AI Procurement dla każdego runu?',       a: 'Nie. AI Procurement jest opt-in per run. Uruchom sam sourcing, kiedy potrzebujesz tylko listy dostawców; dodaj workflow €29 na tych runach, na których naprawdę chcesz outreach RFQ i zbieranie ofert.' },
+      { q: 'Co jeśli skończą mi się runy w środku miesiąca?',        a: 'Doładuj dowolnym pakietem kredytów Sourcingowych — stakują się. Albo przejdź na wyższy plan, a przeliczymy różnicę proporcjonalnie.' },
+      { q: 'Czy oferujecie darmowy trial?',                           a: 'Tak. 3 darmowe runy sourcingowe po rejestracji. Bez karty.' },
+      { q: 'Rabat za rozliczenie roczne?',                            a: 'Tak — 15% zniżki na wszystkie plany przy rozliczeniu rocznym.' },
+      { q: 'Czy jest opłata wdrożeniowa?',                            a: 'Nie. Na Growth i Scale onboarding jest wliczony.' },
+    ]
 
-  const topFeatures = product.features.slice(0, 4)
+/* ─────────── Plan card ─────────── */
 
-  const ctaElement = product.cta === 'self-serve' ? (
+function PlanCard({ plan }: { plan: Plan }) {
+  const ctaClass =
+    plan.cta.kind === "featured" ? "btn-ds btn-ds-secondary" : "btn-ds btn-ds-ghost"
+
+  const ctaElement = (
     <a
-      href={appendUtm(APP_URL, `pricing_${product.key}`)}
+      href={appendUtm(APP_URL, `pricing_${plan.name.toLowerCase()}`)}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={() => trackCtaClick(`pricing_${product.key}`)}
-      className={`flex items-center justify-center w-full px-4 py-3 text-sm font-semibold rounded-lg transition-all ${styles.cta}`}
+      onClick={() => trackCtaClick(`pricing_${plan.name.toLowerCase()}`)}
+      className={`${ctaClass} w-full justify-center mt-auto`}
     >
-      {product.ctaLabel}
+      {plan.cta.label}
     </a>
-  ) : (
-    <Link
-      to={`${pathFor('contact')}?interest=${product.interestTag}#calendar`}
-      onClick={() => trackCtaClick(`pricing_${product.key}_sales`)}
-      className={`flex items-center justify-center w-full px-4 py-3 text-sm font-semibold rounded-lg transition-all ${styles.cta}`}
-    >
-      {product.ctaLabel}
-    </Link>
   )
 
   return (
-    <div className={`relative rounded-2xl p-5 md:p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-hover-card ${styles.card}`}>
-      {isBundle && (
-        <span className={`absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${styles.badge}`}>
-          <Sparkles className="h-3 w-3" />
-          {isEN ? 'Most popular' : 'Najpopularniejsze'}
-        </span>
+    <motion.div
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.25, ease: [0.21, 0.47, 0.32, 0.98] }}
+      className={`relative flex flex-col gap-4 rounded-[14px] bg-[hsl(var(--ds-surface))] p-7 transition-shadow duration-200 ${
+        plan.featured
+          ? "border-[1.5px] border-[hsl(var(--ds-accent))] shadow-[0_4px_12px_rgba(14,22,20,0.06),0_12px_32px_rgba(14,22,20,0.05)] hover:shadow-[0_8px_20px_rgba(14,22,20,0.08),0_16px_40px_rgba(14,22,20,0.08)]"
+          : "border border-[hsl(var(--ds-rule))] hover:border-[hsl(var(--ds-ink-3))] hover:shadow-[0_4px_16px_-4px_rgba(14,22,20,0.08)]"
+      }`}
+    >
+      {plan.featured && (
+        <motion.span
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.35, ease: [0.21, 0.47, 0.32, 0.98] }}
+          className="absolute -top-[11px] left-1/2 -translate-x-1/2 font-mono text-[10.5px] font-medium uppercase tracking-[0.08em] bg-[hsl(var(--ds-accent))] text-white px-2.5 py-1 rounded-full whitespace-nowrap shadow-[0_2px_8px_rgba(22,42,82,0.25)]"
+        >
+          {isEN ? "Most popular" : "Najpopularniejsze"}
+        </motion.span>
       )}
 
-      <div className="flex items-center gap-2.5 mb-3">
-        <div className={`inline-flex h-9 w-9 items-center justify-center rounded-lg ${styles.iconWrap}`}>
-          <Icon className="h-4 w-4" />
-        </div>
-        <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-foreground'}`}>
-          {product.name}
-        </h3>
-      </div>
-
-      <div className={`mb-4 rounded-lg p-3 border ${isDark ? 'border-white/10 bg-white/5' : 'border-black/[0.06] bg-slate-50/60'}`}>
-        <div className={`text-xl md:text-2xl font-bold ${isDark ? 'text-white' : 'text-foreground'}`}>
-          {headlinePrice(product)}
-        </div>
-        <div className={`text-[11px] mt-0.5 ${isDark ? 'text-white/70' : 'text-muted-foreground'}`}>
-          {headlineSub(product)}
+      <div>
+        <h3 className="text-[16px] font-semibold text-[hsl(var(--ds-ink))] mb-2">{plan.name}</h3>
+        <div className="flex items-baseline gap-1.5">
+          <span className="font-mono text-[40px] font-semibold tracking-[-0.02em] leading-none text-[hsl(var(--ds-ink))]">
+            {plan.price}
+          </span>
+          <span className="text-[13px] text-[hsl(var(--ds-muted))]">{plan.unit}</span>
         </div>
       </div>
 
-      <ul className="space-y-2 mb-5 flex-1">
-        {topFeatures.map((feature) => (
-          <li key={feature} className="flex items-start gap-1.5 text-[13px] leading-snug">
-            <Check className={`h-3.5 w-3.5 mt-0.5 shrink-0 ${isDark ? 'text-amber-300' : 'text-emerald-600'}`} />
-            <span className={isDark ? 'text-white/90' : 'text-foreground'}>
-              {feature}
-            </span>
-          </li>
-        ))}
-      </ul>
+      <p className="text-[13px] leading-[1.5] text-[hsl(var(--ds-muted))]">
+        {plan.tagline}
+      </p>
+
+      <div className="flex flex-col gap-1 rounded-[10px] bg-[hsl(var(--ds-accent-soft))] px-4 py-3">
+        <span className="font-mono text-[15px] font-semibold text-[hsl(var(--ds-ink))]">
+          {plan.runs}
+        </span>
+        <span className="text-[12px] text-[hsl(var(--ds-muted))]">
+          {plan.perRun}
+        </span>
+      </div>
+
+      <p className="text-[12.5px] leading-[1.5] text-[hsl(var(--ds-ink-3))] flex-1">
+        {isEN
+          ? <>All features included. Add <strong>AI Procurement workflow</strong> (€29 / run) only when you want RFQ outreach.</>
+          : <>Wszystkie funkcje w cenie. Dodaj <strong>AI Procurement workflow</strong> (€29 / run) tylko gdy chcesz outreach RFQ.</>}
+      </p>
 
       {ctaElement}
-    </div>
+    </motion.div>
   )
 }
 
-function CreditPacksSection() {
-  const section = t.pricing.creditPacks
-  const sourcing = PRODUCTS.sourcing.packs
-  const procurement = PRODUCTS.procurement.packs
-  const bundle = PRODUCTS.bundle.packs
-  const labels = section.productLabels
-
-  // 3 tiers correspond to pack index 0/1/2 (10/25/50 credits)
-  const tiers = section.tiers.map((tier, idx) => ({
-    ...tier,
-    sourcing: sourcing[idx],
-    procurement: procurement[idx],
-    bundle: bundle[idx],
-  }))
-
-  return (
-    <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mb-16">
-      <RevealOnScroll>
-        <div className="text-center mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-2">{section.title}</h2>
-          <p className="text-sm text-muted-foreground max-w-2xl mx-auto">{section.subtitle}</p>
-        </div>
-      </RevealOnScroll>
-
-      <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-5" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}>
-        {tiers.map((tier, idx) => {
-          const isFeatured = idx === 1
-          return (
-            <motion.div
-              key={tier.name}
-              variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}
-              className={`relative rounded-2xl p-6 border flex flex-col transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
-                isFeatured
-                  ? 'bg-white border-primary/30 shadow-lg ring-1 ring-primary/20'
-                  : 'bg-white border-black/[0.08] shadow-sm'
-              }`}
-            >
-              {tier.badge && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
-                  {tier.badge}
-                </span>
-              )}
-              <div className="mb-5">
-                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
-                  {tier.name}
-                </div>
-                <div className="text-2xl font-bold">{tier.credits}</div>
-              </div>
-              <div className="space-y-3 mb-2 flex-1">
-                <div className="flex items-baseline justify-between py-2 border-b border-black/[0.06]">
-                  <span className="text-sm text-muted-foreground">{labels.sourcing}</span>
-                  <div className="text-right">
-                    <div className="font-semibold">{formatUSD(tier.sourcing.price)}</div>
-                    <div className="text-[11px] text-muted-foreground">${tier.sourcing.perCredit.toFixed(2)}{copy.perCreditLabel}</div>
-                  </div>
-                </div>
-                <div className="flex items-baseline justify-between py-2 border-b border-black/[0.06]">
-                  <span className="text-sm text-muted-foreground">{labels.procurement}</span>
-                  <div className="text-right">
-                    <div className="font-semibold">{formatUSD(tier.procurement.price)}</div>
-                    <div className="text-[11px] text-muted-foreground">${tier.procurement.perCredit.toFixed(2)}{copy.perCreditLabel}</div>
-                  </div>
-                </div>
-                <div className="flex items-baseline justify-between py-2">
-                  <span className="text-sm font-semibold text-primary">{labels.bundle}</span>
-                  <div className="text-right">
-                    <div className="font-bold text-primary">{formatUSD(tier.bundle.price)}</div>
-                    <div className="text-[11px] text-muted-foreground">${tier.bundle.perCredit.toFixed(2)}{copy.perCreditLabel}</div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )
-        })}
-      </motion.div>
-
-      <p className="text-center text-xs text-muted-foreground mt-5 max-w-xl mx-auto">
-        {section.helper}
-      </p>
-    </section>
-  )
-}
-
+/* ─────────── Page ─────────── */
 
 export function PricingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50/50 bg-mesh-gradient">
+    <div className="min-h-screen bg-[hsl(var(--ds-bg))]">
       <RouteMeta />
       <Navbar />
 
-      <main id="main-content" className="pt-32 pb-24">
-        {/* Hero — compact */}
-        <section className="relative overflow-hidden mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center mb-10">
-          <AnimatedGrid color="hsl(var(--foreground) / 0.02)" spacing={48} className="opacity-40" />
-          <div className="absolute -top-20 -right-40 w-[600px] h-[600px] rounded-full bg-primary/[0.06] blur-[120px] pointer-events-none" />
-          <div className="absolute top-40 -left-32 w-[400px] h-[400px] rounded-full bg-emerald-500/[0.04] blur-[100px] pointer-events-none" />
-          <div className="relative">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">
-              {copy.heroTitle}
+      <main id="main-content" className="pb-20">
+        {/* Hero — compact so plans show above the fold */}
+        <section className="hero-wash border-b border-[hsl(var(--ds-rule))]">
+          <div className="mx-auto max-w-[820px] px-[clamp(20px,4vw,72px)] pt-[clamp(72px,6vw,96px)] pb-[clamp(20px,2.5vw,32px)] text-center">
+            <span className="eyebrow mb-4 inline-flex">
+              <span className="eyebrow-dot" />
+              {isEN ? "Pricing" : "Cennik"}
+            </span>
+            <h1 className="font-display text-[clamp(30px,3.6vw,44px)] font-bold leading-[1.08] tracking-[-0.02em] mb-4 text-balance text-[hsl(var(--ds-ink))]">
+              {isEN ? "Pay for sourcing runs. Add procurement on demand." : "Płać za kampanie sourcingowe. Procurement dodawaj kiedy potrzebujesz."}
             </h1>
             <RevealOnScroll>
-              <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-[15.5px] leading-[1.55] text-[hsl(var(--ds-ink-3))] max-w-[56ch] mx-auto">
                 {isEN
-                  ? 'Start with AI Sourcing — find qualified suppliers. Extend with AI Procurement for full RFQ workflow. Bundle both at 15% off. All features included, pay per campaign.'
-                  : 'Zacznij od AI Sourcing — znajdź dostawców. Rozszerz o AI Procurement dla pełnego workflow RFQ. Bundle za oba z 15% rabatem. Wszystkie funkcje dostępne, płać za kampanię.'}
+                  ? 'All features in every plan — plans differ only in how many sourcing runs you get per month. Add AI Procurement workflow (€29 / run) when you want full RFQ outreach.'
+                  : 'Wszystkie funkcje w każdym planie — plany różnią się tylko liczbą kampanii sourcingowych na miesiąc. Dodaj AI Procurement workflow (€29 / run) gdy chcesz pełny outreach RFQ.'}
               </p>
             </RevealOnScroll>
           </div>
         </section>
 
-        {/* How the modules work */}
-        <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 mb-14">
-          <RevealOnScroll>
-            <div className="rounded-2xl border border-black/[0.06] bg-white p-6 md:p-8">
-              <h2 className="text-xl md:text-2xl font-bold text-center mb-8">
-                {isEN ? 'How the modules work together' : 'Jak moduły współpracują'}
-              </h2>
-
-              <div className="flex flex-col md:flex-row items-stretch gap-4 mb-6">
-                {/* Step 1: AI Sourcing */}
-                <div className="flex-1 rounded-xl bg-emerald-50/60 border border-emerald-200/60 p-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Search className="h-5 w-5 text-emerald-600" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">Base</span>
-                  </div>
-                  <h3 className="font-bold text-lg mb-1">AI Sourcing</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {isEN
-                      ? 'Find qualified suppliers in 26 languages. Get a verified shortlist with contacts and certifications. Works standalone.'
-                      : 'Znajdź zweryfikowanych dostawców w 26 językach. Otrzymaj listę z kontaktami i certyfikatami. Działa samodzielnie.'}
-                  </p>
-                </div>
-
-                {/* Arrow */}
-                <div className="flex items-center justify-center px-2">
-                  <div className="text-xs font-bold text-muted-foreground/50 md:rotate-0 rotate-90">
-                    {isEN ? '+ extend with' : '+ rozszerz o'}
-                  </div>
-                </div>
-
-                {/* Step 2: AI Procurement */}
-                <div className="flex-1 rounded-xl bg-primary/[0.04] border border-primary/10 p-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Workflow className="h-5 w-5 text-primary" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-primary">Extension</span>
-                  </div>
-                  <h3 className="font-bold text-lg mb-1">AI Procurement</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {isEN
-                      ? 'Extend any Sourcing campaign with RFQ outreach, Supplier Portal, offer collection, and AI-powered comparison. Requires AI Sourcing.'
-                      : 'Rozszerz dowolną kampanię Sourcingową o outreach RFQ, Supplier Portal, zbieranie ofert i porównanie AI. Wymaga AI Sourcing.'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Bundle callout */}
-              <div className="rounded-xl bg-gradient-to-r from-emerald-500/5 via-primary/5 to-emerald-500/5 border border-primary/10 p-4 text-center mb-4">
-                <span className="text-sm font-semibold">
-                  <Layers className="h-4 w-4 inline-block mr-1.5 -mt-0.5 text-primary" />
-                  Bundle = {isEN ? 'AI Sourcing + AI Procurement for every campaign. Save 15%.' : 'AI Sourcing + AI Procurement za każdą kampanię. Oszczędź 15%.'}
-                </span>
-              </div>
-
-              {/* Key message */}
-              <div className="rounded-lg bg-amber-50 border border-amber-200/60 px-4 py-3 text-center">
-                <p className="text-sm font-medium text-amber-900">
-                  {isEN
-                    ? 'All features included in every plan. No feature gating — you pay per campaign, not per feature.'
-                    : 'Wszystkie funkcje dostępne w każdym planie. Bez ograniczeń funkcji — płacisz za kampanię, nie za funkcje.'}
-                </p>
-              </div>
-            </div>
-          </RevealOnScroll>
-        </section>
-
-        {/* Product cards — 4 simplified */}
-        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-20">
+        {/* Plans grid */}
+        <section id="plans" className="mx-auto max-w-[1240px] px-[clamp(20px,4vw,72px)] pt-[clamp(36px,4vw,56px)] pb-[clamp(28px,3vw,44px)]">
           <motion.div
-            className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6"
+            className="grid grid-cols-1 md:grid-cols-3 gap-3.5"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
             variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}
           >
-            {ORDERED_PRODUCTS.map((key: Product) => (
-              <motion.div key={key} variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }}>
-                <ProductCard product={PRODUCTS[key]} />
+            {plans.map((plan) => (
+              <motion.div
+                key={plan.name}
+                variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } }}
+                className="h-full"
+              >
+                <PlanCard plan={plan} />
               </motion.div>
             ))}
           </motion.div>
         </section>
 
-        {/* Credit packs */}
-        <CreditPacksSection />
-
-
-        {/* FAQ */}
-        <section className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 mb-16">
+        {/* Shared features — one block for all plans */}
+        <section className="mx-auto max-w-[1240px] px-[clamp(20px,4vw,72px)] pb-[clamp(48px,6vw,80px)]">
           <RevealOnScroll>
-            <div className="text-center mb-10">
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">{copy.faqTitle}</h2>
+            <div className="rounded-[14px] border border-[hsl(var(--ds-rule))] bg-[hsl(var(--ds-surface))] p-[clamp(24px,3.5vw,40px)]">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-6">
+                <div>
+                  <span className="eyebrow mb-2 inline-flex">
+                    <span className="eyebrow-dot" />
+                    {isEN ? 'In every plan' : 'W każdym planie'}
+                  </span>
+                  <h2 className="text-[clamp(20px,2.4vw,28px)] font-bold leading-[1.2] text-[hsl(var(--ds-ink))] max-w-[28ch]">
+                    {isEN ? 'Same features for everyone. You choose volume.' : 'Te same funkcje dla każdego. Wybierasz wolumen.'}
+                  </h2>
+                </div>
+                <p className="text-[14px] leading-[1.55] text-[hsl(var(--ds-ink-3))] max-w-[42ch]">
+                  {isEN
+                    ? 'No feature gating, no "enterprise-only" tier locks. Every plan gets the full Sourcing product. You pay for how many runs you need per month.'
+                    : 'Bez feature gating, bez zamkniętych „enterprise-only" poziomów. Każdy plan ma pełny produkt Sourcing. Płacisz za liczbę runów miesięcznie.'}
+                </p>
+              </div>
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2.5 list-none p-0 m-0">
+                {sharedFeatures.map((feature) => (
+                  <li
+                    key={feature}
+                    className="text-[13.5px] leading-[1.5] text-[hsl(var(--ds-ink-2))] flex items-start gap-2.5"
+                  >
+                    <span
+                      aria-hidden
+                      className="mt-[3px] h-[14px] w-[14px] rounded-full bg-[hsl(var(--ds-accent-soft))] shrink-0"
+                      style={{
+                        backgroundImage:
+                          "radial-gradient(circle, hsl(var(--ds-accent)) 0 28%, transparent 30%)",
+                      }}
+                    />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </RevealOnScroll>
+        </section>
+
+        {/* AI Procurement add-on */}
+        <section className="mx-auto max-w-[1240px] px-[clamp(20px,4vw,72px)] pb-[clamp(48px,6vw,80px)]">
+          <RevealOnScroll>
+            <div className="grid justify-items-center text-center gap-3.5 mb-[clamp(24px,3vw,40px)]">
+              <span className="eyebrow">
+                <span className="eyebrow-dot" />
+                {isEN ? 'Add-on · pay per run' : 'Dodatek · płacisz za run'}
+              </span>
+              <h2 className="text-[clamp(24px,3vw,36px)] font-bold leading-[1.15] max-w-[30ch] text-[hsl(var(--ds-ink))]">
+                {isEN ? 'Extend any run with AI Procurement workflow.' : 'Rozszerz dowolny run o AI Procurement workflow.'}
+              </h2>
+              <p className="text-[16px] leading-[1.55] text-[hsl(var(--ds-ink-3))] max-w-[58ch]">
+                {isEN
+                  ? 'Got a supplier list? Turn it into offers. €29 per workflow — activated only on the runs where you want full RFQ outreach and offer collection.'
+                  : 'Masz listę dostawców? Zamień ją w oferty. €29 za workflow — aktywowany tylko na tych runach, na których chcesz pełny outreach RFQ i zbieranie ofert.'}
+              </p>
+            </div>
+          </RevealOnScroll>
+
+          <div className="grid md:grid-cols-[1fr_1.2fr] gap-0 rounded-[14px] border border-[hsl(var(--ds-rule))] bg-[hsl(var(--ds-surface))] overflow-hidden">
+            <div className="p-[clamp(24px,3.5vw,40px)] md:border-r border-[hsl(var(--ds-rule))] bg-[hsl(var(--ds-accent-soft))]/50 flex flex-col gap-4">
+              <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[hsl(var(--ds-muted))]">
+                {isEN ? 'AI Procurement workflow' : 'AI Procurement workflow'}
+              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="font-mono text-[48px] font-semibold tracking-[-0.02em] leading-none text-[hsl(var(--ds-ink))]">
+                  €29
+                </span>
+                <span className="text-[14px] text-[hsl(var(--ds-muted))]">
+                  {isEN ? '/ run' : '/ run'}
+                </span>
+              </div>
+              <p className="text-[13.5px] leading-[1.55] text-[hsl(var(--ds-ink-3))]">
+                {isEN
+                  ? 'Opt-in per sourcing run. Requires an active Sourcing plan — not sold separately.'
+                  : 'Opt-in per run sourcingowy. Wymaga aktywnego planu Sourcing — nie sprzedawany osobno.'}
+              </p>
+              <Link
+                to={`${pathFor('contact')}?interest=ai_procurement#calendar`}
+                onClick={() => trackCtaClick('pricing_procurement_demo')}
+                className="btn-ds btn-ds-ghost w-full justify-center mt-auto"
+              >
+                {isEN ? 'See how it works' : 'Zobacz jak działa'}
+              </Link>
+            </div>
+            <div className="p-[clamp(24px,3.5vw,40px)]">
+              <h3 className="text-[15px] font-semibold text-[hsl(var(--ds-ink))] mb-4">
+                {isEN ? 'Each workflow includes:' : 'Każdy workflow zawiera:'}
+              </h3>
+              <ul className="grid gap-2.5 list-none p-0 m-0">
+                {procurementFeatures.map((feature) => (
+                  <li
+                    key={feature}
+                    className="text-[13.5px] leading-[1.5] text-[hsl(var(--ds-ink-2))] flex items-start gap-2.5"
+                  >
+                    <span
+                      aria-hidden
+                      className="mt-[3px] h-[14px] w-[14px] rounded-full bg-[hsl(var(--ds-accent-soft))] shrink-0"
+                      style={{
+                        backgroundImage:
+                          "radial-gradient(circle, hsl(var(--ds-accent)) 0 28%, transparent 30%)",
+                      }}
+                    />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* Credit packs — AI Sourcing pay-as-you-go */}
+        <section className="mx-auto max-w-[1240px] px-[clamp(20px,4vw,72px)] pb-[clamp(48px,6vw,80px)]">
+          <RevealOnScroll>
+            <div className="grid justify-items-center text-center gap-3.5 mb-[clamp(24px,3vw,40px)]">
+              <span className="eyebrow">
+                <span className="eyebrow-dot" />
+                {isEN ? 'Pay-as-you-go · AI Sourcing only' : 'Pay-as-you-go · tylko AI Sourcing'}
+              </span>
+              <h2 className="text-[clamp(24px,3vw,36px)] font-bold leading-[1.15] max-w-[30ch] text-[hsl(var(--ds-ink))]">
+                {isEN ? 'Or: buy sourcing runs in packs.' : 'Albo: kupuj runy sourcingowe w pakietach.'}
+              </h2>
+              <p className="text-[16px] leading-[1.55] text-[hsl(var(--ds-ink-3))] max-w-[58ch]">
+                {isEN
+                  ? 'No subscription — buy a pack, runs never expire. One credit = one sourcing run (up to 250 suppliers). Procurement workflow stays €29 / run.'
+                  : 'Bez subskrypcji — kup pakiet, runy nigdy nie wygasają. Jeden kredyt = jeden run sourcingowy (do 250 dostawców). Procurement workflow pozostaje €29 / run.'}
+              </p>
+            </div>
+          </RevealOnScroll>
+
           <motion.div
-            className="rounded-2xl border border-black/[0.08] bg-white divide-y divide-black/[0.05] overflow-hidden"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
             variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.08 } } }}
           >
-            {copy.faq.map((item) => (
-              <motion.div key={item.q} className="px-5" variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}>
-                <AccordionItem question={item.q} answer={item.a} />
+            {creditPacks.map((c) => (
+              <motion.div
+                key={c.label}
+                variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}
+                className={`relative rounded-[12px] bg-[hsl(var(--ds-surface))] p-[18px] ${
+                  c.best
+                    ? 'border border-[hsl(var(--ds-accent))]'
+                    : 'border border-[hsl(var(--ds-rule))]'
+                }`}
+              >
+                {c.save && (
+                  <span className="absolute top-2.5 right-2.5 font-mono text-[10px] font-medium px-2 py-[3px] rounded-full bg-[#e6f2ec] text-[hsl(var(--ds-good))]">
+                    {c.save}
+                  </span>
+                )}
+                <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-[hsl(var(--ds-muted))]">
+                  {c.label}
+                </div>
+                <div className="font-mono text-[22px] font-semibold my-2 text-[hsl(var(--ds-ink))]">
+                  {c.credits}
+                </div>
+                <div className="text-[13px] text-[hsl(var(--ds-muted))]">
+                  {c.price} · {c.perRun}
+                </div>
               </motion.div>
             ))}
           </motion.div>
         </section>
 
-        {/* Final CTA */}
-        <section className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white p-10 md:p-16 text-center hover:shadow-2xl transition-shadow duration-300">
-            <AnimatedGrid color="rgba(255,255,255,0.03)" spacing={32} />
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute top-0 left-1/3 w-[400px] h-[400px] bg-brand-500/[0.06] rounded-full blur-[100px]" />
-              <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] bg-emerald-500/[0.04] rounded-full blur-[80px]" />
+        {/* FAQ */}
+        <section className="mx-auto max-w-[1240px] px-[clamp(20px,4vw,72px)] pb-[clamp(48px,6vw,80px)]">
+          <RevealOnScroll>
+            <div className="grid justify-items-center text-center gap-3.5 mb-[clamp(28px,4vw,48px)]">
+              <span className="eyebrow">
+                <span className="eyebrow-dot" />
+                {isEN ? 'Pricing FAQ' : 'FAQ o cennik'}
+              </span>
+              <h2 className="text-[clamp(24px,3vw,36px)] font-bold leading-[1.15] text-[hsl(var(--ds-ink))]">
+                {isEN ? 'Common questions' : 'Częste pytania'}
+              </h2>
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold mb-3">
-              {isEN ? 'Not sure which product fits?' : 'Nie wiesz który produkt Ci pasuje?'}
-            </h2>
-            <p className="text-white/80 mb-8 max-w-2xl mx-auto">
-              {isEN
-                ? 'Book a 15-minute call. We walk through your procurement volume and recommend Sourcing-only, Bundle, or Enterprise Custom.'
-                : 'Umów 15-minutowe spotkanie. Przejdziemy przez Twój wolumen procurement i polecimy Sourcing-only, Bundle, lub Enterprise Custom.'}
-            </p>
-            <Link
-              to={`${pathFor('contact')}#calendar`}
-              className="inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg bg-amber-400 text-amber-950 hover:bg-amber-300 shadow-lg hover:shadow-amber-400/30 hover:shadow-xl transition-all"
-            >
-              {isEN ? 'Talk to us' : 'Porozmawiaj z nami'}
-            </Link>
+          </RevealOnScroll>
+
+          <div className="max-w-[760px] mx-auto grid gap-2">
+            {faq.map((item, i) => (
+              <details
+                key={item.q}
+                open={i === 0}
+                className="group rounded-[10px] border border-[hsl(var(--ds-rule))] bg-[hsl(var(--ds-surface))] p-[14px_18px] open:border-[hsl(var(--ds-ink-3))] transition-colors"
+              >
+                <summary className="cursor-pointer list-none flex justify-between gap-4 text-[15px] font-semibold text-[hsl(var(--ds-ink))] [&::-webkit-details-marker]:hidden">
+                  <span>{item.q}</span>
+                  <span
+                    aria-hidden
+                    className="font-mono text-[20px] text-[hsl(var(--ds-muted))] transition-transform group-open:rotate-45 leading-none"
+                  >
+                    +
+                  </span>
+                </summary>
+                <p className="mt-2.5 text-[14px] leading-[1.6] text-[hsl(var(--ds-ink-2))]">
+                  {item.a}
+                </p>
+              </details>
+            ))}
+          </div>
+        </section>
+
+        {/* Final CTA */}
+        <section className="mx-auto max-w-[1240px] px-[clamp(20px,4vw,72px)]">
+          <div className="cta-block-ds grid md:grid-cols-[1.2fr_1fr] gap-8 items-center">
+            <div>
+              <h2 className="text-[clamp(24px,2.8vw,34px)] font-bold leading-[1.15] text-white max-w-[18ch]">
+                {isEN ? 'Not sure which plan fits?' : 'Nie wiesz, który plan pasuje?'}
+              </h2>
+              <p className="mt-3 text-white/70">
+                {isEN
+                  ? "Tell us your category volume — we'll pick a plan and show you a projected ROI in 15 minutes."
+                  : 'Powiedz nam o wolumenie Twoich kategorii — wybierzemy plan i pokażemy projekcję ROI w 15 minut.'}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link to={`${pathFor('contact')}#calendar`} className="btn-ds btn-ds-primary">
+                {isEN ? 'Book a demo' : 'Umów demo'}
+                <span className="arrow" aria-hidden>→</span>
+              </Link>
+              <a
+                href={appendUtm(APP_URL, 'pricing_final_signup')}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-ds btn-ds-dark"
+              >
+                {isEN ? 'Start free' : 'Zacznij za darmo'}
+              </a>
+            </div>
           </div>
         </section>
       </main>

@@ -11,20 +11,20 @@ type FooterLink = { label: string; to?: string; external?: string }
 
 function FooterLinks({ links }: { links: readonly FooterLink[] }) {
   return (
-    <ul className="space-y-2.5">
+    <ul className="space-y-1.5">
       {links.map((link) => (
         <li key={link.label}>
           {link.external ? (
             <a
               href={link.external}
-              className="text-sm text-gray-400 hover:text-white transition-colors duration-200"
+              className="block py-1 text-[13.5px] text-[hsl(var(--ds-ink-2))] hover:text-[hsl(var(--ds-accent))] transition-colors duration-150"
             >
               {link.label}
             </a>
           ) : link.to ? (
             <Link
               to={link.to}
-              className="text-sm text-gray-400 hover:text-white transition-colors duration-200"
+              className="block py-1 text-[13.5px] text-[hsl(var(--ds-ink-2))] hover:text-[hsl(var(--ds-accent))] transition-colors duration-150"
             >
               {link.label}
             </Link>
@@ -79,8 +79,8 @@ export function Footer() {
 
   return (
     <>
-      {/* Pre-footer CTA strip — newsletter signup */}
-      <section className="relative bg-gray-900 border-t border-white/[0.04]">
+      {/* Pre-footer CTA strip — newsletter signup (dark ink block) */}
+      <section className="relative bg-[hsl(var(--ds-ink))]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-14">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="text-center sm:text-left">
@@ -89,14 +89,14 @@ export function Footer() {
                   ? "Stay updated on procurement AI"
                   : "Bądź na bieżąco z AI w procurement"}
               </h3>
-              <p className="mt-1 text-sm text-gray-400">
+              <p className="mt-1 text-sm text-white/60">
                 {isEN()
                   ? "Insights, product updates, and industry trends. No spam."
                   : "Trendy, aktualizacje produktu i nowości z branży. Bez spamu."}
               </p>
             </div>
             {nlStatus === 'success' ? (
-              <p className="text-sm font-medium text-emerald-400">
+              <p className="text-sm font-medium text-[hsl(var(--ds-cta))]">
                 {isEN() ? "Subscribed!" : "Zapisano!"}
               </p>
             ) : (
@@ -110,12 +110,12 @@ export function Footer() {
                     value={nlEmail}
                     onChange={(e) => { setNlEmail(e.target.value); if (nlStatus === 'error') setNlStatus('idle') }}
                     placeholder={isEN() ? "Your email address" : "Twój adres email"}
-                    className="w-full sm:w-72 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors duration-200 focus-glow"
+                    className="w-full sm:w-72 rounded-lg border border-white/15 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-[hsl(var(--ds-cta))] focus:ring-1 focus:ring-[hsl(var(--ds-cta))] transition-colors duration-200"
                   />
                   <button
                     type="submit"
                     disabled={nlStatus === 'loading'}
-                    className="shrink-0 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-500 transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="btn-ds btn-ds-primary shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {nlStatus === 'loading'
                       ? (isEN() ? "Sending…" : "Wysyłanie…")
@@ -123,7 +123,7 @@ export function Footer() {
                   </button>
                 </div>
                 {nlStatus === 'error' && nlError && (
-                  <p className="text-xs text-red-400">{nlError}</p>
+                  <p className="text-xs text-[#f59e8b]">{nlError}</p>
                 )}
               </form>
             )}
@@ -131,24 +131,27 @@ export function Footer() {
         </div>
       </section>
 
-      {/* Main footer */}
-      <footer className="relative bg-gray-950 text-gray-300">
-        {/* Gradient top line */}
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
-
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-16 pb-12">
+      {/* Main footer — warm off-white (matches design prototype) */}
+      <footer className="relative bg-[hsl(var(--ds-bg))] border-t border-[hsl(var(--ds-rule))]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-14 pb-9">
           <div className="grid grid-cols-2 md:grid-cols-6 gap-x-8 gap-y-10">
             {/* Brand column */}
             <div className="col-span-2 md:col-span-1">
               <Link to="/" className="inline-flex items-center gap-2.5 mb-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-gray-900">
-                  <span className="text-sm font-bold">P</span>
-                </div>
-                <span className="text-lg font-bold text-white tracking-tight">
+                <span
+                  aria-hidden
+                  className="grid place-items-center h-[26px] w-[26px] rounded-[7px] bg-[hsl(var(--ds-accent))] text-white font-mono text-[13px] font-semibold"
+                >
+                  P
+                </span>
+                <span className="text-[17px] font-bold tracking-[-0.01em] text-[hsl(var(--ds-ink))]">
                   Procurea
                 </span>
+                <span className="ml-0.5 px-1.5 py-[3px] rounded font-mono bg-[hsl(var(--ds-accent-soft))] text-[hsl(var(--ds-accent))] text-[10px] font-medium uppercase tracking-[0.05em]">
+                  Beta
+                </span>
               </Link>
-              <p className="text-sm text-gray-500 leading-relaxed max-w-xs mb-6">
+              <p className="text-[13px] text-[hsl(var(--ds-muted))] leading-relaxed max-w-[26ch] mb-6">
                 {t.footer.brand}
               </p>
               {/* Social links */}
@@ -158,7 +161,7 @@ export function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="LinkedIn"
-                  className="flex h-8 w-8 items-center justify-center rounded-md bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white hover:scale-110 transition-all duration-200"
+                  className="flex h-8 w-8 items-center justify-center rounded-md border border-[hsl(var(--ds-rule))] bg-[hsl(var(--ds-surface))] text-[hsl(var(--ds-muted))] hover:border-[hsl(var(--ds-ink-3))] hover:text-[hsl(var(--ds-accent))] transition-all duration-150"
                 >
                   <svg
                     className="h-4 w-4"
@@ -174,7 +177,7 @@ export function Footer() {
 
             {/* Product */}
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 text-gray-500">
+              <h3 className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-[hsl(var(--ds-muted))] mb-3.5">
                 {t.footer.product}
               </h3>
               <FooterLinks links={t.footer.productLinks} />
@@ -182,7 +185,7 @@ export function Footer() {
 
             {/* Industries */}
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 text-gray-500">
+              <h3 className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-[hsl(var(--ds-muted))] mb-3.5">
                 {t.footer.industries}
               </h3>
               <FooterLinks links={t.footer.industryLinks} />
@@ -190,27 +193,27 @@ export function Footer() {
 
             {/* Resources */}
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 text-gray-500">
+              <h3 className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-[hsl(var(--ds-muted))] mb-3.5">
                 {isEN() ? 'Resources' : 'Materialy'}
               </h3>
-              <ul className="space-y-2.5">
+              <ul className="space-y-1.5">
                 <li>
-                  <Link to={isEN() ? '/resources' : '/materialy'} className="text-sm text-gray-400 hover:text-white transition-colors duration-200">
+                  <Link to={isEN() ? '/resources' : '/materialy'} className="block py-1 text-[13.5px] text-[hsl(var(--ds-ink-2))] hover:text-[hsl(var(--ds-accent))] transition-colors duration-150">
                     {isEN() ? 'All resources' : 'Wszystkie materialy'}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/blog" className="text-sm text-gray-400 hover:text-white transition-colors duration-200">
+                  <Link to="/blog" className="block py-1 text-[13.5px] text-[hsl(var(--ds-ink-2))] hover:text-[hsl(var(--ds-accent))] transition-colors duration-150">
                     Blog
                   </Link>
                 </li>
                 <li>
-                  <Link to={isEN() ? '/resources/library' : '/materialy/library'} className="text-sm text-gray-400 hover:text-white transition-colors duration-200">
+                  <Link to={isEN() ? '/resources/library' : '/materialy/library'} className="block py-1 text-[13.5px] text-[hsl(var(--ds-ink-2))] hover:text-[hsl(var(--ds-accent))] transition-colors duration-150">
                     {isEN() ? 'Guides & Templates' : 'Przewodniki i szablony'}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/case-studies" className="text-sm text-gray-400 hover:text-white transition-colors duration-200">
+                  <Link to="/case-studies" className="block py-1 text-[13.5px] text-[hsl(var(--ds-ink-2))] hover:text-[hsl(var(--ds-accent))] transition-colors duration-150">
                     {isEN() ? 'Case Studies' : 'Case Studies'}
                   </Link>
                 </li>
@@ -219,7 +222,7 @@ export function Footer() {
 
             {/* Integrations & Company */}
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 text-gray-500">
+              <h3 className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-[hsl(var(--ds-muted))] mb-3.5">
                 {t.footer.integrationsCompany}
               </h3>
               <FooterLinks links={t.footer.companyLinks} />
@@ -227,15 +230,15 @@ export function Footer() {
 
             {/* Legal */}
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 text-gray-500">
+              <h3 className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-[hsl(var(--ds-muted))] mb-3.5">
                 {t.footer.legal}
               </h3>
-              <ul className="space-y-2.5">
+              <ul className="space-y-1.5">
                 {t.footer.legalLinks.map((link) => (
                   <li key={link.label}>
                     <Link
                       to={link.to}
-                      className="text-sm text-gray-400 hover:text-white transition-colors duration-200"
+                      className="block py-1 text-[13.5px] text-[hsl(var(--ds-ink-2))] hover:text-[hsl(var(--ds-accent))] transition-colors duration-150"
                     >
                       {link.label}
                     </Link>
@@ -245,7 +248,7 @@ export function Footer() {
                   <button
                     type="button"
                     onClick={() => CookieConsent.showPreferences()}
-                    className="text-sm text-gray-400 hover:text-white transition-colors duration-200"
+                    className="block py-1 text-[13.5px] text-[hsl(var(--ds-ink-2))] hover:text-[hsl(var(--ds-accent))] transition-colors duration-150"
                   >
                     {t.footer.cookieSettings}
                   </button>
@@ -255,10 +258,9 @@ export function Footer() {
           </div>
 
           {/* Bottom bar */}
-          <div className="mt-14 pt-8 border-t border-white/[0.06]">
-            <p className="text-xs text-gray-500 text-center">
-              &copy; {new Date().getFullYear()} {t.footer.copyright}
-            </p>
+          <div className="mt-10 pt-6 border-t border-[hsl(var(--ds-rule))] flex flex-wrap justify-between gap-2 text-xs text-[hsl(var(--ds-muted))]">
+            <p>&copy; {new Date().getFullYear()} {t.footer.copyright}</p>
+            <p>SOC 2 Type II · Data residency in US, CA, UK &amp; AU</p>
           </div>
         </div>
       </footer>

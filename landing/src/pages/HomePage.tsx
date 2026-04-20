@@ -4,6 +4,9 @@ import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { HeroSection } from "@/components/sections/HeroSection"
 import { IndustryTrustBar } from "@/components/sections/IndustryTrustBar"
+import { ProblemSection } from "@/components/sections/ProblemSection"
+import { BeforeAfterSection } from "@/components/sections/BeforeAfterSection"
+import { StatsStripSection } from "@/components/sections/StatsStripSection"
 import { HowItWorksSection } from "@/components/sections/HowItWorksSection"
 import { FeaturesSneakPeek } from "@/components/sections/FeaturesSneakPeek"
 import { ModuleOverview } from "@/components/sections/ModuleOverview"
@@ -34,6 +37,9 @@ export function HomePage() {
       <main id="main-content">
         <div data-track-section="hero"><HeroSection /></div>
         <div data-track-section="industry-trust"><IndustryTrustBar /></div>
+        <div data-track-section="problem"><ProblemSection /></div>
+        <div data-track-section="before-after"><BeforeAfterSection /></div>
+        <div data-track-section="stats-strip"><StatsStripSection /></div>
         <div data-track-section="how-it-works"><HowItWorksSection /></div>
         <div data-track-section="features-preview"><FeaturesSneakPeek /></div>
         <div data-track-section="modules"><ModuleOverview /></div>

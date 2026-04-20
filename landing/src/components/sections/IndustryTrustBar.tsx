@@ -36,7 +36,7 @@ export function IndustryTrustBar() {
   const doubled = [...items, ...items]
 
   return (
-    <section className="relative bg-gradient-to-b from-slate-50/60 via-slate-50/30 to-transparent overflow-hidden">
+    <section className="relative bg-gradient-to-b from-[hsl(var(--ds-bg-2))]/60 via-[hsl(var(--ds-bg))] to-transparent overflow-hidden">
       <div className="py-10 md:py-14">
         <RevealOnScroll>
           <p className="text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/70 mb-7 px-4">
@@ -47,9 +47,9 @@ export function IndustryTrustBar() {
         {/* Marquee container */}
         <div className="relative">
           {/* Left fade gradient */}
-          <div className="absolute left-0 top-0 bottom-0 w-24 md:w-40 z-10 bg-gradient-to-r from-slate-50/95 via-slate-50/60 to-transparent pointer-events-none" />
-          {/* Right fade gradient */}
-          <div className="absolute right-0 top-0 bottom-0 w-24 md:w-40 z-10 bg-gradient-to-l from-slate-50/95 via-slate-50/60 to-transparent pointer-events-none" />
+          <div className="absolute left-0 top-0 bottom-0 w-24 md:w-40 z-10 bg-gradient-to-r from-[hsl(var(--ds-bg))]/95 via-[hsl(var(--ds-bg))]/60 to-transparent pointer-events-none" />
+          {/* Right fade */}
+          <div className="absolute right-0 top-0 bottom-0 w-24 md:w-40 z-10 bg-gradient-to-l from-[hsl(var(--ds-bg))]/95 via-[hsl(var(--ds-bg))]/60 to-transparent pointer-events-none" />
 
           {/* Scrolling track */}
           <div className="flex gap-4 animate-marquee hover:[animation-play-state:paused] w-max" role="list" aria-label={t.homeTrustBar.heading}>
