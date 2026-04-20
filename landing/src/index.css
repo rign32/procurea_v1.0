@@ -24,10 +24,10 @@
     --ds-rule:     57 13% 89%;    /* #e4e4dc */
     --ds-rule-2:   57 10% 82%;    /* #d6d6cc */
 
-    /* --- Accent: Evergreen --- */
-    --ds-accent:      165 67% 18%;  /* #0f4d3f */
-    --ds-accent-2:    163 59% 26%;  /* #1b6b57 */
-    --ds-accent-soft: 154 24% 91%;  /* #e3efea */
+    /* --- Accent: Navy (matches prototype default `data-accent="navy"`) --- */
+    --ds-accent:      225 57% 20%;  /* #162a52 */
+    --ds-accent-2:    222 52% 32%;  /* #27417a */
+    --ds-accent-soft: 223 43% 93%;  /* #e7ecf5 */
 
     /* --- CTA: Procurea yellow --- */
     --ds-cta:        46 88% 61%;    /* #f4c842 */
