@@ -3,6 +3,13 @@ name: Deploy Staging
 on:
   push:
     branches: [staging]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.claude/**'
+      - 'Dokumenty/**'
+      - 'LICENSE'
+      - '.gitignore'
 
 concurrency:
   group: deploy-staging
@@ -81,8 +88,8 @@ jobs:
 
       - name: Frontend lint
         working-directory: frontend
-        run: npm run lint || echo "::warning::Frontend lint has errors — fix before production deploy"
-        continue-on-error: true
+        run: npm run lint
+        continue-on-error: true  # staging only — prod workflow enforces lint blocking
 
       - name: Build frontend PL (staging)
         working-directory: frontend
