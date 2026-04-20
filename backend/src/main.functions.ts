@@ -80,6 +80,10 @@ const createNestServer = async () => {
                 'https://staging.procurea.io',
             ],
             methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+            // Authorization is needed because EN frontend (app.procurea.io) sends
+            // bearer tokens in addition to httpOnly cookies; without this Safari
+            // rejects every preflight with "access control checks" error.
+            allowedHeaders: 'Content-Type,Authorization,X-Requested-With,Accept',
             credentials: true,
         });
 
