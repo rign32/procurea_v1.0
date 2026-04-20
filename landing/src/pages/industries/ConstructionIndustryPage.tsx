@@ -41,21 +41,21 @@ const t = {
       ? "Procurement for construction — subcontractors and materials in one workflow"
       : "Procurement dla budownictwa — podwykonawcy i materiały w jednym workflow",
     subtitle: isEN
-      ? "Run tender-ready RFQs for HVAC, electrical, steel, concrete and insulation. Qualify subcontractors against local references, compare BOQ line-by-line, close the award in 14 days instead of 8 weeks."
-      : "Przygotuj tender-ready RFQ dla HVAC, elektryki, stali, betonu i izolacji. Kwalifikuj podwykonawców po lokalnych referencjach, porównuj BOQ linia po linii, zamykaj award w 14 dni zamiast 8 tygodni.",
+      ? "Run RFQs for HVAC, electrical, steel, concrete and insulation. Find more bidders per category across 26 languages, collect structured offers via the Supplier Portal, and shortlist without the email-and-PDF midnight ritual."
+      : "Odpalaj RFQ dla HVAC, elektryki, stali, betonu i izolacji. Znajdź więcej bidderów per kategoria w 26 językach, zbieraj strukturalne oferty przez Supplier Portal i twórz shortlistę bez nocnego rytuału mail-i-PDF.",
     primaryCta: isEN ? "Start a tender RFQ" : "Rozpocznij RFQ pod tender",
     secondaryCta: isEN ? "Book a demo" : "Umów demo",
   },
   stats: [
     {
-      value: "€2.4M",
-      label: isEN ? "annual savings on materials" : "rocznych oszczędności na materiałach",
-      detail: isEN ? "12 active projects, GC in Poland" : "12 aktywnych projektów, GW w Polsce",
+      value: "Wider pool",
+      label: isEN ? "of qualified bidders" : "zakwalifikowanych bidderów",
+      detail: isEN ? "AI sourcing reaches beyond your incumbent list" : "AI sourcing sięga poza listę incumbentów",
     },
     {
       value: "48h",
       label: isEN ? "to a qualified subcontractor shortlist" : "do zakwalifikowanej listy podwykonawców",
-      detail: isEN ? "vs. 3 weeks manual outreach" : "vs. 3 tygodnie ręcznego outreach",
+      detail: isEN ? "vs. weeks of manual outreach" : "vs. tygodnie ręcznego outreach",
     },
     {
       value: "30–50",
@@ -63,9 +63,9 @@ const t = {
       detail: isEN ? "covers EU + nearshore markets" : "pokrywa UE + nearshore",
     },
     {
-      value: "5%",
-      label: isEN ? "price cut vs. incumbent quotes" : "obniżka ceny vs. dotychczasowe oferty",
-      detail: isEN ? "steel, concrete, insulation" : "stal, beton, izolacja",
+      value: "Structured",
+      label: isEN ? "offer collection" : "zbieranie ofert",
+      detail: isEN ? "Supplier Portal — no Excel stitching" : "Supplier Portal — bez sklejania Excela",
     },
   ],
   split: {
@@ -106,10 +106,10 @@ const t = {
     steps: [
       {
         day: isEN ? "Day 1" : "Dzień 1",
-        title: isEN ? "Brief + BOQ upload" : "Brief + upload BOQ",
+        title: isEN ? "Brief + BOQ attached" : "Brief + BOQ załączony",
         body: isEN
-          ? "Drop in your BOQ (Excel or PDF), tender scope, local requirements. AI extracts line items and certification flags."
-          : "Wrzuć BOQ (Excel lub PDF), zakres tendera, wymagania lokalne. AI ekstrahuje linie i flagi certyfikacyjne.",
+          ? "Describe the tender scope in plain language and pick top categories (steel, HVAC, insulation). Attach your BOQ (Excel or PDF) — bidders receive it alongside the RFQ. Procurea runs one campaign per category."
+          : "Opisz zakres tendera językiem naturalnym i wybierz top kategorie (stal, HVAC, izolacja). Załącz BOQ (Excel lub PDF) — bidderzy dostają go razem z RFQ. Procurea prowadzi jedną kampanię per kategoria.",
         icon: FileSpreadsheet,
         color: "sky",
       },
@@ -135,8 +135,8 @@ const t = {
         day: isEN ? "Days 5–11" : "Dni 5–11",
         title: isEN ? "Structured offers collected" : "Strukturalne oferty zbierane",
         body: isEN
-          ? "Bidders submit per-BOQ-line pricing, lead time, MOQ, payment terms. Auto follow-up nudges non-responders."
-          : "Bidderzy składają ceny per linia BOQ, lead time, MOQ, warunki płatności. Auto follow-up do nierespondentów.",
+          ? "Bidders submit structured pricing (per unit, per tier), lead time, MOQ, payment terms plus BOQ attachments. Auto follow-up nudges non-responders."
+          : "Bidderzy składają strukturalne ceny (per jednostka, per próg), lead time, MOQ, warunki płatności plus załączniki BOQ. Auto follow-up do nierespondentów.",
         icon: FileCheck2,
         color: "amber",
       },
@@ -144,18 +144,18 @@ const t = {
         day: isEN ? "Days 12–14" : "Dni 12–14",
         title: isEN ? "Side-by-side award" : "Award side-by-side",
         body: isEN
-          ? "Weighted ranking by total price, compliance, lead time, references. Export PDF for the tender committee."
-          : "Ranking ważony po cenie totalnej, compliance, lead time, referencjach. Eksport PDF dla komisji tenderowej.",
+          ? "Compare offers in one grid — price, lead time, MOQ, submitted attachments. Export PDF for the tender committee. Weighted-ranking scoring (price / compliance / lead time / references) is on our 2026 roadmap."
+          : "Porównaj oferty w jednym gridzie — cena, lead time, MOQ, złożone załączniki. Eksport PDF dla komisji tenderowej. Scoring ważony (cena / compliance / lead time / referencje) jest na roadmapie 2026.",
         icon: Scale,
         color: "violet",
       },
     ],
   },
   boq: {
-    title: isEN ? "BOQ offer comparison — line by line, not pile by pile" : "Porównanie ofert po BOQ — linia po linii, nie stos na stos",
+    title: isEN ? "What BOQ offer comparison looks like — one grid, not a pile of PDFs" : "Jak wygląda porównanie ofert pod BOQ — jeden grid, nie stos PDF-ów",
     subtitle: isEN
-      ? "No more pasting five PDFs into Excel at midnight. Bidders fill structured tables; you see per-line deltas instantly."
-      : "Koniec z klejeniem pięciu PDF-ów do Excela o północy. Bidderzy wypełniają ustrukturyzowane tabele; widzisz delty per linia natychmiast.",
+      ? "An illustrative comparison grid for a 5-line tender. Today Procurea runs one campaign per category — the grid below is the target experience once the multi-line comparison (2026 roadmap) ships. Structured per-category comparison already works today."
+      : "Ilustracyjny grid porównania dla 5-linijkowego tendera. Dziś Procurea prowadzi jedną kampanię per kategoria — grid poniżej to docelowy UX po dowiezieniu multi-line comparison (roadmapa 2026). Ustrukturyzowane porównanie per kategoria działa już dziś.",
     header: isEN
       ? ["BOQ line", "Spec", "Qty", "Bidder A", "Bidder B", "Bidder C", "Bidder D"]
       : ["Linia BOQ", "Specyfikacja", "Ilość", "Bidder A", "Bidder B", "Bidder C", "Bidder D"],
@@ -262,34 +262,30 @@ const t = {
         ],
   },
   verification: {
-    title: isEN ? "What AI verifies automatically before your RFQ goes out" : "Co AI weryfikuje automatycznie zanim RFQ wychodzi",
+    title: isEN ? "What Procurea surfaces at screening — and what still needs your engineering review" : "Co Procurea wyciąga przy screeningu — a co nadal wymaga przeglądu engineeringu",
     subtitle: isEN
-      ? "Non-compliant bidders never reach your comparison grid. Your committee reviews only audit-ready companies."
-      : "Niezgodni bidderzy nigdy nie trafiają do Twojego grid porównania. Komisja przegląda tylko firmy audit-ready.",
+      ? "AI sourcing extracts signals from supplier websites and public registries. You still verify specifics before award — but you start with a pre-filtered shortlist instead of a cold list of 200."
+      : "AI sourcing wyciąga sygnały ze stron dostawców i publicznych rejestrów. Specyfikę przed awardem i tak weryfikujesz — ale startujesz z pre-filtrowanej shortlisty zamiast zimnej listy 200.",
     items: isEN
       ? [
-          "Registered legal entity (VIES, KRS, HR, Registro Mercantil, etc.)",
-          "ISO 9001 / ISO 45001 certifications in date",
-          "Liability insurance coverage and validity",
-          "Recent references within the region or category",
-          "Financial health indicators (where public)",
-          "Blacklist check against debarred contractor registries",
-          "Website, domain age, and active online presence",
-          "Team size and stated capacity vs. project scope",
+          "Registered legal entity + EU VAT (VIES validation)",
+          "ISO 9001 / ISO 45001 and other certifications mentioned on the site",
+          "Website, specialization and declared scope",
+          "Country, city and stated regional coverage",
+          "Visible team size and capacity indicators (where published)",
+          "Contact emails and LinkedIn / decision-maker enrichment (via Apollo)",
           "Language coverage for on-site communication",
-          "Safety record (where disclosed)",
+          "Campaign response history (internal tracking on repeat engagements)",
         ]
       : [
-          "Aktywna osobowość prawna (VIES, KRS, HR, Registro Mercantil, itd.)",
-          "Aktualne certyfikaty ISO 9001 / ISO 45001",
-          "Ubezpieczenie OC — zakres i aktualność",
-          "Świeże referencje w regionie lub kategorii",
-          "Wskaźniki zdrowia finansowego (jeśli publiczne)",
-          "Sprawdzenie w rejestrach wykluczonych wykonawców",
-          "Strona WWW, wiek domeny, aktywna obecność online",
-          "Wielkość zespołu vs. zakres projektu",
+          "Aktywna osobowość prawna + EU VAT (walidacja VIES)",
+          "ISO 9001 / ISO 45001 i inne certyfikaty wymienione na stronie",
+          "Strona WWW, specjalizacja i deklarowany zakres",
+          "Kraj, miasto i deklarowany zasięg regionalny",
+          "Widoczna wielkość zespołu i wskaźniki mocy (gdy opublikowane)",
+          "Kontakty email i enrichment LinkedIn / decision-makerów (przez Apollo)",
           "Pokrycie językowe do komunikacji on-site",
-          "Historia BHP (jeśli ujawniona)",
+          "Historia odpowiedzi w kampaniach (wewnętrzny tracking przy powtórnym angażowaniu)",
         ],
   },
   tenderFlow: {
@@ -298,18 +294,18 @@ const t = {
       title: isEN ? "Public tender flow" : "Tender publiczny",
       items: isEN
         ? [
-            "SIWZ/PZP compliance",
-            "JEDZ / ESPD generation",
-            "Formal bid package templating",
-            "7–21 day response windows",
-            "Audit trail for appeals",
+            "Attach SIWZ/PZP documents and ESPD templates to the RFQ",
+            "Configurable response windows (7–21 days)",
+            "Structured offer submission via the Supplier Portal",
+            "Timestamped audit trail of sent/received artifacts",
+            "Export PDF of the comparison grid for the tender file",
           ]
         : [
-            "Zgodność z SIWZ/PZP",
-            "Generowanie JEDZ / ESPD",
-            "Templaty formalnego pakietu ofertowego",
-            "Okna odpowiedzi 7–21 dni",
-            "Audit trail pod odwołania",
+            "Załączaj dokumenty SIWZ/PZP i szablony ESPD do RFQ",
+            "Konfigurowalne okna odpowiedzi (7–21 dni)",
+            "Strukturalne składanie ofert przez Supplier Portal",
+            "Otagowany audit trail wysłanych/odebranych artefaktów",
+            "Eksport PDF gridu porównania do teczki tenderowej",
           ],
     },
     private: {
@@ -352,15 +348,15 @@ const t = {
       ? [
           {
             q: "Does Procurea support Polish public tender (PZP) requirements?",
-            a: "Yes. We generate ESPD/JEDZ, track SIWZ compliance, and produce a full audit trail including timestamps on bid receipts — which is what you need if a vendor appeals the award.",
+            a: "Procurea is an RFQ orchestration platform — it does not generate ESPD/JEDZ documents or validate PZP/SIWZ formal compliance for you (your legal team does that). What it does: lets you attach SIWZ/PZP documents and ESPD templates to the RFQ, keeps a timestamped audit trail of what was sent and received, and produces a PDF comparison grid you can file. For public tenders, Procurea sits alongside your formal tender software, not instead of it.",
           },
           {
             q: "How do you handle BOQ uploads — Excel, PDF, drawings?",
-            a: "You drop in Excel or PDF. AI extracts line items into a structured schema; bidders then fill in prices per line through the Supplier Portal. Drawings are attached as references without blocking the pricing flow.",
+            a: "You attach Excel, PDF and drawings to the RFQ — bidders receive them alongside the brief. Today bidders quote per-campaign (one category = one campaign) and submit structured pricing via the Supplier Portal. Per-BOQ-line structured quoting is on our 2026 roadmap.",
           },
           {
             q: "What about liability and insurance verification?",
-            a: "During qualification AI flags whether the bidder has declared liability insurance and checks public registries where available. For formal audit, bidders upload certificates through the portal before submitting the bid.",
+            a: "AI sourcing picks up publicly declared certifications and insurance mentions from the supplier website — but this is a screening signal, not formal verification. For the tender file, bidders upload certificate and insurance PDFs via the Supplier Portal before the bid closes; documents are stored with versions and (if provided) expiry dates.",
           },
           {
             q: "Can we reuse a tender list across projects?",
@@ -374,15 +370,15 @@ const t = {
       : [
           {
             q: "Czy Procurea wspiera wymagania polskiego tendera publicznego (PZP)?",
-            a: "Tak. Generujemy ESPD/JEDZ, trackujemy zgodność SIWZ i produkujemy pełny audit trail z timestampami odbioru ofert — to, czego potrzebujesz jeśli wendor złoży odwołanie.",
+            a: "Procurea to platforma orkiestracji RFQ — nie generuje dokumentów ESPD/JEDZ ani nie waliduje formalnej zgodności PZP/SIWZ (to robi Twój zespół prawny). Co robi: pozwala załączyć dokumenty SIWZ/PZP i szablony ESPD do RFQ, trzyma otagowany audit trail wysłanych i odebranych artefaktów oraz produkuje PDF gridu porównania do teczki. Przy tenderach publicznych Procurea stoi obok Twojego formalnego softu tenderowego, nie zamiast niego.",
           },
           {
             q: "Jak obsługujecie upload BOQ — Excel, PDF, rysunki?",
-            a: "Wrzucasz Excela lub PDF. AI ekstrahuje linie do ustrukturyzowanego schematu; bidderzy wypełniają ceny per linia przez Supplier Portal. Rysunki dołączone jako referencje nie blokują flow cenowego.",
+            a: "Załączasz Excela, PDF i rysunki do RFQ — bidderzy dostają je razem z briefem. Dziś bidderzy kwotują per-kampania (jedna kategoria = jedna kampania) i składają strukturalne ceny przez Supplier Portal. Strukturalne kwotowanie per linia BOQ jest na roadmapie 2026.",
           },
           {
             q: "A weryfikacja OC i ubezpieczeń?",
-            a: "Podczas kwalifikacji AI flaguje czy bidder zadeklarował OC i sprawdza publiczne rejestry gdzie są dostępne. Pod formalny audyt bidderzy uploadują certyfikaty przez portal przed złożeniem oferty.",
+            a: "AI sourcing wyciąga publicznie deklarowane certyfikaty i wzmianki o ubezpieczeniach ze strony dostawcy — ale to jest sygnał screeningowy, nie formalna weryfikacja. Do teczki tenderowej bidderzy uploadują PDF-y certyfikatów i OC przez Supplier Portal przed zamknięciem; dokumenty trzymane są z wersjami i (jeśli podano) datami ważności.",
           },
           {
             q: "Czy możemy ponownie użyć listy tenderowej między projektami?",

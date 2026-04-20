@@ -35,25 +35,25 @@ const isEN = LANG === "en"
 const t = {
   hero: {
     badge: isEN ? "HoReCa" : "HoReCa",
-    title: isEN ? "Procurement that actually understands seasonality, certs and volatility" : "Procurement, który rozumie sezonowość, certyfikaty i zmienność cen",
+    title: isEN ? "F&B sourcing that widens your local supplier pool — across languages and regions" : "Sourcing F&B, który rozszerza Twoją lokalną bazę dostawców — przez języki i regiony",
     subtitle: isEN
-      ? "Dairy, produce, proteins, beverages, kitchen equipment — sourced against HACCP / IFS / BRC. Season-ahead planning, spot-buy alerts, competitive RFQs across a wide local supplier pool."
-      : "Nabiał, warzywa, białka, napoje, sprzęt kuchenny — sourcowane pod HACCP / IFS / BRC. Planowanie z wyprzedzeniem sezonu, alerty spot-buy, konkurencyjne RFQ w szerokiej lokalnej puli dostawców.",
+      ? "Dairy, produce, proteins, beverages, kitchen equipment — find more local vendors, screen for HACCP / IFS / BRC signals, run competitive RFQs without chasing the same incumbents every renewal."
+      : "Nabiał, warzywa, białka, napoje, sprzęt kuchenny — znajdź więcej lokalnych dostawców, screenuj pod sygnały HACCP / IFS / BRC, prowadź konkurencyjne RFQ bez ganiania tych samych incumbentów przy każdym odnowieniu.",
     primary: isEN ? "Start a supplier campaign" : "Rozpocznij kampanię dostawców",
     secondary: isEN ? "Book a demo" : "Umów demo",
   },
   stats: [
     { value: "3×", label: isEN ? "more qualified vendors per tender" : "więcej zakwalifikowanych vendorów per tender", detail: isEN ? "vs. incumbent-only RFQs" : "vs. RFQ tylko do incumbent" },
-    { value: "8%", label: isEN ? "better annual pricing" : "lepsze ceny roczne", detail: isEN ? "on consolidated categories" : "na skonsolidowanych kategoriach" },
-    { value: "HACCP", label: isEN ? "pre-verified on all bidders" : "pre-weryfikowany u wszystkich bidderów", detail: isEN ? "+ IFS, BRC, organic" : "+ IFS, BRC, ekologiczny" },
+    { value: "Illustrative", label: isEN ? "8% better pricing scenario" : "scenariusz 8% lepszej ceny", detail: isEN ? "depends on category + region" : "zależy od kategorii + regionu" },
+    { value: "HACCP", label: isEN ? "flagged at screening" : "flagowane przy screeningu", detail: isEN ? "+ IFS, BRC, organic signals" : "+ sygnały IFS, BRC, ekologiczne" },
     { value: "26", label: isEN ? "languages for regional sourcing" : "języków do regionalnego sourcingu", detail: isEN ? "Andalusian olive oil, Turkish spices…" : "Oliwa z Andaluzji, tureckie przyprawy…" },
   ],
   // Seasonal calendar
   seasonal: {
-    title: isEN ? "A sourcing calendar that matches how kitchens actually work" : "Kalendarz sourcingu pasujący do tego jak pracują kuchnie",
+    title: isEN ? "How seasons shape F&B sourcing — a working reference" : "Jak sezony kształtują sourcing F&B — praktyczny punkt odniesienia",
     subtitle: isEN
-      ? "Procurea suggests categories to re-tender based on season and commodity cycles. You negotiate when supply is ample, not when the stockout panic starts."
-      : "Procurea sugeruje kategorie do re-tendera na bazie sezonu i cykli commodity. Negocjujesz gdy podaż jest szeroka, nie gdy zaczyna się panika stockout.",
+      ? "A seasonal reference F&B teams use to plan tender cycles. Procurea runs the campaigns on whatever cadence you choose — the calendar itself is guidance, not an automated scheduler. (Scheduled re-tender reminders are on our 2026 roadmap.)"
+      : "Referencja sezonowa, której zespoły F&B używają do planowania cykli tenderowych. Procurea prowadzi kampanie w rytmie, który wybierzesz — kalendarz to wytyczna, nie automatyczny harmonogram. (Przypomnienia o re-tenderze są na roadmapie 2026.)",
     quarters: isEN
       ? [
           {
@@ -94,10 +94,10 @@ const t = {
   },
   // Commodity volatility
   volatility: {
-    title: isEN ? "Commodity volatility you need a wider supplier base for" : "Zmienność surowców, pod którą potrzebujesz szerszej bazy",
+    title: isEN ? "Commodity volatility — why a wider supplier base matters" : "Zmienność surowców — dlaczego szersza baza ma znaczenie",
     subtitle: isEN
-      ? "Weekly price swings of 8–15% are normal for dairy, oils and proteins. A 3-vendor network means you ride every swing. A 20-vendor network means you pick the best quote each week."
-      : "Tygodniowe skoki cen 8–15% to norma dla nabiału, olejów i białek. Sieć 3 vendorów = jedziesz na każdym skoku. Sieć 20 vendorów = wybierasz najlepszą ofertę co tydzień.",
+      ? "Weekly price swings of 8–15% are normal for dairy, oils and proteins. A 3-vendor network means you ride every swing; a 20-vendor network lets you pick better quotes. Procurea doesn't track live commodity indices itself — the sample below is an illustrative context. You get the real prices by running an RFQ against a broader supplier pool."
+      : "Tygodniowe skoki cen 8–15% to norma dla nabiału, olejów i białek. Sieć 3 vendorów = jedziesz na każdym skoku; sieć 20 vendorów pozwala wybierać lepsze oferty. Procurea sama nie trackuje żywych indeksów commodity — sample poniżej to ilustracyjny kontekst. Realne ceny dostajesz odpalając RFQ do szerszej puli dostawców.",
     commodities: isEN
       ? [
           { name: "Whole milk", icon: Wine, curr: "€0.46/L", delta: "+8.3%", trend: "up", band: [30, 90] },
@@ -119,10 +119,10 @@ const t = {
   },
   // Cert tracker
   certs: {
-    title: isEN ? "Food safety certifications — pre-screened before RFQ" : "Certyfikaty bezpieczeństwa żywności — screenowane przed RFQ",
+    title: isEN ? "Food safety certifications — the signals we pick up" : "Certyfikaty bezpieczeństwa żywności — sygnały, które wyciągamy",
     subtitle: isEN
-      ? "Every food supplier is checked for HACCP, IFS, BRC, organic and ISO 22000 at qualification. Expiring certs are flagged 90 days out."
-      : "Każdy dostawca żywności jest sprawdzany pod HACCP, IFS, BRC, eko i ISO 22000 przy kwalifikacji. Wygasające certy flagowane 90 dni wcześniej.",
+      ? "AI screening picks up HACCP, IFS, BRC, organic and ISO 22000 mentions from supplier websites. Actual certificate files are uploaded by bidders via the Supplier Portal and stored with upload date and (if provided) expiry. Automatic 90-day expiry alerts are coming in our 2026 roadmap."
+      : "Screening AI wyciąga wzmianki HACCP, IFS, BRC, eko i ISO 22000 ze stron dostawców. Właściwe pliki certyfikatów bidderzy uploadują przez Supplier Portal i są trzymane z datą uploadu oraz (jeśli podano) ważnością. Automatyczne alerty 90-dniowe na wygaśnięcie nadchodzą w roadmapie 2026.",
     items: isEN
       ? [
           { code: "HACCP", scope: "Hazard analysis, critical control points", mandatory: true },
@@ -533,7 +533,21 @@ export function HorecaIndustryPage() {
         <section className="py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <RevealOnScroll>
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-12 max-w-3xl">{t.pains.title}</h2>
+              <div className="relative rounded-2xl overflow-hidden mb-12 bg-slate-100 shadow-xl">
+                <div className="relative aspect-[16/10] md:aspect-[21/9] lg:aspect-[24/8]">
+                  <img
+                    src="/industries/horeca.jpg"
+                    alt={isEN ? "Restaurant F&B buyer overwhelmed by paper invoices and fragmented suppliers" : "F&B buyer restauracji zalewany papierowymi fakturami od rozproszonych dostawców"}
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/55 to-slate-950/15" />
+                  <div className="absolute inset-0 flex items-end p-6 sm:p-10 md:p-14">
+                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white max-w-3xl leading-[1.1]">{t.pains.title}</h2>
+                  </div>
+                </div>
+              </div>
             </RevealOnScroll>
             <div className="grid md:grid-cols-3 gap-5">
               {t.pains.items.map((p, i) => (

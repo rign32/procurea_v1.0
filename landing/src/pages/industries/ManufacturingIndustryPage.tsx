@@ -83,10 +83,10 @@ const t = {
         ],
   },
   certMatrix: {
-    title: isEN ? "Certifications matrix — verified at screening, not after kick-off" : "Matryca certyfikatów — weryfikowana na screeningu, nie po kick-offie",
+    title: isEN ? "Certifications Procurea looks for at screening" : "Certyfikaty, których Procurea szuka przy screeningu",
     subtitle: isEN
-      ? "Non-compliant vendors never reach your shortlist. Expiring certificates are flagged before you send the RFQ."
-      : "Niezgodni vendorzy nigdy nie trafiają na shortlistę. Wygasające certyfikaty flagowane przed wysłaniem RFQ.",
+      ? "AI sourcing extracts certification signals from supplier websites — declared logos, standard codes, self-published statements. Matching vendors float to the top of the shortlist; final certificate files are uploaded by bidders via the Supplier Portal and stored with version history."
+      : "AI sourcing wyciąga sygnały certyfikatów ze stron dostawców — deklarowane logo, kody standardów, samopublikowane oświadczenia. Pasujące firmy trafiają na górę shortlisty; finalne pliki certyfikatów bidderzy uploadują przez Supplier Portal i są trzymane z historią wersji.",
     certs: isEN
       ? [
           { code: "ISO 9001", scope: "Quality management", industries: ["All"] },
@@ -118,26 +118,27 @@ const t = {
         ],
   },
   bomFlow: {
-    title: isEN ? "From BOM line to qualified shortlist — one workflow" : "Od linii BOM do zakwalifikowanej shortlisty — jeden workflow",
+    title: isEN ? "From one BOM component to a qualified shortlist" : "Od jednego komponentu BOM do zakwalifikowanej shortlisty",
     example: {
       component: isEN ? "Plastic injection — housing, PA66 GF30" : "Wtrysk tworzyw — obudowa, PA66 GF30",
       spec: isEN ? "IATF 16949, RoHS, 50K units/year, EU origin" : "IATF 16949, RoHS, 50 tys. szt./rok, pochodzenie UE",
     },
     steps: isEN
       ? [
-          { label: "Parse BOM line", result: "Component, material, volume, certs", count: "" },
+          { label: "Describe the component", result: "Plain-language brief: material, volume, certs, region", count: "" },
           { label: "AI discovery run", result: "Injection molders in 8 EU countries", count: "312" },
-          { label: "Certification filter", result: "Must hold IATF 16949 + RoHS", count: "84" },
-          { label: "Capacity match", result: "Can absorb 50K/yr", count: "41" },
-          { label: "Scoring + ranking", result: "Price, lead, references, score", count: "Top 20" },
+          { label: "Screening shortlists IATF + RoHS signals", result: "Must mention IATF 16949 + RoHS on site", count: "84" },
+          { label: "Capacity and locality match", result: "Declared volume / region fits brief", count: "41" },
+          { label: "AI scoring + ranking", result: "Price (if listed), references, response signals", count: "Top 20" },
         ]
       : [
-          { label: "Parsowanie linii BOM", result: "Komponent, materiał, wolumen, certy", count: "" },
+          { label: "Opisz komponent", result: "Brief w języku naturalnym: materiał, wolumen, certy, region", count: "" },
           { label: "Discovery AI", result: "Wtryskarnie w 8 krajach UE", count: "312" },
-          { label: "Filtr certyfikatów", result: "Wymagane IATF 16949 + RoHS", count: "84" },
-          { label: "Dopasowanie mocy", result: "Mogą wchłonąć 50 tys./rok", count: "41" },
-          { label: "Scoring + ranking", result: "Cena, lead, referencje, score", count: "Top 20" },
+          { label: "Screening wyciąga sygnały IATF + RoHS", result: "Wzmianki IATF 16949 + RoHS na stronie", count: "84" },
+          { label: "Dopasowanie mocy i lokalizacji", result: "Deklarowany wolumen / region pasuje do briefu", count: "41" },
+          { label: "AI scoring + ranking", result: "Cena (jeśli podana), referencje, sygnały odpowiedzi", count: "Top 20" },
         ],
+    footnote: isEN ? "One component = one campaign today. Multi-component BOM in a single campaign is on our 2026 roadmap — for now, teams run parallel campaigns per component (up to 10 concurrently)." : "Jeden komponent = jedna kampania dziś. Multi-komponent BOM w jednej kampanii jest na roadmapie 2026 — na razie zespoły odpalają równoległe kampanie per komponent (do 10 naraz).",
   },
   categories: {
     title: isEN ? "Where manufacturers win most with Procurea" : "Gdzie producenci wygrywają najbardziej z Procurea",
@@ -195,15 +196,15 @@ const t = {
     title: isEN ? "Questions from manufacturing procurement" : "Pytania od procurement produkcyjnego",
     items: isEN
       ? [
-          { q: "Can I import my current BOM and run campaigns against it?", a: "Yes. Upload a BOM in Excel or CSV — each component line becomes a campaign scope: material, volume, certifications, region constraint. One project runs many campaigns in parallel." },
-          { q: "Do you handle IATF 16949 / ISO 13485 verification?", a: "During AI screening we verify certificate numbers against issuing-body public databases where available, and flag expired, missing or unverifiable ones. Final audit documents are uploaded through the Supplier Portal." },
+          { q: "Can I import my current BOM and run campaigns against it?", a: "You can attach the BOM file to your campaign for context. Today you launch one campaign per component (up to 10 in parallel in a single project), describing material, volume, certifications and region in plain language. Importing an Excel/CSV BOM so each line auto-spawns a campaign is on our 2026 roadmap." },
+          { q: "Do you handle IATF 16949 / ISO 13485 verification?", a: "AI screening extracts certification signals from supplier websites — declared logos, standard codes, self-published references. This is a first-pass shortlist filter, not a formal verification against IATF or notified-body databases. Bidders upload actual certificate PDFs via the Supplier Portal, where Procurea stores them with version history and (if provided) expiry dates. Your quality team signs off on final audit documents." },
           { q: "What about tier-2 and sub-tier visibility?", a: "Procurea maps what suppliers publicly disclose — their own certifications, production footprint, major references. Deep tier-n mapping still requires a dedicated engagement; Procurea accelerates the tier-1 and tier-2 screening work." },
           { q: "Can I share shortlists with my plant managers?", a: "Yes. Every qualified supplier lands in your Supplier Database with scores and campaign history. You can share read-only views with plant, quality or finance teams without extra seats." },
           { q: "Does it work for MRO / indirect procurement?", a: "Yes. Bearings, seals, lubricants, consumables — all run through the same RFQ workflow with category-specific scoring." },
         ]
       : [
-          { q: "Czy mogę zaimportować moją aktualną BOM i prowadzić kampanie?", a: "Tak. Wgraj BOM w Excelu lub CSV — każda linia komponentu staje się scope kampanii: materiał, wolumen, certyfikaty, region. Jeden projekt = wiele kampanii równolegle." },
-          { q: "Czy weryfikujecie IATF 16949 / ISO 13485?", a: "Podczas screeningu AI weryfikujemy numery certyfikatów w publicznych bazach jednostek certyfikujących gdzie są dostępne i flagujemy wygasłe, brakujące lub nieweryfikowalne. Dokumenty audytowe uploadują się przez Supplier Portal." },
+          { q: "Czy mogę zaimportować moją aktualną BOM i prowadzić kampanie?", a: "Możesz załączyć plik BOM do kampanii jako kontekst. Dziś uruchamiasz jedną kampanię per komponent (do 10 równolegle w jednym projekcie), opisując materiał, wolumen, certyfikaty i region językiem naturalnym. Import Excela/CSV BOM tak, żeby każda linia auto-uruchamiała kampanię jest na roadmapie 2026." },
+          { q: "Czy weryfikujecie IATF 16949 / ISO 13485?", a: "Screening AI wyciąga sygnały certyfikatów ze stron dostawców — deklarowane logo, kody standardów, samopublikowane referencje. To jest filtr pierwszego rzutu do shortlisty, nie formalna weryfikacja w bazach IATF czy jednostek notyfikowanych. Bidderzy uploadują właściwe PDF-y certyfikatów przez Supplier Portal, gdzie Procurea trzyma je z historią wersji i (jeśli podano) datami ważności. Twój zespół jakości podpisuje się pod finalnymi dokumentami audytowymi." },
           { q: "A widoczność tier-2 i sub-tier?", a: "Procurea mapuje to co dostawcy publicznie ujawniają — własne certyfikaty, footprint produkcyjny, główne referencje. Głębokie mapowanie tier-n wymaga dedykowanego engagement; Procurea przyspiesza screening tier-1 i tier-2." },
           { q: "Czy mogę dzielić shortlisty z plant managers?", a: "Tak. Każdy zakwalifikowany dostawca trafia do Supplier Database z ocenami i historią kampanii. Możesz dzielić read-only z plant, quality lub finance bez dodatkowych seatów." },
           { q: "Czy działa dla MRO / procurement pośredniego?", a: "Tak. Łożyska, uszczelki, smary, consumables — przez ten sam workflow RFQ z category-specific scoringiem." },
@@ -419,6 +420,8 @@ export function ManufacturingIndustryPage() {
                     </motion.div>
                   ))}
                 </div>
+
+                <p className="mt-5 text-[11px] italic text-slate-500 leading-relaxed">{t.bomFlow.footnote}</p>
               </div>
             </RevealOnScroll>
           </div>

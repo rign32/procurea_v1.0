@@ -375,7 +375,7 @@ export const PL = {
       },
       {
         q: 'Z jakimi systemami ERP/CRM się integrujecie?',
-        a: 'Natywnie: SAP S/4HANA, Oracle NetSuite, Oracle Fusion Cloud, Microsoft Dynamics 365 Business Central, Microsoft Dynamics 365 F&O, Salesforce. Dodatkowo nasz katalog pokrywa 100+ systemów księgowych, ERP i CRM (QuickBooks, Xero, Sage, HubSpot, Pipedrive, Zoho itd.). Pełna lista: /integracje. Integracja synchronizuje dostawców, PO, faktury i master data — dwukierunkowo, bez ręcznego exportu CSV.',
+        a: 'Integrujemy się przez unified API (Merge.dev) z 50+ systemami ERP, księgowymi i CRM — m.in. Oracle NetSuite, Microsoft Dynamics 365 Business Central, QuickBooks Online, Xero, Sage, HubSpot, Pipedrive, Zoho. Synchronizacja obejmuje master data dostawców i PO. SAP S/4HANA, Salesforce i systemy on-prem — dostępne w ramach Enterprise Custom z dedykowanym adapterem. Pełna lista i szczegóły: /integracje.',
       },
       {
         q: 'Jak szybkie jest wdrożenie?',
@@ -395,7 +395,7 @@ export const PL = {
       },
       {
         q: 'Co jeśli mojego ERP nie ma na liście?',
-        a: 'Dwie ścieżki. (1) Jeśli Twój system jest w naszym katalogu 100+ systemów — integracja działa out-of-the-box bez dodatkowego kodu, aktywujemy w ramach standardowego planu Procurement lub Bundle. (2) Jeśli system jest niszowy lub on-prem — Enterprise Custom buduje dedykowany adapter (REST/SOAP/file-based) w ramach SOW, typowo 2–4 tygodnie. Umów rozmowę techniczną: /kontakt.',
+        a: 'Dwie ścieżki. (1) Jeśli Twój system jest w naszym katalogu 50+ obsługiwanych systemów (przez Merge.dev) — integracja działa out-of-the-box, aktywujemy ją w ramach standardowego planu Procurement lub Bundle. (2) Jeśli system jest niszowy, on-prem lub wymaga głębszej synchronizacji (SAP, Salesforce, dedykowane ERP) — Enterprise Custom buduje dedykowany adapter (REST/SOAP/file-based) w ramach SOW, typowo 2–4 tygodnie. Umów rozmowę techniczną: /kontakt.',
       },
       {
         q: 'Kiedy wybrać Enterprise Custom?',
@@ -524,12 +524,12 @@ export const PL = {
     },
     'ai-insights': {
       sectionLabel: 'AI INSIGHTS',
-      title: 'Raporty procurement, które same się piszą',
-      subtitle: 'Gemini analizuje każdą kampanię: breakdown wydatków, ryzyko koncentracji dostawców, potencjał negocjacyjny. Gotowy PDF / PPTX dla CFO.',
+      title: 'Raporty kampanii, które same się piszą',
+      subtitle: 'Gemini podsumowuje każdą kampanię: rozkład dostawców po krajach i specjalizacjach, jakość bazy, statystyki odpowiedzi i benchmark ofert. Gotowy PDF / PPTX dla zarządu.',
       bullets: [
         'Analiza Gemini 2.0 Flash per kampania',
-        'Scoring koncentracji dostawców i ryzyka łańcucha',
-        'Identyfikacja dźwigni negocjacyjnej',
+        'Rozkład dostawców i jakość bazy',
+        'Benchmark ofert vs. Twoje cele (cena, lead time, MOQ)',
       ],
     },
   },

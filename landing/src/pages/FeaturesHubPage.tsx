@@ -51,9 +51,9 @@ const offersFeatures: FeatureItem[] = isEN ? [
 ]
 
 const insightsFeatures: FeatureItem[] = isEN ? [
-  { icon: Database, title: 'AI Insights Reports', desc: 'Gemini analysis: spend breakdown, negotiation leverage, benchmarks. Ready-to-present PDF/PPTX.', to: pathFor('fAiInsights'), hasPage: false },
+  { icon: Database, title: 'AI Insights Reports', desc: 'Gemini summary: supplier distribution, database quality, offer benchmarking. Ready-to-present PDF/PPTX.', to: pathFor('fAiInsights'), hasPage: false },
 ] : [
-  { icon: Database, title: 'Raporty AI Insights', desc: 'Analiza Gemini: breakdown wydatków, leverage negocjacyjny, benchmarki. Gotowe do prezentacji PDF/PPTX.', to: pathFor('fAiInsights'), hasPage: false },
+  { icon: Database, title: 'Raporty AI Insights', desc: 'Podsumowanie Gemini: rozkład dostawców, jakość bazy, benchmark ofert. Gotowe do prezentacji PDF/PPTX.', to: pathFor('fAiInsights'), hasPage: false },
 ]
 
 const copy = {

@@ -34,71 +34,69 @@ const isEN = LANG === "en"
 const t = {
   hero: {
     badge: isEN ? "Healthcare & MedTech" : "Healthcare & MedTech",
-    title: isEN ? "Compliance-first sourcing for hospitals, clinics and MedTech" : "Sourcing compliance-first dla szpitali, klinik i MedTech",
+    title: isEN ? "Compliance-aware sourcing for hospitals, clinics and MedTech" : "Sourcing compliance-aware dla szpitali, klinik i MedTech",
     subtitle: isEN
-      ? "CE / MDR / FDA / ISO 13485-certified suppliers, qualified at screening — not after 6 weeks of back-and-forth. Build backup pools for disposables, devices and consumables so a single audit failure doesn't stop the theatre list."
-      : "Dostawcy z certyfikatami CE / MDR / FDA / ISO 13485 zakwalifikowani na screeningu — nie po 6 tygodniach wymiany maili. Zbuduj backup pule jednorazówek, wyrobów i consumables, żeby jeden audyt nie zatrzymał listy operacyjnej.",
-    primary: isEN ? "Start a qualification campaign" : "Rozpocznij kampanię kwalifikacji",
-    secondary: isEN ? "Book a compliance demo" : "Umów demo compliance",
+      ? "Sourcing that surfaces CE / MDR / FDA / ISO 13485 signals early — so regulated-goods buyers stop chasing certificates over email. Build backup pools for disposables, devices and consumables so a single audit failure doesn't stop the theatre list."
+      : "Sourcing, który wyciąga sygnały CE / MDR / FDA / ISO 13485 wcześnie — żeby kupcy wyrobów regulowanych przestali ganiać certyfikaty mailem. Zbuduj backup pule jednorazówek, wyrobów i consumables, żeby jeden audyt nie zatrzymał listy operacyjnej.",
+    primary: isEN ? "Start a sourcing campaign" : "Rozpocznij kampanię sourcingową",
+    secondary: isEN ? "Book a demo" : "Umów demo",
   },
   stats: [
-    { value: "70%", label: isEN ? "faster qualification" : "szybsza kwalifikacja", detail: isEN ? "2 weeks vs. 5 weeks" : "2 tyg. vs. 5 tyg." },
-    { value: "MDR", label: isEN ? "verified on every bidder" : "weryfikowany u każdego biddera", detail: isEN ? "+ CE, FDA, ISO 13485" : "+ CE, FDA, ISO 13485" },
-    { value: "100%", label: isEN ? "audit-ready dossier" : "dossier gotowe na audyt", detail: isEN ? "Every qualified supplier" : "Każdy zakwalifikowany dostawca" },
+    { value: "2× faster", label: isEN ? "shortlist cycle" : "cykl shortlisty", detail: isEN ? "vs. manual spreadsheet sourcing" : "vs. ręczne sourcowanie w Excelu" },
+    { value: "CE · MDR", label: isEN ? "flagged at screening" : "flagowane przy screeningu", detail: isEN ? "+ FDA, ISO 13485 signals" : "+ sygnały FDA, ISO 13485" },
+    { value: "Central", label: isEN ? "supplier document vault" : "centralny vault dokumentów", detail: isEN ? "Versioned, tagged, expiry-tracked" : "Wersjonowane, tagowane, śledzona ważność" },
     { value: "25+", label: isEN ? "alternatives per category" : "alternatyw per kategoria", detail: isEN ? "For PPE, disposables, lab" : "Dla PPE, jednorazówek, labu" },
   ],
   // MDR / CE compliance funnel
   funnel: {
-    title: isEN ? "The MDR/CE compliance funnel — narrow early, not late" : "Lejek compliance MDR/CE — zwężaj wcześnie, nie późno",
+    title: isEN ? "Compliance-aware screening — narrow early, not late" : "Screening compliance-aware — zwężaj wcześnie, nie późno",
     subtitle: isEN
-      ? "The painful path is qualifying 50 vendors, then finding out 45 don't meet MDR. The Procurea path is filtering on certifications before anyone reaches your review meeting."
-      : "Bolesna ścieżka to kwalifikacja 50 vendorów, potem odkrycie że 45 nie spełnia MDR. Ścieżka Procurea to filtrowanie po certyfikatach zanim ktokolwiek trafi na Twoje spotkanie review.",
+      ? "The painful path is qualifying 50 vendors, then finding out most are missing certs you need. Procurea's AI pipeline surfaces certification signals from supplier websites at screening — so obvious mismatches drop before they reach your review meeting."
+      : "Bolesna ścieżka to kwalifikacja 50 vendorów, potem odkrycie że większości brakuje potrzebnych certyfikatów. Pipeline AI Procurea wyciąga sygnały certyfikatów ze stron dostawców już na screeningu — oczywiste niepasowania odpadają zanim trafią na Twoje spotkanie review.",
     stages: isEN
       ? [
           { label: "Candidates discovered", count: 240, width: 100, tone: "slate" },
-          { label: "CE marked", count: 172, width: 72, tone: "sky" },
-          { label: "MDR compliant", count: 98, width: 41, tone: "primary" },
-          { label: "ISO 13485 current", count: 62, width: 26, tone: "emerald" },
-          { label: "Capacity + locality fit", count: 31, width: 13, tone: "violet" },
-          { label: "Qualified shortlist", count: 18, width: 7.5, tone: "amber" },
+          { label: "CE / regulated claim in profile", count: 170, width: 70, tone: "sky" },
+          { label: "ISO / quality mark declared", count: 95, width: 40, tone: "primary" },
+          { label: "Capacity + locality fit", count: 40, width: 17, tone: "emerald" },
+          { label: "Shortlist for RFQ", count: 18, width: 8, tone: "amber" },
         ]
       : [
           { label: "Odkryci kandydaci", count: 240, width: 100, tone: "slate" },
-          { label: "Ze znakiem CE", count: 172, width: 72, tone: "sky" },
-          { label: "Zgodni z MDR", count: 98, width: 41, tone: "primary" },
-          { label: "Aktualny ISO 13485", count: 62, width: 26, tone: "emerald" },
-          { label: "Moce + lokalizacja OK", count: 31, width: 13, tone: "violet" },
-          { label: "Zakwalifikowana shortlista", count: 18, width: 7.5, tone: "amber" },
+          { label: "Deklaracja CE / wyrób regulowany", count: 170, width: 70, tone: "sky" },
+          { label: "Deklarowany znak ISO / jakości", count: 95, width: 40, tone: "primary" },
+          { label: "Moce + lokalizacja OK", count: 40, width: 17, tone: "emerald" },
+          { label: "Shortlista do RFQ", count: 18, width: 8, tone: "amber" },
         ],
-    summary: isEN ? "18 audit-ready vendors from 240 candidates — in days, not a quarter." : "18 audit-ready vendorów z 240 kandydatów — w dni, nie kwartał.",
+    summary: isEN ? "Illustrative funnel — actual numbers depend on category and region. You still verify certificates against source documents before award." : "Lejek ilustracyjny — rzeczywiste liczby zależą od kategorii i regionu. Certyfikaty przed udzieleniem zamówienia weryfikujesz u źródła.",
   },
   // 3-step approval workflow
   workflow: {
-    title: isEN ? "Approval workflow for medical procurement — clinical, compliance, finance" : "Workflow zatwierdzania procurement medycznego — klinicznie, compliance, finanse",
+    title: isEN ? "Three review perspectives, one shared workspace" : "Trzy perspektywy review, jeden wspólny workspace",
     subtitle: isEN
-      ? "Every purchase decision passes through three sign-offs. Procurea gives each reviewer exactly the data they need — no email chains, no PDF archaeology."
-      : "Każda decyzja zakupowa przechodzi przez trzy sign-offy. Procurea daje każdemu reviewerowi dokładnie te dane których potrzebuje — bez maili, bez archeologii PDF-ów.",
+      ? "Clinical, compliance and finance stakeholders review the same shortlist from different angles. Procurea centralizes supplier documents, offers and comments — so reviewers work from one source instead of forwarded PDFs."
+      : "Zespoły kliniczne, compliance i finansowe patrzą na tę samą shortlistę z różnych kątów. Procurea centralizuje dokumenty dostawców, oferty i komentarze — reviewerzy pracują na jednym źródle zamiast forwardowanych PDF-ów.",
     steps: isEN
       ? [
           {
             icon: Stethoscope,
             tone: "rose",
-            role: "Clinical",
-            scope: "Product fit, sample validation, reference from peer institutions",
-            evidence: ["Sample results", "Clinical references", "Product spec match"],
+            role: "Clinical perspective",
+            scope: "Product fit, sample validation, peer references — captured as supplier notes and attachments",
+            evidence: ["Sample results (uploaded)", "Clinical references (notes)", "Product spec match"],
           },
           {
             icon: Shield,
             tone: "primary",
-            role: "Compliance",
-            scope: "CE, MDR, FDA, ISO 13485 — all verified at screening and ingested as dossier",
-            evidence: ["Certificate files", "Registry checks", "Declaration of conformity"],
+            role: "Compliance perspective",
+            scope: "Certificate tracking in the supplier vault — CE, MDR, FDA, ISO 13485 uploads, expiry dates, document versions",
+            evidence: ["Certificate files (versioned)", "Declaration of conformity", "Expiry date tracking"],
           },
           {
             icon: Calculator,
             tone: "emerald",
-            role: "Finance",
-            scope: "TCO, payment terms, volume tiers — compared side-by-side in one table",
+            role: "Finance perspective",
+            scope: "TCO, payment terms, volume tiers — compared side-by-side in the offer comparison view",
             evidence: ["Price per unit at volume", "Payment schedule", "Annual spend projection"],
           },
         ]
@@ -106,60 +104,60 @@ const t = {
           {
             icon: Stethoscope,
             tone: "rose",
-            role: "Kliniczny",
-            scope: "Dopasowanie produktu, walidacja sampli, referencje od partnerskich placówek",
-            evidence: ["Wyniki sampli", "Referencje kliniczne", "Zgodność ze specyfikacją"],
+            role: "Perspektywa kliniczna",
+            scope: "Dopasowanie produktu, walidacja sampli, referencje — notowane jako notatki i załączniki przy dostawcy",
+            evidence: ["Wyniki sampli (upload)", "Referencje kliniczne (notatki)", "Zgodność ze specyfikacją"],
           },
           {
             icon: Shield,
             tone: "primary",
-            role: "Compliance",
-            scope: "CE, MDR, FDA, ISO 13485 — weryfikowane na screeningu i zebrane w dossier",
-            evidence: ["Pliki certyfikatów", "Sprawdzenia rejestrów", "Deklaracja zgodności"],
+            role: "Perspektywa compliance",
+            scope: "Tracking certyfikatów w vaulcie dostawcy — uploady CE, MDR, FDA, ISO 13485, daty ważności, wersje dokumentów",
+            evidence: ["Pliki certyfikatów (wersjonowane)", "Deklaracja zgodności", "Śledzenie dat ważności"],
           },
           {
             icon: Calculator,
             tone: "emerald",
-            role: "Finanse",
-            scope: "TCO, warunki płatności, progi wolumenowe — porównane side-by-side",
+            role: "Perspektywa finansowa",
+            scope: "TCO, warunki płatności, progi wolumenowe — porównane side-by-side w porównywarce ofert",
             evidence: ["Cena/szt. po wolumenie", "Harmonogram płatności", "Projekcja wydatków rocznych"],
           },
         ],
   },
   // Supplier dossier preview
   dossier: {
-    title: isEN ? "The audit-ready dossier — what every qualified supplier ships with" : "Audit-ready dossier — co dostaje każdy zakwalifikowany dostawca",
+    title: isEN ? "The supplier document vault — one place per supplier, versioned" : "Vault dokumentów dostawcy — jedno miejsce per dostawca, wersjonowane",
     subtitle: isEN
-      ? "Regulator audit tomorrow? Your dossier is already built. Every supplier profile includes certification files, verification dates and campaign history."
-      : "Audyt regulacyjny jutro? Twoje dossier jest już gotowe. Każdy profil dostawcy zawiera pliki certyfikatów, daty weryfikacji i historię kampanii.",
+      ? "Every supplier profile has a document area. Your team uploads certificates, declarations and campaign artifacts — Procurea tracks categories, tags, versions, upload dates and (where provided) expiry dates. Below: example document types a hospital procurement team typically keeps."
+      : "Każdy profil dostawcy ma sekcję dokumentów. Twój zespół uploaduje certyfikaty, deklaracje i artefakty kampanii — Procurea śledzi kategorie, tagi, wersje, daty uploadu i (tam gdzie podano) daty ważności. Poniżej: przykładowe typy dokumentów, które zespół procurement szpitala zwykle trzyma.",
     items: isEN
       ? [
-          { label: "Legal entity & VAT", status: "Verified" },
-          { label: "CE declaration of conformity", status: "On file" },
-          { label: "MDR technical documentation", status: "On file" },
-          { label: "ISO 13485 certificate", status: "Valid to 2027-06" },
-          { label: "FDA establishment reg.", status: "Verified" },
-          { label: "Quality manual", status: "On file" },
-          { label: "Post-market surveillance plan", status: "On file" },
-          { label: "Clinical evaluation report", status: "On file" },
-          { label: "Product labeling samples", status: "On file" },
-          { label: "Notified body certificate", status: "Valid" },
-          { label: "Recall history (5 years)", status: "Clean" },
-          { label: "Last campaign outcome", status: "Awarded 2026-01" },
+          { label: "Legal entity & VAT", status: "VIES verified" },
+          { label: "CE declaration of conformity", status: "Uploaded" },
+          { label: "MDR technical documentation", status: "Uploaded" },
+          { label: "ISO 13485 certificate", status: "Expiry: 2027-06" },
+          { label: "FDA establishment reg. (if US)", status: "Uploaded" },
+          { label: "Quality manual", status: "Uploaded" },
+          { label: "Post-market surveillance plan", status: "Uploaded" },
+          { label: "Clinical evaluation report", status: "Uploaded" },
+          { label: "Product labeling samples", status: "Uploaded" },
+          { label: "Notified body certificate", status: "Expiry tracked" },
+          { label: "Recall history notes", status: "Free-text" },
+          { label: "Campaign outcome history", status: "Auto-logged" },
         ]
       : [
-          { label: "Osobowość prawna & VAT", status: "Zweryfikowane" },
-          { label: "Deklaracja zgodności CE", status: "W aktach" },
-          { label: "Dokumentacja techniczna MDR", status: "W aktach" },
-          { label: "Certyfikat ISO 13485", status: "Ważny do 2027-06" },
-          { label: "FDA establishment reg.", status: "Zweryfikowane" },
-          { label: "Księga jakości", status: "W aktach" },
-          { label: "Plan nadzoru post-market", status: "W aktach" },
-          { label: "Raport oceny klinicznej", status: "W aktach" },
-          { label: "Próbki etykietowania", status: "W aktach" },
-          { label: "Certyfikat jednostki notyfikowanej", status: "Ważny" },
-          { label: "Historia wycofań (5 lat)", status: "Czysto" },
-          { label: "Ostatnia kampania", status: "Award 2026-01" },
+          { label: "Osobowość prawna & VAT", status: "VIES zweryfikowane" },
+          { label: "Deklaracja zgodności CE", status: "Uploadowane" },
+          { label: "Dokumentacja techniczna MDR", status: "Uploadowane" },
+          { label: "Certyfikat ISO 13485", status: "Ważność: 2027-06" },
+          { label: "FDA establishment reg. (jeśli US)", status: "Uploadowane" },
+          { label: "Księga jakości", status: "Uploadowane" },
+          { label: "Plan nadzoru post-market", status: "Uploadowane" },
+          { label: "Raport oceny klinicznej", status: "Uploadowane" },
+          { label: "Próbki etykietowania", status: "Uploadowane" },
+          { label: "Certyfikat jednostki notyfikowanej", status: "Śledzenie ważności" },
+          { label: "Notatki o historii wycofań", status: "Free-text" },
+          { label: "Historia kampanii", status: "Auto-logged" },
         ],
   },
   // Categories
@@ -230,14 +228,14 @@ const t = {
     title: isEN ? "Questions from hospital procurement and MedTech buyers" : "Pytania od procurement szpitalnego i kupujących MedTech",
     items: isEN
       ? [
-          { q: "How do you verify CE, MDR and ISO 13485 in practice?", a: "AI cross-checks certificate numbers against notified body public registries (e.g. NANDO for EU), flags expired or mismatched entries, and prompts bidders to upload the missing documents through the Supplier Portal before qualification completes." },
+          { q: "How do you verify CE, MDR and ISO 13485 in practice?", a: "Our AI extracts certification signals from supplier websites at screening — company self-declarations, certificate numbers, logos and text references. This is a first-pass filter, not a regulatory verification. Actual verification happens when bidders upload certificate files via the Supplier Portal — Procurea stores them in the document vault with expiry dates, versions and tags. For authoritative registry checks (NANDO, FDA establishment database) your compliance team still queries source systems — we surface the data to make that faster, but we don't claim to be a replacement for them." },
           { q: "Do you store documents in a GDPR / HIPAA compliant way?", a: "Documents are stored encrypted in EU infrastructure. We don't process patient data. Supplier documents (certificates, declarations) are retained according to your audit retention policy." },
           { q: "Can Procurea integrate with our ERP (SAP, Oracle, Epicor)?", a: "Yes — via API or Merge.dev for common ERPs. Award decisions can be pushed as approved supplier records. Procurement teams typically keep Procurea as the qualification/comparison layer and push validated suppliers into ERP as system-of-record." },
           { q: "What about small-volume highly-specialized items (e.g. specific catheter types)?", a: "Procurea still helps — the filter criteria just get narrower (MDR class, specific intended use, clinical references). You may see fewer alternatives, but you see the ones that actually exist." },
           { q: "How do you handle recall history and post-market surveillance?", a: "At qualification, AI surfaces publicly available recall notices and flags vendors with recent serious-incident reports. For formal post-market review, dossier items support structured audit trails." },
         ]
       : [
-          { q: "Jak weryfikujecie CE, MDR i ISO 13485 w praktyce?", a: "AI cross-checkuje numery certyfikatów w publicznych rejestrach jednostek notyfikowanych (np. NANDO dla UE), flaguje wygasłe lub niezgodne wpisy i prosi bidderów o upload brakujących dokumentów przez Supplier Portal zanim kwalifikacja się zakończy." },
+          { q: "Jak weryfikujecie CE, MDR i ISO 13485 w praktyce?", a: "Nasza AI wyciąga sygnały certyfikatów ze stron dostawców na screeningu — samodeklaracje firmy, numery certyfikatów, logo i odniesienia w tekście. To jest pierwszy filtr, nie regulacyjna weryfikacja. Faktyczna weryfikacja następuje, gdy dostawcy uploadują pliki certyfikatów przez Supplier Portal — Procurea trzyma je w vaulcie dokumentów z datami ważności, wersjami i tagami. Autorytatywne sprawdzenia w rejestrach (NANDO, baza FDA establishment) Twój zespół compliance nadal robi w systemach źródłowych — my wystawiamy dane, żeby było to szybsze, ale nie zastępujemy tych narzędzi." },
           { q: "Czy przechowujecie dokumenty zgodnie z RODO / HIPAA?", a: "Dokumenty są szyfrowane w infrastrukturze UE. Nie przetwarzamy danych pacjentów. Dokumenty dostawców (certyfikaty, deklaracje) są retencjonowane zgodnie z Twoją polityką audytową." },
           { q: "Czy Procurea integruje się z naszym ERP (SAP, Oracle, Epicor)?", a: "Tak — przez API lub Merge.dev dla popularnych ERP. Decyzje award mogą być pushowane jako zatwierdzone rekordy dostawców. Zespoły procurement zwykle trzymają Procurea jako warstwę kwalifikacji/porównania i pushują zwalidowanych do ERP jako system-of-record." },
           { q: "A małe wolumeny wysoce specjalistyczne (np. konkretne typy cewników)?", a: "Procurea nadal pomaga — kryteria filtrów są węższe (klasa MDR, konkretne intended use, referencje kliniczne). Zobaczysz mniej alternatyw, ale zobaczysz te które realnie istnieją." },
@@ -245,10 +243,10 @@ const t = {
         ],
   },
   cta: {
-    title: isEN ? "Start building your audit-ready supplier pool" : "Zacznij budować swoją audit-ready pulę dostawców",
-    body: isEN ? "Bring one critical category. In 30 minutes we'll walk through our MDR/CE screening and show your dossier template." : "Przynieś jedną krytyczną kategorię. W 30 minut przejdziemy przez nasz screening MDR/CE i pokażemy szablon dossier.",
+    title: isEN ? "Start building your compliance-aware supplier pool" : "Zacznij budować swoją pulę dostawców z naciskiem na compliance",
+    body: isEN ? "Bring one critical category. In 30 minutes we'll walk through the sourcing pipeline, certificate tracking and the supplier document vault." : "Przynieś jedną krytyczną kategorię. W 30 minut przejdziemy przez pipeline sourcingowy, tracking certyfikatów i vault dokumentów dostawców.",
     primary: isEN ? "Start free" : "Zacznij za darmo",
-    secondary: isEN ? "Book a compliance demo" : "Umów demo compliance",
+    secondary: isEN ? "Book a demo" : "Umów demo",
   },
 }
 
@@ -527,7 +525,21 @@ export function HealthcareIndustryPage() {
         <section className="py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <RevealOnScroll>
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-12 max-w-3xl">{t.pains.title}</h2>
+              <div className="relative rounded-2xl overflow-hidden mb-12 bg-slate-100 shadow-xl">
+                <div className="relative aspect-[16/10] md:aspect-[21/9] lg:aspect-[24/8]">
+                  <img
+                    src="/industries/healthcare.jpg"
+                    alt={isEN ? "Hospital procurement manager reviewing CE/MDR compliance documents" : "Hospital procurement manager weryfikuje dokumenty zgodności CE/MDR"}
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/55 to-slate-950/15" />
+                  <div className="absolute inset-0 flex items-end p-6 sm:p-10 md:p-14">
+                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white max-w-3xl leading-[1.1]">{t.pains.title}</h2>
+                  </div>
+                </div>
+              </div>
             </RevealOnScroll>
             <div className="grid md:grid-cols-3 gap-5">
               {t.pains.items.map((p, i) => (
