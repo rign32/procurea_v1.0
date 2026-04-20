@@ -2,78 +2,168 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Animated gradient border for subscription card */
+/* ═══════════════════════════════════════════════════════════════════
+   PROCUREA PRODUCT — DESIGN TOKENS (Wave 1)
+   Source of truth: Dokumenty/procurea design prototyping/REDESIGN-IMPLEMENTATION-BRIEF.md §03
+   Brand: navy #162a52 (matches landing), warm off-white #fafaf7, CTA yellow #f4c842.
+   Typography: Manrope (UI), JetBrains Mono (numbers/labels), Fraunces (italic accents).
+
+   NAMESPACE NOTES
+   - New product tokens use `--brand-*` (avoid collision with shadcn `--accent` HSL).
+   - When porting prototype HTML (which uses `--accent`), translate to `--brand` in React.
+   - Shadcn HSL compatibility layer stays untouched — all `components/ui/*` primitives
+     continue to work, just with navy/warm-paper values instead of old teal.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@layer base {
+  :root {
+    /* ─── NEUTRALS (warm off-white paper) ─── */
+    --bg:           #fafaf7;
+    --bg-2:         #f3f3ee;
+    --bg-3:         #ebebe4;
+    --surface:      #ffffff;
+    --surface-2:    #fbfbf8;
+    --ink:          #0e1614;
+    --ink-2:        #2a3330;
+    --ink-3:        #4a5551;
+    --muted-ink:    #6b7672;
+    --muted-ink-2:  #98a19c;
+    --rule:         #e4e4dc;
+    --rule-2:       #d6d6cc;
+    --rule-3:       #c2c2b5;
+
+    /* ─── BRAND (navy — matches landing) ─── */
+    --brand:        #162a52;
+    --brand-2:      #27417a;
+    --brand-3:      #3d5a94;
+    --brand-soft:   #e7ecf5;
+    --brand-softer: #f1f4f9;
+    --brand-ink:    #ffffff;
+
+    /* ─── CTA (yellow — one per viewport) ─── */
+    --cta:       #f4c842;
+    --cta-hover: #e6b82e;
+    --cta-ink:   #0e1614;
+
+    /* ─── SIGNALS (trio: soft bg + ink + border) ─── */
+    --good: #2f7a4f; --good-soft: #e6f2ec; --good-border: #c9e3d4;
+    --warn: #c97b1a; --warn-soft: #fbeed9; --warn-border: #ecd6ae;
+    --bad:  #b94a3a; --bad-soft:  #fbe5e0; --bad-border:  #f0c6be;
+    --info: #3b6fa8; --info-soft: #e6eef8; --info-border: #c8d6ea;
+
+    /* ─── MATCH SCORE (traffic light) ─── */
+    --score-hi: #2f7a4f;   /* ≥85 */
+    --score-md: #c97b1a;   /* 70-84 */
+    --score-lo: #98a19c;   /* <70 */
+
+    /* ─── TYPOGRAPHY ─── */
+    --font-sans:  'Manrope', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-mono:  'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    --font-serif: 'Fraunces', 'Instrument Serif', ui-serif, Georgia, serif;
+
+    /* ─── SPACING (4pt base) ─── */
+    --s-1: 4px;  --s-2: 8px;   --s-3: 12px;  --s-4: 16px;
+    --s-5: 20px; --s-6: 24px;  --s-8: 32px;  --s-10: 40px;
+    --s-12: 48px; --s-16: 64px; --s-20: 80px;
+
+    /* ─── RADII (smaller than LP for operator feel) ─── */
+    --r-1: 4px; --r-2: 6px; --r-3: 8px; --r-4: 10px; --r-5: 14px;
+
+    /* ─── SHADOWS (warm ink, use sparingly) ─── */
+    --shadow-sm: 0 1px 2px rgba(14,22,20,.04), 0 2px 4px rgba(14,22,20,.03);
+    --shadow-md: 0 4px 12px rgba(14,22,20,.06), 0 12px 24px rgba(14,22,20,.05);
+    --shadow-lg: 0 8px 24px rgba(14,22,20,.08), 0 24px 56px rgba(14,22,20,.08);
+    --ring-brand: 0 0 0 3px color-mix(in srgb, var(--brand) 22%, transparent);
+
+    /* ─── LAYOUT ─── */
+    --sidebar-w:   248px;
+    --topbar-h:    56px;
+    --content-max: 1360px;
+
+    /* ─── MOTION (one easing, three durations) ─── */
+    --e:      cubic-bezier(0.2, 0.8, 0.2, 1);
+    --t-fast: 120ms;
+    --t-med:  200ms;
+    --t-slow: 400ms;
+
+    /* ─── SHADCN COMPATIBILITY LAYER ───
+       HSL components, back every primitive in components/ui/*.
+       Remapped from teal to navy + warm paper so primitives adopt new brand.
+       Values below are exact round-trip of hex tokens above (verified with
+       colorsys.rgb_to_hls). DO NOT rename — tailwind.config.js refs by name. */
+    --background:          60 23% 97%;        /* #fafaf7 */
+    --foreground:          165 22% 7%;        /* #0e1614 */
+    --card:                0 0% 100%;
+    --card-foreground:     165 22% 7%;
+    --popover:             0 0% 100%;
+    --popover-foreground:  165 22% 7%;
+    --primary:             220 58% 20%;       /* #162a52 navy */
+    --primary-foreground:  0 0% 100%;
+    --secondary:           60 17% 94%;        /* #f3f3ee */
+    --secondary-foreground:160 10% 18%;       /* #2a3330 */
+    --muted:               60 17% 94%;
+    --muted-foreground:    158 5% 44%;        /* #6b7672 */
+    --accent:              219 41% 93%;       /* #e7ecf5 brand-soft */
+    --accent-foreground:   220 58% 20%;
+    --destructive:         8 52% 48%;         /* #b94a3a */
+    --destructive-foreground: 0 0% 100%;
+    --border:              60 13% 88%;        /* #e4e4dc */
+    --input:               60 13% 88%;
+    --ring:                220 58% 20%;
+    --radius:              0.625rem;          /* 10px = --r-4 */
+
+    --sidebar-background:         60 23% 97%;
+    --sidebar-foreground:         160 10% 18%;
+    --sidebar-primary:            220 58% 20%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent:             219 41% 93%;
+    --sidebar-accent-foreground:  220 58% 20%;
+    --sidebar-border:             60 13% 88%;
+    --sidebar-ring:               220 58% 20%;
+  }
+
+  .dark {
+    /* Dark mode — brand-consistent placeholder (no teal).
+       Full dark polish deferred to post-redesign sprint. */
+    --background:          168 22% 7%;
+    --foreground:          60 10% 96%;
+    --card:                162 10% 12%;
+    --card-foreground:     60 10% 96%;
+    --popover:             162 10% 12%;
+    --popover-foreground:  60 10% 96%;
+    --primary:             222 52% 60%;
+    --primary-foreground:  168 22% 7%;
+    --secondary:           162 8% 18%;
+    --secondary-foreground:60 10% 96%;
+    --muted:               162 8% 18%;
+    --muted-foreground:    159 5% 64%;
+    --accent:              162 8% 22%;
+    --accent-foreground:   60 10% 96%;
+    --destructive:         9 46% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border:              162 8% 20%;
+    --input:               162 8% 20%;
+    --ring:                222 52% 60%;
+
+    --sidebar-background:         162 10% 9%;
+    --sidebar-foreground:         60 10% 92%;
+    --sidebar-primary:            222 52% 60%;
+    --sidebar-primary-foreground: 168 22% 7%;
+    --sidebar-accent:             162 8% 18%;
+    --sidebar-accent-foreground:  60 10% 92%;
+    --sidebar-border:             162 8% 20%;
+    --sidebar-ring:               222 52% 60%;
+  }
+}
+
+/* ─── Animated gradient border (subscription card — legacy) ─── */
 @property --border-angle {
     syntax: '<angle>';
     initial-value: 0deg;
     inherits: false;
 }
-
 .animate-border-rotate {
     animation: border-rotate 4s linear infinite;
-}
-
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 183 22% 46%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 183 22% 46%;
-    --radius: 0.75rem;
-    --sidebar-background: 0 0% 99%;
-    --sidebar-foreground: 222.2 47.4% 11.2%;
-    --sidebar-primary: 183 22% 46%;
-    --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 210 40% 96.1%;
-    --sidebar-accent-foreground: 222.2 47.4% 11.2%;
-    --sidebar-border: 214.3 31.8% 91.4%;
-    --sidebar-ring: 183 22% 46%;
-  }
-
-  .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 183 28% 40%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 240 4.9% 83.9%;
-  }
 }
 
 @layer base {
@@ -81,25 +171,118 @@
     @apply border-border;
   }
 
-  body {
-    @apply bg-background text-foreground;
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "ss01";
   }
 
-  /* Custom Scrollbars (macOS style) */
+  /* Typography base — matches redesign/tokens.css §141-147 */
+  h1, h2, h3, h4 {
+    margin: 0;
+    letter-spacing: -0.022em;
+    color: var(--ink);
+    font-weight: 600;
+  }
+  h1 { font-size: 30px; line-height: 1.15; letter-spacing: -0.03em; font-weight: 700; }
+  h2 { font-size: 22px; line-height: 1.2;  letter-spacing: -0.025em; }
+  h3 { font-size: 16px; line-height: 1.3; }
+  h4 { font-size: 13px; line-height: 1.35; font-weight: 600; }
+
+  ::selection { background: var(--brand); color: #fff; }
+
+  /* Scrollbars — warm, matches prototype */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 10px;
+    height: 10px;
   }
-
   ::-webkit-scrollbar-track {
     background: transparent;
   }
-
   ::-webkit-scrollbar-thumb {
-    @apply bg-slate-300 rounded-full dark:bg-slate-700;
+    background: var(--rule-2);
+    border-radius: 5px;
+    border: 2px solid var(--bg);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--rule-3);
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    background: hsl(162 8% 24%);
+    border-color: hsl(168 22% 7%);
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: hsl(162 8% 32%);
+  }
+}
+
+/* ─── Utility classes (shared with prototype system) ─── */
+@layer utilities {
+  .font-mono-ui {
+    font-family: var(--font-mono);
+    font-feature-settings: "ss01";
+  }
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  .font-serif-italic {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
   }
 
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-slate-400 dark:bg-slate-600;
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .eyebrow .dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--brand);
+  }
+
+  .label-mono {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--muted-ink);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .kbd {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    padding: 2px 5px;
+    background: var(--bg-2);
+    border: 1px solid var(--rule-2);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    color: var(--ink-3);
+    font-weight: 500;
+  }
+
+  .hairline {
+    border-top: 1px solid var(--rule);
   }
 }

@@ -8,6 +8,7 @@ export default {
     theme: {
         extend: {
             colors: {
+                /* ─── Shadcn compatibility layer (HSL-based, legacy primitives) ─── */
                 border: "hsl(var(--border))",
                 input: "hsl(var(--input))",
                 ring: "hsl(var(--ring))",
@@ -51,20 +52,119 @@ export default {
                     border: "hsl(var(--sidebar-border))",
                     ring: "hsl(var(--sidebar-ring))",
                 },
+
+                /* ─── New product design system (hex-based, Wave 1+) ─── */
+                bg: {
+                    DEFAULT: '#fafaf7',
+                    2: '#f3f3ee',
+                    3: '#ebebe4',
+                },
+                surface: {
+                    DEFAULT: '#ffffff',
+                    2: '#fbfbf8',
+                },
+                ink: {
+                    DEFAULT: '#0e1614',
+                    2: '#2a3330',
+                    3: '#4a5551',
+                },
+                'muted-ink': {
+                    DEFAULT: '#6b7672',
+                    2: '#98a19c',
+                },
+                rule: {
+                    DEFAULT: '#e4e4dc',
+                    2: '#d6d6cc',
+                    3: '#c2c2b5',
+                },
+                brand: {
+                    DEFAULT: '#162a52',
+                    2: '#27417a',
+                    3: '#3d5a94',
+                    soft: '#e7ecf5',
+                    softer: '#f1f4f9',
+                    ink: '#ffffff',
+                },
+                cta: {
+                    DEFAULT: '#f4c842',
+                    hover: '#e6b82e',
+                    ink: '#0e1614',
+                },
+                good: {
+                    DEFAULT: '#2f7a4f',
+                    soft: '#e6f2ec',
+                    border: '#c9e3d4',
+                },
+                warn: {
+                    DEFAULT: '#c97b1a',
+                    soft: '#fbeed9',
+                    border: '#ecd6ae',
+                },
+                bad: {
+                    DEFAULT: '#b94a3a',
+                    soft: '#fbe5e0',
+                    border: '#f0c6be',
+                },
+                info: {
+                    DEFAULT: '#3b6fa8',
+                    soft: '#e6eef8',
+                    border: '#c8d6ea',
+                },
+                score: {
+                    hi: '#2f7a4f',
+                    md: '#c97b1a',
+                    lo: '#98a19c',
+                },
             },
             borderRadius: {
+                /* shadcn legacy */
                 lg: "var(--radius)",
                 md: "calc(var(--radius) - 2px)",
                 sm: "calc(var(--radius) - 4px)",
+                /* new product scale */
+                'r-1': '4px',
+                'r-2': '6px',
+                'r-3': '8px',
+                'r-4': '10px',
+                'r-5': '14px',
             },
             boxShadow: {
                 'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
                 'soft-xl': '0 10px 40px -4px rgba(0, 0, 0, 0.08)',
-                'glow': '0 0 20px rgba(94, 140, 143, 0.15)',
-                'glow-primary': '0 4px 14px 0 rgba(94, 140, 143, 0.39)',
+                'glow': '0 0 20px rgba(22, 42, 82, 0.15)',
+                'glow-primary': '0 4px 14px 0 rgba(22, 42, 82, 0.39)',
+                /* new product shadows — warm ink */
+                'ds-sm': '0 1px 2px rgba(14,22,20,0.04), 0 2px 4px rgba(14,22,20,0.03)',
+                'ds-md': '0 4px 12px rgba(14,22,20,0.06), 0 12px 24px rgba(14,22,20,0.05)',
+                'ds-lg': '0 8px 24px rgba(14,22,20,0.08), 0 24px 56px rgba(14,22,20,0.08)',
             },
             fontFamily: {
-                sans: ['Inter', 'sans-serif'],
+                sans: ['Manrope', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
+                mono: ['"JetBrains Mono"', 'ui-monospace', '"SF Mono"', 'Menlo', 'monospace'],
+                serif: ['Fraunces', '"Instrument Serif"', 'ui-serif', 'Georgia', 'serif'],
+            },
+            fontSize: {
+                /* new product scale (from redesign/tokens.css) */
+                'ds-label': ['10.5px', { letterSpacing: '0.08em', lineHeight: '1.2' }],
+                'ds-kpi': ['28px', { letterSpacing: '-0.03em', lineHeight: '1.1' }],
+                'ds-h1': ['30px', { letterSpacing: '-0.03em', lineHeight: '1.15' }],
+                'ds-h2': ['22px', { letterSpacing: '-0.025em', lineHeight: '1.2' }],
+                'ds-h3': ['16px', { letterSpacing: '-0.015em', lineHeight: '1.3' }],
+                'ds-h4': ['13px', { lineHeight: '1.35' }],
+            },
+            letterSpacing: {
+                'ds-tight': '-0.03em',
+                'ds-snug': '-0.022em',
+                'ds-label': '0.08em',
+                'ds-eyebrow': '0.1em',
+            },
+            transitionTimingFunction: {
+                'ds': 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+            },
+            transitionDuration: {
+                'ds-fast': '120ms',
+                'ds-med': '200ms',
+                'ds-slow': '400ms',
             },
             keyframes: {
                 shimmer: {
@@ -84,12 +184,20 @@ export default {
                     '50%': { transform: 'translateY(-8px) scaleY(1.3) translateX(-2px)', opacity: '0' },
                 },
                 'pulse-ring': {
-                    '0%, 100%': { boxShadow: '0 0 0 0 hsl(183 22% 46% / 0.3)' },
-                    '50%': { boxShadow: '0 0 0 8px hsl(183 22% 46% / 0)' },
+                    '0%, 100%': { boxShadow: '0 0 0 0 rgba(22, 42, 82, 0.3)' },
+                    '50%': { boxShadow: '0 0 0 8px rgba(22, 42, 82, 0)' },
                 },
                 'border-rotate': {
                     '0%': { '--border-angle': '0deg' },
                     '100%': { '--border-angle': '360deg' },
+                },
+                'ds-pulse': {
+                    '0%': { opacity: '0.6', transform: 'scale(0.7)' },
+                    '70%, 100%': { opacity: '0', transform: 'scale(1.8)' },
+                },
+                'ds-flow': {
+                    '0%': { backgroundPosition: '-40px 0' },
+                    '100%': { backgroundPosition: '40px 0' },
                 },
             },
             animation: {
@@ -99,6 +207,8 @@ export default {
                 'steam-3': 'steam-3 2.8s ease-in-out infinite 0.6s',
                 'pulse-ring': 'pulse-ring 2s ease-in-out infinite',
                 'border-rotate': 'border-rotate 4s linear infinite',
+                'ds-pulse': 'ds-pulse 1.8s ease-in-out infinite',
+                'ds-flow': 'ds-flow 2s linear infinite',
             },
         },
     },
