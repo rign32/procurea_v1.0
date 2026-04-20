@@ -22,10 +22,14 @@ export class GeminiService {
     private projectId = process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT || process.env.GCP_PROJECT_ID || 'project-c64b9be9-1d92-4bc6-be7';
     private location = process.env.GOOGLE_CLOUD_LOCATION || 'europe-west1';
     private apiKey = process.env.GEMINI_API_KEY;
-    // gemini-2.0-flash has a lower per-key/day quota on paid tier that pipeline
-    // bursts can exhaust in minutes; gemini-2.5-flash has a much higher default
-    // quota and is fully backwards-compatible for our JSON-structured prompts.
-    private readonly modelName = 'gemini-2.5-flash';
+    // gemini-2.5-flash-lite: no-thinking variant with the large paid-tier quota.
+    // 2.0-flash → 429 (per-key/day quota exhausted by pipeline bursts).
+    // 2.5-flash → works but defaults to thinking mode (~650 thought tokens even
+    //             on trivial prompts), which blows past the 45s GEMINI_TIMEOUT
+    //             on 6k-char strategy prompts.
+    // 2.5-flash-lite: thinking disabled by default, ~2s on small prompts,
+    //                 JSON output compatible with all four agents.
+    private readonly modelName = 'gemini-2.5-flash-lite';
     private readonly GEMINI_TIMEOUT_MS = parseInt(process.env.GEMINI_TIMEOUT_MS || '45000', 10); // 45s per call
     private mockRequestCounter = 0;
     // Cloud Functions have read-only filesystem except /tmp
