@@ -53,9 +53,9 @@ export function HowItWorksSection() {
           ))}
         </motion.div>
 
-        {/* Summary line */}
+        {/* Summary line + data-agnostic note */}
         <RevealOnScroll delay={0.2} scale>
-          <div className="mt-12 flex items-center justify-center">
+          <div className="mt-12 flex flex-col items-center justify-center gap-4">
             <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-[hsl(var(--ds-surface))] border border-[hsl(var(--ds-rule))] shadow-[0_1px_3px_rgba(14,22,20,0.04)]">
               <span
                 aria-hidden
@@ -71,6 +71,15 @@ export function HowItWorksSection() {
                 <strong className="font-semibold text-[hsl(var(--ds-accent))]">
                   {t.howItWorks.summaryHighlight}
                 </strong>
+              </span>
+            </div>
+
+            <div className="inline-flex items-center gap-2.5 max-w-[58ch] text-center">
+              <span className="font-mono text-[10px] uppercase tracking-[0.12em] font-semibold px-2 py-1 rounded bg-[hsl(var(--ds-accent-soft))] text-[hsl(var(--ds-accent))] shrink-0">
+                {t.howItWorks.transparencyBadge}
+              </span>
+              <span className="text-[13px] leading-[1.5] text-[hsl(var(--ds-muted))] text-pretty">
+                {t.howItWorks.transparencyText}
               </span>
             </div>
           </div>

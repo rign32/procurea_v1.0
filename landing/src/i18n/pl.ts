@@ -126,16 +126,18 @@ export const PL = {
     sectionLabel: 'Jak to działa',
     heading: 'Od zapytania do listy dostawców',
     headingSub: 'w 3 prostych krokach',
-    description: 'Opisz czego szukasz — AI zrobi resztę. Bez ręcznego googlowania, bez arkuszy kalkulacyjnych.',
+    description: 'Nie mamy bazy dostawców. Dla każdego zapytania AI układa nową strategię, przeszukuje Google w natywnych językach i sama weryfikuje, kto jest producentem, a kto nie.',
     stepPrefix: 'KROK',
     steps: [
-      { title: 'Opisz czego szukasz', description: 'Wpisz kategorię produktu lub usługi, specyfikację i region. Intuicyjny kreator przeprowadzi Cię krok po kroku.' },
-      { title: 'Pierwsze wyniki w 2–3 minuty', description: 'AI przeszukuje internet w 26 językach, identyfikuje dostawców i weryfikuje ich profil. Pierwsze firmy pojawiają się niemal natychmiast.' },
-      { title: 'Pełna lista w 20 minut', description: 'Zweryfikowani dostawcy z danymi kontaktowymi, ocenami AI i certyfikatami. Od 20 do 200 firm, zależnie od kategorii.' },
+      { title: 'Opisz czego szukasz', description: 'Wpisz kategorię, specyfikację i region. Na tej podstawie Agent Strategii generuje zestaw zapytań wyszukiwania — nic nie jest pobierane z predefiniowanej bazy firm.' },
+      { title: 'AI przeszukuje Google na żywo', description: 'Strategia tłumaczy zapytania na 26 języków i uruchamia je w Google przez API, w czasie rzeczywistym — dokładnie tak, jak zrobiłby to Twój zespół, tylko szybciej i wielojęzycznie.' },
+      { title: 'Drugi agent ocenia każdą firmę', description: 'Osobny agent AI wchodzi na każdą stronę i sprawdza: czy firma istnieje, czy to producent, dystrybutor czy coś spoza tematu. Na koniec dostajesz listę zweryfikowanych dostawców dopasowanych do Twojego zapytania.' },
     ],
     summaryPart1: 'Pełna lista dostawców',
     summaryPart2: ' gotowa w max ',
     summaryHighlight: '20 minut',
+    transparencyBadge: 'Data agnostic',
+    transparencyText: 'Bez bazy rekomendowanych firm — AI przeszukuje internet za Ciebie, w czasie rzeczywistym.',
   },
   demo: {
     sectionLabel: 'Demo',
@@ -253,7 +255,7 @@ export const PL = {
     items: [
       {
         question: 'Jak działa wyszukiwanie AI?',
-        answer: 'Procurea wykorzystuje wieloetapowy system agentów AI. Agent strategii generuje zapytania w wielu językach dopasowane do Twoich wymagań. Agent skanowania przeszukuje internet i identyfikuje dostawców. Agent analizy ocenia ich możliwości, a agent wzbogacania automatycznie znajduje dane kontaktowe. Pierwsze wyniki pojawiają się po 2–3 minutach, pełna lista jest gotowa w max 20 minut.',
+        answer: 'Procurea jest data agnostic — nie mamy bazy dostawców ani listy „rekomendowanych" firm. Dla każdego zapytania Agent Strategii generuje zestaw zapytań w 26 językach, dopasowany do Twoich wymagań. Te zapytania trafiają do Google Search API w czasie rzeczywistym. Osobny agent otwiera każdą stronę i ocenia, czy firma istnieje, czy to producent, dystrybutor, czy strona spoza tematu. Agent wzbogacania dobiera dane kontaktowe. Pierwsze wyniki pojawiają się po 2–3 minutach, pełna lista jest gotowa w max 20 minut — bez predefiniowanych list, bez uprzedzeń.',
       },
       {
         question: 'Jakie regiony są obsługiwane?',
