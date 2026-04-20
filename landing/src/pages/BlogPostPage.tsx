@@ -26,6 +26,7 @@ import { pathMappings, type PathKey } from "@/i18n/paths"
 import { AuthorAvatar } from "@/assets/content-hub/AuthorAvatars"
 import { getInfographic } from "@/assets/content-hub/InfographicRegistry"
 import { BLOG_HEROES } from "@/assets/content-hub/BlogHeroes"
+import { getBlogPostImages } from "@/assets/content-hub/BlogHeroImages"
 
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
 const isEN = LANG === 'en'
@@ -344,6 +345,13 @@ export function BlogPostPage() {
   const pillarBadgeClass = PILLAR_BADGE[post.pillar] || PILLAR_BADGE['supply-chain-strategy']
 
   const Hero = BLOG_HEROES[post.slug]
+  const postImages = getBlogPostImages(post.slug)
+  const inlineImages = postImages
+    ? [postImages.inline1, postImages.inline2, postImages.inline3].filter(Boolean) as string[]
+    : []
+  const ogImageUrl = postImages?.og
+    ? `${isEN ? 'https://procurea.io' : 'https://procurea.pl'}${postImages.og}`
+    : undefined
 
   const isSkeleton = post.status === 'skeleton' || !post.sections || post.sections.length === 0
 
@@ -353,6 +361,7 @@ export function BlogPostPage() {
         override={{
           title: metaTitle,
           description: metaDescription,
+          ogImage: ogImageUrl,
         }}
       />
       {/* JSON-LD — hoisted via React 19 native head support */}
@@ -388,7 +397,17 @@ export function BlogPostPage() {
         {/* Article header */}
         <header className="pb-10">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-            {Hero && (
+            {postImages?.hero ? (
+              <div className="relative aspect-[16/9] rounded-2xl overflow-hidden mb-8 shadow-[0_20px_60px_-12px_rgba(0,0,0,0.18)] ring-1 ring-black/5">
+                <img
+                  src={postImages.hero}
+                  alt={title}
+                  className="w-full h-full object-cover"
+                  fetchPriority="high"
+                  loading="eager"
+                />
+              </div>
+            ) : Hero && (
               <div className="relative aspect-[16/9] rounded-2xl overflow-hidden mb-8 shadow-[0_20px_60px_-12px_rgba(0,0,0,0.18)] ring-1 ring-black/5">
                 <Hero className="w-full h-full" />
               </div>
@@ -461,6 +480,15 @@ export function BlogPostPage() {
                 {post.sections!.map((section, i) => {
                   const heading = isEN ? section.heading : section.headingPl
                   const body = isEN ? section.body : section.bodyPl
+                  const n = post.sections!.length
+                  const m = inlineImages.length
+                  let inlineImg: string | undefined
+                  for (let k = 0; k < m; k++) {
+                    if (Math.floor(((k + 1) * n) / (m + 1)) - 1 === i) {
+                      inlineImg = inlineImages[k]
+                      break
+                    }
+                  }
                   return (
                     <div key={i}>
                       <h2 className="text-2xl sm:text-3xl font-bold font-display tracking-tight mt-12 mb-5 text-slate-900 scroll-mt-24" id={`section-${i}`}>
@@ -474,6 +502,18 @@ export function BlogPostPage() {
                           dangerouslySetInnerHTML={{ __html: para }}
                         />
                       ))}
+                      {inlineImg && (
+                        <figure className="my-10 not-prose">
+                          <div className="relative aspect-[16/9] rounded-2xl overflow-hidden shadow-[0_12px_40px_-8px_rgba(0,0,0,0.12)] ring-1 ring-black/5">
+                            <img
+                              src={inlineImg}
+                              alt=""
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          </div>
+                        </figure>
+                      )}
                       <SectionInlineComponents section={section} />
                       {section.subSections?.map((sub, k) => (
                         <div key={k}>
