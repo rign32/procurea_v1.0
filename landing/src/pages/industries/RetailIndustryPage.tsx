@@ -531,7 +531,21 @@ export function RetailIndustryPage() {
         <section className="py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <RevealOnScroll>
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-12 max-w-3xl">{t.pains.title}</h2>
+              <div className="relative rounded-2xl overflow-hidden mb-12 bg-slate-100 shadow-xl">
+                <div className="relative aspect-[16/10] md:aspect-[21/9] lg:aspect-[24/8]">
+                  <img
+                    src="/industries/retail.jpg"
+                    alt={isEN ? "Retail operations manager inspecting a defective product sample" : "Menedżerka operacji retail oceniająca wadliwą próbkę produktu"}
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/55 to-slate-950/15" />
+                  <div className="absolute inset-0 flex items-end p-6 sm:p-10 md:p-14">
+                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white max-w-3xl leading-[1.1]">{t.pains.title}</h2>
+                  </div>
+                </div>
+              </div>
             </RevealOnScroll>
             <div className="grid md:grid-cols-3 gap-5">
               {t.pains.items.map((p, i) => (
