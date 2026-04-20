@@ -51,11 +51,145 @@ export class LeadsService {
     this.notifySales(lead).catch((err) => {
       this.logger.warn(`Failed to notify sales for lead ${lead.id}: ${err.message}`)
     })
-    this.sendConfirmation(lead).catch((err) => {
-      this.logger.warn(`Failed to send confirmation for lead ${lead.id}: ${err.message}`)
-    })
+
+    // Lead-magnet gate submissions get a download-specific email with the file link.
+    // All other sources get the generic "thanks, we'll respond" confirmation.
+    if (dto.source === 'resource-gate' && dto.resourceSlug) {
+      this.sendLeadMagnetDownload(lead, dto.resourceSlug).catch((err) => {
+        this.logger.warn(`Failed to send lead magnet email for lead ${lead.id}: ${err.message}`)
+      })
+    } else {
+      this.sendConfirmation(lead).catch((err) => {
+        this.logger.warn(`Failed to send confirmation for lead ${lead.id}: ${err.message}`)
+      })
+    }
 
     return { id: lead.id, status: 'ok' as const }
+  }
+
+  // Registry of available lead magnets — kept in sync with landing/src/content/resources.ts
+  // Keyed by resource slug. Values are the public download path (served by Firebase Hosting).
+  private readonly LEAD_MAGNETS: Record<
+    string,
+    { titleEn: string; titlePl: string; downloadPath: string; formatEn: string; formatPl: string }
+  > = {
+    'rfq-comparison-template': {
+      titleEn: 'RFQ Comparison Template',
+      titlePl: 'Szablon porównania ofert RFQ',
+      downloadPath: '/resources/downloads/rfq-comparison-template/rfq-comparison-template.xlsx',
+      formatEn: 'Excel workbook · 3 sheets',
+      formatPl: 'Arkusz Excel · 3 zakładki',
+    },
+    'tco-calculator': {
+      titleEn: 'TCO Calculator',
+      titlePl: 'Kalkulator TCO',
+      downloadPath: '/resources/downloads/tco-calculator/tco-calculator.xlsx',
+      formatEn: 'Excel calculator · 3 tabs',
+      formatPl: 'Kalkulator Excel · 3 zakładki',
+    },
+    'supplier-risk-checklist-2026': {
+      titleEn: 'Supplier Risk Checklist 2026',
+      titlePl: 'Checklista ryzyka dostawcy 2026',
+      downloadPath:
+        '/resources/downloads/supplier-risk-checklist-2026/supplier-risk-checklist-2026.pdf',
+      formatEn: 'PDF · 9 pages',
+      formatPl: 'PDF · 9 stron',
+    },
+    'vendor-scoring-framework': {
+      titleEn: 'Vendor Scoring Framework',
+      titlePl: 'Framework scoringu dostawcy',
+      downloadPath:
+        '/resources/downloads/vendor-scoring-framework/vendor-scoring-framework.pdf',
+      formatEn: 'PDF · 15 pages',
+      formatPl: 'PDF · 15 stron',
+    },
+    'nearshore-migration-playbook': {
+      titleEn: 'Nearshore Migration Playbook',
+      titlePl: 'Playbook migracji nearshore',
+      downloadPath:
+        '/resources/downloads/nearshore-migration-playbook/nearshore-migration-playbook.pdf',
+      formatEn: 'PDF · 14 pages',
+      formatPl: 'PDF · 14 stron',
+    },
+  }
+
+  private async sendLeadMagnetDownload(
+    lead: { id: string; name: string; email: string; language: string },
+    resourceSlug: string,
+  ) {
+    if (!this.resend) {
+      this.logger.warn(`Skipping lead magnet email (no RESEND_API_KEY): ${lead.email} → ${resourceSlug}`)
+      return
+    }
+
+    const magnet = this.LEAD_MAGNETS[resourceSlug]
+    if (!magnet) {
+      this.logger.warn(`Unknown lead magnet slug "${resourceSlug}" for lead ${lead.id}`)
+      return
+    }
+
+    const isEN = lead.language === 'en'
+    const fromEmail = isEN ? 'noreply@procurea.io' : 'noreply@procurea.pl'
+    const siteBase = isEN ? 'https://procurea.io' : 'https://procurea.pl'
+    const downloadUrl = `${siteBase}${magnet.downloadPath}`
+    const title = isEN ? magnet.titleEn : magnet.titlePl
+    const format = isEN ? magnet.formatEn : magnet.formatPl
+
+    const subject = isEN
+      ? `Your download — ${title}`
+      : `Twój plik do pobrania — ${title}`
+
+    const text = isEN
+      ? `Hi ${lead.name},
+
+Your download is ready: ${title} (${format}).
+
+→ ${downloadUrl}
+
+The file opens in your browser. Save it locally if you want to keep it.
+
+If you have any questions about applying the framework, just reply to this email.
+
+— Procurea team
+${siteBase}
+`.trim()
+      : `Cześć ${lead.name},
+
+Twój plik jest gotowy: ${title} (${format}).
+
+→ ${downloadUrl}
+
+Plik otworzy się w przeglądarce. Zapisz go lokalnie, jeśli chcesz go zatrzymać.
+
+Jeśli masz pytania o zastosowanie frameworka — odpisz na ten email.
+
+— Zespół Procurea
+${siteBase}
+`.trim()
+
+    const html = isEN
+      ? `<p>Hi ${lead.name},</p>
+<p>Your download is ready: <strong>${title}</strong> (${format}).</p>
+<p><a href="${downloadUrl}" style="display:inline-block;background:#5E8C8F;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600">Download ${title}</a></p>
+<p>The file opens in your browser. Save it locally if you want to keep it.</p>
+<p>If you have any questions about applying the framework, just reply to this email.</p>
+<p>— Procurea team<br><a href="${siteBase}">${siteBase}</a></p>`
+      : `<p>Cześć ${lead.name},</p>
+<p>Twój plik jest gotowy: <strong>${title}</strong> (${format}).</p>
+<p><a href="${downloadUrl}" style="display:inline-block;background:#5E8C8F;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600">Pobierz ${title}</a></p>
+<p>Plik otworzy się w przeglądarce. Zapisz go lokalnie, jeśli chcesz go zatrzymać.</p>
+<p>Jeśli masz pytania o zastosowanie frameworka — odpisz na ten email.</p>
+<p>— Zespół Procurea<br><a href="${siteBase}">${siteBase}</a></p>`
+
+    await this.resend.emails.send({
+      from: fromEmail,
+      to: lead.email,
+      subject,
+      text,
+      html,
+    })
+
+    this.logger.log(`Lead magnet email sent: ${lead.email} → ${resourceSlug}`)
   }
 
   private async notifySales(lead: { id: string; name: string; company: string | null; email: string; phone: string | null; interest: string; message: string | null; source: string; language: string; utmSource: string | null; utmMedium: string | null; utmCampaign: string | null }) {

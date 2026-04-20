@@ -51,16 +51,29 @@ export function ResourcePage() {
     setError(null)
     setState('loading')
     try {
+      // Fire lead capture (backend requires `interest` field; resource slug
+      // doubles as the interest signal so sales/analytics can segment).
       await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...formData,
-          resourceSlug: resource.slug,
+          name: formData.name,
+          email: formData.email,
+          company: formData.company,
+          interest: `lead_magnet:${resource.slug}`,
           source: 'resource-gate',
+          language: isEN ? 'en' : 'pl',
+          resourceSlug: resource.slug,
         }),
       }).catch(() => null)
+
       setState('success')
+
+      // Trigger immediate download — user gets the file right away,
+      // the confirmation email is a secondary backup.
+      if (!isComingSoon && resource.gatedDownloadUrl) {
+        window.open(resource.gatedDownloadUrl, '_blank', 'noopener,noreferrer')
+      }
     } catch {
       setState('error')
       setError(isEN ? 'Something went wrong. Please try again.' : 'Coś poszło nie tak. Spróbuj ponownie.')
@@ -175,28 +188,48 @@ export function ResourcePage() {
                     )}
 
                     {state === 'success' ? (
-                      <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-5" role="status">
-                        <CheckCircle2 className="h-6 w-6 text-emerald-600 mb-2" aria-hidden="true" />
-                        <h3 className="font-bold text-emerald-900 mb-1">
-                          {isEN ? 'Check your inbox' : 'Sprawdź skrzynkę'}
-                        </h3>
-                        <p className="text-sm text-emerald-800">
-                          {isComingSoon
-                            ? isEN
-                              ? `We will email you as soon as ${resource.formatLabel} is ready.`
-                              : `Wyślemy email gdy ${resource.formatLabel} będzie gotowe.`
-                            : isEN
-                              ? 'Your download link is on its way. Takes a minute.'
-                              : 'Link do pobrania wysłany. Dotrze w minutę.'}
-                        </p>
-                        {!isComingSoon && resource.gatedDownloadUrl && (
-                          <a
-                            href={resource.gatedDownloadUrl}
-                            className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-emerald-700 hover:text-emerald-900"
-                          >
-                            <Download className="h-4 w-4" aria-hidden="true" />
-                            {isEN ? 'Or download directly' : 'Lub pobierz bezpośrednio'}
-                          </a>
+                      <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-5 sm:p-6" role="status">
+                        <CheckCircle2 className="h-7 w-7 text-emerald-600 mb-3" aria-hidden="true" />
+                        {isComingSoon ? (
+                          <>
+                            <h3 className="font-bold text-emerald-900 mb-1.5 text-lg">
+                              {isEN ? 'You are on the list' : 'Jesteś na liście'}
+                            </h3>
+                            <p className="text-sm text-emerald-800 leading-relaxed">
+                              {isEN
+                                ? `We will email you as soon as the ${resource.formatLabel} is ready.`
+                                : `Wyślemy email gdy ${resource.formatLabel} będzie gotowe.`}
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <h3 className="font-bold text-emerald-900 mb-1.5 text-lg">
+                              {isEN ? 'Your download is ready' : 'Twój plik jest gotowy'}
+                            </h3>
+                            <p className="text-sm text-emerald-800 leading-relaxed mb-4">
+                              {isEN
+                                ? 'The file should have opened in a new tab. If the browser blocked it, click the button below.'
+                                : 'Plik powinien otworzyć się w nowej karcie. Jeśli przeglądarka go zablokowała, kliknij przycisk poniżej.'}
+                            </p>
+                            {resource.gatedDownloadUrl && (
+                              <a
+                                href={resource.gatedDownloadUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center gap-2 w-full rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 text-sm shadow-sm hover:shadow-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+                              >
+                                <Download className="h-4 w-4" aria-hidden="true" />
+                                {isEN
+                                  ? `Download ${resource.formatLabel}`
+                                  : `Pobierz ${resource.formatLabel}`}
+                              </a>
+                            )}
+                            <p className="text-xs text-emerald-700/80 mt-3">
+                              {isEN
+                                ? 'A confirmation email is also on its way to your inbox.'
+                                : 'Email potwierdzający też jest w drodze na Twoją skrzynkę.'}
+                            </p>
+                          </>
                         )}
                       </div>
                     ) : (

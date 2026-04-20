@@ -21,4 +21,10 @@ export class CreateLeadDto {
   utmSource?: string
   utmMedium?: string
   utmCampaign?: string
+  /**
+   * When the form is a lead-magnet gate (source="resource-gate"), this
+   * carries the resource slug so the backend can send a dedicated email
+   * with the download link.
+   */
+  resourceSlug?: string
 }
