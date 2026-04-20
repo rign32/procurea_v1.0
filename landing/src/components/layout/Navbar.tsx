@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Link } from "react-router-dom"
 import { useScrollProgress } from "@/hooks/useScrollProgress"
 import { MobileMenu } from "./MobileMenu"
-import { NavDropdown, type DropdownSection } from "./NavDropdown"
+import { NavDropdown, NavDropdownGroup, type DropdownSection } from "./NavDropdown"
 import { Menu, Search, Mail, LayoutGrid, Zap, Sparkles, Building2, BookOpen, Download, TrendingUp, Newspaper } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { trackCtaClick } from "@/lib/analytics"
@@ -166,35 +166,37 @@ export function Navbar() {
             </Link>
 
             {/* Desktop nav -- visible at lg (1024px) and up */}
-            <div className="hidden lg:flex items-center gap-0.5">
-              <Link to={pathFor('home')} className={linkClass}>
-                {t.nav.product}
-              </Link>
-              <NavDropdown
-                label={isEN ? 'Modules' : 'Moduly'}
-                sections={modulesSections}
-                columns={2}
-              />
-              <NavDropdown
-                label={isEN ? 'Industries' : 'Branze'}
-                sections={industriesSections}
-                columns={1}
-              />
-              <Link to={pathFor('pricing')} className={linkClass}>
-                {t.nav.pricing}
-              </Link>
-              <Link to={pathFor('integrationsHub')} className={linkClass}>
-                {t.nav.integrations}
-              </Link>
-              <NavDropdown
-                label={isEN ? 'Resources' : 'Materialy'}
-                sections={resourcesSections}
-                columns={1}
-              />
-              <Link to={pathFor('about')} className={linkClass}>
-                {t.nav.company}
-              </Link>
-            </div>
+            <NavDropdownGroup>
+              <div className="hidden lg:flex items-center gap-0.5">
+                <Link to={pathFor('home')} className={linkClass}>
+                  {t.nav.product}
+                </Link>
+                <NavDropdown
+                  label={isEN ? 'Modules' : 'Moduly'}
+                  sections={modulesSections}
+                  columns={2}
+                />
+                <NavDropdown
+                  label={isEN ? 'Industries' : 'Branze'}
+                  sections={industriesSections}
+                  columns={1}
+                />
+                <Link to={pathFor('pricing')} className={linkClass}>
+                  {t.nav.pricing}
+                </Link>
+                <Link to={pathFor('integrationsHub')} className={linkClass}>
+                  {t.nav.integrations}
+                </Link>
+                <NavDropdown
+                  label={isEN ? 'Resources' : 'Materialy'}
+                  sections={resourcesSections}
+                  columns={1}
+                />
+                <Link to={pathFor('about')} className={linkClass}>
+                  {t.nav.company}
+                </Link>
+              </div>
+            </NavDropdownGroup>
 
             {/* Desktop CTA -- visible at lg and up */}
             <div className="hidden lg:flex items-center gap-3 shrink-0">
