@@ -12,16 +12,17 @@ const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
 const isEN = LANG === 'en'
 
-/* ─────────── Plans (matches prototype's 3-plan structure) ─────────── */
+/* ─────────── Plans — same features across tiers, differ only in volume ─────────── */
 
-type PlanCta = 'self-serve' | 'featured' | 'contact-sales'
+type PlanCta = 'self-serve' | 'featured'
 
 interface Plan {
   name: string
   price: string
   unit: string
+  runs: string
+  perRun: string
   tagline: string
-  features: string[]
   cta: { label: string; kind: PlanCta; interestTag?: string }
   featured?: boolean
 }
@@ -32,29 +33,18 @@ const plans: Plan[] = isEN
         name: "Starter",
         price: "€89",
         unit: "/ month",
-        tagline: "For a single buyer running a handful of RFQs.",
-        features: [
-          "20 sourcing runs / month",
-          "Up to 50 suppliers per run",
-          "2 RFQ templates",
-          "CSV export",
-          "Email support",
-        ],
+        runs: "10 sourcing runs",
+        perRun: "€8.90 / run",
+        tagline: "For a single buyer running occasional RFQs.",
         cta: { label: "Start free", kind: "self-serve" },
       },
       {
         name: "Growth",
         price: "€349",
         unit: "/ month",
+        runs: "50 sourcing runs",
+        perRun: "€6.98 / run",
         tagline: "For procurement teams of 2–5 at an SMB manufacturer or builder.",
-        features: [
-          "100 sourcing runs / month",
-          "Up to 250 suppliers per run",
-          "Unlimited RFQ templates",
-          "ERP connectors (NetSuite, Dynamics 365 BC, QuickBooks, Xero)",
-          "Shared inbox & approval flows",
-          "Priority support + onboarding",
-        ],
         cta: { label: "Start Growth", kind: "featured", interestTag: "growth_plan" },
         featured: true,
       },
@@ -62,15 +52,10 @@ const plans: Plan[] = isEN
         name: "Scale",
         price: "€890",
         unit: "/ month",
-        tagline: "Multiple sites, multiple categories, custom compliance.",
-        features: [
-          "Unlimited sourcing runs",
-          "Custom supplier verification rules",
-          "SSO & audit log",
-          "Dedicated category manager",
-          "99.9% SLA",
-        ],
-        cta: { label: "Talk to sales", kind: "contact-sales", interestTag: "scale_plan" },
+        runs: "150 sourcing runs",
+        perRun: "€5.93 / run",
+        tagline: "For multi-site, multi-category operations.",
+        cta: { label: "Start Scale", kind: "self-serve", interestTag: "scale_plan" },
       },
     ]
   : [
@@ -78,29 +63,18 @@ const plans: Plan[] = isEN
         name: "Starter",
         price: "€89",
         unit: "/ miesiąc",
-        tagline: "Dla jednego kupca prowadzącego kilka RFQ.",
-        features: [
-          "20 kampanii sourcingowych / miesiąc",
-          "Do 50 dostawców na kampanię",
-          "2 szablony RFQ",
-          "Eksport CSV",
-          "Wsparcie mailowe",
-        ],
+        runs: "10 kampanii sourcingowych",
+        perRun: "€8,90 / kampania",
+        tagline: "Dla jednego kupca prowadzącego kilka RFQ miesięcznie.",
         cta: { label: "Zacznij za darmo", kind: "self-serve" },
       },
       {
         name: "Growth",
         price: "€349",
         unit: "/ miesiąc",
+        runs: "50 kampanii sourcingowych",
+        perRun: "€6,98 / kampania",
         tagline: "Dla 2–5 osobowych zespołów procurement w SMB produkcji lub budownictwie.",
-        features: [
-          "100 kampanii sourcingowych / miesiąc",
-          "Do 250 dostawców na kampanię",
-          "Nielimitowane szablony RFQ",
-          "Konektory ERP (NetSuite, Dynamics 365 BC, QuickBooks, Xero)",
-          "Wspólny inbox i flow zatwierdzania",
-          "Priorytetowe wsparcie + onboarding",
-        ],
         cta: { label: "Zacznij Growth", kind: "featured", interestTag: "growth_plan" },
         featured: true,
       },
@@ -108,19 +82,60 @@ const plans: Plan[] = isEN
         name: "Scale",
         price: "€890",
         unit: "/ miesiąc",
-        tagline: "Wiele lokalizacji, wiele kategorii, custom compliance.",
-        features: [
-          "Nielimitowane kampanie sourcingowe",
-          "Custom reguły weryfikacji dostawców",
-          "SSO i audit log",
-          "Dedykowany category manager",
-          "99,9% SLA",
-        ],
-        cta: { label: "Porozmawiaj z nami", kind: "contact-sales", interestTag: "scale_plan" },
+        runs: "150 kampanii sourcingowych",
+        perRun: "€5,93 / kampania",
+        tagline: "Dla multi-site, multi-category operacji.",
+        cta: { label: "Zacznij Scale", kind: "self-serve", interestTag: "scale_plan" },
       },
     ]
 
-/* ─────────── Credit packs (prototype 4-card layout) ─────────── */
+/* ─────────── Shared features — same for every plan ─────────── */
+
+const sharedFeatures = isEN
+  ? [
+      "AI pipeline: up to 250 verified suppliers per run",
+      "Research in 26 languages (EU + global markets)",
+      "Supplier Database with AI scores & campaign history",
+      "One-click Excel export of the full supplier list",
+      "Deduplication against your existing vendor base",
+      "ERP connectors (NetSuite, Dynamics 365 BC, QuickBooks, Xero)",
+      "Shared inbox, approvals, team comments",
+      "3 free sourcing runs on signup — no credit card",
+    ]
+  : [
+      "AI pipeline: do 250 zweryfikowanych dostawców na kampanię",
+      "Research w 26 językach (UE + rynki globalne)",
+      "Baza Dostawców z ocenami AI i historią kampanii",
+      "Eksport pełnej listy dostawców do Excela jednym kliknięciem",
+      "Deduplikacja wobec istniejącej bazy dostawców",
+      "Konektory ERP (NetSuite, Dynamics 365 BC, QuickBooks, Xero)",
+      "Wspólny inbox, approvals, komentarze zespołu",
+      "3 darmowe kampanie sourcingowe po rejestracji — bez karty",
+    ]
+
+/* ─────────── AI Procurement add-on ─────────── */
+
+const procurementFeatures = isEN
+  ? [
+      "Contact enrichment — decision-makers, emails, phones",
+      "Email outreach localized per supplier country (26 languages)",
+      "Auto follow-up sequences on your schedule",
+      "Supplier Portal (magic link — no login for suppliers)",
+      "Structured offer collection (MOQ, lead time, quantity breaks)",
+      "Side-by-side offer comparison with weighted ranking",
+      "AI Insights PDF/PPTX reports — ready for your CFO",
+    ]
+  : [
+      "Enrichment kontaktów — decydenci, emaile, telefony",
+      "Email outreach zlokalizowany per kraj dostawcy (26 języków)",
+      "Automatyczne sekwencje follow-up na Twoim harmonogramie",
+      "Supplier Portal (magic link — dostawcy bez logowania)",
+      "Strukturalne zbieranie ofert (MOQ, lead time, quantity breaks)",
+      "Porównanie ofert side-by-side z rankingiem ważonym",
+      "Raporty AI Insights PDF/PPTX — gotowe dla CFO",
+    ]
+
+/* ─────────── Credit packs — AI Sourcing pay-as-you-go only ─────────── */
 
 interface CreditPack {
   label: string
@@ -133,34 +148,38 @@ interface CreditPack {
 
 const creditPacks: CreditPack[] = isEN
   ? [
-      { label: "Starter pack", credits: "10 credits",    price: "€69",     perRun: "€6.90 / run" },
-      { label: "Team pack",    credits: "25 credits",    price: "€132",    perRun: "€5.28 / run", save: "Save 24%", best: true },
-      { label: "Scale pack",   credits: "50 credits",    price: "€220",    perRun: "€4.40 / run" },
-      { label: "Enterprise",   credits: "100+ credits",  price: "Custom",  perRun: "from €3.80 / run" },
+      { label: "Starter pack", credits: "10 runs",   price: "€89",    perRun: "€8.90 / run" },
+      { label: "Team pack",    credits: "25 runs",   price: "€199",   perRun: "€7.96 / run", save: "Save 11%", best: true },
+      { label: "Scale pack",   credits: "50 runs",   price: "€299",   perRun: "€5.98 / run", save: "Save 33%" },
+      { label: "Enterprise",   credits: "100+ runs", price: "Custom", perRun: "from €5 / run" },
     ]
   : [
-      { label: "Pakiet startowy",  credits: "10 kredytów",    price: "€69",           perRun: "€6,90 / kampania" },
-      { label: "Pakiet zespołu",   credits: "25 kredytów",    price: "€132",          perRun: "€5,28 / kampania", save: "−24%", best: true },
-      { label: "Pakiet skalujący", credits: "50 kredytów",    price: "€220",          perRun: "€4,40 / kampania" },
-      { label: "Enterprise",       credits: "100+ kredytów",  price: "Indywidualnie", perRun: "od €3,80 / kampania" },
+      { label: "Pakiet startowy",  credits: "10 kampanii",   price: "€89",           perRun: "€8,90 / kampania" },
+      { label: "Pakiet zespołu",   credits: "25 kampanii",   price: "€199",          perRun: "€7,96 / kampania", save: "−11%", best: true },
+      { label: "Pakiet skalujący", credits: "50 kampanii",   price: "€299",          perRun: "€5,98 / kampania", save: "−33%" },
+      { label: "Enterprise",       credits: "100+ kampanii", price: "Indywidualnie", perRun: "od €5 / kampania" },
     ]
 
 /* ─────────── FAQ ─────────── */
 
 const faq = isEN
   ? [
-      { q: 'What counts as a "sourcing run"?',                    a: 'One spec / category + region combination, returning a ranked list of up to 250 suppliers. You can export, shortlist and send RFQs from that same run without consuming extra credits.' },
-      { q: 'What if I run out of credits mid-month?',             a: "Top up with any credit pack — they stack. Or switch to a plan, and we'll prorate." },
-      { q: 'Do you offer a free trial?',                          a: 'Yes. 3 free sourcing runs when you sign up. No credit card.' },
-      { q: 'Annual billing discount?',                            a: 'Yes — 15% off all plans billed annually.' },
-      { q: 'Is there a setup fee?',                               a: 'No. On Growth and Scale, onboarding is included.' },
+      { q: 'What counts as a "sourcing run"?',                     a: 'One spec / category + region combination, returning a ranked list of up to 250 verified suppliers. You can export, shortlist and (if you add AI Procurement) send RFQs from the same run without consuming extra sourcing credits.' },
+      { q: 'What is AI Procurement and when do I need it?',         a: 'AI Procurement extends any sourcing run with the full RFQ workflow — contact enrichment, localized email outreach, Supplier Portal, offer collection, side-by-side comparison, AI Insights reports. €29 per workflow, charged only on runs where you activate it.' },
+      { q: 'Do I have to buy AI Procurement for every run?',         a: 'No. AI Procurement is opt-in per run. Run sourcing alone when you only need a supplier list; add the €29 workflow on the runs where you actually want RFQ outreach and offer collection.' },
+      { q: 'What if I run out of sourcing runs mid-month?',          a: 'Top up with any Sourcing credit pack — they stack. Or upgrade your plan and we\'ll prorate the difference.' },
+      { q: 'Do you offer a free trial?',                             a: 'Yes. 3 free sourcing runs on signup. No credit card.' },
+      { q: 'Annual billing discount?',                               a: 'Yes — 15% off on all plans billed annually.' },
+      { q: 'Is there a setup fee?',                                  a: 'No. On Growth and Scale, onboarding is included.' },
     ]
   : [
-      { q: 'Co liczy się jako „sourcing run"?',                    a: 'Jedna specyfikacja / kategoria + region, zwraca ranking do 250 dostawców. Z tego samego runu możesz eksportować, shortlistować i wysyłać RFQ bez dodatkowych kredytów.' },
-      { q: 'Co jeśli skończą mi się kredyty w środku miesiąca?',   a: 'Doładuj dowolnym pakietem — stakują się. Albo przejdź na plan, przeliczymy proporcjonalnie.' },
-      { q: 'Czy oferujecie darmowy trial?',                        a: 'Tak. 3 darmowe sourcing run po rejestracji. Bez karty.' },
-      { q: 'Rabat za rozliczenie roczne?',                         a: 'Tak — 15% zniżki na wszystkie plany przy rozliczeniu rocznym.' },
-      { q: 'Czy jest opłata wdrożeniowa?',                         a: 'Nie. Na Growth i Scale onboarding jest wliczony.' },
+      { q: 'Co liczy się jako „sourcing run"?',                      a: 'Jedna specyfikacja / kategoria + region, zwraca ranking do 250 zweryfikowanych dostawców. Z tego samego runu możesz eksportować, shortlistować i (po dodaniu AI Procurement) wysyłać RFQ bez zużywania dodatkowych kredytów sourcingowych.' },
+      { q: 'Co to jest AI Procurement i kiedy go potrzebuję?',       a: 'AI Procurement rozszerza dowolny run sourcingowy o pełny workflow RFQ — enrichment kontaktów, zlokalizowany outreach email, Supplier Portal, zbieranie ofert, porównanie side-by-side, raporty AI Insights. €29 za workflow, płacone tylko przy runach, w których go aktywujesz.' },
+      { q: 'Czy muszę kupić AI Procurement dla każdego runu?',       a: 'Nie. AI Procurement jest opt-in per run. Uruchom sam sourcing, kiedy potrzebujesz tylko listy dostawców; dodaj workflow €29 na tych runach, na których naprawdę chcesz outreach RFQ i zbieranie ofert.' },
+      { q: 'Co jeśli skończą mi się runy w środku miesiąca?',        a: 'Doładuj dowolnym pakietem kredytów Sourcingowych — stakują się. Albo przejdź na wyższy plan, a przeliczymy różnicę proporcjonalnie.' },
+      { q: 'Czy oferujecie darmowy trial?',                           a: 'Tak. 3 darmowe runy sourcingowe po rejestracji. Bez karty.' },
+      { q: 'Rabat za rozliczenie roczne?',                            a: 'Tak — 15% zniżki na wszystkie plany przy rozliczeniu rocznym.' },
+      { q: 'Czy jest opłata wdrożeniowa?',                            a: 'Nie. Na Growth i Scale onboarding jest wliczony.' },
     ]
 
 /* ─────────── Plan card ─────────── */
@@ -169,27 +188,17 @@ function PlanCard({ plan }: { plan: Plan }) {
   const ctaClass =
     plan.cta.kind === "featured" ? "btn-ds btn-ds-secondary" : "btn-ds btn-ds-ghost"
 
-  const ctaElement = plan.cta.kind === "contact-sales"
-    ? (
-      <Link
-        to={`${pathFor('contact')}${plan.cta.interestTag ? `?interest=${plan.cta.interestTag}` : ''}#calendar`}
-        onClick={() => trackCtaClick(`pricing_${plan.name.toLowerCase()}_sales`)}
-        className={`${ctaClass} w-full justify-center mt-auto`}
-      >
-        {plan.cta.label}
-      </Link>
-    )
-    : (
-      <a
-        href={appendUtm(APP_URL, `pricing_${plan.name.toLowerCase()}`)}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={() => trackCtaClick(`pricing_${plan.name.toLowerCase()}`)}
-        className={`${ctaClass} w-full justify-center mt-auto`}
-      >
-        {plan.cta.label}
-      </a>
-    )
+  const ctaElement = (
+    <a
+      href={appendUtm(APP_URL, `pricing_${plan.name.toLowerCase()}`)}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={() => trackCtaClick(`pricing_${plan.name.toLowerCase()}`)}
+      className={`${ctaClass} w-full justify-center mt-auto`}
+    >
+      {plan.cta.label}
+    </a>
+  )
 
   return (
     <motion.div
@@ -226,24 +235,20 @@ function PlanCard({ plan }: { plan: Plan }) {
         {plan.tagline}
       </p>
 
-      <ul className="list-none p-0 m-0 grid gap-2.5 flex-1">
-        {plan.features.map((feature) => (
-          <li
-            key={feature}
-            className="text-[13.5px] leading-[1.45] text-[hsl(var(--ds-ink-2))] flex items-start gap-2.5"
-          >
-            <span
-              aria-hidden
-              className="mt-[3px] h-[14px] w-[14px] rounded-full bg-[hsl(var(--ds-accent-soft))] shrink-0"
-              style={{
-                backgroundImage:
-                  "radial-gradient(circle, hsl(var(--ds-accent)) 0 28%, transparent 30%)",
-              }}
-            />
-            <span>{feature}</span>
-          </li>
-        ))}
-      </ul>
+      <div className="flex flex-col gap-1 rounded-[10px] bg-[hsl(var(--ds-accent-soft))] px-4 py-3">
+        <span className="font-mono text-[15px] font-semibold text-[hsl(var(--ds-ink))]">
+          {plan.runs}
+        </span>
+        <span className="text-[12px] text-[hsl(var(--ds-muted))]">
+          {plan.perRun}
+        </span>
+      </div>
+
+      <p className="text-[12.5px] leading-[1.5] text-[hsl(var(--ds-ink-3))] flex-1">
+        {isEN
+          ? <>All features included. Add <strong>AI Procurement workflow</strong> (€29 / run) only when you want RFQ outreach.</>
+          : <>Wszystkie funkcje w cenie. Dodaj <strong>AI Procurement workflow</strong> (€29 / run) tylko gdy chcesz outreach RFQ.</>}
+      </p>
 
       {ctaElement}
     </motion.div>
@@ -259,43 +264,28 @@ export function PricingPage() {
       <Navbar />
 
       <main id="main-content" className="pb-20">
-        {/* Hero */}
+        {/* Hero — compact so plans show above the fold */}
         <section className="hero-wash border-b border-[hsl(var(--ds-rule))]">
-          <div className="mx-auto max-w-[920px] px-[clamp(20px,4vw,72px)] pt-[clamp(96px,10vw,144px)] pb-[clamp(32px,4vw,56px)] text-center">
-            <span className="eyebrow mb-5 inline-flex">
+          <div className="mx-auto max-w-[820px] px-[clamp(20px,4vw,72px)] pt-[clamp(72px,6vw,96px)] pb-[clamp(20px,2.5vw,32px)] text-center">
+            <span className="eyebrow mb-4 inline-flex">
               <span className="eyebrow-dot" />
               {isEN ? "Pricing" : "Cennik"}
             </span>
-            <h1 className="font-display text-[clamp(36px,5.2vw,64px)] font-bold leading-[1.04] tracking-[-0.03em] mb-[18px] text-balance text-[hsl(var(--ds-ink))]">
-              {isEN ? "Transparent credit-based pricing." : "Przejrzysty pricing credit-based."}
+            <h1 className="font-display text-[clamp(30px,3.6vw,44px)] font-bold leading-[1.08] tracking-[-0.02em] mb-4 text-balance text-[hsl(var(--ds-ink))]">
+              {isEN ? "Pay for sourcing runs. Add procurement on demand." : "Płać za kampanie sourcingowe. Procurement dodawaj kiedy potrzebujesz."}
             </h1>
             <RevealOnScroll>
-              <p className="text-[18px] leading-[1.55] text-[hsl(var(--ds-ink-3))] max-w-[58ch] mx-auto mb-7">
+              <p className="text-[15.5px] leading-[1.55] text-[hsl(var(--ds-ink-3))] max-w-[56ch] mx-auto">
                 {isEN
-                  ? 'Start with 3 free sourcing runs. When you need more, pick a plan — or buy a credit pack. No per-seat fees, no 12-month lock-in, no "contact sales".'
-                  : 'Zacznij od 3 darmowych sourcing run. Gdy potrzebujesz więcej — wybierz plan lub pakiet kredytów. Bez opłat per-seat, bez blokady 12-miesięcznej, bez „skontaktuj się z nami".'}
+                  ? 'All features in every plan — plans differ only in how many sourcing runs you get per month. Add AI Procurement workflow (€29 / run) when you want full RFQ outreach.'
+                  : 'Wszystkie funkcje w każdym planie — plany różnią się tylko liczbą kampanii sourcingowych na miesiąc. Dodaj AI Procurement workflow (€29 / run) gdy chcesz pełny outreach RFQ.'}
               </p>
-              <div className="flex items-center justify-center gap-3 flex-wrap">
-                <a
-                  href={appendUtm(APP_URL, 'pricing_hero_signup')}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => trackCtaClick('pricing_hero_signup')}
-                  className="btn-ds btn-ds-primary"
-                >
-                  {isEN ? 'Start free' : 'Zacznij za darmo'}
-                  <span className="arrow" aria-hidden>→</span>
-                </a>
-                <a href="#plans" className="btn-ds btn-ds-ghost">
-                  {isEN ? 'Compare plans' : 'Porównaj plany'}
-                </a>
-              </div>
             </RevealOnScroll>
           </div>
         </section>
 
-        {/* Plans grid — 3 cards matching prototype */}
-        <section id="plans" className="mx-auto max-w-[1240px] px-[clamp(20px,4vw,72px)] pt-[clamp(48px,6vw,80px)] pb-[clamp(32px,4vw,56px)]">
+        {/* Plans grid */}
+        <section id="plans" className="mx-auto max-w-[1240px] px-[clamp(20px,4vw,72px)] pt-[clamp(36px,4vw,56px)] pb-[clamp(28px,3vw,44px)]">
           <motion.div
             className="grid grid-cols-1 md:grid-cols-3 gap-3.5"
             initial="hidden"
@@ -315,21 +305,134 @@ export function PricingPage() {
           </motion.div>
         </section>
 
-        {/* Credit packs */}
+        {/* Shared features — one block for all plans */}
         <section className="mx-auto max-w-[1240px] px-[clamp(20px,4vw,72px)] pb-[clamp(48px,6vw,80px)]">
           <RevealOnScroll>
-            <div className="grid justify-items-center text-center gap-3.5 mb-[clamp(28px,4vw,48px)]">
+            <div className="rounded-[14px] border border-[hsl(var(--ds-rule))] bg-[hsl(var(--ds-surface))] p-[clamp(24px,3.5vw,40px)]">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-6">
+                <div>
+                  <span className="eyebrow mb-2 inline-flex">
+                    <span className="eyebrow-dot" />
+                    {isEN ? 'In every plan' : 'W każdym planie'}
+                  </span>
+                  <h2 className="text-[clamp(20px,2.4vw,28px)] font-bold leading-[1.2] text-[hsl(var(--ds-ink))] max-w-[28ch]">
+                    {isEN ? 'Same features for everyone. You choose volume.' : 'Te same funkcje dla każdego. Wybierasz wolumen.'}
+                  </h2>
+                </div>
+                <p className="text-[14px] leading-[1.55] text-[hsl(var(--ds-ink-3))] max-w-[42ch]">
+                  {isEN
+                    ? 'No feature gating, no "enterprise-only" tier locks. Every plan gets the full Sourcing product. You pay for how many runs you need per month.'
+                    : 'Bez feature gating, bez zamkniętych „enterprise-only" poziomów. Każdy plan ma pełny produkt Sourcing. Płacisz za liczbę runów miesięcznie.'}
+                </p>
+              </div>
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2.5 list-none p-0 m-0">
+                {sharedFeatures.map((feature) => (
+                  <li
+                    key={feature}
+                    className="text-[13.5px] leading-[1.5] text-[hsl(var(--ds-ink-2))] flex items-start gap-2.5"
+                  >
+                    <span
+                      aria-hidden
+                      className="mt-[3px] h-[14px] w-[14px] rounded-full bg-[hsl(var(--ds-accent-soft))] shrink-0"
+                      style={{
+                        backgroundImage:
+                          "radial-gradient(circle, hsl(var(--ds-accent)) 0 28%, transparent 30%)",
+                      }}
+                    />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </RevealOnScroll>
+        </section>
+
+        {/* AI Procurement add-on */}
+        <section className="mx-auto max-w-[1240px] px-[clamp(20px,4vw,72px)] pb-[clamp(48px,6vw,80px)]">
+          <RevealOnScroll>
+            <div className="grid justify-items-center text-center gap-3.5 mb-[clamp(24px,3vw,40px)]">
               <span className="eyebrow">
                 <span className="eyebrow-dot" />
-                {isEN ? 'Credit packs' : 'Pakiety kredytów'}
+                {isEN ? 'Add-on · pay per run' : 'Dodatek · płacisz za run'}
               </span>
-              <h2 className="text-[clamp(24px,3vw,36px)] font-bold leading-[1.15] max-w-[28ch] text-[hsl(var(--ds-ink))]">
-                {isEN ? 'Or: pay only for what you source.' : 'Albo: płać tylko za to, co sourcingujesz.'}
+              <h2 className="text-[clamp(24px,3vw,36px)] font-bold leading-[1.15] max-w-[30ch] text-[hsl(var(--ds-ink))]">
+                {isEN ? 'Extend any run with AI Procurement workflow.' : 'Rozszerz dowolny run o AI Procurement workflow.'}
               </h2>
               <p className="text-[16px] leading-[1.55] text-[hsl(var(--ds-ink-3))] max-w-[58ch]">
                 {isEN
-                  ? 'Buy credits up front. One credit = one sourcing run (up to 250 suppliers).'
-                  : 'Kup kredyty z góry. Jeden kredyt = jedna kampania sourcingowa (do 250 dostawców).'}
+                  ? 'Got a supplier list? Turn it into offers. €29 per workflow — activated only on the runs where you want full RFQ outreach and offer collection.'
+                  : 'Masz listę dostawców? Zamień ją w oferty. €29 za workflow — aktywowany tylko na tych runach, na których chcesz pełny outreach RFQ i zbieranie ofert.'}
+              </p>
+            </div>
+          </RevealOnScroll>
+
+          <div className="grid md:grid-cols-[1fr_1.2fr] gap-0 rounded-[14px] border border-[hsl(var(--ds-rule))] bg-[hsl(var(--ds-surface))] overflow-hidden">
+            <div className="p-[clamp(24px,3.5vw,40px)] md:border-r border-[hsl(var(--ds-rule))] bg-[hsl(var(--ds-accent-soft))]/50 flex flex-col gap-4">
+              <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[hsl(var(--ds-muted))]">
+                {isEN ? 'AI Procurement workflow' : 'AI Procurement workflow'}
+              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="font-mono text-[48px] font-semibold tracking-[-0.02em] leading-none text-[hsl(var(--ds-ink))]">
+                  €29
+                </span>
+                <span className="text-[14px] text-[hsl(var(--ds-muted))]">
+                  {isEN ? '/ run' : '/ run'}
+                </span>
+              </div>
+              <p className="text-[13.5px] leading-[1.55] text-[hsl(var(--ds-ink-3))]">
+                {isEN
+                  ? 'Opt-in per sourcing run. Requires an active Sourcing plan — not sold separately.'
+                  : 'Opt-in per run sourcingowy. Wymaga aktywnego planu Sourcing — nie sprzedawany osobno.'}
+              </p>
+              <Link
+                to={`${pathFor('contact')}?interest=ai_procurement#calendar`}
+                onClick={() => trackCtaClick('pricing_procurement_demo')}
+                className="btn-ds btn-ds-ghost w-full justify-center mt-auto"
+              >
+                {isEN ? 'See how it works' : 'Zobacz jak działa'}
+              </Link>
+            </div>
+            <div className="p-[clamp(24px,3.5vw,40px)]">
+              <h3 className="text-[15px] font-semibold text-[hsl(var(--ds-ink))] mb-4">
+                {isEN ? 'Each workflow includes:' : 'Każdy workflow zawiera:'}
+              </h3>
+              <ul className="grid gap-2.5 list-none p-0 m-0">
+                {procurementFeatures.map((feature) => (
+                  <li
+                    key={feature}
+                    className="text-[13.5px] leading-[1.5] text-[hsl(var(--ds-ink-2))] flex items-start gap-2.5"
+                  >
+                    <span
+                      aria-hidden
+                      className="mt-[3px] h-[14px] w-[14px] rounded-full bg-[hsl(var(--ds-accent-soft))] shrink-0"
+                      style={{
+                        backgroundImage:
+                          "radial-gradient(circle, hsl(var(--ds-accent)) 0 28%, transparent 30%)",
+                      }}
+                    />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* Credit packs — AI Sourcing pay-as-you-go */}
+        <section className="mx-auto max-w-[1240px] px-[clamp(20px,4vw,72px)] pb-[clamp(48px,6vw,80px)]">
+          <RevealOnScroll>
+            <div className="grid justify-items-center text-center gap-3.5 mb-[clamp(24px,3vw,40px)]">
+              <span className="eyebrow">
+                <span className="eyebrow-dot" />
+                {isEN ? 'Pay-as-you-go · AI Sourcing only' : 'Pay-as-you-go · tylko AI Sourcing'}
+              </span>
+              <h2 className="text-[clamp(24px,3vw,36px)] font-bold leading-[1.15] max-w-[30ch] text-[hsl(var(--ds-ink))]">
+                {isEN ? 'Or: buy sourcing runs in packs.' : 'Albo: kupuj runy sourcingowe w pakietach.'}
+              </h2>
+              <p className="text-[16px] leading-[1.55] text-[hsl(var(--ds-ink-3))] max-w-[58ch]">
+                {isEN
+                  ? 'No subscription — buy a pack, runs never expire. One credit = one sourcing run (up to 250 suppliers). Procurement workflow stays €29 / run.'
+                  : 'Bez subskrypcji — kup pakiet, runy nigdy nie wygasają. Jeden kredyt = jeden run sourcingowy (do 250 dostawców). Procurement workflow pozostaje €29 / run.'}
               </p>
             </div>
           </RevealOnScroll>
