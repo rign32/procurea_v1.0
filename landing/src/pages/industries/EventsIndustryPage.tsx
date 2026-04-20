@@ -63,13 +63,13 @@ const t = {
     { value: "48h", label: isEN ? "from brief to shortlist" : "od briefu do shortlisty", detail: isEN ? "vs. 10–14 days manual" : "vs. 10–14 dni ręcznie" },
     { value: "26", label: isEN ? "languages supported" : "obsługiwanych języków", detail: isEN ? "incl. Turkish, Greek, Hungarian" : "w tym turecki, grecki, węgierski" },
     { value: "5+", label: isEN ? "parallel category campaigns" : "równoległe kampanie kategorii", detail: isEN ? "one brief, many tracks" : "jeden brief, wiele tracków" },
-    { value: "40+", label: isEN ? "qualified local vendors" : "zakwalifikowanych lokalnych vendorów", detail: isEN ? "per city, per category" : "per miasto, per kategoria" },
+    { value: "40+", label: isEN ? "typical shortlist size" : "typowy rozmiar shortlisty", detail: isEN ? "per city, per category (illustrative)" : "per miasto, per kategoria (ilustracyjnie)" },
   ],
   cities: {
-    title: isEN ? "Cities where we already know the local scene" : "Miasta, gdzie znamy lokalną scenę",
+    title: isEN ? "European cities where AI sourcing finds local scenes fast" : "Miasta europejskie, gdzie AI sourcing szybko znajduje lokalną scenę",
     subtitle: isEN
-      ? "Each dot represents an active supplier pool with verified contacts, recent references and language coverage. We expand weekly."
-      : "Każda kropka to aktywna pula dostawców ze zweryfikowanymi kontaktami, świeżymi referencjami i pokryciem językowym. Rozwijamy tygodniowo.",
+      ? "Illustrative market-size view — typical number of event vendors the AI pipeline surfaces from local directories, across catering, AV, scenography, staffing and gadgets combined. Actual yield depends on your brief, category and timing."
+      : "Ilustracyjny widok rozmiaru rynku — typowa liczba dostawców eventowych, jaką pipeline AI wyciąga z lokalnych katalogów, łącznie dla cateringu, AV, scenografii, obsługi i gadżetów. Rzeczywista liczba zależy od briefu, kategorii i timingu.",
     cities: [
       { name: "Berlin", flag: "🇩🇪", vendors: 312, tone: "amber" },
       { name: "Warsaw", flag: "🇵🇱", vendors: 284, tone: "primary" },

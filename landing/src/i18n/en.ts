@@ -367,7 +367,7 @@ export const EN: LandingTranslations = {
       },
       {
         q: 'Which ERP/CRM systems do you integrate with?',
-        a: 'Native: SAP S/4HANA, Oracle NetSuite, Oracle Fusion Cloud, Microsoft Dynamics 365 Business Central, Microsoft Dynamics 365 F&O, Salesforce. We also support 100+ accounting, ERP and CRM systems (QuickBooks, Xero, Sage, HubSpot, Pipedrive, Zoho, and more). Full list: /integrations. Integrations sync suppliers, POs, invoices and master data bidirectionally — no manual CSV exports.',
+        a: 'We integrate via a unified API (Merge.dev) with 50+ ERP, accounting and CRM systems — including Oracle NetSuite, Microsoft Dynamics 365 Business Central, QuickBooks Online, Xero, Sage, HubSpot, Pipedrive, Zoho. Sync covers supplier master data and POs. SAP S/4HANA, Salesforce and on-prem systems — available under Enterprise Custom with a dedicated adapter. Full list and details: /integrations.',
       },
       {
         q: 'How fast is implementation?',
@@ -387,7 +387,7 @@ export const EN: LandingTranslations = {
       },
       {
         q: "What if my ERP isn't listed?",
-        a: 'Two paths. (1) If your system is in our catalog of 100+ supported systems, integration works out-of-the-box with no extra code — we activate it under the standard Procurement or Bundle plan. (2) If your system is niche or on-prem, Enterprise Custom builds a dedicated adapter (REST/SOAP/file-based) as part of your SOW, typically 2–4 weeks. Book a technical call: /contact.',
+        a: 'Two paths. (1) If your system is in our catalog of 50+ supported systems (via Merge.dev), integration works out-of-the-box — we activate it under the standard Procurement or Bundle plan. (2) If your system is niche, on-prem, or needs deeper sync (SAP, Salesforce, custom ERP), Enterprise Custom builds a dedicated adapter (REST/SOAP/file-based) as part of your SOW, typically 2–4 weeks. Book a technical call: /contact.',
       },
       {
         q: 'When should I choose Enterprise Custom?',
@@ -516,12 +516,12 @@ export const EN: LandingTranslations = {
     },
     'ai-insights': {
       sectionLabel: 'AI INSIGHTS',
-      title: 'Procurement reports that write themselves',
-      subtitle: 'Gemini analyzes every campaign: spend breakdown, vendor concentration risk, negotiation leverage. Export-ready PDF / PPTX for CFO.',
+      title: 'Campaign reports that write themselves',
+      subtitle: 'Gemini summarizes every campaign: supplier distribution by country and specialization, database quality, response rates, and offer benchmarking. Export-ready PDF / PPTX for the board.',
       bullets: [
         'Gemini 2.0 Flash analysis per campaign',
-        'Vendor concentration + supply chain risk scoring',
-        'Negotiation leverage identification',
+        'Supplier distribution and database quality',
+        'Offer benchmarking vs. your targets (price, lead time, MOQ)',
       ],
     },
   },

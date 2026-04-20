@@ -94,13 +94,13 @@ const FALLBACK_COPY: Record<FeatureShowcaseSlug, FeatureCopy> = {
   },
   "ai-insights": {
     sectionLabel: "AI INSIGHTS",
-    title: "Procurement reports that write themselves",
+    title: "Campaign reports that write themselves",
     subtitle:
-      "Gemini analyzes every campaign: spend breakdown, vendor concentration risk, negotiation leverage.",
+      "Gemini summarizes every campaign: supplier distribution, database quality, response rates, and offer benchmarking.",
     bullets: [
       "Gemini 2.0 Flash analysis per campaign",
-      "Vendor concentration + risk scoring",
-      "Negotiation leverage identification",
+      "Supplier distribution + database quality",
+      "Offer benchmarking vs. your brief",
     ],
   },
 }

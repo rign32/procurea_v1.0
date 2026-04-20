@@ -32,17 +32,17 @@ const isEN = LANG === "en"
 const t = {
   hero: {
     badge: isEN ? "MRO & plant maintenance" : "MRO & utrzymanie ruchu",
-    title: isEN ? "MRO procurement — cut tail spend, cut downtime, cut emergency premiums" : "Procurement MRO — tnij tail spend, tnij przestoje, tnij premie awaryjne",
+    title: isEN ? "MRO sourcing — build backup vendor pools before the line goes down" : "Sourcing MRO — zbuduj pule backup zanim linia stanie",
     subtitle: isEN
-      ? "Pre-qualified backup vendors for bearings, seals, filters, motors, HVAC. Structured RFQs consolidate thousands of SKUs across plants. Less maverick buying, less 40% emergency markup, less paper."
-      : "Pre-zakwalifikowani backup vendorzy dla łożysk, uszczelnień, filtrów, silników, HVAC. Ustrukturyzowane RFQ konsolidują tysiące SKU między zakładami. Mniej maverick buying, mniej 40% narzutu awaryjnego, mniej papieru.",
-    primary: isEN ? "Start a tail-spend tender" : "Rozpocznij tender tail-spend",
+      ? "Find and pre-qualify alternative vendors for bearings, seals, filters, motors, HVAC — so a sole-source failure doesn't turn into an emergency premium. Procurea's AI pipeline discovers authorized OEM distributors and aftermarket alternatives across 26 languages, in hours."
+      : "Znajdź i pre-zakwalifikuj alternatywnych dostawców dla łożysk, uszczelnień, filtrów, silników, HVAC — żeby awaria sole-source'a nie zamieniła się w premię awaryjną. Pipeline AI Procurea odkrywa autoryzowanych dystrybutorów OEM i alternatywy aftermarket w 26 językach, w godzinach.",
+    primary: isEN ? "Start a backup-vendor campaign" : "Rozpocznij kampanię backup vendorów",
     secondary: isEN ? "Book a demo" : "Umów demo",
   },
   stats: [
-    { value: "22%", label: isEN ? "MRO spend reduction" : "redukcja wydatków MRO", detail: isEN ? "consolidated RFQ across 3 sites" : "skonsolidowane RFQ na 3 zakładach" },
+    { value: "Hours", label: isEN ? "to discover alternatives" : "na odkrycie alternatyw", detail: isEN ? "vs. weeks of manual search" : "vs. tygodnie ręcznego szukania" },
     { value: "30–50%", label: isEN ? "emergency premium avoided" : "premia awaryjna uniknięta", detail: isEN ? "with pre-qualified backups" : "z pre-zakwalifikowanymi backupami" },
-    { value: "200+", label: isEN ? "SKUs per site consolidated" : "SKU per zakład skonsolidowanych", detail: isEN ? "bearings, seals, motors, filters" : "łożyska, uszczelki, silniki, filtry" },
+    { value: "26", label: isEN ? "languages searched" : "języków wyszukiwania", detail: isEN ? "reaches EU + global aftermarket" : "sięga UE + globalny aftermarket" },
     { value: "48h", label: isEN ? "to activate a backup vendor" : "do aktywacji backup vendora", detail: isEN ? "vs. weeks from cold start" : "vs. tygodnie od zera" },
   ],
   // Downtime cost calculator
@@ -72,26 +72,26 @@ const t = {
   pyramid: {
     title: isEN ? "Tail spend is where 80% of your MRO SKUs — and 15–20% of inflation — live" : "Tail spend to miejsce gdzie żyje 80% Twoich SKU MRO — i 15–20% inflacji",
     subtitle: isEN
-      ? "A-class parts get attention. B-class parts get half-attention. C-class tail spend gets ordered from whoever picks up the phone. Procurea consolidates the tail — where the biggest leakage hides."
-      : "Części A dostają uwagę. Części B połowę uwagi. Tail spend klasy C zamawia się u tego, kto odbierze telefon. Procurea konsoliduje tail — gdzie chowa się największy wyciek.",
+      ? "A-class parts get attention. B-class parts get half-attention. C-class tail spend gets ordered from whoever picks up the phone. Procurea helps you find competing vendors for the B and C tiers — so you stop ordering from the incumbent by default."
+      : "Części A dostają uwagę. Części B połowę uwagi. Tail spend klasy C zamawia się u tego, kto odbierze telefon. Procurea pomaga znaleźć konkurencyjnych dostawców dla B i C — żebyś przestał zamawiać u incumbenta z automatu.",
     tiers: isEN
       ? [
-          { class: "A", share: "20% SKUs", spend: "70% spend", note: "Critical, sole-source managed", tone: "rose", width: 35 },
+          { class: "A", share: "20% SKUs", spend: "70% spend", note: "Critical, typically sole-source", tone: "rose", width: 35 },
           { class: "B", share: "30% SKUs", spend: "20% spend", note: "Structured annual contracts", tone: "amber", width: 60 },
-          { class: "C (tail)", share: "50% SKUs", spend: "10% spend — leakage lives here", note: "Consolidate through Procurea RFQ bundles", tone: "primary", width: 100 },
+          { class: "C (tail)", share: "50% SKUs", spend: "10% spend — leakage lives here", note: "Refresh supplier pool with Procurea AI sourcing", tone: "primary", width: 100 },
         ]
       : [
-          { class: "A", share: "20% SKU", spend: "70% wydatków", note: "Krytyczne, zarządzane sole-source", tone: "rose", width: 35 },
+          { class: "A", share: "20% SKU", spend: "70% wydatków", note: "Krytyczne, zwykle sole-source", tone: "rose", width: 35 },
           { class: "B", share: "30% SKU", spend: "20% wydatków", note: "Ustrukturyzowane kontrakty roczne", tone: "amber", width: 60 },
-          { class: "C (tail)", share: "50% SKU", spend: "10% wydatków — tu żyje wyciek", note: "Konsoliduj przez bundle RFQ Procurea", tone: "primary", width: 100 },
+          { class: "C (tail)", share: "50% SKU", spend: "10% wydatków — tu żyje wyciek", note: "Odśwież bazę dostawców przez AI sourcing Procurea", tone: "primary", width: 100 },
         ],
   },
   // OEM compatibility matrix
   compat: {
-    title: isEN ? "OEM compatibility — cross-referenced at screening" : "Kompatybilność OEM — cross-reference na screeningu",
+    title: isEN ? "OEM and aftermarket — both live in the MRO market" : "OEM i aftermarket — oba żyją na rynku MRO",
     subtitle: isEN
-      ? "An SKF bearing has 5 equivalent aftermarket alternatives. A FESTO valve has 3. Procurea surfaces both OEM and cross-referenced aftermarket suppliers so you choose, not just search."
-      : "Łożysko SKF ma 5 równoważnych alternatyw aftermarket. Zawór FESTO ma 3. Procurea wyciąga zarówno OEM jak i cross-reference aftermarket, żebyś wybierał, nie tylko szukał.",
+      ? "An SKF bearing has several equivalent aftermarket alternatives. A FESTO valve has a few. When you describe a part in plain language, Procurea's AI sourcing finds authorized OEM distributors and aftermarket suppliers — across 26 languages. Your engineering team still decides which equivalents are acceptable for safety-critical lines."
+      : "Łożysko SKF ma kilka równoważnych alternatyw aftermarket. Zawór FESTO ma kilka. Gdy opiszesz część językiem naturalnym, AI sourcing Procurea znajduje autoryzowanych dystrybutorów OEM i dostawców aftermarket — w 26 językach. Twój zespół engineering i tak decyduje które odpowiedniki są akceptowalne dla linii safety-critical.",
     header: isEN ? ["OEM part", "Category", "OEM price", "Aftermarket eq.", "Best price"] : ["Część OEM", "Kategoria", "Cena OEM", "Odp. aftermarket", "Najlepsza cena"],
     rows: isEN
       ? [
@@ -106,7 +106,7 @@ const t = {
           { oem: "Timken HM212049", cat: "Łożysko stożkowe", oemPrice: "68 €", aftermarket: "4 alternatywy", best: "39 € (NTN)", delta: "-43%" },
           { oem: "Parker 3/8\" R7 hose", cat: "Wąż hydrauliczny", oemPrice: "14 €/m", aftermarket: "6 alternatyw", best: "9 €/m (Gates)", delta: "-36%" },
         ],
-    note: isEN ? "Illustrative. Always validate critical-safety parts with OEM." : "Ilustracyjnie. Zawsze waliduj krytyczne części bezpieczeństwa z OEM.",
+    note: isEN ? "Illustrative market prices — actual deltas depend on volume, region and distributor. Always validate critical-safety parts with OEM or a notified-body alternative." : "Ilustracyjne ceny rynkowe — realne delty zależą od wolumenu, regionu i dystrybutora. Zawsze waliduj krytyczne części bezpieczeństwa z OEM lub z alternatywą z jednostki notyfikowanej.",
   },
   // Categories
   categories: {
@@ -152,10 +152,10 @@ const t = {
   },
   caseStudy: {
     badge: isEN ? "Illustrative scenario — food processing plant" : "Scenariusz ilustracyjny — zakład przetwórstwa spożywczego",
-    title: isEN ? "22% MRO spend cut by consolidating 200+ SKUs across 3 facilities" : "22% redukcji wydatków MRO przez konsolidację 200+ SKU w 3 obiektach",
+    title: isEN ? "22% category savings after sourcing alternatives for a sole-source bearing supplier" : "22% oszczędności w kategorii po sourcingu alternatyw dla sole-source dostawcy łożysk",
     body: isEN
-      ? "Running 3 production facilities with 200+ maintenance SKUs each, the plant used Procurea to identify overlapping suppliers and run consolidated RFQs. Structured comparison surfaced 22% savings on bearings, seals and motor components — and eliminated emergency premiums by activating backup vendors before lines went down."
-      : "Prowadząc 3 obiekty produkcyjne z 200+ SKU maintenance każdy, zakład użył Procurea do identyfikacji nakładających się dostawców i prowadzenia skonsolidowanych RFQ. Ustrukturyzowane porównanie ujawniło 22% oszczędności na łożyskach, uszczelkach i silnikach — i wyeliminowało premie awaryjne przez aktywację backupów zanim linie zaczęły stać.",
+      ? "Running 3 production facilities with the same incumbent bearing supplier, the plant used Procurea to find and pre-qualify alternatives. Running separate campaigns per top category (bearings, seals, motors), the team ran structured RFQs on comparable shortlists — surfacing 22% savings on the bearing tender and activating backup vendors across the three sites before the next sole-source emergency."
+      : "Prowadząc 3 obiekty produkcyjne z tym samym incumbentem na łożyskach, zakład użył Procurea do znalezienia i pre-kwalifikacji alternatyw. Odpalając osobne kampanie na top kategorie (łożyska, uszczelki, silniki), zespół prowadził ustrukturyzowane RFQ na porównywalnych shortlistach — ujawniając 22% oszczędności na tenderze łożysk i aktywując backup vendorów w 3 obiektach zanim nastąpiła kolejna awaria sole-source.",
     highlights: isEN
       ? [
           { v: "3", l: "Facilities consolidated" },
@@ -174,16 +174,16 @@ const t = {
     title: isEN ? "Questions from maintenance & procurement leads" : "Pytania od szefów maintenance & procurement",
     items: isEN
       ? [
-          { q: "Can you handle high-SKU-count tail spend?", a: "Yes — RFQ bundles group similar SKUs (e.g. 'deep-groove ball bearings, 20 sizes, annual demand') into one tender. Bidders quote per SKU; you compare at the bundle level and award the best-fit vendor(s)." },
-          { q: "What about OEM-mandated parts where aftermarket is not allowed?", a: "Procurea distinguishes OEM-mandatory from interchangeable lines based on your input. For OEM-locked lines we still compare authorized distributors; for interchangeable lines we bring in aftermarket alternatives." },
-          { q: "Do you integrate with our CMMS / ERP?", a: "Yes — via API or Merge.dev for common ERPs (SAP, Oracle, Infor). Qualified vendors push as approved supplier records; POs can be issued from your ERP against those vendors." },
+          { q: "Can you handle high-SKU-count tail spend?", a: "Today each campaign targets one category (e.g. 'deep-groove ball bearings in EU'). Teams typically run a series of per-category campaigns. Multi-SKU-per-campaign bundles are on our 2026 roadmap — until then, you run 5–10 parallel campaigns in under an hour." },
+          { q: "What about OEM-mandated parts where aftermarket is not allowed?", a: "You tell Procurea what you need in plain language — including 'OEM only'. The AI sourcing pipeline surfaces authorized distributors matching that brief. For interchangeable lines, you can widen the prompt to include aftermarket equivalents; your engineering team decides what's acceptable on the shortlist." },
+          { q: "Do you integrate with our CMMS / ERP?", a: "For NetSuite, Dynamics 365 Business Central, QuickBooks, Xero, Sage and 50+ more ERPs — yes, via Merge.dev. Qualified vendors can sync as supplier records. For SAP and Oracle deep-sync, on-prem CMMS or industry-specific systems (Infor, Maximo) — Enterprise Custom builds a dedicated adapter in the SOW." },
           { q: "Can I run an RFQ on a maintenance service contract (e.g. annual HVAC)?", a: "Yes. Maintenance services follow the same structured RFQ with fields for SLA, response time, coverage geography, certifications and hourly/annual rates." },
           { q: "How do you handle critical-safety parts — brake, pressure, lifting?", a: "Screening flags safety-critical categories so you always keep OEM or notified-body-certified alternatives in scope. Procurea surfaces, your engineering team decides what's acceptable." },
         ]
       : [
-          { q: "Czy obsługujecie tail spend z wysoką liczbą SKU?", a: "Tak — bundle RFQ grupują podobne SKU (np. 'łożyska kulkowe, 20 rozmiarów, roczny popyt') w jeden tender. Bidderzy kwotują per SKU; porównujesz na poziomie bundla i awardujesz najlepszego vendora(ów)." },
-          { q: "A części OEM-mandatory gdzie aftermarket nie jest dopuszczony?", a: "Procurea rozróżnia OEM-mandatory od wymiennych na bazie Twojego inputu. Dla linii OEM-locked nadal porównujemy autoryzowanych dystrybutorów; dla wymiennych bierzemy alternatywy aftermarket." },
-          { q: "Czy integrujecie się z naszym CMMS / ERP?", a: "Tak — przez API lub Merge.dev dla popularnych ERP (SAP, Oracle, Infor). Zakwalifikowani vendorzy pushują jako approved supplier records; PO można wystawiać z ERP przeciwko tym vendorom." },
+          { q: "Czy obsługujecie tail spend z wysoką liczbą SKU?", a: "Dziś każda kampania celuje w jedną kategorię (np. 'łożyska kulkowe w UE'). Zespoły zwykle odpalają serię kampanii per-kategoria. Bundle multi-SKU w jednej kampanii są na roadmapie 2026 — na razie odpalasz 5–10 równoległych kampanii w niecałą godzinę." },
+          { q: "A części OEM-mandatory gdzie aftermarket nie jest dopuszczony?", a: "Mówisz Procurea czego potrzebujesz językiem naturalnym — w tym 'tylko OEM'. Pipeline AI sourcing wyciąga autoryzowanych dystrybutorów pasujących do briefu. Dla linii wymiennych możesz rozszerzyć prompt o odpowiedniki aftermarket; Twój engineering decyduje co jest akceptowalne na shortliście." },
+          { q: "Czy integrujecie się z naszym CMMS / ERP?", a: "Dla NetSuite, Dynamics 365 Business Central, QuickBooks, Xero, Sage i 50+ innych ERP — tak, przez Merge.dev. Zakwalifikowani vendorzy mogą synchronizować się jako rekordy dostawców. Dla deep-sync SAP i Oracle, on-prem CMMS lub systemów branżowych (Infor, Maximo) — Enterprise Custom buduje dedykowany adapter w SOW." },
           { q: "Czy mogę prowadzić RFQ na kontrakt serwisowy (np. roczny HVAC)?", a: "Tak. Usługi maintenance idą tym samym ustrukturyzowanym RFQ z polami SLA, czasu reakcji, zasięgu geograficznego, certyfikacji i stawek godzinowych/rocznych." },
           { q: "Jak radzicie sobie z częściami safety-critical — hamulce, ciśnienie, dźwig?", a: "Screening flaguje kategorie safety-critical żebyś zawsze trzymał OEM lub alternatywy z certyfikatów jednostek notyfikowanych w scope. Procurea wyciąga, Twój engineering decyduje co jest akceptowalne." },
         ],
@@ -464,7 +464,21 @@ export function MroIndustryPage() {
         <section className="py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <RevealOnScroll>
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-12 max-w-3xl">{t.pains.title}</h2>
+              <div className="relative rounded-2xl overflow-hidden mb-12 bg-slate-100 shadow-xl">
+                <div className="relative aspect-[16/10] md:aspect-[21/9] lg:aspect-[24/8]">
+                  <img
+                    src="/industries/mro.jpg"
+                    alt={isEN ? "Maintenance manager next to a halted CNC machine with alert lamps blinking" : "Maintenance manager przy zatrzymanej maszynie CNC z lampkami awarii"}
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/55 to-slate-950/15" />
+                  <div className="absolute inset-0 flex items-end p-6 sm:p-10 md:p-14">
+                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white max-w-3xl leading-[1.1]">{t.pains.title}</h2>
+                  </div>
+                </div>
+              </div>
             </RevealOnScroll>
             <div className="grid md:grid-cols-3 gap-5">
               {t.pains.items.map((p, i) => (
