@@ -22,7 +22,10 @@ export class GeminiService {
     private projectId = process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT || process.env.GCP_PROJECT_ID || 'project-c64b9be9-1d92-4bc6-be7';
     private location = process.env.GOOGLE_CLOUD_LOCATION || 'europe-west1';
     private apiKey = process.env.GEMINI_API_KEY;
-    private readonly modelName = 'gemini-2.0-flash'; // Confirmed available via API Key listing
+    // gemini-2.0-flash has a lower per-key/day quota on paid tier that pipeline
+    // bursts can exhaust in minutes; gemini-2.5-flash has a much higher default
+    // quota and is fully backwards-compatible for our JSON-structured prompts.
+    private readonly modelName = 'gemini-2.5-flash';
     private readonly GEMINI_TIMEOUT_MS = parseInt(process.env.GEMINI_TIMEOUT_MS || '45000', 10); // 45s per call
     private mockRequestCounter = 0;
     // Cloud Functions have read-only filesystem except /tmp
