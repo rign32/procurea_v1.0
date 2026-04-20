@@ -8,59 +8,75 @@ const isEN = LANG === 'en'
 
 const copy = {
   sectionLabel: isEN ? 'BUILT FOR YOUR INDUSTRY' : 'STWORZONE DLA TWOJEJ BRANŻY',
-  heading: isEN ? 'Procurement expertise, tailored per industry' : 'Procurement dopasowany do Twojej branży',
+  heading: isEN ? 'Real problems. Real procurement.' : 'Realne problemy. Realne zakupy.',
   subheading: isEN
-    ? 'Different industries have different procurement workflows. See how Procurea handles yours.'
-    : 'Różne branże to różne workflow. Zobacz jak Procurea radzi sobie z Twoim.',
+    ? 'Each industry has its own sourcing nightmares. See how Procurea turns them around.'
+    : 'Każda branża ma swoje koszmary zakupowe. Zobacz jak Procurea je rozwiązuje.',
 
   industries: isEN ? [
     {
       icon: Factory,
-      title: 'Manufacturing',
-      desc: 'Alternative suppliers for raw materials, components, packaging. ISO 9001 / IATF qualification built-in.',
+      image: '/industries/manufacturing.jpg',
+      tag: 'Manufacturing',
+      problem: 'Key supplier down. Line stopped.',
+      solution: 'Find qualified alternatives in 48h — ISO 9001 / IATF ready, pre-verified.',
       to: pathFor('iManufacturing'),
     },
     {
       icon: Calendar,
-      title: 'Events & Agencies',
-      desc: 'Find local vendors fast — catering, AV, scenography. 48h sourcing for foreign-city events.',
+      image: '/industries/events.jpg',
+      tag: 'Events & Agencies',
+      problem: 'Event in 3 days. Vendor just canceled.',
+      solution: 'Replace catering, AV or scenography in 24h — local vendors, any city.',
       to: pathFor('iEvents'),
     },
     {
       icon: HardHat,
-      title: 'Construction',
-      desc: 'Materials + subcontractors for developers and general contractors. RFQ to 30+ in one click.',
+      image: '/industries/construction.jpg',
+      tag: 'Construction',
+      problem: 'Materials late. Penalty clauses ticking.',
+      solution: 'RFQ to 30+ wholesalers in one click. Compare offers side by side.',
       to: pathFor('iConstruction'),
     },
     {
       icon: ShoppingBag,
-      title: 'Retail & E-commerce',
-      desc: 'Private label manufacturers in Europe, Turkey, nearshore. Migrate from China in weeks.',
+      image: '/industries/retail.jpg',
+      tag: 'Retail & E-commerce',
+      problem: 'China factory missing quality and lead times.',
+      solution: 'Migrate to nearshore producers in Europe or Turkey in weeks.',
       to: pathFor('iRetail'),
     },
   ] : [
     {
       icon: Factory,
-      title: 'Produkcja',
-      desc: 'Alternatywni dostawcy surowców, komponentów, opakowań. Wbudowana kwalifikacja ISO 9001 / IATF.',
+      image: '/industries/manufacturing.jpg',
+      tag: 'Produkcja',
+      problem: 'Główny dostawca padł. Linia stoi.',
+      solution: 'Znajdź alternatywę w 48h — gotowych z ISO 9001 / IATF, zweryfikowanych.',
       to: pathFor('iManufacturing'),
     },
     {
       icon: Calendar,
-      title: 'Eventy',
-      desc: 'Lokalni dostawcy w 48h — catering, AV, scenografia. Sourcing w obcym mieście pod event.',
+      image: '/industries/events.jpg',
+      tag: 'Eventy i agencje',
+      problem: 'Event za 3 dni. Podwykonawca odwołał.',
+      solution: 'Wymień catering, AV lub scenografię w 24h — lokalni dostawcy, każde miasto.',
       to: pathFor('iEvents'),
     },
     {
       icon: HardHat,
-      title: 'Budownictwo',
-      desc: 'Materiały i podwykonawcy dla deweloperów i generalnych wykonawców. RFQ do 30+ jednym kliknięciem.',
+      image: '/industries/construction.jpg',
+      tag: 'Budownictwo',
+      problem: 'Materiały się spóźniają. Kary umowne tykają.',
+      solution: 'RFQ do 30+ hurtowni jednym kliknięciem. Porównaj oferty obok siebie.',
       to: pathFor('iConstruction'),
     },
     {
       icon: ShoppingBag,
-      title: 'Retail & E-commerce',
-      desc: 'Producenci private label w Europie, Turcji, nearshore. Migracja z Chin w tygodniach.',
+      image: '/industries/retail.jpg',
+      tag: 'Retail & E-commerce',
+      problem: 'Fabryka w Chinach nie trzyma jakości i terminów.',
+      solution: 'Migracja do producentów nearshore w Europie i Turcji w tygodniach.',
       to: pathFor('iRetail'),
     },
   ],
@@ -71,7 +87,7 @@ const copy = {
 
 export function IndustriesGridSection() {
   return (
-    <section className="relative py-20 md:py-28" data-track-section="industries-grid">
+    <section className="relative py-20 md:py-28 bg-gradient-to-b from-white to-slate-50/60" data-track-section="industries-grid">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <RevealOnScroll>
           <div className="text-center mb-14">
@@ -83,24 +99,37 @@ export function IndustriesGridSection() {
           </div>
         </RevealOnScroll>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {copy.industries.map((industry) => {
             const Icon = industry.icon
             return (
-              <RevealOnScroll key={industry.title}>
+              <RevealOnScroll key={industry.tag}>
                 <Link
                   to={industry.to}
-                  className="group block h-full rounded-2xl border border-black/[0.08] bg-white p-6 hover:border-primary/30 hover:shadow-md transition-all"
+                  className="group block h-full rounded-2xl overflow-hidden border border-black/[0.08] bg-white hover:border-primary/30 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                 >
-                  <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4">
-                    <Icon className="h-5 w-5 text-primary" />
+                  <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+                    <img
+                      src={industry.image}
+                      alt={industry.tag}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
+                    <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-white/90 backdrop-blur-sm px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-800 shadow-sm">
+                      <Icon className="h-3 w-3 text-primary" />
+                      {industry.tag}
+                    </div>
                   </div>
-                  <h3 className="text-lg font-bold mb-2">{industry.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed mb-4">{industry.desc}</p>
-                  <span className="inline-flex items-center gap-1 text-sm font-semibold text-primary group-hover:gap-2 transition-all">
-                    {isEN ? 'Learn more' : 'Dowiedz się więcej'}
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </span>
+                  <div className="p-5">
+                    <h3 className="text-base font-bold leading-snug mb-2 text-slate-900">{industry.problem}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed mb-4">{industry.solution}</p>
+                    <span className="inline-flex items-center gap-1 text-sm font-semibold text-primary group-hover:gap-2 transition-all">
+                      {isEN ? 'Learn more' : 'Dowiedz się więcej'}
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </span>
+                  </div>
                 </Link>
               </RevealOnScroll>
             )
