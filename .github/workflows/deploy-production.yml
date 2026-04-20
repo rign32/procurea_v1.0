@@ -16,6 +16,8 @@ jobs:
     environment: production
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history for git-based drift check
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -34,6 +36,21 @@ jobs:
       - name: Generate Prisma client
         working-directory: backend
         run: npx prisma generate
+
+      # Last-line-of-defense drift guard. Staging CI runs the same check; this one
+      # catches anything that slipped through (direct-to-main pushes, bypassed staging).
+      # See deploy-staging.yml for the full rationale.
+      - name: Guard — schema change requires migration
+        working-directory: backend
+        run: |
+          BASE=$(git rev-parse HEAD~1)
+          SCHEMA_CHANGED=$(git diff --name-only "$BASE"..HEAD -- prisma/schema.prisma | wc -l | tr -d ' ')
+          MIGRATIONS_ADDED=$(git diff --name-only --diff-filter=A "$BASE"..HEAD -- 'prisma/migrations/*/migration.sql' | wc -l | tr -d ' ')
+          echo "schema.prisma changed in last commit: $SCHEMA_CHANGED files; new migrations added: $MIGRATIONS_ADDED"
+          if [ "$SCHEMA_CHANGED" != "0" ] && [ "$MIGRATIONS_ADDED" = "0" ]; then
+            echo "::error::schema.prisma changed in the last commit merged to main but no new migration. Prod deploy blocked."
+            exit 1
+          fi
 
       - name: Run database migrations
         working-directory: backend
