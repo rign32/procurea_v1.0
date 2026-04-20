@@ -7,7 +7,7 @@ import {
   Post,
   Req,
 } from '@nestjs/common'
-import { Throttle } from '@nestjs/throttler'
+import { Throttle, seconds } from '@nestjs/throttler'
 import { LeadsService } from './leads.service'
 import { CreateLeadDto } from './dto/create-lead.dto'
 
@@ -23,7 +23,7 @@ export class LeadsController {
    */
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @Throttle({ default: { ttl: 60_000, limit: 5 } }) // 5 submissions per minute per IP
+  @Throttle({ default: { ttl: seconds(60), limit: 5 } }) // 5 submissions per minute per IP
   async create(@Body() dto: CreateLeadDto, @Req() req: any) {
     if (!dto || typeof dto !== 'object') {
       throw new BadRequestException('Invalid payload')
