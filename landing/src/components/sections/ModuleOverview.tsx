@@ -14,10 +14,10 @@ const ICON_MAP: Record<string, LucideIcon> = {
 }
 
 const ICON_COLORS: Record<string, { bg: string; text: string }> = {
-  search: { bg: "bg-blue-100", text: "text-blue-600" },
-  workflow: { bg: "bg-violet-100", text: "text-violet-600" },
-  layers: { bg: "bg-primary/10", text: "text-primary" },
-  sparkles: { bg: "bg-amber-100", text: "text-amber-600" },
+  search:   { bg: "bg-[hsl(var(--ds-accent-soft))]", text: "text-[hsl(var(--ds-accent))]" },
+  workflow: { bg: "bg-[hsl(var(--ds-accent-soft))]", text: "text-[hsl(var(--ds-accent))]" },
+  layers:   { bg: "bg-[hsl(var(--ds-accent-soft))]", text: "text-[hsl(var(--ds-accent))]" },
+  sparkles: { bg: "bg-[hsl(var(--ds-accent-soft))]", text: "text-[hsl(var(--ds-accent))]" },
 }
 
 export function ModuleOverview() {
@@ -31,14 +31,15 @@ export function ModuleOverview() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section header */}
         <RevealOnScroll>
-          <div className="text-center mb-16">
-            <span className="inline-block text-xs font-bold uppercase tracking-[0.15em] text-primary mb-3">
+          <div className="grid justify-items-center text-center gap-3.5 mb-[clamp(36px,5vw,64px)]">
+            <span className="eyebrow">
+              <span className="eyebrow-dot" />
               {t.moduleOverview.sectionLabel}
             </span>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold tracking-extra-tight mb-4">
+            <h2 className="text-[clamp(28px,3.4vw,42px)] font-bold leading-[1.1] max-w-[24ch] text-[hsl(var(--ds-ink))]">
               {t.moduleOverview.heading}
             </h2>
-            <p className="mx-auto max-w-2xl text-base md:text-lg text-muted-foreground">
+            <p className="text-[18px] leading-[1.55] text-[hsl(var(--ds-ink-3))] max-w-[58ch] text-pretty">
               {t.moduleOverview.subheading}
             </p>
           </div>

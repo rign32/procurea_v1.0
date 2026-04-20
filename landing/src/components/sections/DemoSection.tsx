@@ -10,16 +10,16 @@ export function DemoSection() {
     <section id={t.sectionIds.demo} className="py-24 lg:py-32 relative overflow-hidden">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         <RevealOnScroll>
-          <div className="text-center max-w-3xl mx-auto mb-12 lg:mb-16">
-            <p className="text-sm font-semibold text-brand-500 tracking-wide uppercase mb-3">
+          <div className="grid justify-items-center text-center gap-3.5 mb-[clamp(36px,5vw,64px)]">
+            <span className="eyebrow">
+              <span className="eyebrow-dot" />
               {t.demo.sectionLabel}
-            </p>
-            <h2 className="text-3xl sm:text-4xl lg:text-[2.75rem] font-bold tracking-tight mb-5">
-              {t.demo.heading}
-              <br />
-              <span className="text-muted-foreground">{t.demo.headingSub}</span>
+            </span>
+            <h2 className="text-[clamp(28px,3.4vw,42px)] font-bold leading-[1.1] max-w-[24ch] text-[hsl(var(--ds-ink))]">
+              {t.demo.heading}{" "}
+              <span className="text-[hsl(var(--ds-ink-3))] font-medium">{t.demo.headingSub}</span>
             </h2>
-            <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
+            <p className="text-[18px] leading-[1.55] text-[hsl(var(--ds-ink-3))] max-w-[58ch]">
               {t.demo.description}
             </p>
           </div>
@@ -27,7 +27,7 @@ export function DemoSection() {
 
         <RevealOnScroll delay={0.2}>
           <div className="max-w-4xl mx-auto">
-            <div className="rounded-2xl border border-border/60 bg-white shadow-2xl shadow-brand-500/[0.06] overflow-hidden ring-1 ring-black/[0.03]">
+            <div className="rounded-[22px] border border-[hsl(var(--ds-rule))] bg-[hsl(var(--ds-surface))] shadow-[0_8px_28px_rgba(14,22,20,0.08),0_28px_70px_rgba(14,22,20,0.08)] overflow-hidden">
               <div className="relative w-full" style={{ paddingBottom: '52.48%' }}>
                 <iframe
                   src={`https://www.loom.com/embed/${loomId}`}

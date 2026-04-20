@@ -6,56 +6,10 @@ import { TrendingDown, Users, Zap, Globe } from "lucide-react"
 import { t } from "@/i18n"
 
 const metricConfigs = [
-  {
-    target: 30,
-    suffix: "x",
-    icon: Zap,
-    gradient: "from-amber-400 via-orange-500 to-red-500",
-    iconBg: "bg-amber-500/10",
-    iconColor: "text-amber-500",
-    glowColor: "shadow-amber-500/20",
-  },
-  {
-    target: 4.6,
-    suffix: "%",
-    decimals: 1,
-    icon: TrendingDown,
-    gradient: "from-emerald-400 via-teal-500 to-cyan-500",
-    iconBg: "bg-emerald-500/10",
-    iconColor: "text-emerald-500",
-    glowColor: "shadow-emerald-500/20",
-  },
-  {
-    target: 26,
-    suffix: "",
-    icon: Globe,
-    gradient: "from-blue-400 via-indigo-500 to-violet-500",
-    iconBg: "bg-blue-500/10",
-    iconColor: "text-blue-500",
-    glowColor: "shadow-blue-500/20",
-  },
-  {
-    target: 3,
-    suffix: "x",
-    icon: Users,
-    gradient: "from-violet-400 via-purple-500 to-fuchsia-500",
-    iconBg: "bg-violet-500/10",
-    iconColor: "text-violet-500",
-    glowColor: "shadow-violet-500/20",
-  },
-]
-
-const cardStyles = [
-  {
-    gradient: "from-emerald-500/[0.08] via-teal-500/[0.04] to-cyan-500/[0.02]",
-    border: "border-emerald-500/10 hover:border-emerald-500/25",
-    accent: "from-emerald-500 to-cyan-500",
-  },
-  {
-    gradient: "from-amber-500/[0.08] via-orange-500/[0.04] to-red-500/[0.02]",
-    border: "border-amber-500/10 hover:border-amber-500/25",
-    accent: "from-amber-500 to-orange-500",
-  },
+  { target: 30,  suffix: "x", icon: Zap },
+  { target: 4.6, suffix: "%", decimals: 1, icon: TrendingDown },
+  { target: 26,  suffix: "",  icon: Globe },
+  { target: 3,   suffix: "x", icon: Users },
 ]
 
 function CounterItem({
@@ -64,10 +18,6 @@ function CounterItem({
   label,
   sublabel,
   icon: Icon,
-  gradient,
-  iconBg,
-  iconColor,
-  glowColor,
   decimals,
 }: {
   target: number
@@ -75,10 +25,6 @@ function CounterItem({
   label: string
   sublabel?: string
   icon: React.ElementType
-  gradient: string
-  iconBg: string
-  iconColor: string
-  glowColor: string
   decimals?: number
 }) {
   const ref = useRef<HTMLDivElement>(null)
@@ -87,45 +33,31 @@ function CounterItem({
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) setIsVisible(true)
-      },
+      ([entry]) => { if (entry.isIntersecting) setIsVisible(true) },
       { threshold: 0.5 }
     )
     if (ref.current) observer.observe(ref.current)
     return () => observer.disconnect()
   }, [])
 
-  const displayCount =
-    decimals && decimals > 0 ? count.toFixed(decimals) : count
+  const displayCount = decimals && decimals > 0 ? count.toFixed(decimals) : count
 
   return (
     <div ref={ref} className="text-center group cursor-default">
-      {/* Icon */}
-      <div
-        className={`inline-flex items-center justify-center h-12 w-12 rounded-xl ${iconBg} ${iconColor} ring-1 ring-black/[0.04] mb-5 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg ${glowColor}`}
-      >
-        <Icon className="h-5 w-5" strokeWidth={2.5} />
+      <div className="inline-flex items-center justify-center h-11 w-11 rounded-[10px] bg-[hsl(var(--ds-accent-soft))] text-[hsl(var(--ds-accent))] mb-4 transition-transform duration-200 group-hover:scale-105">
+        <Icon className="h-5 w-5" strokeWidth={1.75} />
       </div>
 
-      {/* Animated number */}
-      <div className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight tabular-nums mb-3">
-        <span
-          className={`bg-gradient-to-r ${gradient} bg-clip-text text-transparent`}
-        >
-          {displayCount}
-        </span>
-        <span className="text-muted-foreground/25 text-3xl sm:text-4xl md:text-5xl">
-          {suffix}
-        </span>
+      <div className="font-mono text-[clamp(36px,4.5vw,52px)] font-semibold tracking-[-0.02em] tabular-nums leading-none mb-2 text-[hsl(var(--ds-ink))]">
+        {displayCount}
+        <span className="text-[hsl(var(--ds-muted))] text-[0.7em]">{suffix}</span>
       </div>
 
-      {/* Label */}
-      <p className="text-sm sm:text-base text-foreground/80 font-semibold leading-tight">
+      <p className="text-[14px] text-[hsl(var(--ds-ink))] font-semibold leading-tight">
         {label}
       </p>
       {sublabel && (
-        <p className="text-xs text-muted-foreground/60 mt-1 leading-snug max-w-[180px] mx-auto">
+        <p className="text-[12px] text-[hsl(var(--ds-muted))] mt-1 leading-snug max-w-[200px] mx-auto">
           {sublabel}
         </p>
       )}
@@ -135,23 +67,18 @@ function CounterItem({
 
 export function BenefitsSection() {
   return (
-    <section className="py-24 lg:py-32 relative overflow-hidden">
-      {/* Background decorations */}
-      <div className="absolute inset-0 bg-gradient-to-b from-muted/30 via-background to-background pointer-events-none" />
-      <div className="absolute top-[-200px] left-1/4 w-[700px] h-[700px] rounded-full bg-brand-500/[0.03] blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-100px] right-1/4 w-[500px] h-[500px] rounded-full bg-emerald-500/[0.02] blur-[100px] pointer-events-none" />
-
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Section header */}
+    <section className="py-[clamp(56px,8vw,112px)]">
+      <div className="mx-auto max-w-[1240px] px-[clamp(20px,4vw,72px)]">
         <RevealOnScroll scale>
-          <div className="text-center max-w-3xl mx-auto mb-20">
-            <p className="text-sm font-semibold text-brand-500 tracking-widest uppercase mb-4">
+          <div className="grid justify-items-center text-center gap-3.5 mb-[clamp(36px,5vw,64px)]">
+            <span className="eyebrow">
+              <span className="eyebrow-dot" />
               {t.benefits.sectionLabel}
-            </p>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
+            </span>
+            <h2 className="text-[clamp(28px,3.4vw,42px)] font-bold leading-[1.1] max-w-[24ch] text-[hsl(var(--ds-ink))]">
               {t.benefits.heading}
             </h2>
-            <p className="text-xl sm:text-2xl text-muted-foreground font-medium">
+            <p className="text-[18px] leading-[1.55] text-[hsl(var(--ds-ink-3))] max-w-[58ch]">
               {t.benefits.headingSub}
             </p>
           </div>
@@ -164,21 +91,16 @@ export function BenefitsSection() {
           viewport={{ once: true, margin: "-50px" }}
           variants={{
             hidden: {},
-            visible: { transition: { staggerChildren: 0.12 } },
+            visible: { transition: { staggerChildren: 0.1 } },
           }}
-          className="grid grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 lg:gap-14 mb-20"
+          className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-16"
         >
           {metricConfigs.map((config, idx) => (
             <motion.div
               key={t.benefits.metrics[idx].label}
               variants={{
-                hidden: { opacity: 0, y: 24, scale: 0.95 },
-                visible: {
-                  opacity: 1,
-                  y: 0,
-                  scale: 1,
-                  transition: { duration: 0.6, ease: "easeOut" },
-                },
+                hidden: { opacity: 0, y: 16 },
+                visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
               }}
             >
               <CounterItem
@@ -190,29 +112,21 @@ export function BenefitsSection() {
           ))}
         </motion.div>
 
-        {/* Cards grid */}
-        <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
-          {t.benefits.cards.map((card, i) => {
-            const style = cardStyles[i]
-            return (
-              <RevealOnScroll key={card.title} delay={i * 0.15}>
-                <div
-                  className={`group relative rounded-2xl border ${style.border} bg-gradient-to-br ${style.gradient} backdrop-blur-sm p-8 lg:p-10 transition-all duration-300 hover:shadow-xl hover:shadow-black/[0.04] hover:-translate-y-1.5`}
-                >
-                  {/* Accent line */}
-                  <div
-                    className={`h-1 w-14 rounded-full bg-gradient-to-r ${style.accent} mb-7 transition-all duration-300 group-hover:w-20 group-hover:shadow-[0_0_12px_rgba(0,0,0,0.08)]`}
-                  />
-                  <h3 className="text-xl lg:text-2xl font-bold mb-3 tracking-tight">
-                    {card.title}
-                  </h3>
-                  <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                    {card.description}
-                  </p>
-                </div>
-              </RevealOnScroll>
-            )
-          })}
+        {/* Cards grid — clean neutral cards with evergreen accent line */}
+        <div className="grid md:grid-cols-2 gap-4">
+          {t.benefits.cards.map((card, i) => (
+            <RevealOnScroll key={card.title} delay={i * 0.12}>
+              <div className="card-ds group transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_4px_20px_-4px_rgba(14,22,20,0.06)]">
+                <div className="h-1 w-14 rounded-full bg-[hsl(var(--ds-accent))] mb-6 transition-all duration-200 group-hover:w-20" />
+                <h3 className="text-[22px] leading-[1.2] font-semibold tracking-[-0.02em] text-[hsl(var(--ds-ink))] mb-2.5">
+                  {card.title}
+                </h3>
+                <p className="text-[14.5px] leading-[1.55] text-[hsl(var(--ds-ink-2))] text-pretty">
+                  {card.description}
+                </p>
+              </div>
+            </RevealOnScroll>
+          ))}
         </div>
       </div>
     </section>
