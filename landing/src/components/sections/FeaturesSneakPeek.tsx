@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react"
-import { Search, Mail, Shield, BarChart3, Sparkles, ArrowRight, Check } from "lucide-react"
+import { Search, Mail, Shield, BarChart3, Sparkles, Check } from "lucide-react"
 import { Link } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
@@ -7,11 +7,11 @@ import { pathFor } from "@/i18n/paths"
 import { t } from "@/i18n"
 
 const FEATURES = [
-  { slug: "ai-sourcing" as const, icon: Search, gradient: "from-blue-500/10 to-cyan-500/10", accent: "text-blue-600", ring: "ring-blue-500/20", bar: "from-blue-500 to-cyan-400", linkTo: 'fAiSourcing' as const },
-  { slug: "email-outreach" as const, icon: Mail, gradient: "from-violet-500/10 to-purple-500/10", accent: "text-violet-600", ring: "ring-violet-500/20", bar: "from-violet-500 to-purple-400", linkTo: 'fEmailOutreach' as const },
-  { slug: "supplier-portal" as const, icon: Shield, gradient: "from-emerald-500/10 to-teal-500/10", accent: "text-emerald-600", ring: "ring-emerald-500/20", bar: "from-emerald-500 to-teal-400", linkTo: 'fSupplierPortal' as const },
-  { slug: "offer-comparison" as const, icon: BarChart3, gradient: "from-amber-500/10 to-orange-500/10", accent: "text-amber-600", ring: "ring-amber-500/20", bar: "from-amber-500 to-orange-400", linkTo: 'fOfferComparison' as const },
-  { slug: "ai-insights" as const, icon: Sparkles, gradient: "from-rose-500/10 to-pink-500/10", accent: "text-rose-600", ring: "ring-rose-500/20", bar: "from-rose-500 to-pink-400", linkTo: 'featuresHub' as const },
+  { slug: "ai-sourcing" as const,      icon: Search,    linkTo: 'fAiSourcing' as const },
+  { slug: "email-outreach" as const,   icon: Mail,      linkTo: 'fEmailOutreach' as const },
+  { slug: "supplier-portal" as const,  icon: Shield,    linkTo: 'fSupplierPortal' as const },
+  { slug: "offer-comparison" as const, icon: BarChart3, linkTo: 'fOfferComparison' as const },
+  { slug: "ai-insights" as const,      icon: Sparkles,  linkTo: 'featuresHub' as const },
 ] as const
 
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
@@ -37,18 +37,14 @@ export function FeaturesSneakPeek() {
     setPaused(true)
   }, [])
 
-  // Auto-rotation
   useEffect(() => {
     if (paused) {
-      // Resume after 8s of inactivity
       const resume = setTimeout(() => setPaused(false), 8000)
       return () => clearTimeout(resume)
     }
-
     intervalRef.current = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % FEATURES.length)
     }, AUTO_ROTATE_MS)
-
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
@@ -58,18 +54,18 @@ export function FeaturesSneakPeek() {
   const activeFeat = features[active.slug]
 
   return (
-    <section className="py-20 md:py-28">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Section header */}
+    <section className="py-[clamp(56px,8vw,112px)]">
+      <div className="mx-auto max-w-[1240px] px-[clamp(20px,4vw,72px)]">
         <RevealOnScroll>
-          <div className="text-center mb-14 md:mb-20">
-            <span className="inline-block rounded-full bg-primary/[0.08] px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.15em] text-primary mb-5">
+          <div className="grid justify-items-center text-center gap-3.5 mb-[clamp(36px,5vw,64px)]">
+            <span className="eyebrow">
+              <span className="eyebrow-dot" />
               {copy.sectionLabel}
             </span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">
+            <h2 className="text-[clamp(28px,3.4vw,42px)] font-bold leading-[1.1] max-w-[24ch] text-[hsl(var(--ds-ink))]">
               {copy.title}
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            <p className="text-[18px] leading-[1.55] text-[hsl(var(--ds-ink-3))] max-w-[58ch] text-pretty">
               {copy.subtitle}
             </p>
           </div>
@@ -93,38 +89,35 @@ export function FeaturesSneakPeek() {
                   <button
                     key={f.slug}
                     onClick={() => goTo(i)}
-                    className={`relative flex items-center gap-3.5 rounded-xl px-4 py-3.5 text-left transition-all duration-200 cursor-pointer ${
+                    className={`relative flex items-center gap-3.5 rounded-[10px] px-4 py-3.5 text-left transition-all duration-150 cursor-pointer ${
                       isActive
-                        ? "bg-white shadow-sm"
-                        : "hover:bg-gray-100/60"
+                        ? "bg-[hsl(var(--ds-surface))] shadow-[0_1px_3px_rgba(14,22,20,0.05)] border border-[hsl(var(--ds-rule))]"
+                        : "hover:bg-[hsl(var(--ds-bg-2))] border border-transparent"
                     }`}
                   >
-                    {/* Animated active bar */}
                     {isActive && (
                       <motion.div
                         layoutId="activeTabBar"
-                        className={`absolute left-0 top-2 bottom-2 w-[4px] rounded-full bg-gradient-to-b ${f.bar}`}
+                        className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-[hsl(var(--ds-accent))]"
                         transition={{ type: "spring", stiffness: 350, damping: 30 }}
                       />
                     )}
 
                     <div
-                      className={`h-9 w-9 shrink-0 rounded-lg flex items-center justify-center transition-all duration-200 ${
+                      className={`h-9 w-9 shrink-0 rounded-[7px] flex items-center justify-center transition-colors duration-150 ${
                         isActive
-                          ? `bg-gradient-to-br ${f.gradient} shadow-sm`
-                          : "bg-gray-100"
+                          ? "bg-[hsl(var(--ds-accent-soft))] text-[hsl(var(--ds-accent))]"
+                          : "bg-[hsl(var(--ds-bg-2))] text-[hsl(var(--ds-muted))]"
                       }`}
                     >
-                      <Icon
-                        className={`h-[18px] w-[18px] transition-colors duration-200 ${
-                          isActive ? f.accent : "text-gray-400"
-                        }`}
-                      />
+                      <Icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
                     </div>
 
                     <span
-                      className={`text-sm font-medium transition-colors duration-200 ${
-                        isActive ? "text-gray-900" : "text-gray-500"
+                      className={`text-sm transition-colors duration-150 ${
+                        isActive
+                          ? "text-[hsl(var(--ds-ink))] font-semibold"
+                          : "text-[hsl(var(--ds-ink-2))]"
                       }`}
                     >
                       {feat.title}
@@ -133,12 +126,12 @@ export function FeaturesSneakPeek() {
                 )
               })}
 
-              {/* Progress bar for auto-rotation */}
+              {/* Progress bar */}
               <div className="mt-3 mx-4">
-                <div className="h-[2px] rounded-full bg-gray-100 overflow-hidden">
+                <div className="h-[2px] rounded-full bg-[hsl(var(--ds-bg-2))] overflow-hidden">
                   <motion.div
                     key={`${activeIndex}-${paused}`}
-                    className={`h-full rounded-full bg-gradient-to-r ${active.bar}`}
+                    className="h-full rounded-full bg-[hsl(var(--ds-accent))]"
                     initial={{ width: "0%" }}
                     animate={{ width: paused ? undefined : "100%" }}
                     transition={paused ? {} : { duration: AUTO_ROTATE_MS / 1000, ease: "linear" }}
@@ -156,19 +149,17 @@ export function FeaturesSneakPeek() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -12 }}
                   transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
-                  className={`rounded-2xl border border-black/[0.06] bg-gradient-to-br ${active.gradient} p-8 lg:p-10 h-full flex flex-col justify-center`}
+                  className="card-ds h-full flex flex-col justify-center"
                 >
-                  <span
-                    className={`inline-block text-[11px] font-bold uppercase tracking-[0.18em] ${active.accent} mb-4`}
-                  >
+                  <span className="font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-[hsl(var(--ds-accent))] mb-4">
                     {activeFeat.sectionLabel}
                   </span>
 
-                  <h3 className="text-2xl lg:text-3xl font-bold tracking-tight text-gray-900 mb-3">
+                  <h3 className="text-[26px] lg:text-[30px] font-bold tracking-[-0.02em] text-[hsl(var(--ds-ink))] mb-3">
                     {activeFeat.title}
                   </h3>
 
-                  <p className="text-[15px] leading-relaxed text-gray-600 mb-6 max-w-xl">
+                  <p className="text-[15px] leading-relaxed text-[hsl(var(--ds-ink-2))] mb-6 max-w-xl">
                     {activeFeat.subtitle}
                   </p>
 
@@ -181,21 +172,19 @@ export function FeaturesSneakPeek() {
                         transition={{ delay: 0.12 + bi * 0.09 }}
                         className="flex items-start gap-2.5"
                       >
-                        <span
-                          className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${active.gradient} ring-1 ${active.ring}`}
-                        >
-                          <Check className={`h-3 w-3 ${active.accent}`} />
+                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--ds-accent-soft))]">
+                          <Check className="h-3 w-3 text-[hsl(var(--ds-accent))]" />
                         </span>
-                        <span className="text-sm text-gray-700 leading-snug">{bullet}</span>
+                        <span className="text-sm text-[hsl(var(--ds-ink-2))] leading-snug">{bullet}</span>
                       </motion.li>
                     ))}
                   </ul>
 
                   <Link
                     to={pathFor(active.linkTo)}
-                    className={`inline-flex items-center gap-1.5 mt-6 text-sm font-semibold ${active.accent} hover:gap-2.5 transition-all duration-200`}
+                    className="inline-flex items-center gap-1.5 mt-6 text-sm font-semibold text-[hsl(var(--ds-accent))] hover:gap-2.5 transition-all duration-150"
                   >
-                    {isEN ? 'Learn more' : 'Dowiedz sie wiecej'} &rarr;
+                    {isEN ? 'Learn more' : 'Dowiedz sie wiecej'} →
                   </Link>
                 </motion.div>
               </AnimatePresence>
@@ -213,44 +202,32 @@ export function FeaturesSneakPeek() {
             return (
               <RevealOnScroll key={f.slug} delay={i * 0.06}>
                 <div
-                  className={`rounded-2xl border transition-all duration-200 overflow-hidden hover:shadow-lg transition-shadow ${
+                  className={`rounded-[14px] border transition-all duration-200 overflow-hidden ${
                     isOpen
-                      ? `border-black/[0.08] bg-gradient-to-br ${f.gradient} shadow-sm`
-                      : "border-black/[0.06] bg-white"
+                      ? "border-[hsl(var(--ds-rule-2))] bg-[hsl(var(--ds-surface))] shadow-[0_1px_3px_rgba(14,22,20,0.04)]"
+                      : "border-[hsl(var(--ds-rule))] bg-[hsl(var(--ds-surface))]"
                   }`}
                 >
                   <button
                     onClick={() => goTo(i)}
                     className="flex w-full items-center gap-3 px-5 py-4 text-left cursor-pointer"
                   >
-                    <div
-                      className={`h-9 w-9 shrink-0 rounded-lg flex items-center justify-center ${
-                        isOpen ? `bg-white/60` : "bg-gray-50"
-                      }`}
-                    >
-                      <Icon
-                        className={`h-[18px] w-[18px] ${isOpen ? f.accent : "text-gray-400"}`}
-                      />
+                    <div className={`h-9 w-9 shrink-0 rounded-[7px] flex items-center justify-center ${
+                      isOpen ? "bg-[hsl(var(--ds-accent-soft))] text-[hsl(var(--ds-accent))]" : "bg-[hsl(var(--ds-bg-2))] text-[hsl(var(--ds-muted))]"
+                    }`}>
+                      <Icon className="h-[18px] w-[18px]" />
                     </div>
-                    <span
-                      className={`text-sm font-semibold flex-1 ${
-                        isOpen ? "text-gray-900" : "text-gray-600"
-                      }`}
-                    >
+                    <span className={`text-sm font-semibold flex-1 ${
+                      isOpen ? "text-[hsl(var(--ds-ink))]" : "text-[hsl(var(--ds-ink-2))]"
+                    }`}>
                       {feat.title}
                     </span>
                     <motion.div
                       animate={{ rotate: isOpen ? 180 : 0 }}
                       transition={{ duration: 0.2 }}
-                      className="text-gray-400"
+                      className="text-[hsl(var(--ds-muted))]"
                     >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        className="stroke-current"
-                      >
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="stroke-current">
                         <path d="M4 6l4 4 4-4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     </motion.div>
@@ -266,20 +243,16 @@ export function FeaturesSneakPeek() {
                         className="overflow-hidden"
                       >
                         <div className="px-5 pb-5 pt-0">
-                          <p className="text-sm leading-relaxed text-gray-600 mb-4">
+                          <p className="text-sm leading-relaxed text-[hsl(var(--ds-ink-2))] mb-4">
                             {feat.subtitle}
                           </p>
                           <ul className="space-y-2.5">
                             {feat.bullets.map((bullet, bi) => (
                               <li key={bi} className="flex items-start gap-2.5">
-                                <span
-                                  className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/60 ring-1 ${f.ring}`}
-                                >
-                                  <Check className={`h-3 w-3 ${f.accent}`} />
+                                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--ds-accent-soft))]">
+                                  <Check className="h-3 w-3 text-[hsl(var(--ds-accent))]" />
                                 </span>
-                                <span className="text-sm text-gray-700 leading-snug">
-                                  {bullet}
-                                </span>
+                                <span className="text-sm text-[hsl(var(--ds-ink-2))] leading-snug">{bullet}</span>
                               </li>
                             ))}
                           </ul>
@@ -293,14 +266,14 @@ export function FeaturesSneakPeek() {
           })}
         </div>
 
-        {/* 6th card: View all modules */}
         <RevealOnScroll>
-          <div className="mt-8 md:mt-12 flex justify-center">
+          <div className="mt-10 flex justify-center">
             <Link
               to={pathFor("featuresHub")}
-              className="inline-flex items-center gap-2 rounded-2xl border-2 border-dashed border-gray-300 hover:border-primary/50 px-8 py-5 text-base font-semibold text-muted-foreground hover:text-primary transition-all duration-200 group"
+              className="btn-ds btn-ds-ghost"
             >
-              {isEN ? 'View all modules' : 'Zobacz wszystkie moduly'} &rarr;
+              {isEN ? 'View all modules' : 'Zobacz wszystkie moduly'}
+              <span className="arrow" aria-hidden>→</span>
             </Link>
           </div>
         </RevealOnScroll>
