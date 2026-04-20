@@ -89,11 +89,18 @@ export function BeforeAfterSection() {
             <h3 className="text-[22px] tracking-[-0.02em] font-semibold mb-2.5 text-[hsl(var(--ds-ink))]">
               {copy.beforeTitle}
             </h3>
-            {copy.beforeLines.map((line) => (
-              <div key={line.t} className="ba-line">
+            {copy.beforeLines.map((line, i) => (
+              <motion.div
+                key={line.t}
+                initial={{ opacity: 0, x: -6 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.4, delay: 0.15 + i * 0.08, ease: [0.21, 0.47, 0.32, 0.98] }}
+                className="ba-line"
+              >
                 <span className="ba-time">{line.t}</span>
                 <span className="text-[hsl(var(--ds-ink-2))]">{line.l}</span>
-              </div>
+              </motion.div>
             ))}
           </div>
 
@@ -105,11 +112,18 @@ export function BeforeAfterSection() {
             <h3 className="text-[22px] tracking-[-0.02em] font-semibold mb-2.5 text-[hsl(var(--ds-ink))]">
               {copy.afterTitle}
             </h3>
-            {copy.afterLines.map((line) => (
-              <div key={line.t} className="ba-line">
+            {copy.afterLines.map((line, i) => (
+              <motion.div
+                key={line.t}
+                initial={{ opacity: 0, x: 6 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.4, delay: 0.25 + i * 0.08, ease: [0.21, 0.47, 0.32, 0.98] }}
+                className="ba-line"
+              >
                 <span className="ba-time">{line.t}</span>
                 <span className="text-[hsl(var(--ds-ink-2))]">{line.l}</span>
-              </div>
+              </motion.div>
             ))}
           </div>
         </motion.div>

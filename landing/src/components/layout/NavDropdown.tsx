@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useEffect, useRef, useCallback, useId, createContext, useContext, useState } from "react"
 import { Link } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronDown } from "lucide-react"
@@ -28,19 +28,57 @@ interface NavDropdownProps {
   columns?: 1 | 2 | 3
 }
 
+/* ─── Coordinated open state across sibling dropdowns ─── */
+
+interface NavDropdownCtx {
+  activeIdRef: React.MutableRefObject<string | null>
+  activeId: string | null
+  setActive: (id: string | null) => void
+}
+
+const NavDropdownContext = createContext<NavDropdownCtx>({
+  activeIdRef: { current: null },
+  activeId: null,
+  setActive: () => {},
+})
+
+export function NavDropdownGroup({ children }: { children: React.ReactNode }) {
+  const [activeId, _setActive] = useState<string | null>(null)
+  const activeIdRef = useRef<string | null>(null)
+  const setActive = useCallback((id: string | null) => {
+    activeIdRef.current = id
+    _setActive(id)
+  }, [])
+  return (
+    <NavDropdownContext.Provider value={{ activeIdRef, activeId, setActive }}>
+      {children}
+    </NavDropdownContext.Provider>
+  )
+}
+
+/* ─── Panel variants ─── */
+
 const panelVariants = {
-  hidden: { opacity: 0, y: 8, scale: 0.98 },
-  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.2, ease: [0.23, 1, 0.32, 1] as const } },
-  exit: { opacity: 0, y: 4, scale: 0.98, transition: { duration: 0.15, ease: "easeIn" as const } },
+  hidden: { opacity: 0, y: 6, scale: 0.985 },
+  visible: {
+    opacity: 1, y: 0, scale: 1,
+    transition: { duration: 0.18, ease: [0.23, 1, 0.32, 1] as const },
+  },
+  exit: {
+    opacity: 0, y: 2, scale: 0.99,
+    transition: { duration: 0.1, ease: "easeIn" as const },
+  },
 }
 
 /**
- * Mega-menu dropdown for Navbar.
- * Opens on hover (with 200ms close delay). Keyboard accessible:
- * click toggles, Escape closes, focus within keeps open.
+ * Mega-menu dropdown for Navbar. Wrap sibling dropdowns in <NavDropdownGroup>
+ * so only one is open at a time (coordinated close).
  */
 export function NavDropdown({ label, sections, columns = 2 }: NavDropdownProps) {
-  const [open, setOpen] = useState(false)
+  const id = useId()
+  const { activeIdRef, activeId, setActive } = useContext(NavDropdownContext)
+  const open = activeId === id
+
   const containerRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -52,44 +90,42 @@ export function NavDropdown({ label, sections, columns = 2 }: NavDropdownProps) 
     }
   }, [])
 
-  const startCloseTimer = useCallback(() => {
-    clearCloseTimer()
-    closeTimer.current = setTimeout(() => setOpen(false), 200)
-  }, [clearCloseTimer])
-
   const handleMouseEnter = useCallback(() => {
     clearCloseTimer()
-    setOpen(true)
-  }, [clearCloseTimer])
+    setActive(id) // Switching clears any previous active; prior panel AnimatePresence-exits
+  }, [clearCloseTimer, id, setActive])
 
   const handleMouseLeave = useCallback(() => {
-    startCloseTimer()
-  }, [startCloseTimer])
+    clearCloseTimer()
+    closeTimer.current = setTimeout(() => {
+      // Only clear if this dropdown is still the active one (mouse may have moved to a sibling)
+      if (activeIdRef.current === id) setActive(null)
+    }, 120)
+  }, [clearCloseTimer, activeIdRef, id, setActive])
 
   // Close on outside click
   useEffect(() => {
     if (!open) return
     const handler = (e: MouseEvent) => {
-      if (!containerRef.current?.contains(e.target as Node)) setOpen(false)
+      if (!containerRef.current?.contains(e.target as Node)) setActive(null)
     }
     document.addEventListener("mousedown", handler)
     return () => document.removeEventListener("mousedown", handler)
-  }, [open])
+  }, [open, setActive])
 
   // Close on Escape and return focus
   useEffect(() => {
     if (!open) return
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setOpen(false)
+        setActive(null)
         triggerRef.current?.focus()
       }
     }
     document.addEventListener("keydown", handler)
     return () => document.removeEventListener("keydown", handler)
-  }, [open])
+  }, [open, setActive])
 
-  // Cleanup timer on unmount
   useEffect(() => clearCloseTimer, [clearCloseTimer])
 
   const colsClass =
@@ -107,12 +143,12 @@ export function NavDropdown({ label, sections, columns = 2 }: NavDropdownProps) 
       <button
         ref={triggerRef}
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setActive(open ? null : id)}
         className={cn(
-          "inline-flex items-center gap-1 px-3.5 py-2 text-sm font-medium transition-all duration-200 rounded-lg",
+          "inline-flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors duration-150 rounded-lg",
           open
-            ? "text-foreground bg-black/[0.05]"
-            : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
+            ? "text-foreground bg-[hsl(var(--ds-bg-2))]"
+            : "text-[hsl(var(--ds-ink-2))] hover:text-foreground hover:bg-[hsl(var(--ds-bg-2))]"
         )}
         aria-expanded={open}
         aria-haspopup="true"
@@ -126,9 +162,10 @@ export function NavDropdown({ label, sections, columns = 2 }: NavDropdownProps) 
         />
       </button>
 
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {open && (
           <motion.div
+            key={id}
             variants={panelVariants}
             initial="hidden"
             animate="visible"
@@ -138,19 +175,17 @@ export function NavDropdown({ label, sections, columns = 2 }: NavDropdownProps) 
               panelWidth
             )}
           >
-            <div className="rounded-2xl bg-white shadow-[0_20px_60px_-12px_rgba(15,23,42,0.18),0_8px_20px_-8px_rgba(15,23,42,0.12)] border border-slate-200/80 overflow-hidden ring-1 ring-slate-900/[0.03]">
+            <div className="rounded-[14px] bg-[hsl(var(--ds-surface))] shadow-[0_20px_60px_-12px_rgba(14,22,20,0.18),0_8px_20px_-8px_rgba(14,22,20,0.12)] border border-[hsl(var(--ds-rule))] overflow-hidden">
               <div className={cn("grid gap-0", colsClass)}>
                 {sections.map((section, idx) => (
                   <div
                     key={section.label}
                     className={cn(
                       "p-5",
-                      idx > 0 &&
-                        columns >= 2 &&
-                        "border-l border-black/[0.05]"
+                      idx > 0 && columns >= 2 && "border-l border-[hsl(var(--ds-rule))]"
                     )}
                   >
-                    <h3 className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/70 mb-3 px-2.5">
+                    <h3 className="font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-[hsl(var(--ds-muted))] mb-3 px-2.5">
                       {section.label}
                     </h3>
                     <ul className="space-y-0.5">
@@ -158,27 +193,27 @@ export function NavDropdown({ label, sections, columns = 2 }: NavDropdownProps) 
                         <li key={item.to + item.label}>
                           <Link
                             to={item.to}
-                            onClick={() => setOpen(false)}
-                            className="flex items-start gap-3 px-2.5 py-2.5 rounded-xl hover:bg-black/[0.03] transition-colors duration-150 group"
+                            onClick={() => setActive(null)}
+                            className="flex items-start gap-3 px-2.5 py-2.5 rounded-[10px] hover:bg-[hsl(var(--ds-bg-2))] transition-colors duration-150 group"
                           >
                             {item.icon && (
-                              <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/[0.08] text-primary transition-colors duration-150 group-hover:bg-primary/[0.12]">
+                              <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--ds-accent-soft))] text-[hsl(var(--ds-accent))] transition-colors duration-150 group-hover:bg-[hsl(var(--ds-accent))] group-hover:text-white">
                                 {item.icon}
                               </span>
                             )}
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
-                                <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors duration-150">
+                                <span className="text-sm font-semibold text-[hsl(var(--ds-ink))] group-hover:text-[hsl(var(--ds-accent))] transition-colors duration-150">
                                   {item.label}
                                 </span>
                                 {item.badge && (
-                                  <span className="text-[9px] font-bold uppercase tracking-wider text-amber-700 bg-amber-100/80 border border-amber-200/60 rounded-full px-1.5 py-0.5">
+                                  <span className="font-mono text-[9px] font-medium uppercase tracking-wider text-[hsl(var(--ds-cta-ink))] bg-[hsl(var(--ds-cta))] rounded-full px-1.5 py-0.5">
                                     {item.badge}
                                   </span>
                                 )}
                               </div>
                               {item.description && (
-                                <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
+                                <p className="text-xs text-[hsl(var(--ds-muted))] mt-0.5 leading-snug">
                                   {item.description}
                                 </p>
                               )}
@@ -190,13 +225,11 @@ export function NavDropdown({ label, sections, columns = 2 }: NavDropdownProps) 
                     {section.footer && (
                       <Link
                         to={section.footer.to}
-                        onClick={() => setOpen(false)}
-                        className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:gap-2 transition-all duration-200 px-2.5"
+                        onClick={() => setActive(null)}
+                        className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[hsl(var(--ds-accent))] hover:gap-2 transition-all duration-200 px-2.5"
                       >
                         {section.footer.label}
-                        <span className="transition-transform duration-200 group-hover:translate-x-0.5">
-                          &rarr;
-                        </span>
+                        <span className="transition-transform duration-200">→</span>
                       </Link>
                     )}
                   </div>

@@ -145,8 +145,11 @@ export function HeroSection() {
           {/* ── Product shot: sourcer widget ── */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.2, ease: [0.21, 0.47, 0.32, 0.98] }}
+            animate={{ opacity: 1, y: [0, -6, 0] }}
+            transition={{
+              opacity: { duration: 0.7, delay: 0.2, ease: [0.21, 0.47, 0.32, 0.98] },
+              y: { duration: 6, times: [0, 0.5, 1], ease: "easeInOut", repeat: Infinity, delay: 1.2 },
+            }}
             className="product-shot"
           >
             <div className="ps-chrome">

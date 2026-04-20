@@ -192,17 +192,24 @@ function PlanCard({ plan }: { plan: Plan }) {
     )
 
   return (
-    <div
-      className={`relative flex flex-col gap-4 rounded-[14px] bg-[hsl(var(--ds-surface))] p-7 transition-all duration-200 ${
+    <motion.div
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.25, ease: [0.21, 0.47, 0.32, 0.98] }}
+      className={`relative flex flex-col gap-4 rounded-[14px] bg-[hsl(var(--ds-surface))] p-7 transition-shadow duration-200 ${
         plan.featured
-          ? "border-[1.5px] border-[hsl(var(--ds-accent))] shadow-[0_4px_12px_rgba(14,22,20,0.06),0_12px_32px_rgba(14,22,20,0.05)]"
-          : "border border-[hsl(var(--ds-rule))] hover:border-[hsl(var(--ds-rule-2))]"
+          ? "border-[1.5px] border-[hsl(var(--ds-accent))] shadow-[0_4px_12px_rgba(14,22,20,0.06),0_12px_32px_rgba(14,22,20,0.05)] hover:shadow-[0_8px_20px_rgba(14,22,20,0.08),0_16px_40px_rgba(14,22,20,0.08)]"
+          : "border border-[hsl(var(--ds-rule))] hover:border-[hsl(var(--ds-ink-3))] hover:shadow-[0_4px_16px_-4px_rgba(14,22,20,0.08)]"
       }`}
     >
       {plan.featured && (
-        <span className="absolute -top-[11px] left-1/2 -translate-x-1/2 font-mono text-[10.5px] font-medium uppercase tracking-[0.08em] bg-[hsl(var(--ds-accent))] text-white px-2.5 py-1 rounded-full whitespace-nowrap">
+        <motion.span
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.35, ease: [0.21, 0.47, 0.32, 0.98] }}
+          className="absolute -top-[11px] left-1/2 -translate-x-1/2 font-mono text-[10.5px] font-medium uppercase tracking-[0.08em] bg-[hsl(var(--ds-accent))] text-white px-2.5 py-1 rounded-full whitespace-nowrap shadow-[0_2px_8px_rgba(22,42,82,0.25)]"
+        >
           {isEN ? "Most popular" : "Najpopularniejsze"}
-        </span>
+        </motion.span>
       )}
 
       <div>
@@ -239,7 +246,7 @@ function PlanCard({ plan }: { plan: Plan }) {
       </ul>
 
       {ctaElement}
-    </div>
+    </motion.div>
   )
 }
 
