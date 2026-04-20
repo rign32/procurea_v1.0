@@ -10,7 +10,7 @@ import { AdminModule } from './admin/admin.module';
 import { EmailModule } from './email/email.module';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerModule, ThrottlerGuard, seconds } from '@nestjs/throttler';
 import { RequestsModule } from './requests/requests.module';
 import { SequencesModule } from './sequences/sequences.module';
 import { SuppliersModule } from './suppliers/suppliers.module';
@@ -52,12 +52,16 @@ import { SentryModule } from '@sentry/nestjs/setup';
       envFilePath: ['.env.local', '.env'],
     }),
     ScheduleModule.forRoot(),
-    ThrottlerModule.forRoot({
-      throttlers: [{
-        ttl: 60000,   // 60 seconds window
-        limit: 60,    // 60 requests per minute per IP (global default)
-      }],
-    }),
+    // NOTE: v6 array-first syntax. Using `ThrottlerModule.forRoot({ throttlers: [...] })`
+    // (the object-wrapped form) combined with `APP_GUARD: ThrottlerGuard` globally caused
+    // `TypeError: this.throttlers is not iterable` in Cloud Functions runtime because the
+    // guard's onModuleInit() fired before module options finished initializing for the
+    // APP_GUARD provider. Array form + ttl/limit helpers is the supported v6 pattern.
+    ThrottlerModule.forRoot([{
+      name: 'default',
+      ttl: seconds(60),
+      limit: 60,
+    }]),
     LoggerModule,
     CommonModule,
     SourcingModule,
