@@ -9,6 +9,7 @@ import { NewsletterSignupInline } from "@/components/content/NewsletterSignupInl
 import { getAllBlogPosts } from "@/content/blog"
 import { pathMappings } from "@/i18n/paths"
 import { BLOG_HEROES } from "@/assets/content-hub/BlogHeroes"
+import { getBlogPostImages } from "@/assets/content-hub/BlogHeroImages"
 import type { BlogPillar, BlogPersona, BlogFunnel } from "@/content/blog-data/types"
 import { BookOpen, ArrowRight, Clock3, Calendar } from "lucide-react"
 
@@ -187,6 +188,7 @@ export function BlogIndexPage() {
                   const pillarInfo = PILLAR_LABELS[post.pillar]
                   const isScheduled = post.status === 'skeleton'
                   const Hero = BLOG_HEROES[post.slug]
+                  const postImages = getBlogPostImages(post.slug)
                   return (
                     <RevealOnScroll key={post.slug}>
                       <Link
@@ -194,7 +196,14 @@ export function BlogIndexPage() {
                         className="group flex flex-col rounded-2xl border border-black/[0.08] bg-white overflow-hidden h-full hover:shadow-[0_12px_40px_-8px_rgba(0,0,0,0.15)] hover:-translate-y-1 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                       >
                         <div className="relative aspect-[16/10] bg-gradient-to-br from-brand-400 via-brand-600 to-slate-800 overflow-hidden">
-                          {Hero ? (
+                          {postImages?.hero ? (
+                            <img
+                              src={postImages.hero}
+                              alt={title}
+                              className="w-full h-full object-cover"
+                              loading={index < 3 ? 'eager' : 'lazy'}
+                            />
+                          ) : Hero ? (
                             <Hero className="w-full h-full" />
                           ) : (
                             <>
