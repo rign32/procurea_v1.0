@@ -16,6 +16,8 @@ jobs:
     environment: staging
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history for git-based drift check
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -34,6 +36,26 @@ jobs:
       - name: Generate Prisma client
         working-directory: backend
         run: npx prisma generate
+
+      # Guards against the class of bug where schema.prisma gets new fields/models
+      # without a matching migration/*.sql file. `prisma db push` creates columns
+      # silently on staging DB, so staging works but prod breaks (migrate deploy
+      # sees no new migration → missing columns → P2022 on every query, as happened
+      # 2026-04-20 with Organization.hasConnectAddon blocking all logins).
+      #
+      # Heuristic: if any commit on this branch (vs main) modifies schema.prisma,
+      # there must be at least one NEW migration file under prisma/migrations/.
+      - name: Guard — schema change requires migration
+        working-directory: backend
+        run: |
+          BASE=$(git merge-base HEAD origin/main 2>/dev/null || echo "HEAD~10")
+          SCHEMA_CHANGED=$(git diff --name-only "$BASE"..HEAD -- prisma/schema.prisma | wc -l | tr -d ' ')
+          MIGRATIONS_ADDED=$(git diff --name-only --diff-filter=A "$BASE"..HEAD -- 'prisma/migrations/*/migration.sql' | wc -l | tr -d ' ')
+          echo "schema.prisma changed: $SCHEMA_CHANGED files; new migrations added: $MIGRATIONS_ADDED"
+          if [ "$SCHEMA_CHANGED" != "0" ] && [ "$MIGRATIONS_ADDED" = "0" ]; then
+            echo "::error::schema.prisma changed but no new migration added. Run \`npx prisma migrate dev --name <change>\` locally, commit the generated migration, and push again. Never use \`prisma db push\` on staging — it creates silent drift that breaks prod."
+            exit 1
+          fi
 
       - name: Run database migrations
         working-directory: backend
