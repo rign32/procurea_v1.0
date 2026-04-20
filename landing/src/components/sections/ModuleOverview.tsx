@@ -22,13 +22,13 @@ const ICON_COLORS: Record<string, { bg: string; text: string }> = {
 
 export function ModuleOverview() {
   return (
-    <section className="relative py-20 md:py-28 overflow-hidden">
+    <section className="relative py-[clamp(56px,8vw,112px)] overflow-hidden">
       {/* Subtle background decoration */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-primary/[0.02] blur-3xl" />
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1240px] px-[clamp(20px,4vw,72px)]">
         {/* Section header */}
         <RevealOnScroll>
           <div className="grid justify-items-center text-center gap-3.5 mb-[clamp(36px,5vw,64px)]">
