@@ -636,6 +636,63 @@ export class SourcingService {
         return { ...result, rerunOf: originalId };
     }
 
+    // Customer-support path: given a user's email, soft-delete their most recent
+    // campaign and re-run it under their own userId, then send an apology email.
+    // Used after a platform-side pipeline failure where the user shouldn't have
+    // to click anything. Callable only from the admin-guarded controller route.
+    async adminRerunForUser(email: string, originalCampaignId?: string) {
+        const user = await this.prisma.user.findUnique({
+            where: { email },
+            select: { id: true, email: true, language: true },
+        });
+        if (!user) throw new NotFoundException(`User with email ${email} not found`);
+
+        // Campaign ownership is indirect: Campaign.rfqRequest.ownerId points to User
+        const original = originalCampaignId
+            ? await this.prisma.campaign.findFirst({
+                where: { id: originalCampaignId, deletedAt: null, rfqRequest: { ownerId: user.id } },
+                select: { id: true, name: true, language: true, searchCriteria: true, sequenceTemplateId: true },
+            })
+            : await this.prisma.campaign.findFirst({
+                where: { deletedAt: null, rfqRequest: { ownerId: user.id } },
+                orderBy: { createdAt: 'desc' },
+                select: { id: true, name: true, language: true, searchCriteria: true, sequenceTemplateId: true },
+            });
+        if (!original) throw new NotFoundException(`No campaign found for ${email}`);
+        if (!original.searchCriteria) throw new BadRequestException(`Original campaign ${original.id} has no searchCriteria`);
+
+        // Soft-delete original so the user's dashboard shows only the new run
+        await this.prisma.campaign.update({
+            where: { id: original.id },
+            data: { deletedAt: new Date() },
+        });
+
+        // Re-run as the original owner (not as the calling admin)
+        const newDto: CreateCampaignDto = {
+            name: original.name,
+            language: original.language || undefined,
+            sequenceTemplateId: original.sequenceTemplateId || undefined,
+            searchCriteria: original.searchCriteria as any,
+        };
+        const created = await this.create(newDto, user.id);
+        await this.log(created.id, `[ADMIN RE-RUN] Support-triggered rerun of ${original.id} for ${email} after platform failure`);
+
+        // Apology email — fire-and-forget, don't block the response
+        this.emailService.sendCampaignRerunApologyEmail(
+            user.email,
+            original.name,
+            user.language || original.language || undefined,
+        ).catch(err => this.logger.error(`Apology email failed for ${email}: ${err.message}`));
+
+        return {
+            originalCampaignId: original.id,
+            newCampaignId: created.id,
+            userId: user.id,
+            userEmail: user.email,
+            apologyEmailSent: true,
+        };
+    }
+
     /**
      * 4.2 CAMPAIGN HEALTH DASHBOARD — overview of running + recent campaigns for operations
      */

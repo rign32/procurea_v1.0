@@ -456,4 +456,62 @@ export class EmailService {
             return '';
         }
     }
+
+    // Sent after a support-side pipeline rerun when the original campaign failed
+    // due to a platform problem (e.g. Gemini outage). Tells the user we've
+    // restarted it and they'll get the usual completion email when done.
+    async sendCampaignRerunApologyEmail(
+        email: string,
+        campaignName: string,
+        locale?: string,
+    ): Promise<boolean> {
+        const isEn = locale === 'en';
+        const appUrl = this.getAppUrl(locale);
+        if (!this.resend) {
+            this.logger.log(`[MOCK EMAIL] Rerun apology to ${email} for "${campaignName}"`);
+            return true;
+        }
+        try {
+            const { to, subject } = this.getDebugRouting(email, isEn
+                ? `Procurea — we've restarted your "${campaignName}" campaign`
+                : `Procurea — Twoja kampania "${campaignName}" została wznowiona`);
+            const f = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+            const body = isEn
+                ? `<p style="margin:0 0 12px 0;">Hi,</p>
+<p style="margin:0 0 12px 0;">We're sorry — your first run of the <strong>${campaignName}</strong> campaign didn't finish properly due to a temporary platform issue on our side.</p>
+<p style="margin:0 0 12px 0;">We've fully reset the sourcing engine and restarted the campaign with the same parameters. You'll receive the usual summary email with results once it completes (typically within 20–30 minutes).</p>
+<p style="margin:0 0 12px 0;">No action needed from you. Thanks for your patience.</p>
+<p style="margin:0;">— The Procurea Team</p>`
+                : `<p style="margin:0 0 12px 0;">Cześć,</p>
+<p style="margin:0 0 12px 0;">Przepraszamy — pierwsze uruchomienie kampanii <strong>${campaignName}</strong> nie zakończyło się poprawnie z powodu tymczasowego problemu po naszej stronie.</p>
+<p style="margin:0 0 12px 0;">Zresetowaliśmy cały silnik sourcingu i ponownie uruchomiliśmy Twoją kampanię z tymi samymi parametrami. Standardowe podsumowanie z wynikami otrzymasz mailem po zakończeniu (zwykle 20–30 minut).</p>
+<p style="margin:0 0 12px 0;">Nie musisz nic robić. Dziękujemy za cierpliwość.</p>
+<p style="margin:0;">— Zespół Procurea</p>`;
+            await this.resend.emails.send({
+                from: this.getFromEmailForLocale(locale),
+                to,
+                subject,
+                html: `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#FFFFFF;-webkit-font-smoothing:antialiased;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;">
+<tr><td align="center" style="padding:40px 20px;">
+<table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
+  <tr><td style="height:3px;background:#4F46E5;"></td></tr>
+  <tr><td style="padding:28px 0 20px 0;font-family:${f};font-size:18px;font-weight:700;color:#4F46E5;">Procurea</td></tr>
+  <tr><td style="height:1px;background:#F1F5F9;"></td></tr>
+  <tr><td style="padding:28px 0 8px 0;font-family:${f};color:#374151;font-size:15px;line-height:1.75;">${body}</td></tr>
+  <tr><td align="center" style="padding:12px 0 14px 0;">
+    <a href="${appUrl}" style="display:inline-block;background:#4F46E5;color:#FFFFFF;padding:12px 36px;text-decoration:none;border-radius:6px;font-family:${f};font-weight:600;font-size:14px;">${isEn ? 'Open Procurea' : 'Otwórz Procurea'}</a>
+  </td></tr>
+  <tr><td style="height:1px;background:#F1F5F9;"></td></tr>
+  <tr><td style="padding:16px 0 0 0;font-family:${f};font-size:11px;color:#D1D5DB;">&copy; ${new Date().getFullYear()} Procurea</td></tr>
+</table></td></tr></table></body></html>`,
+            });
+            this.logger.log(`Rerun apology email sent to ${email} for "${campaignName}"`);
+            return true;
+        } catch (error) {
+            this.logger.error(`Failed to send rerun apology to ${email}`, error);
+            return false;
+        }
+    }
 }

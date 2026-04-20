@@ -58,6 +58,20 @@ export class SourcingController {
         return this.sourcingService.rerunCampaign(id, userId);
     }
 
+    // Admin-only: find a user's most recent campaign by email, soft-delete it,
+    // re-run under the original owner's userId, and send an apology email.
+    // Used for customer support reruns after a platform-side pipeline failure.
+    @Post('admin/rerun-for-user')
+    async adminRerunForUser(
+        @Body() body: { email: string; originalCampaignId?: string },
+        @Req() req: any,
+    ) {
+        if (req.user?.role !== 'ADMIN') {
+            throw new ForbiddenException('Admin only');
+        }
+        return this.sourcingService.adminRerunForUser(body.email, body.originalCampaignId);
+    }
+
     @Get(':id/logs')
     async getLogs(@Param('id') id: string, @Query('since') since?: string) {
         return this.sourcingService.getLogs(id, since);
