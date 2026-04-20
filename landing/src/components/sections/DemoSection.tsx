@@ -7,8 +7,8 @@ export function DemoSection() {
     : '4a83f42e95d94b968a30ed4e8dc4a463'
 
   return (
-    <section id={t.sectionIds.demo} className="py-24 lg:py-32 relative overflow-hidden">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
+    <section id={t.sectionIds.demo} className="py-[clamp(56px,8vw,112px)] relative overflow-hidden">
+      <div className="mx-auto max-w-[1240px] px-[clamp(20px,4vw,72px)] relative z-10">
         <RevealOnScroll>
           <div className="grid justify-items-center text-center gap-3.5 mb-[clamp(36px,5vw,64px)]">
             <span className="eyebrow">
