@@ -1,7 +1,6 @@
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { VertexAI } from '@google-cloud/vertexai';
-import axios from 'axios';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
@@ -20,7 +19,7 @@ export class GeminiService {
     private readonly logger = new Logger(GeminiService.name);
     private aiStudioClient: GoogleGenerativeAI | null = null;
     private vertexClient: VertexAI | null = null;
-    private projectId = process.env.GCP_PROJECT_ID || process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT || 'project-c64b9be9-1d92-4bc6-be7';
+    private projectId = process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT || process.env.GCP_PROJECT_ID || 'project-c64b9be9-1d92-4bc6-be7';
     private location = process.env.GOOGLE_CLOUD_LOCATION || 'europe-west1';
     private apiKey = process.env.GEMINI_API_KEY;
     private readonly modelName = 'gemini-2.0-flash'; // Confirmed available via API Key listing
@@ -286,29 +285,7 @@ export class GeminiService {
             this.logger.error(`[GEMINI] AI Studio error details: ${JSON.stringify(e, null, 2).substring(0, 500)}`);
         }
 
-        // 2. Try Vertex REST (with Key)
-        if (this.apiKey) {
-            const url = `https://${this.location}-aiplatform.googleapis.com/v1/projects/${this.projectId}/locations/${this.location}/publishers/google/models/${this.modelName}:generateContent?key=${this.apiKey}`;
-            try {
-                this.logger.log(`[GEMINI] Trying Vertex REST with URL: ${url.substring(0, 100)}...`);
-                const { data } = await axios.post(url, {
-                    contents: [{ role: 'user', parts: [{ text: prompt }] }]
-                }, { timeout: 40000 });
-                if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
-                    const text = data.candidates[0].content.parts[0].text;
-                    this.logger.log(`[GEMINI] Vertex REST SUCCESS - response length: ${text.length} chars`);
-                    return text;
-                }
-            } catch (e) {
-                this.logger.error(`[GEMINI] Vertex REST FAILED: ${e.message}`);
-                const responseData = e.response?.data;
-                this.logger.error(`[GEMINI] Vertex REST error response: ${responseData ? JSON.stringify(responseData, null, 2).substring(0, 500) : 'no response data'}`);
-            }
-        } else {
-            this.logger.warn('[GEMINI] No API Key - skipping Vertex REST');
-        }
-
-        // 3. Try Vertex SDK (ADC)
+        // 2. Try Vertex SDK (ADC) — Vertex REST with API key is not supported, only OAuth2/ADC
         try {
             if (this.vertexClient) {
                 this.logger.log('[GEMINI] Trying Vertex SDK with ADC...');
