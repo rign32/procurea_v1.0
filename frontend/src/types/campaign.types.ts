@@ -85,6 +85,9 @@ export interface RfqRequest {
   // Status
   status: 'DRAFT' | 'ACTIVE' | 'CLOSED' | 'ARCHIVED';
 
+  // Public-facing identifier used in supplier emails and portal links (e.g. "RFQ-2026-001").
+  publicId?: string;
+
   // Timestamps
   createdAt: string;
   updatedAt: string;
