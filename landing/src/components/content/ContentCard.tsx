@@ -3,6 +3,7 @@ import { ArrowRight, Download, BookOpen, TrendingUp } from "lucide-react"
 import type { HubItem, ContentType } from "@/content/contentHub"
 import { CategoryBadge } from "./CategoryBadge"
 import { BLOG_HEROES } from "@/assets/content-hub/BlogHeroes"
+import { CASE_STUDY_THUMBNAILS } from "@/assets/content-hub/CaseStudyThumbnails"
 
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
 const isEN = LANG === 'en'
@@ -39,6 +40,8 @@ export function ContentCard({ item, size = 'default', className = '' }: ContentC
   const isFeatured = size === 'featured'
   const action = ACTION_LABELS[item.type]
   const BlogHero = item.type === 'blog' ? BLOG_HEROES[item.slug] : undefined
+  const CaseStudyThumb = item.type === 'case-study' ? CASE_STUDY_THUMBNAILS[item.slug] : undefined
+  const CustomThumb = BlogHero ?? CaseStudyThumb
 
   return (
     <Link
@@ -54,8 +57,8 @@ export function ContentCard({ item, size = 'default', className = '' }: ContentC
           isFeatured ? 'aspect-[16/9]' : 'aspect-[16/10]'
         }`}
       >
-        {BlogHero ? (
-          <BlogHero className="w-full h-full" />
+        {CustomThumb ? (
+          <CustomThumb className="w-full h-full" />
         ) : item.heroImage ? (
           <img
             src={item.heroImage}

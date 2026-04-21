@@ -22,6 +22,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Status } from '@/components/ui/status';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useRfq, useOffers, useAcceptOffer, useRejectOffer, useShortlistOffer, useCompareOffers, useCounterOffer, useSuggestCounter, useRankingWeights, useSetRankingWeights } from '@/hooks/useRfqs';
 import type { RankingWeights } from '@/services/rfqs.service';
@@ -45,14 +46,24 @@ const itemVariants = {
   show: { opacity: 1, y: 0 }
 };
 
-const STATUS_BADGE: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; label: string }> = {
-  PENDING: { variant: 'secondary', label: t.rfqs.offer.pending },
-  VIEWED: { variant: 'outline', label: t.rfqs.offer.viewed },
-  SUBMITTED: { variant: 'default', label: t.rfqs.offer.submitted },
-  SHORTLISTED: { variant: 'default', label: t.rfqs.offer.shortlisted },
-  ACCEPTED: { variant: 'default', label: t.rfqs.offer.accepted },
-  REJECTED: { variant: 'destructive', label: t.rfqs.offer.rejected },
-  COUNTER_OFFERED: { variant: 'outline', label: t.rfqs.offer.counterOffered },
+const STATUS_BADGE: Record<string, { label: string }> = {
+  PENDING: { label: t.rfqs.offer.pending },
+  VIEWED: { label: t.rfqs.offer.viewed },
+  SUBMITTED: { label: t.rfqs.offer.submitted },
+  SHORTLISTED: { label: t.rfqs.offer.shortlisted },
+  ACCEPTED: { label: t.rfqs.offer.accepted },
+  REJECTED: { label: t.rfqs.offer.rejected },
+  COUNTER_OFFERED: { label: t.rfqs.offer.counterOffered },
+};
+
+const OFFER_STATUS_STATE: Record<string, 'live' | 'done' | 'err' | 'warn' | 'idle'> = {
+  PENDING: 'idle',
+  VIEWED: 'idle',
+  SUBMITTED: 'live',
+  SHORTLISTED: 'warn',
+  ACCEPTED: 'done',
+  REJECTED: 'err',
+  COUNTER_OFFERED: 'warn',
 };
 
 // Find the price for a specific quantity from tiers
@@ -441,11 +452,9 @@ export function RfqDetailPage() {
   const rfqQty = rfq.quantity || 0;
 
   const getStatusBadge = (status: string) => {
-    const info = STATUS_BADGE[status] || { variant: 'secondary' as const, label: status };
-    const extraClass = status === 'SHORTLISTED' ? 'bg-amber-100 text-amber-800 border-amber-200' :
-      status === 'ACCEPTED' ? 'bg-green-100 text-green-800 border-green-200' :
-      status === 'COUNTER_OFFERED' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' : '';
-    return <Badge variant={info.variant} className={extraClass}>{info.label}</Badge>;
+    const info = STATUS_BADGE[status] || { label: status };
+    const state = OFFER_STATUS_STATE[status] || 'idle';
+    return <Status state={state}>{info.label}</Status>;
   };
 
   const canAct = (offer: Offer) => ['SUBMITTED', 'SHORTLISTED'].includes(offer.status);
@@ -522,9 +531,9 @@ export function RfqDetailPage() {
               {(rfq as any).publicId || rfq.id.substring(0, 8)}
             </p>
           </div>
-          <Badge variant={rfq.status === 'DRAFT' ? 'secondary' : rfq.status === 'CLOSED' ? 'outline' : 'default'}>
+          <Status state={rfq.status === 'DRAFT' ? 'idle' : rfq.status === 'CLOSED' ? 'done' : rfq.status === 'ARCHIVED' ? 'idle' : 'live'}>
             {t.rfqs.status[rfq.status?.toLowerCase() as keyof typeof t.rfqs.status] || rfq.status}
-          </Badge>
+          </Status>
         </div>
       </motion.div>
 

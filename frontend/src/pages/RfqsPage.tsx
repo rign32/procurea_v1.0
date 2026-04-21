@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Loader2, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Status } from '@/components/ui/status';
 import { useRfqs } from '@/hooks/useRfqs';
 import { t } from '@/i18n';
 import { useAuthStore } from '@/stores/auth.store';
@@ -41,18 +41,14 @@ export function RfqsPage() {
   };
 
   const getStatusBadge = (status: RfqRequest['status']) => {
-    const variants: Record<RfqRequest['status'], 'default' | 'secondary' | 'destructive' | 'outline'> = {
-      DRAFT: 'secondary',
-      ACTIVE: 'default',
-      CLOSED: 'outline',
-      ARCHIVED: 'secondary',
+    const stateMap: Record<RfqRequest['status'], 'live' | 'done' | 'err' | 'warn' | 'idle'> = {
+      DRAFT: 'idle',
+      ACTIVE: 'live',
+      CLOSED: 'done',
+      ARCHIVED: 'idle',
     };
-
-    return (
-      <Badge variant={variants[status]}>
-        {t.rfqs.status[status.toLowerCase() as keyof typeof t.rfqs.status]}
-      </Badge>
-    );
+    const label = t.rfqs.status[status.toLowerCase() as keyof typeof t.rfqs.status] || status;
+    return <Status state={stateMap[status]}>{label}</Status>;
   };
 
   const formatCurrency = (price?: number, currency?: string) => {
