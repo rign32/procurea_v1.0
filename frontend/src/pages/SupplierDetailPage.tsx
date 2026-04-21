@@ -44,6 +44,7 @@ const itemVariants = {
 import type { Contact } from '@/types/supplier.types';
 import { CommentThread } from '@/components/collaboration/CommentThread';
 import { SupplierDocuments } from '@/components/suppliers/SupplierDocuments';
+import { CertificatesSection } from '@/components/suppliers/CertificatesSection';
 
 export function SupplierDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -596,6 +597,9 @@ export function SupplierDetailPage() {
               </div>
             </div>
           </div>
+
+          {/* Structured Certificates (Sprint #2) */}
+          {id && <CertificatesSection supplierId={id} />}
 
           {/* Supplier Documents */}
           {id && <SupplierDocuments supplierId={id} />}
