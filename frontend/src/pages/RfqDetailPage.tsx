@@ -18,6 +18,7 @@ import {
   Repeat,
   FileSignature,
   Sparkles,
+  Download,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -195,6 +196,77 @@ function ValidityCell({ validityDate }: { validityDate: string | null | undefine
   );
 }
 
+// Serialize a comparison result into a CSV the buyer can share with stakeholders.
+// Uses the same shape the UI already renders (offers ranked with weighted score).
+function exportComparisonCSV(
+  comparison: any,
+  rfqQty: number,
+  productName?: string,
+) {
+  const offers = (comparison?.offers as any[] | undefined) ?? [];
+  if (offers.length === 0) return;
+  const weights = comparison?.ranking?.weights as
+    | { price: number; leadTime: number; moq: number; quality: number; compliance: number }
+    | undefined;
+
+  const headers = [
+    'Supplier', 'Country',
+    rfqQty > 0 ? `Price for ${rfqQty}` : 'Price',
+    'Currency', 'MOQ', 'Lead time (weeks)',
+    'Quality score', 'Weighted score', 'AI analysis score',
+    'Status',
+  ];
+  const rows = offers.map((o) => [
+    o.supplier?.name ?? '',
+    o.supplier?.country ?? '',
+    o.effectivePrice ?? o.price ?? '',
+    comparison?.baseCurrency ?? o.currency ?? '',
+    o.moq ?? '',
+    o.leadTime ?? '',
+    o.qualityScore ?? '',
+    o.weightedRanking?.finalScore ?? '',
+    o.supplier?.analysisScore ?? '',
+    o.status ?? '',
+  ]);
+
+  const meta: string[][] = [];
+  meta.push(['Product', productName ?? '']);
+  meta.push(['Exported at', new Date().toISOString()]);
+  if (weights) {
+    meta.push([
+      'Weights',
+      `price=${weights.price} leadTime=${weights.leadTime} moq=${weights.moq} quality=${weights.quality} compliance=${weights.compliance}`,
+    ]);
+  }
+  meta.push([]);
+
+  const escape = (v: unknown) => {
+    const s = String(v ?? '');
+    if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+      return `"${s.replace(/"/g, '""')}"`;
+    }
+    return s;
+  };
+
+  const csv = [
+    ...meta.map((r) => r.map(escape).join(',')),
+    headers.map(escape).join(','),
+    ...rows.map((r) => r.map(escape).join(',')),
+  ].join('\n');
+
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0, 10);
+  const slug = (productName || 'offers').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'offers';
+  a.href = url;
+  a.download = `rfq-comparison-${slug}-${stamp}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 function getValidityBadge(validityDate: string | null | undefined) {
   const info = getValidityInfo(validityDate);
   if (info.state === 'none' || info.state === 'valid') return null;
@@ -279,6 +351,64 @@ export function RfqDetailPage() {
       await shortlistMutation.mutateAsync(offerId);
     } catch {
       // error handled by React Query
+    }
+  };
+
+  const handleBulkShortlist = async () => {
+    if (selectedOffers.size === 0) return;
+    const ids = Array.from(selectedOffers);
+    const actionable = (offers as Offer[] | undefined)?.filter((o) => ids.includes(o.id) && canAct(o)) ?? [];
+    if (actionable.length === 0) {
+      toast.error(isEN ? 'No actionable offers selected' : 'Brak ofert możliwych do akcji');
+      return;
+    }
+    let ok = 0;
+    let failed = 0;
+    for (const offer of actionable) {
+      try {
+        await shortlistMutation.mutateAsync(offer.id);
+        ok += 1;
+      } catch {
+        failed += 1;
+      }
+    }
+    setSelectedOffers(new Set());
+    if (failed === 0) {
+      toast.success(isEN ? `Shortlisted ${ok} offer(s)` : `Dodano ${ok} ofertę(y) do shortlisty`);
+    } else {
+      toast.error(isEN ? `Shortlisted ${ok}, failed ${failed}` : `Shortlista: ${ok}, błędy: ${failed}`);
+    }
+  };
+
+  const handleBulkReject = async () => {
+    if (selectedOffers.size === 0) return;
+    const ids = Array.from(selectedOffers);
+    const actionable = (offers as Offer[] | undefined)?.filter((o) => ids.includes(o.id) && canAct(o)) ?? [];
+    if (actionable.length === 0) {
+      toast.error(isEN ? 'No actionable offers selected' : 'Brak ofert możliwych do akcji');
+      return;
+    }
+    const confirmed = window.confirm(
+      isEN
+        ? `Reject ${actionable.length} offer(s)? This cannot be undone.`
+        : `Odrzucić ${actionable.length} ofert(y)? Tej operacji nie można cofnąć.`
+    );
+    if (!confirmed) return;
+    let ok = 0;
+    let failed = 0;
+    for (const offer of actionable) {
+      try {
+        await rejectMutation.mutateAsync({ id: offer.id });
+        ok += 1;
+      } catch {
+        failed += 1;
+      }
+    }
+    setSelectedOffers(new Set());
+    if (failed === 0) {
+      toast.success(isEN ? `Rejected ${ok} offer(s)` : `Odrzucono ${ok} ofertę(y)`);
+    } else {
+      toast.error(isEN ? `Rejected ${ok}, failed ${failed}` : `Odrzucono: ${ok}, błędy: ${failed}`);
     }
   };
 
@@ -592,20 +722,52 @@ export function RfqDetailPage() {
 
       {/* Offers Section */}
       <motion.div variants={itemVariants}>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
           <h2 className="text-lg font-semibold">
             {t.rfqs.detail.offers} ({offers?.length || 0})
           </h2>
-          {selectedOffers.size >= 2 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCompare}
-              disabled={compareMutation.isPending}
-            >
-              <BarChart3 className="mr-1 h-4 w-4" />
-              {t.rfqs.detail.compareSelected} ({selectedOffers.size})
-            </Button>
+          {selectedOffers.size > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-ink font-mono">
+                {selectedOffers.size} {isEN ? 'selected' : 'zaznaczonych'}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleBulkShortlist}
+                disabled={shortlistMutation.isPending}
+              >
+                <Star className="mr-1 h-4 w-4" />
+                {isEN ? `Shortlist (${selectedOffers.size})` : `Shortlista (${selectedOffers.size})`}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleBulkReject}
+                disabled={rejectMutation.isPending}
+              >
+                <XCircle className="mr-1 h-4 w-4 text-bad" />
+                {isEN ? `Reject (${selectedOffers.size})` : `Odrzuć (${selectedOffers.size})`}
+              </Button>
+              {selectedOffers.size >= 2 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCompare}
+                  disabled={compareMutation.isPending}
+                >
+                  <BarChart3 className="mr-1 h-4 w-4" />
+                  {t.rfqs.detail.compareSelected} ({selectedOffers.size})
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedOffers(new Set())}
+              >
+                {isEN ? 'Clear' : 'Wyczyść'}
+              </Button>
+            </div>
           )}
         </div>
       </motion.div>
@@ -675,14 +837,23 @@ export function RfqDetailPage() {
                     </p>
                   )}
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowRankingConfig(true)}
-                  className="shrink-0"
-                >
-                  Zmień wagi
-                </Button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => exportComparisonCSV(comparisonResult, rfqQty, rfq?.productName)}
+                  >
+                    <Download className="mr-1 h-4 w-4" />
+                    {isEN ? 'Export CSV' : 'Eksport CSV'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowRankingConfig(true)}
+                  >
+                    {isEN ? 'Change weights' : 'Zmień wagi'}
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>

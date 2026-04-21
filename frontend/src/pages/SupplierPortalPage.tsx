@@ -55,6 +55,81 @@ function emptyTier(rfqQty?: number): TierRow {
   return { minQty: rfqQty ? String(rfqQty) : '1', maxQty: '', unitPrice: '' };
 }
 
+// ---- Draft persistence ---------------------------------------------------
+// Suppliers sometimes abandon the portal mid-way (tab close, meeting, etc.).
+// Previously all pricing/tier inputs were lost. We persist them to localStorage
+// keyed by accessToken so the same browser can resume on re-entry. Attachments
+// are already uploaded server-side, so they don't need local backup.
+const DRAFT_VERSION = 1;
+const DRAFT_KEY_PREFIX = 'procurea_portal_draft_';
+
+interface PortalDraft {
+  version: number;
+  savedAt: number;
+  step: number;
+  currency: string;
+  moq: string;
+  leadTime: string;
+  validityDate: string;
+  tiers: TierRow[];
+  alt: AltFormData;
+  specsConfirmed: boolean;
+  incotermsConfirmed: boolean;
+  comments: string;
+}
+
+function draftKey(accessToken: string | undefined): string | null {
+  if (!accessToken) return null;
+  return DRAFT_KEY_PREFIX + accessToken;
+}
+
+function loadDraft(accessToken: string | undefined): PortalDraft | null {
+  const key = draftKey(accessToken);
+  if (!key) return null;
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed?.version !== DRAFT_VERSION) return null;
+    return parsed as PortalDraft;
+  } catch {
+    return null;
+  }
+}
+
+function saveDraft(accessToken: string | undefined, draft: Omit<PortalDraft, 'version' | 'savedAt'>) {
+  const key = draftKey(accessToken);
+  if (!key) return;
+  try {
+    const payload: PortalDraft = { version: DRAFT_VERSION, savedAt: Date.now(), ...draft };
+    localStorage.setItem(key, JSON.stringify(payload));
+  } catch {
+    // Safari private mode / quota exceeded — silently ignore; submit still works.
+  }
+}
+
+function clearDraft(accessToken: string | undefined) {
+  const key = draftKey(accessToken);
+  if (!key) return;
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    // ignore
+  }
+}
+
+function draftRestoredLabel(lang: string): string {
+  if (lang === 'pl') return 'Przywrócono szkic z poprzedniej sesji.';
+  if (lang === 'de') return 'Entwurf aus vorheriger Sitzung wiederhergestellt.';
+  return 'Draft restored from your last session.';
+}
+
+function draftDiscardLabel(lang: string): string {
+  if (lang === 'pl') return 'Zacznij od nowa';
+  if (lang === 'de') return 'Neu beginnen';
+  return 'Start over';
+}
+
 // --- Step indicator ---
 function StepIndicator({ current, steps, t }: { current: number; steps: string[]; t: PortalTranslations }) {
   return (
@@ -176,6 +251,11 @@ function PriceTiersTable({
 export function SupplierPortalPage() {
   const { accessToken } = useParams<{ accessToken: string }>();
   const { data, isLoading, error } = usePortalOffer(accessToken || '');
+
+  // Load any saved draft once at mount so all useState initializers below can
+  // use it. Using useState lazy initializer keeps it out of render code.
+  const [savedDraft] = useState<PortalDraft | null>(() => loadDraft(accessToken));
+  const [draftRestored, setDraftRestored] = useState(() => savedDraft != null);
   const submitMutation = useSubmitPortalOffer();
 
   // Apply organization branding (colors) to portal
@@ -197,17 +277,17 @@ export function SupplierPortalPage() {
   }, [translationData, effectiveLang]);
 
   // Step state
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(() => savedDraft?.step ?? 0);
 
   // Pricing form
-  const [currency, setCurrency] = useState('EUR');
-  const [moq, setMoq] = useState('');
-  const [leadTime, setLeadTime] = useState('');
-  const [validityDate, setValidityDate] = useState('');
-  const [tiers, setTiers] = useState<TierRow[]>([emptyTier()]);
+  const [currency, setCurrency] = useState(() => savedDraft?.currency ?? 'EUR');
+  const [moq, setMoq] = useState(() => savedDraft?.moq ?? '');
+  const [leadTime, setLeadTime] = useState(() => savedDraft?.leadTime ?? '');
+  const [validityDate, setValidityDate] = useState(() => savedDraft?.validityDate ?? '');
+  const [tiers, setTiers] = useState<TierRow[]>(() => savedDraft?.tiers ?? [emptyTier()]);
 
   // Alternative form
-  const [alt, setAlt] = useState<AltFormData>({
+  const [alt, setAlt] = useState<AltFormData>(() => savedDraft?.alt ?? {
     enabled: false,
     altDescription: '',
     altMaterial: '',
@@ -225,17 +305,19 @@ export function SupplierPortalPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Confirm form
-  const [specsConfirmed, setSpecsConfirmed] = useState(false);
-  const [incotermsConfirmed, setIncotermsConfirmed] = useState(false);
-  const [comments, setComments] = useState('');
+  const [specsConfirmed, setSpecsConfirmed] = useState(() => savedDraft?.specsConfirmed ?? false);
+  const [incotermsConfirmed, setIncotermsConfirmed] = useState(() => savedDraft?.incotermsConfirmed ?? false);
+  const [comments, setComments] = useState(() => savedDraft?.comments ?? '');
   const [formError, setFormError] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
-  // Init currency and tiers from RFQ data (once)
+  // Init currency and tiers from RFQ data (once). Skip when a saved draft
+  // already re-populated the form — supplier progress wins over RFQ defaults.
   const initializedRef = useRef(false);
   useEffect(() => {
     if (initializedRef.current || !data) return;
     initializedRef.current = true;
+    if (savedDraft) return;
 
     const rfqCurrency = data.rfq?.currency;
     if (rfqCurrency && rfqCurrency !== 'EUR') {
@@ -245,10 +327,22 @@ export function SupplierPortalPage() {
 
     const rfqQty = data.rfq?.quantity;
     if (rfqQty) {
-       
+
       setTiers([{ minQty: '1', maxQty: String(rfqQty), unitPrice: '' }]);
     }
-  }, [data]);
+  }, [data, savedDraft]);
+
+  // Persist draft on every relevant change (debounced).
+  useEffect(() => {
+    if (submitted || !accessToken) return;
+    const timer = setTimeout(() => {
+      saveDraft(accessToken, {
+        step, currency, moq, leadTime, validityDate, tiers, alt,
+        specsConfirmed, incotermsConfirmed, comments,
+      });
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [submitted, accessToken, step, currency, moq, leadTime, validityDate, tiers, alt, specsConfirmed, incotermsConfirmed, comments]);
 
   const STEPS = [t.steps.rfqReview, t.steps.pricing, t.steps.alternative, t.steps.confirm];
 
@@ -378,6 +472,7 @@ export function SupplierPortalPage() {
         },
       });
       setSubmitted(true);
+      clearDraft(accessToken);
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } }; message?: string };
       setFormError(e?.response?.data?.message || e?.message || t.errors.submitFailed);
@@ -513,6 +608,29 @@ export function SupplierPortalPage() {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-6 sm:py-8">
+        {draftRestored && !submitted && (
+          <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 flex items-center justify-between gap-3 text-sm">
+            <span className="text-blue-900">
+              {draftRestoredLabel(effectiveLang)}
+              {savedDraft?.savedAt && (
+                <span className="ml-2 text-xs text-blue-700">
+                  ({new Date(savedDraft.savedAt).toLocaleString()})
+                </span>
+              )}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                clearDraft(accessToken);
+                setDraftRestored(false);
+                window.location.reload();
+              }}
+              className="text-xs font-medium text-blue-700 hover:text-blue-900 underline"
+            >
+              {draftDiscardLabel(effectiveLang)}
+            </button>
+          </div>
+        )}
         <StepIndicator current={step} steps={STEPS} t={t} />
 
         <AnimatePresence mode="wait">
