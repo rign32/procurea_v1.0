@@ -19,6 +19,7 @@ type PlanCta = 'self-serve' | 'featured'
 interface Plan {
   name: string
   price: string
+  originalPrice?: string
   unit: string
   runs: string
   perRun: string
@@ -32,6 +33,7 @@ const plans: Plan[] = isEN
       {
         name: "Starter",
         price: "$69",
+        originalPrice: "$129",
         unit: "/ month",
         runs: "10 sourcing campaigns",
         perRun: "$6.90 / campaign",
@@ -41,6 +43,7 @@ const plans: Plan[] = isEN
       {
         name: "Growth",
         price: "$159",
+        originalPrice: "$299",
         unit: "/ month",
         runs: "50 sourcing campaigns",
         perRun: "$3.18 / campaign",
@@ -51,6 +54,7 @@ const plans: Plan[] = isEN
       {
         name: "Scale",
         price: "$299",
+        originalPrice: "$549",
         unit: "/ month",
         runs: "150 sourcing campaigns",
         perRun: "$1.99 / campaign",
@@ -62,6 +66,7 @@ const plans: Plan[] = isEN
       {
         name: "Starter",
         price: "289 zł",
+        originalPrice: "549 zł",
         unit: "/ miesiąc",
         runs: "10 kampanii sourcingowych",
         perRun: "28,90 zł / kampania",
@@ -71,6 +76,7 @@ const plans: Plan[] = isEN
       {
         name: "Growth",
         price: "649 zł",
+        originalPrice: "1 199 zł",
         unit: "/ miesiąc",
         runs: "50 kampanii sourcingowych",
         perRun: "12,98 zł / kampania",
@@ -81,6 +87,7 @@ const plans: Plan[] = isEN
       {
         name: "Scale",
         price: "1 199 zł",
+        originalPrice: "2 199 zł",
         unit: "/ miesiąc",
         runs: "150 kampanii sourcingowych",
         perRun: "7,99 zł / kampania",
@@ -149,16 +156,16 @@ interface CreditPack {
 
 const creditPacks: CreditPack[] = isEN
   ? [
-      { label: "Starter pack", credits: "10 campaigns",  price: "$179", perRun: "$17.90 / campaign",                       cta: { label: "Buy pack",  kind: "buy",     interestTag: "payg_10" } },
-      { label: "Team pack",    credits: "25 campaigns",  price: "$349", perRun: "$13.96 / campaign", save: "Save 22%", best: true, cta: { label: "Buy pack",  kind: "buy",     interestTag: "payg_25" } },
-      { label: "Scale pack",   credits: "50 campaigns",  price: "$599", perRun: "$11.98 / campaign", save: "Save 33%",      cta: { label: "Buy pack",  kind: "buy",     interestTag: "payg_50" } },
+      { label: "Starter pack", credits: "10 campaigns",  price: "$119", perRun: "$11.90 / campaign",                       cta: { label: "Buy pack",  kind: "buy",     interestTag: "payg_10" } },
+      { label: "Team pack",    credits: "25 campaigns",  price: "$249", perRun: "$9.96 / campaign", save: "Save 16%", best: true, cta: { label: "Buy pack",  kind: "buy",     interestTag: "payg_25" } },
+      { label: "Scale pack",   credits: "50 campaigns",  price: "$449", perRun: "$8.98 / campaign", save: "Save 25%",       cta: { label: "Buy pack",  kind: "buy",     interestTag: "payg_50" } },
       { label: "Enterprise",   credits: "Unlimited",     price: "Custom", perRun: "Tailored to your volume",                cta: { label: "Talk to sales", kind: "contact", interestTag: "enterprise_custom" } },
     ]
   : [
-      { label: "Pakiet startowy",  credits: "10 kampanii",  price: "790 zł",        perRun: "79 zł / kampania",                            cta: { label: "Kup pakiet",         kind: "buy",     interestTag: "payg_10" } },
-      { label: "Pakiet zespołu",   credits: "25 kampanii",  price: "1 499 zł",      perRun: "59,96 zł / kampania", save: "−22%", best: true, cta: { label: "Kup pakiet",         kind: "buy",     interestTag: "payg_25" } },
-      { label: "Pakiet skalujący", credits: "50 kampanii",  price: "2 499 zł",      perRun: "49,98 zł / kampania", save: "−33%",             cta: { label: "Kup pakiet",         kind: "buy",     interestTag: "payg_50" } },
-      { label: "Enterprise",       credits: "Bez limitu",   price: "Indywidualnie", perRun: "Dopasowane do wolumenu",                       cta: { label: "Porozmawiaj z nami", kind: "contact", interestTag: "enterprise_custom" } },
+      { label: "Pakiet startowy",  credits: "10 kampanii",  price: "529 zł",        perRun: "52,90 zł / kampania",                            cta: { label: "Kup pakiet",         kind: "buy",     interestTag: "payg_10" } },
+      { label: "Pakiet zespołu",   credits: "25 kampanii",  price: "1 099 zł",      perRun: "43,96 zł / kampania", save: "−17%", best: true, cta: { label: "Kup pakiet",         kind: "buy",     interestTag: "payg_25" } },
+      { label: "Pakiet skalujący", credits: "50 kampanii",  price: "1 999 zł",      perRun: "39,98 zł / kampania", save: "−24%",              cta: { label: "Kup pakiet",         kind: "buy",     interestTag: "payg_50" } },
+      { label: "Enterprise",       credits: "Bez limitu",   price: "Indywidualnie", perRun: "Dopasowane do wolumenu",                          cta: { label: "Porozmawiaj z nami", kind: "contact", interestTag: "enterprise_custom" } },
     ]
 
 /* ─────────── FAQ ─────────── */
@@ -224,10 +231,15 @@ function PlanCard({ plan }: { plan: Plan }) {
 
       <div>
         <h3 className="text-[16px] font-semibold text-[hsl(var(--ds-ink))] mb-2">{plan.name}</h3>
-        <div className="flex items-baseline gap-1.5">
+        <div className="flex items-baseline gap-2 flex-wrap">
           <span className="font-mono text-[40px] font-semibold tracking-[-0.02em] leading-none text-[hsl(var(--ds-ink))]">
             {plan.price}
           </span>
+          {plan.originalPrice && (
+            <span className="font-mono text-[18px] font-medium text-[hsl(var(--ds-muted))] line-through leading-none">
+              {plan.originalPrice}
+            </span>
+          )}
           <span className="text-[13px] text-[hsl(var(--ds-muted))]">{plan.unit}</span>
         </div>
       </div>
