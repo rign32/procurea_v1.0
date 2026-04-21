@@ -27,6 +27,9 @@ const WEIGHTS = {
   COMPLETENESS: 20,
   WIN_RATE: 15,
   BLACKLIST: 15,
+  // Bonus on top — final score still capped at 100, so certs act as a
+  // tie-breaker for mid-tier suppliers without deflating existing scores.
+  CERTIFICATES: 5,
 } as const;
 
 @Injectable()
@@ -54,6 +57,10 @@ export class QualityScoreService {
         registry: {
           select: { isBlacklisted: true },
         },
+        structuredCertificates: {
+          where: { reviewStatus: 'APPROVED' },
+          select: { id: true, status: true },
+        },
       },
     });
 
@@ -64,9 +71,10 @@ export class QualityScoreService {
     const completeness = this.calcCompleteness(supplier.offers);
     const winRate = this.calcWinRate(supplier.offers);
     const blacklistPenalty = this.calcBlacklistPenalty(supplier);
+    const certBonus = this.calcCertificateBonus(supplier.structuredCertificates ?? []);
 
     const score = Math.round(
-      responseRate + responseSpeed + completeness + winRate + blacklistPenalty,
+      responseRate + responseSpeed + completeness + winRate + blacklistPenalty + certBonus,
     );
     return Math.max(0, Math.min(100, score));
   }
@@ -192,5 +200,36 @@ export class QualityScoreService {
       (supplier.registry?.isBlacklisted === true);
 
     return isBlacklisted ? 0 : WEIGHTS.BLACKLIST;
+  }
+
+  /**
+   * Certificate bonus (max 5 pts, on top of 100-cap).
+   *
+   * Only APPROVED certs count here — the caller is expected to filter the
+   * list before passing it in. EXPIRED certs give partial credit (50%)
+   * because the supplier had them historically; ACTIVE + EXPIRING_SOON
+   * give full weight.
+   *
+   * Scale: 1 active cert → 40%, 2 → 70%, 3+ → 100% of weight.
+   * No certs at all → 0 (no penalty, just no bonus).
+   */
+  calcCertificateBonus(
+    certs: Array<{ status?: string | null }>,
+  ): number {
+    if (certs.length === 0) return 0;
+
+    let effective = 0;
+    for (const c of certs) {
+      if (c.status === 'EXPIRED') effective += 0.5;
+      else effective += 1; // ACTIVE / EXPIRING_SOON / UNKNOWN
+    }
+
+    let pct: number;
+    if (effective >= 3) pct = 1.0;
+    else if (effective >= 2) pct = 0.7;
+    else if (effective >= 1) pct = 0.4;
+    else pct = effective / 1; // <1 (only 0.5 EXPIRED) → proportional
+
+    return pct * WEIGHTS.CERTIFICATES;
   }
 }

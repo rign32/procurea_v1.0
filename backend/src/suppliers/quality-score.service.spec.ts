@@ -248,6 +248,51 @@ describe('QualityScoreService', () => {
     });
   });
 
+  // ─── Certificate bonus (5 pts) ───
+
+  describe('calcCertificateBonus', () => {
+    it('returns 0 for no certs (no bonus, no penalty)', () => {
+      expect(service.calcCertificateBonus([])).toBe(0);
+    });
+
+    it('returns 40% of weight (2) for 1 active cert', () => {
+      expect(
+        service.calcCertificateBonus([{ status: 'ACTIVE' }]),
+      ).toBe(0.4 * 5);
+    });
+
+    it('returns 70% of weight (3.5) for 2 active certs', () => {
+      expect(
+        service.calcCertificateBonus([
+          { status: 'ACTIVE' },
+          { status: 'EXPIRING_SOON' },
+        ]),
+      ).toBeCloseTo(0.7 * 5);
+    });
+
+    it('returns 100% of weight (5) for 3+ active certs', () => {
+      expect(
+        service.calcCertificateBonus([
+          { status: 'ACTIVE' },
+          { status: 'ACTIVE' },
+          { status: 'ACTIVE' },
+          { status: 'EXPIRING_SOON' },
+        ]),
+      ).toBe(5);
+    });
+
+    it('counts EXPIRED certs at half weight (1 expired → 0.5 effective)', () => {
+      // 2 expired + 1 active = 0.5 + 0.5 + 1 = 2 effective → 70% * 5 = 3.5
+      expect(
+        service.calcCertificateBonus([
+          { status: 'EXPIRED' },
+          { status: 'EXPIRED' },
+          { status: 'ACTIVE' },
+        ]),
+      ).toBeCloseTo(0.7 * 5);
+    });
+  });
+
   // ─── computeScore (integration) ───
 
   describe('computeScore', () => {
@@ -312,6 +357,49 @@ describe('QualityScoreService', () => {
       const score = await service.computeScore('sup-4');
       expect(score).toBeGreaterThanOrEqual(0);
       expect(score).toBeLessThanOrEqual(100);
+    });
+
+    it('adds certificate bonus on top of base score (capped at 100)', async () => {
+      // Mid-tier supplier: no offers → 15 + 10 + 0 + 7.5 + 15 = 47.5
+      // 2 active certs → +3.5 bonus → 51 (after round)
+      prisma.supplier.findUnique.mockResolvedValue({
+        id: 'sup-5',
+        deletedAt: null,
+        offers: [],
+        registry: null,
+        structuredCertificates: [
+          { id: 'c1', status: 'ACTIVE' },
+          { id: 'c2', status: 'EXPIRING_SOON' },
+        ],
+      });
+      expect(await service.computeScore('sup-5')).toBe(51);
+    });
+
+    it('cert bonus cannot push score above 100', async () => {
+      // Already-perfect supplier with certs → still 100
+      prisma.supplier.findUnique.mockResolvedValue({
+        id: 'sup-6',
+        deletedAt: null,
+        registry: { isBlacklisted: false },
+        offers: [
+          makeOffer({
+            status: 'ACCEPTED',
+            price: 100,
+            leadTime: 2,
+            moq: 500,
+            specsConfirmed: true,
+            incotermsConfirmed: true,
+            createdAt: new Date('2026-01-01T00:00:00Z'),
+            submittedAt: new Date('2026-01-01T06:00:00Z'),
+          }),
+        ],
+        structuredCertificates: [
+          { id: 'c1', status: 'ACTIVE' },
+          { id: 'c2', status: 'ACTIVE' },
+          { id: 'c3', status: 'ACTIVE' },
+        ],
+      });
+      expect(await service.computeScore('sup-6')).toBe(100);
     });
   });
 
