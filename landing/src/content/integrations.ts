@@ -1,30 +1,32 @@
-// Integrations hub content — ERP/CRM systems available out of the box.
-// All listed systems are in the offer. Per-client customization is part of
-// onboarding (Enterprise Custom tier) — we tailor field mapping, workflow,
-// custom fields, SSO, etc. to the customer's stack.
+// Integrations hub content — ERP/CRM systems + API/webhooks.
+// Natywne adaptery są w standardowej ofercie. Mniej popularne systemy (Xero, Odoo,
+// QuickBooks, Sage) łączymy przez Merge.dev jako single-connector aggregator.
+// Per-client customization is part of Enterprise Custom onboarding.
 
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
 const isEN = LANG === 'en'
 
-export type IntegrationType = 'native' | 'custom'
+export type IntegrationType = 'native' | 'merge-dev' | 'custom'
+export type IntegrationCategory = 'ERP' | 'CRM' | 'Accounting' | 'API'
 
 export interface Integration {
   slug: string
   name: string
-  category: 'ERP' | 'CRM'
-  logo: string     // short text (first letters) — we use text logo for now
+  category: IntegrationCategory
+  /** Short text logo (2-4 chars) */
+  logo: string
+  /** Tailwind gradient classes for the logo tile — brand-color hint */
+  brandGradient: string
   integrationType: IntegrationType
+  /** Mark as flagship to render in featured row */
+  featured?: boolean
   searchKeywords: string[]
-  // Short one-liner describing the tech (OAuth 2.0, OData v4, REST, RFC/BAPI, x509, etc.)
   descEn: string
   descPl: string
-  // List of data objects exchanged in both directions
   dataFlowEn: string[]
   dataFlowPl: string[]
-  // What the integration lets you do in Procurea once connected
   capabilitiesEn: string[]
   capabilitiesPl: string[]
-  // What we customize per client during onboarding
   customizationEn: string
   customizationPl: string
   tiersEn: string
@@ -37,8 +39,10 @@ export const INTEGRATIONS: Integration[] = [
     name: 'SAP S/4HANA',
     category: 'ERP',
     logo: 'SAP',
+    brandGradient: 'from-sky-600 via-blue-700 to-blue-900',
     integrationType: 'native',
-    searchKeywords: ['sap', 's4hana', 's/4hana', 'hana'],
+    featured: true,
+    searchKeywords: ['sap', 's4hana', 's/4hana', 'hana', 'erp', 'enterprise', 'business partner'],
     descEn: 'Sync your S/4HANA procurement module — Business Partners, Purchase Orders, and Requisitions flow bi-directionally so sourcing results land in the right org structure automatically.',
     descPl: 'Synchronizacja modułu procurement S/4HANA — Business Partnerzy, zamówienia i zapotrzebowania przepływają dwukierunkowo, a wyniki sourcingu trafiają do właściwej struktury organizacyjnej.',
     dataFlowEn: ['Business Partner / Vendor master', 'Purchase Orders', 'Purchase Requisitions', 'Financial data (payment terms, bank details)', 'Contract metadata'],
@@ -55,8 +59,9 @@ export const INTEGRATIONS: Integration[] = [
     name: 'SAP ECC (on-prem)',
     category: 'ERP',
     logo: 'ECC',
+    brandGradient: 'from-blue-700 via-blue-800 to-slate-900',
     integrationType: 'custom',
-    searchKeywords: ['sap', 'ecc', 'on-prem', 'on-premise', 'rfc', 'bapi'],
+    searchKeywords: ['sap', 'ecc', 'on-prem', 'on-premise', 'rfc', 'bapi', 'idoc', 'legacy', 'r3'],
     descEn: 'Connect your legacy on-prem SAP without migrating to S/4HANA. We bridge via RFC/BAPI/IDocs so your vendor master and PO data stay in sync with Procurea.',
     descPl: 'Połącz swoje legacy SAP on-prem bez migracji do S/4HANA. Integrujemy przez RFC/BAPI/IDocs, dzięki czemu master vendorów i zamówienia są zsynchronizowane z Procurea.',
     dataFlowEn: ['LFA1 / LFB1 vendor master', 'Purchase Orders (EKKO/EKPO)', 'Purchase Requisitions (EBAN)', 'Company code and payment terms', 'Contract headers (EKKO)'],
@@ -73,8 +78,10 @@ export const INTEGRATIONS: Integration[] = [
     name: 'Oracle NetSuite',
     category: 'ERP',
     logo: 'NS',
+    brandGradient: 'from-red-600 via-red-700 to-rose-900',
     integrationType: 'native',
-    searchKeywords: ['oracle', 'netsuite', 'net suite'],
+    featured: true,
+    searchKeywords: ['oracle', 'netsuite', 'net suite', 'erp', 'oneworld', 'suitescript'],
     descEn: 'Cloud-native auto-sync for mid-market teams. Vendors, POs, and bills flow between NetSuite and Procurea in real time — including OneWorld multi-subsidiary setups.',
     descPl: 'Natywna synchronizacja w chmurze dla mid-market. Dostawcy, zamówienia i faktury przepływają między NetSuite a Procurea w czasie rzeczywistym — w tym konfiguracje OneWorld multi-subsidiary.',
     dataFlowEn: ['Vendor master', 'Purchase Orders', 'Vendor Bills', 'Currency and payment terms', 'Custom record types'],
@@ -91,8 +98,9 @@ export const INTEGRATIONS: Integration[] = [
     name: 'Oracle Fusion Cloud',
     category: 'ERP',
     logo: 'OFC',
+    brandGradient: 'from-red-700 via-rose-800 to-slate-900',
     integrationType: 'native',
-    searchKeywords: ['oracle', 'fusion', 'cloud'],
+    searchKeywords: ['oracle', 'fusion', 'cloud', 'erp', 'scm', 'procurement cloud'],
     descEn: 'Enterprise-grade bidirectional sync with Oracle SCM and Procurement Cloud. Suppliers, sites, awards, and financial data reconcile automatically across business units.',
     descPl: 'Dwukierunkowa synchronizacja enterprise z Oracle SCM i Procurement Cloud. Dostawcy, lokalizacje, wyniki sourcingu i dane finansowe uzgadniają się automatycznie między business unitami.',
     dataFlowEn: ['Supplier master', 'Supplier sites and contacts', 'Purchase Orders', 'Sourcing awards', 'Financial data (payment terms, tax)'],
@@ -109,8 +117,10 @@ export const INTEGRATIONS: Integration[] = [
     name: 'Microsoft Dynamics 365 Business Central',
     category: 'ERP',
     logo: 'D365',
+    brandGradient: 'from-teal-500 via-cyan-700 to-blue-900',
     integrationType: 'native',
-    searchKeywords: ['dynamics', 'd365', 'business central', 'bc', 'microsoft'],
+    featured: true,
+    searchKeywords: ['dynamics', 'd365', 'business central', 'bc', 'microsoft', 'nav', 'navision', 'entra id'],
     descEn: 'SMB-friendly quick setup via Microsoft Entra ID. Connect your Vendor cards, POs, and invoices to Procurea in minutes — no custom development needed.',
     descPl: 'Szybka konfiguracja dla SMB przez Microsoft Entra ID. Podłącz karty vendorów, zamówienia i faktury do Procurea w kilka minut — bez programowania.',
     dataFlowEn: ['Vendor master', 'Purchase Orders', 'Purchase Invoices', 'Payment terms and dimensions', 'Item catalog references'],
@@ -127,8 +137,9 @@ export const INTEGRATIONS: Integration[] = [
     name: 'Microsoft Dynamics 365 Finance & Operations',
     category: 'ERP',
     logo: 'F&O',
+    brandGradient: 'from-cyan-700 via-teal-800 to-slate-900',
     integrationType: 'native',
-    searchKeywords: ['dynamics', 'd365', 'f&o', 'finance', 'operations', 'microsoft'],
+    searchKeywords: ['dynamics', 'd365', 'f&o', 'finance', 'operations', 'microsoft', 'ax', 'axapta', 'fno'],
     descEn: 'Deep procurement module connectivity for enterprise D365 F&O. Sync vendors across legal entities, surface purchase agreements, and route new suppliers through your approval workflow.',
     descPl: 'Głęboka integracja z modułem procurement enterprise D365 F&O. Synchronizacja vendorów między legal entities, widoczność purchase agreements i routing nowych dostawców przez workflow akceptacji.',
     dataFlowEn: ['Vendor master with addresses and contacts', 'Purchase Orders and agreements', 'Purchase Requisitions', 'Legal entity and currency data', 'Financial dimensions'],
@@ -145,8 +156,10 @@ export const INTEGRATIONS: Integration[] = [
     name: 'Salesforce',
     category: 'CRM',
     logo: 'SF',
+    brandGradient: 'from-sky-500 via-cyan-600 to-blue-800',
     integrationType: 'native',
-    searchKeywords: ['salesforce', 'sfdc', 'crm', 'sales cloud'],
+    featured: true,
+    searchKeywords: ['salesforce', 'sfdc', 'crm', 'sales cloud', 'apex', 'account', 'opportunity'],
     descEn: 'Bridge CRM intelligence with procurement. Map sourcing results to your Account hierarchy, auto-create Contacts from discovered suppliers, and log sourcing activity as CRM Tasks.',
     descPl: 'Pomost między CRM a procurement. Mapuj wyniki sourcingu na hierarchię Accountów, auto-twórz Kontakty ze znalezionych dostawców i loguj aktywność sourcingową jako Tasks w CRM.',
     dataFlowEn: ['Account master', 'Contacts and relationships', 'Opportunities linked to sourcing', 'Custom Supplier objects', 'Activity history'],
@@ -158,28 +171,144 @@ export const INTEGRATIONS: Integration[] = [
     tiersEn: 'Professional +Procurement, Enterprise, Enterprise Custom',
     tiersPl: 'Professional +Procurement, Enterprise, Enterprise Custom',
   },
+  // ─── Via Merge.dev (50+ mid-market systems, single connector) ───
+  {
+    slug: 'quickbooks',
+    name: 'QuickBooks Online',
+    category: 'Accounting',
+    logo: 'QB',
+    brandGradient: 'from-green-600 via-emerald-700 to-teal-900',
+    integrationType: 'merge-dev',
+    searchKeywords: ['quickbooks', 'qbo', 'intuit', 'accounting', 'bookkeeping'],
+    descEn: 'Sync vendors, bills, and payments with QuickBooks Online via Merge.dev — a single secure connector that keeps Procurea and your bookkeeping in sync.',
+    descPl: 'Synchronizacja vendorów, faktur i płatności z QuickBooks Online przez Merge.dev — jeden bezpieczny konektor utrzymujący Procurea i księgowość w sync.',
+    dataFlowEn: ['Vendor list', 'Bills and bill payments', 'Chart of accounts', 'Tax codes and currencies'],
+    dataFlowPl: ['Lista vendorów', 'Faktury i płatności', 'Plan kont', 'Kody podatkowe i waluty'],
+    capabilitiesEn: ['Auto-create Vendor in QuickBooks after approval', 'Match discovered suppliers against existing QBO vendors', 'Export Purchase Orders as Bills', 'Reconcile supplier database weekly'],
+    capabilitiesPl: ['Auto-tworzenie Vendora w QuickBooks po akceptacji', 'Matchowanie znalezionych dostawców do istniejących w QBO', 'Eksport Purchase Orders jako Bills', 'Tygodniowy reconcile bazy dostawców'],
+    customizationEn: 'Account mapping, tax treatment, multi-currency handling. Setup in 10 minutes via Merge.dev OAuth flow.',
+    customizationPl: 'Mapowanie kont, obsługa podatków, multi-currency. Setup w 10 minut przez OAuth Merge.dev.',
+    tiersEn: 'Professional +Procurement, Enterprise, Enterprise Custom',
+    tiersPl: 'Professional +Procurement, Enterprise, Enterprise Custom',
+  },
+  {
+    slug: 'xero',
+    name: 'Xero',
+    category: 'Accounting',
+    logo: 'XE',
+    brandGradient: 'from-sky-400 via-cyan-600 to-blue-800',
+    integrationType: 'merge-dev',
+    searchKeywords: ['xero', 'accounting', 'bookkeeping', 'small business'],
+    descEn: 'Small-business accounting sync via Merge.dev. Vendors, bills, and spend categories flow into Procurea so your sourcing pipeline is always reconciled.',
+    descPl: 'Synchronizacja księgowości small-business przez Merge.dev. Vendorzy, faktury i kategorie wydatków przepływają do Procurea, a pipeline sourcingu jest zawsze zreconcilowany.',
+    dataFlowEn: ['Contacts (vendors and customers)', 'Bills and purchase orders', 'Tracking categories', 'Tax rates'],
+    dataFlowPl: ['Kontakty (vendorzy i klienci)', 'Faktury i zamówienia', 'Kategorie śledzenia', 'Stawki VAT'],
+    capabilitiesEn: ['Auto-create Contact as Vendor', 'Sync Bills bi-directionally', 'Map tracking categories to Procurea tags', 'Nightly reconcile of supplier list'],
+    capabilitiesPl: ['Auto-tworzenie Contact jako Vendor', 'Dwukierunkowy sync Bills', 'Mapowanie kategorii śledzenia na tagi Procurea', 'Nocny reconcile listy dostawców'],
+    customizationEn: 'Tracking category mapping, tax rule setup, multi-org (Partner Network) handling. OAuth-based connection.',
+    customizationPl: 'Mapowanie kategorii śledzenia, reguły VAT, multi-org (Partner Network). Połączenie przez OAuth.',
+    tiersEn: 'Professional +Procurement, Enterprise, Enterprise Custom',
+    tiersPl: 'Professional +Procurement, Enterprise, Enterprise Custom',
+  },
+  {
+    slug: 'sage-intacct',
+    name: 'Sage Intacct',
+    category: 'Accounting',
+    logo: 'SI',
+    brandGradient: 'from-emerald-600 via-green-700 to-slate-900',
+    integrationType: 'merge-dev',
+    searchKeywords: ['sage', 'intacct', 'accounting', 'erp', 'mid-market'],
+    descEn: 'Mid-market accounting sync via Merge.dev. Dimension structures, vendor entities, and PO data flow into Procurea without custom integration work.',
+    descPl: 'Synchronizacja księgowości mid-market przez Merge.dev. Struktury wymiarów, encje vendorów i dane PO przepływają do Procurea bez custom integracji.',
+    dataFlowEn: ['Vendor master', 'Purchase Orders', 'Bills and payments', 'Dimensional data (locations, departments)', 'Vendor groups'],
+    dataFlowPl: ['Master vendorów', 'Purchase Orders', 'Faktury i płatności', 'Dane wymiarowe (lokalizacje, działy)', 'Grupy vendorów'],
+    capabilitiesEn: ['Auto-create Vendor across entities', 'Sync PO lifecycle', 'Respect dimension-based access', 'Reconcile supplier master nightly'],
+    capabilitiesPl: ['Auto-tworzenie Vendora w wielu encjach', 'Sync cyklu życia PO', 'Dostęp oparty o wymiary', 'Nocny reconcile master dostawców'],
+    customizationEn: 'Entity mapping for multi-entity orgs, dimension structure alignment, approval routing hooks. Merge.dev managed.',
+    customizationPl: 'Mapowanie encji dla multi-entity, dopasowanie struktury wymiarów, haki routingu akceptacji. Zarządzane przez Merge.dev.',
+    tiersEn: 'Enterprise, Enterprise Custom',
+    tiersPl: 'Enterprise, Enterprise Custom',
+  },
+  {
+    slug: 'odoo',
+    name: 'Odoo',
+    category: 'ERP',
+    logo: 'OD',
+    brandGradient: 'from-purple-600 via-violet-700 to-indigo-900',
+    integrationType: 'merge-dev',
+    searchKeywords: ['odoo', 'erp', 'open source', 'purchase', 'accounting'],
+    descEn: 'Open-source ERP connected via Merge.dev. Sync partners (vendors), purchase orders, and invoices between Odoo and Procurea for fast mid-market deployments.',
+    descPl: 'Open-source ERP podłączony przez Merge.dev. Synchronizacja partnerów (vendorów), zamówień i faktur między Odoo a Procurea dla szybkich wdrożeń mid-market.',
+    dataFlowEn: ['res.partner (vendors)', 'Purchase Orders (purchase.order)', 'Vendor Bills', 'Product references', 'Accounting journals'],
+    dataFlowPl: ['res.partner (vendorzy)', 'Zamówienia (purchase.order)', 'Vendor Bills', 'Referencje produktów', 'Dzienniki księgowe'],
+    capabilitiesEn: ['Auto-create res.partner as Vendor', 'Export PO from Procurea to Odoo', 'Tag matched suppliers in both systems', 'Nightly reconcile'],
+    capabilitiesPl: ['Auto-tworzenie res.partner jako Vendor', 'Eksport PO z Procurea do Odoo', 'Tagowanie dopasowanych dostawców w obu systemach', 'Nocny reconcile'],
+    customizationEn: 'Works with Odoo 15+ (SaaS or self-hosted). Custom field mapping via Odoo modules, module-level access control.',
+    customizationPl: 'Działa z Odoo 15+ (SaaS lub self-hosted). Mapowanie custom fields przez moduły Odoo, access control na poziomie modułu.',
+    tiersEn: 'Professional +Procurement, Enterprise, Enterprise Custom',
+    tiersPl: 'Professional +Procurement, Enterprise, Enterprise Custom',
+  },
 ]
 
+export const INTEGRATION_CATEGORIES: Array<{ key: IntegrationCategory | 'all'; labelEn: string; labelPl: string }> = [
+  { key: 'all', labelEn: 'All', labelPl: 'Wszystkie' },
+  { key: 'ERP', labelEn: 'ERP', labelPl: 'ERP' },
+  { key: 'CRM', labelEn: 'CRM', labelPl: 'CRM' },
+  { key: 'Accounting', labelEn: 'Accounting', labelPl: 'Księgowość' },
+  { key: 'API', labelEn: 'API & Webhooks', labelPl: 'API i Webhooks' },
+]
+
+/* ═════════════════════ COPY ═════════════════════ */
+
 export const integrationsCopy = {
+  heroEyebrow: isEN ? 'Integrations · API · Webhooks' : 'Integracje · API · Webhooks',
   heroTitle: isEN
-    ? 'Procurea works with your stack'
-    : 'Procurea działa z Twoim stackiem',
+    ? 'Procurea fits inside your stack — not the other way around'
+    : 'Procurea wpasowuje się w Twój stack — a nie odwrotnie',
   heroSubtitle: isEN
-    ? 'Sourcing results enriched with your ERP state — already-in / maybe-match / new. No duplicate data entry. Deep-link to records, auto-create vendors on selection.'
-    : 'Wyniki sourcingu wzbogacone o stan Twojego ERP — already-in / maybe-match / new. Bez duplikacji danych. Deep-link do rekordów, auto-tworzenie vendorów po wyborze.',
+    ? 'Native adapters for the seven most-used ERPs. 50+ additional systems via Merge.dev. REST API and webhooks for everything else. No duplicate data entry, deep-link to every record.'
+    : 'Natywne adaptery dla siedmiu najpopularniejszych ERP. 50+ dodatkowych systemów przez Merge.dev. REST API i webhooks dla reszty. Bez duplikacji danych, deep-link do każdego rekordu.',
+  heroStats: isEN
+    ? [
+        { value: '7', label: 'Native adapters' },
+        { value: '50+', label: 'Via Merge.dev' },
+        { value: 'REST', label: 'API + Webhooks' },
+        { value: 'SOC 2', label: 'Type II (in process)' },
+      ]
+    : [
+        { value: '7', label: 'Natywnych adapterów' },
+        { value: '50+', label: 'Przez Merge.dev' },
+        { value: 'REST', label: 'API + Webhooks' },
+        { value: 'SOC 2', label: 'Type II (w procesie)' },
+      ],
 
   integrationTypeLabel: {
     native: isEN ? 'Native integration' : 'Integracja natywna',
+    'merge-dev': isEN ? 'Via Merge.dev' : 'Przez Merge.dev',
     custom: isEN ? 'Custom for your stack' : 'Custom pod Twój stack',
-  },
+  } as Record<IntegrationType, string>,
   dataFlowLabel: isEN ? 'Data flow' : 'Przepływ danych',
   capabilitiesLabel: isEN ? 'Capabilities' : 'Możliwości',
   customizationLabel: isEN ? 'Customization' : 'Customizacja',
-
   tierLabel: isEN ? 'Available on' : 'Dostępne w',
   ctaLabel: isEN ? 'Talk to us' : 'Porozmawiaj z nami',
+  learnMoreLabel: isEN ? 'Learn more' : 'Dowiedz się więcej',
 
-  valueTitle: isEN ? 'Why integrate?' : 'Po co integracja?',
+  featuredTitle: isEN ? 'Most-requested integrations' : 'Najczęściej wybierane integracje',
+  featuredSubtitle: isEN
+    ? 'Native bidirectional sync, deep-link to every record, auto-create on approval. Ready to switch on.'
+    : 'Natywna synchronizacja dwukierunkowa, deep-link do każdego rekordu, auto-tworzenie po akceptacji. Gotowe do włączenia.',
+
+  allTitle: isEN ? 'All supported systems' : 'Wszystkie obsługiwane systemy',
+  allSubtitle: isEN
+    ? 'Filter by category or search by system name.'
+    : 'Filtruj po kategorii lub wyszukaj po nazwie systemu.',
+
+  searchPlaceholder: isEN ? 'Search — SAP, Oracle, Dynamics, NetSuite…' : 'Szukaj — SAP, Oracle, Dynamics, NetSuite…',
+  noResults: isEN ? 'No pre-built integration for that system yet.' : 'Nie mamy jeszcze gotowej integracji z tym systemem.',
+  noResultsCta: isEN ? 'Request a custom adapter →' : 'Zgłoś custom adapter →',
+
+  valueTitle: isEN ? 'Why integrate Procurea with your stack?' : 'Dlaczego warto zintegrować Procurea?',
   valueProps: isEN ? [
     {
       title: 'No duplicate data entry',
@@ -216,17 +345,171 @@ export const integrationsCopy = {
     },
   ],
 
-  logosSectionTitle: isEN
-    ? '50+ other ERP & CRM systems'
-    : '50+ innych systemów ERP i CRM',
-  logosSectionBody: isEN
-    ? 'Beyond the core seven, we also connect to popular mid-market ERPs and accounting tools — QuickBooks, Sage, Odoo, Xero, Zoho, and more. Same onboarding, same per-tenant customization.'
-    : 'Poza główną siódemką łączymy się także z popularnymi mid-market ERP i narzędziami księgowymi — QuickBooks, Sage, Odoo, Xero, Zoho i innymi. Ten sam onboarding, ta sama customizacja per-tenant.',
-
-  ctaSectionTitle: isEN
-    ? 'Your system not in the list?'
-    : 'Nie ma Twojego systemu na liście?',
+  ctaSectionTitle: isEN ? 'Your system not in the list?' : 'Nie ma Twojego systemu na liście?',
   ctaSectionBody: isEN
     ? 'We build custom adapters for enterprise stacks — legacy on-prem, industry-specific ERP, or proprietary databases. Tell us what you run and we scope the adapter as part of Enterprise Custom onboarding.'
     : 'Budujemy custom adaptery dla enterprise stacków — legacy on-prem, branżowe ERP lub własne bazy. Powiedz nam z czego korzystasz, a zaprojektujemy adapter w ramach onboardingu Enterprise Custom.',
+}
+
+/* ═════════════════════ API / WEBHOOKS SECTION ═════════════════════ */
+
+export interface ApiResource {
+  title: string
+  description: string
+  bullets: string[]
+  snippetLabel: string
+  snippet: string
+}
+
+export const apiSection = {
+  eyebrow: isEN ? 'Developer Platform' : 'Platforma deweloperska',
+  title: isEN
+    ? 'Build your own integration'
+    : 'Zbuduj własną integrację',
+  subtitle: isEN
+    ? 'For stacks we do not natively support, Procurea exposes a REST API and real-time webhooks. Access is gated to Enterprise and Enterprise Custom tiers — request a sandbox key via the form below.'
+    : 'Dla stacków, których nie obsługujemy natywnie, Procurea udostępnia REST API oraz real-time webhooks. Dostęp tylko dla planów Enterprise i Enterprise Custom — poproś o klucz sandbox przez formularz poniżej.',
+
+  resources: isEN ? [
+    {
+      title: 'REST API',
+      description: 'Read and write suppliers, campaigns, offers, and purchase orders. OAuth 2.0 + API keys. JSON over HTTPS.',
+      bullets: [
+        'OAuth 2.0 (authorization code + client credentials)',
+        'Rate limit: 600 req/min per tenant',
+        'Pagination via cursor, filters on every collection',
+        'Idempotency keys for POST endpoints',
+      ],
+      snippetLabel: 'Example: search suppliers',
+      snippet: `curl -X GET \\
+  "https://api.procurea.example/v1/suppliers?q=valve&country=DE" \\
+  -H "Authorization: Bearer \${PROCUREA_API_KEY}" \\
+  -H "Accept: application/json"`,
+    },
+    {
+      title: 'Webhooks',
+      description: 'Subscribe to real-time events — supplier lifecycle, campaign state, offer submissions, approvals. HMAC-signed payloads.',
+      bullets: [
+        'HMAC-SHA256 signature header (verify before processing)',
+        'At-least-once delivery with exponential backoff',
+        'Configure up to 10 endpoints per tenant',
+        'Event replay from admin panel (last 30 days)',
+      ],
+      snippetLabel: 'Example event payload',
+      snippet: `{
+  "event": "supplier.approved",
+  "tenant_id": "org_7fQ…",
+  "data": {
+    "supplier_id": "sup_3Xa…",
+    "name": "Fabryka Komponentów Sp. z o.o.",
+    "country": "PL",
+    "vat": "PL5271234567",
+    "approved_by": "user_2Yz…",
+    "approved_at": "2026-04-21T14:03:22Z"
+  }
+}`,
+    },
+    {
+      title: 'SDKs',
+      description: 'Official clients handle auth, retries, and typed models. Python and Node available; others on request.',
+      bullets: [
+        'Node / TypeScript — types generated from OpenAPI',
+        'Python 3.10+ — async-first, works with FastAPI',
+        'Postman collection + OpenAPI 3 spec on request',
+        'Java and .NET — quoted per Enterprise onboarding',
+      ],
+      snippetLabel: 'Example: Node.js',
+      snippet: `import { Procurea } from '@procurea/sdk'
+
+const client = new Procurea({ apiKey: process.env.PROCUREA_API_KEY })
+
+const { data } = await client.suppliers.search({
+  query: 'valve',
+  country: 'DE',
+  limit: 25,
+})`,
+    },
+  ] as ApiResource[] : [
+    {
+      title: 'REST API',
+      description: 'Odczyt i zapis dostawców, kampanii, ofert i zamówień. OAuth 2.0 + klucze API. JSON przez HTTPS.',
+      bullets: [
+        'OAuth 2.0 (authorization code + client credentials)',
+        'Limit: 600 req/min per tenant',
+        'Paginacja przez cursor, filtry na każdej kolekcji',
+        'Klucze idempotency dla POST-ów',
+      ],
+      snippetLabel: 'Przykład: wyszukaj dostawców',
+      snippet: `curl -X GET \\
+  "https://api.procurea.example/v1/suppliers?q=valve&country=DE" \\
+  -H "Authorization: Bearer \${PROCUREA_API_KEY}" \\
+  -H "Accept: application/json"`,
+    },
+    {
+      title: 'Webhooks',
+      description: 'Subskrybuj zdarzenia w czasie rzeczywistym — cykl życia dostawcy, stan kampanii, oferty, akceptacje. Payloady podpisane HMAC.',
+      bullets: [
+        'Sygnatura HMAC-SHA256 w nagłówku (weryfikuj przed przetworzeniem)',
+        'Dostawa at-least-once z exponential backoff',
+        'Do 10 endpointów per tenant',
+        'Replay zdarzeń z panelu (ostatnie 30 dni)',
+      ],
+      snippetLabel: 'Przykładowy payload zdarzenia',
+      snippet: `{
+  "event": "supplier.approved",
+  "tenant_id": "org_7fQ…",
+  "data": {
+    "supplier_id": "sup_3Xa…",
+    "name": "Fabryka Komponentów Sp. z o.o.",
+    "country": "PL",
+    "vat": "PL5271234567",
+    "approved_by": "user_2Yz…",
+    "approved_at": "2026-04-21T14:03:22Z"
+  }
+}`,
+    },
+    {
+      title: 'SDKs',
+      description: 'Oficjalne klienty obsługują auth, retries i typy. Python i Node dostępne od razu; inne na zamówienie.',
+      bullets: [
+        'Node / TypeScript — typy generowane z OpenAPI',
+        'Python 3.10+ — async-first, działa z FastAPI',
+        'Kolekcja Postman + spec OpenAPI 3 na żądanie',
+        'Java i .NET — wycena w ramach Enterprise onboardingu',
+      ],
+      snippetLabel: 'Przykład: Node.js',
+      snippet: `import { Procurea } from '@procurea/sdk'
+
+const client = new Procurea({ apiKey: process.env.PROCUREA_API_KEY })
+
+const { data } = await client.suppliers.search({
+  query: 'valve',
+  country: 'DE',
+  limit: 25,
+})`,
+    },
+  ],
+
+  accessBannerTitle: isEN ? 'API access is gated' : 'Dostęp do API jest kontrolowany',
+  accessBannerBody: isEN
+    ? 'We do not publish a public sandbox. Request a tenant-scoped API key through the Enterprise onboarding — we send docs, SDK, and Postman collection after a short call.'
+    : 'Nie udostępniamy publicznego sandboxa. Klucz API z przypisanym tenantem otrzymasz po krótkiej rozmowie w ramach onboardingu Enterprise — wtedy wysyłamy dokumentację, SDK i kolekcję Postman.',
+  accessBannerCta: isEN ? 'Request API access' : 'Poproś o dostęp do API',
+
+  securityTitle: isEN ? 'Security & compliance' : 'Bezpieczeństwo i zgodność',
+  securityItems: isEN ? [
+    { label: 'Auth', value: 'OAuth 2.0, SAML SSO, scoped API keys' },
+    { label: 'Transport', value: 'TLS 1.3, HSTS, certificate pinning for SDKs' },
+    { label: 'Data residency', value: 'GCP europe-west1 (Belgium). US region on request.' },
+    { label: 'Compliance', value: 'GDPR / RODO, ISO 27001 in progress, SOC 2 Type II in progress' },
+    { label: 'Audit', value: 'Immutable event log, tenant-scoped access traces' },
+    { label: 'Isolation', value: 'Per-tenant row-level security in PostgreSQL, separate encryption keys on request' },
+  ] : [
+    { label: 'Auth', value: 'OAuth 2.0, SAML SSO, scoped API keys' },
+    { label: 'Transport', value: 'TLS 1.3, HSTS, pinning certyfikatów w SDK' },
+    { label: 'Data residency', value: 'GCP europe-west1 (Belgia). Region US na żądanie.' },
+    { label: 'Zgodność', value: 'GDPR / RODO, ISO 27001 w procesie, SOC 2 Type II w procesie' },
+    { label: 'Audyt', value: 'Immutable event log, per-tenant ślad dostępu' },
+    { label: 'Izolacja', value: 'Per-tenant row-level security w PostgreSQL, osobne klucze szyfrowania na żądanie' },
+  ],
 }

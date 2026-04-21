@@ -35,6 +35,7 @@ import { WhatsNewModal } from "@/components/changelog/WhatsNewModal"
 import { usePendingApprovalsCount } from "@/hooks/useApprovals"
 import { NotificationBell } from "@/components/notifications/NotificationBell"
 import { CommandPalette } from "@/components/palette/CommandPalette"
+import { KeyboardShortcutsDialog } from "@/components/shortcuts/KeyboardShortcutsDialog"
 
 interface AppLayoutProps {
     onLogout?: () => void
@@ -51,6 +52,7 @@ type NavItem = {
 export default function AppLayout({ onLogout }: AppLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [paletteOpen, setPaletteOpen] = useState(false)
+    const [shortcutsOpen, setShortcutsOpen] = useState(false)
     const { billingModalOpen, setBillingModalOpen, openBillingModal } = useUIStore()
     const location = useLocation()
     const [searchParams] = useSearchParams()
@@ -67,6 +69,13 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
             if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
                 e.preventDefault()
                 setPaletteOpen((v) => !v)
+            } else if (e.key === '?' && !e.metaKey && !e.ctrlKey) {
+                // Ignore when the user is typing in an input/textarea/contenteditable.
+                const target = e.target as HTMLElement | null
+                const tag = target?.tagName
+                if (tag === 'INPUT' || tag === 'TEXTAREA' || target?.isContentEditable) return
+                e.preventDefault()
+                setShortcutsOpen((v) => !v)
             }
         }
         window.addEventListener('keydown', onKey)
@@ -354,6 +363,7 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
             {!isDemo && <BillingModal open={billingModalOpen} onOpenChange={setBillingModalOpen} />}
             <FeedbackWidget />
             <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
+            <KeyboardShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
         </div>
     )
 }

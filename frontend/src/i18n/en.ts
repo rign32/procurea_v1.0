@@ -1244,6 +1244,7 @@ export const EN: Translations = {
     subtitle: 'Manage procurement documents',
     upload: 'Add document',
     uploadDialog: 'Add new document',
+    uploadHint: 'PDF, DXF, STEP, JPG, PNG — max 10MB',
     uploadVersion: 'Upload new version',
     noDocuments: 'No documents',
     noDocumentsDesc: 'Add your first document by clicking the button above.',
