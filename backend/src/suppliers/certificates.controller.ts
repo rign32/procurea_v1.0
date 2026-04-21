@@ -54,6 +54,29 @@ export class CertificatesController {
     return this.certificatesService.update(certificateId, body);
   }
 
+  @Post(':certificateId/approve')
+  async approve(
+    @Param('supplierId') supplierId: string,
+    @Param('certificateId') certificateId: string,
+    @Req() req: any,
+  ) {
+    const userId = this.getUserId(req);
+    await this.certificatesService.ensureSupplierAccess(supplierId, userId);
+    return this.certificatesService.approve(certificateId, userId);
+  }
+
+  @Post(':certificateId/reject')
+  async reject(
+    @Param('supplierId') supplierId: string,
+    @Param('certificateId') certificateId: string,
+    @Body() body: { notes?: string },
+    @Req() req: any,
+  ) {
+    const userId = this.getUserId(req);
+    await this.certificatesService.ensureSupplierAccess(supplierId, userId);
+    return this.certificatesService.reject(certificateId, userId, body?.notes);
+  }
+
   @Delete(':certificateId')
   async remove(
     @Param('supplierId') supplierId: string,

@@ -114,6 +114,9 @@ model User {
   // Contracts
   contracts   Contract[]
 
+  // Certificates reviewed (buyer approval gate for portal-uploaded certs)
+  certificateReviews SupplierCertificate[] @relation("CertificateReviewer")
+
   // Workspaces
   workspaceMembers WorkspaceMember[]
 
@@ -418,6 +421,14 @@ model SupplierCertificate {
   // Provenance: MANUAL (buyer typed in) | PORTAL (supplier uploaded via access token)
   source      String   @default("MANUAL")
 
+  // Buyer review gate for PORTAL-uploaded certs
+  // PENDING | APPROVED | REJECTED — MANUAL certs default APPROVED on create
+  reviewStatus String   @default("APPROVED")
+  reviewedAt   DateTime?
+  reviewedById String?
+  reviewedBy   User?    @relation("CertificateReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewNotes  String?
+
   // Alerting state — prevents duplicate email alerts
   lastAlertedAt DateTime?
 
@@ -429,6 +440,7 @@ model SupplierCertificate {
   @@index([validUntil])
   @@index([status])
   @@index([source])
+  @@index([reviewStatus])
 }
 
 model Contact {

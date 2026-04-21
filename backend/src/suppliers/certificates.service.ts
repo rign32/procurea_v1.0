@@ -88,6 +88,10 @@ export class CertificatesService {
       );
     }
 
+    const source = input.source ?? 'MANUAL';
+    // PORTAL uploads default to PENDING; MANUAL certs are buyer-authored so trusted.
+    const reviewStatus = source === 'PORTAL' ? 'PENDING' : 'APPROVED';
+
     return this.prisma.supplierCertificate.create({
       data: {
         supplierId,
@@ -99,7 +103,8 @@ export class CertificatesService {
         validUntil,
         documentId: input.documentId || null,
         status,
-        source: input.source ?? 'MANUAL',
+        source,
+        reviewStatus,
       },
       include: {
         document: {
@@ -138,6 +143,50 @@ export class CertificatesService {
     });
   }
 
+  async approve(certificateId: string, reviewerId: string) {
+    const cert = await this.prisma.supplierCertificate.findUnique({
+      where: { id: certificateId },
+    });
+    if (!cert) throw new NotFoundException('Certificate not found');
+
+    return this.prisma.supplierCertificate.update({
+      where: { id: certificateId },
+      data: {
+        reviewStatus: 'APPROVED',
+        reviewedById: reviewerId,
+        reviewedAt: new Date(),
+        reviewNotes: null,
+      },
+      include: {
+        document: {
+          select: { id: true, originalName: true, url: true, mimeType: true },
+        },
+      },
+    });
+  }
+
+  async reject(certificateId: string, reviewerId: string, notes?: string) {
+    const cert = await this.prisma.supplierCertificate.findUnique({
+      where: { id: certificateId },
+    });
+    if (!cert) throw new NotFoundException('Certificate not found');
+
+    return this.prisma.supplierCertificate.update({
+      where: { id: certificateId },
+      data: {
+        reviewStatus: 'REJECTED',
+        reviewedById: reviewerId,
+        reviewedAt: new Date(),
+        reviewNotes: notes?.trim() || null,
+      },
+      include: {
+        document: {
+          select: { id: true, originalName: true, url: true, mimeType: true },
+        },
+      },
+    });
+  }
+
   async remove(certificateId: string): Promise<void> {
     const cert = await this.prisma.supplierCertificate.findUnique({
       where: { id: certificateId },
@@ -161,6 +210,7 @@ export class CertificatesService {
     return this.prisma.supplierCertificate.findMany({
       where: {
         validUntil: { lte: windowEnd },
+        reviewStatus: 'APPROVED', // don't alert on pending/rejected
         OR: [{ lastAlertedAt: null }, { lastAlertedAt: { lt: cooldownCutoff } }],
       },
       include: {
