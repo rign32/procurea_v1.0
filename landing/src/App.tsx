@@ -1,6 +1,5 @@
 import { useEffect, lazy, Suspense } from "react"
 import { BrowserRouter, Routes, Route, useLocation, Navigate, useParams } from "react-router-dom"
-import { motion, AnimatePresence } from "framer-motion"
 import { pathMappings } from "@/i18n/paths"
 import { t } from "@/i18n"
 import { BackToTop } from "@/components/ui/BackToTop"
@@ -11,23 +10,6 @@ function ScrollToTop() {
     window.scrollTo(0, 0)
   }, [pathname])
   return null
-}
-
-function AnimatedRoutes({ children }: { children: React.ReactNode }) {
-  const location = useLocation()
-  return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={location.pathname}
-        initial={{ opacity: 0, scale: 0.99 }}
-        animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-        exit={{ opacity: 0, scale: 0.99, filter: "blur(2px)" }}
-        transition={{ duration: 0.2, ease: "easeInOut" }}
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
-  )
 }
 
 // Home — eagerly loaded (above the fold)
@@ -86,7 +68,6 @@ export default function App() {
       <ScrollToTop />
       <BackToTop />
       <Suspense fallback={<div className="min-h-screen" />}>
-      <AnimatedRoutes>
       <Routes>
         <Route path={p('home')} element={<HomePage />} />
 
@@ -138,7 +119,6 @@ export default function App() {
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
-      </AnimatedRoutes>
       </Suspense>
     </BrowserRouter>
   )
