@@ -11,15 +11,43 @@ on:
       - 'LICENSE'
       - '.gitignore'
 
+# cancel-in-progress: true — with ~10 parallel Claude sessions pushing to staging,
+# only the latest commit matters for deploy. Intermediate runs are noise.
 concurrency:
   group: deploy-staging
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    name: Build & Deploy to Staging
+  # Fast-fail gate. TypeScript + lint errors fail here in ~2 min instead of
+  # burning 10 min on a full build that never deploys.
+  # Lint is enforced (no continue-on-error) — it used to slip through to main,
+  # where it IS blocking, causing red prod CI (see 2026-04-21 history).
+  quick-check:
+    name: Quick check (typecheck + lint)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci
+      - name: TypeScript type check
+        working-directory: frontend
+        run: npx tsc -b
+      - name: Lint (blocking)
+        working-directory: frontend
+        run: npm run lint
+
+  deploy:
+    name: Build (parallel) & Deploy to Staging
+    needs: quick-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     environment: staging
     steps:
       - uses: actions/checkout@v4
@@ -36,22 +64,26 @@ jobs:
             frontend/package-lock.json
             landing/package-lock.json
 
-      - name: Install backend dependencies
-        working-directory: backend
-        run: npm ci
+      # Parallel npm ci — 3 installs in parallel instead of serial (~2x faster).
+      - name: Install deps (parallel)
+        run: |
+          set -e
+          (cd backend && npm ci) & BE=$!
+          (cd frontend && npm ci) & FE=$!
+          (cd landing && npm ci) & LD=$!
+          FAIL=0
+          wait $BE || { echo "::error::backend npm ci failed"; FAIL=1; }
+          wait $FE || { echo "::error::frontend npm ci failed"; FAIL=1; }
+          wait $LD || { echo "::error::landing npm ci failed"; FAIL=1; }
+          exit $FAIL
 
       - name: Generate Prisma client
         working-directory: backend
         run: npx prisma generate
 
-      # Guards against the class of bug where schema.prisma gets new fields/models
-      # without a matching migration/*.sql file. `prisma db push` creates columns
-      # silently on staging DB, so staging works but prod breaks (migrate deploy
-      # sees no new migration → missing columns → P2022 on every query, as happened
-      # 2026-04-20 with Organization.hasConnectAddon blocking all logins).
-      #
-      # Heuristic: if any commit on this branch (vs main) modifies schema.prisma,
-      # there must be at least one NEW migration file under prisma/migrations/.
+      # Guards against schema.prisma changes without a matching migration file.
+      # `prisma db push` creates columns silently on staging DB while `migrate deploy`
+      # sees no migration → prod breaks (incident 2026-04-20 with hasConnectAddon).
       - name: Guard — schema change requires migration
         working-directory: backend
         run: |
@@ -60,7 +92,7 @@ jobs:
           MIGRATIONS_ADDED=$(git diff --name-only --diff-filter=A "$BASE"..HEAD -- 'prisma/migrations/*/migration.sql' | wc -l | tr -d ' ')
           echo "schema.prisma changed: $SCHEMA_CHANGED files; new migrations added: $MIGRATIONS_ADDED"
           if [ "$SCHEMA_CHANGED" != "0" ] && [ "$MIGRATIONS_ADDED" = "0" ]; then
-            echo "::error::schema.prisma changed but no new migration added. Run \`npx prisma migrate dev --name <change>\` locally, commit the generated migration, and push again. Never use \`prisma db push\` on staging — it creates silent drift that breaks prod."
+            echo "::error::schema.prisma changed but no new migration added. Run \`npx prisma migrate dev --name <change>\` locally, commit the generated migration, and push again."
             exit 1
           fi
 
@@ -70,50 +102,35 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL_STAGING }}
 
-      - name: Backend tests
-        working-directory: backend
-        run: npm test -- --passWithNoTests
-
-      - name: Build backend
-        working-directory: backend
-        run: npm run build
-
-      - name: Install frontend dependencies
-        working-directory: frontend
-        run: npm ci
-
-      - name: Frontend type check
-        working-directory: frontend
-        run: npx tsc -b
-
-      - name: Frontend lint
-        working-directory: frontend
-        run: npm run lint
-        continue-on-error: true  # staging only — prod workflow enforces lint blocking
-
-      - name: Build frontend PL (staging)
-        working-directory: frontend
-        run: npm run build:staging
+      # Parallel builds — backend test+build, frontend PL+EN, landing PL+EN all at once.
+      # Logs are captured separately so failures are readable. Runner has 4 vCPU
+      # so 3 parallel builds fit comfortably.
+      - name: Build all (parallel)
         env:
           VITE_STAGING_SECRET: ${{ secrets.VITE_STAGING_SECRET }}
-
-      - name: Build frontend EN (staging)
-        working-directory: frontend
-        run: npm run build:staging-en
-        env:
-          VITE_STAGING_SECRET: ${{ secrets.VITE_STAGING_SECRET }}
-
-      - name: Install landing dependencies
-        working-directory: landing
-        run: npm ci
-
-      - name: Build landing PL (staging)
-        working-directory: landing
-        run: npm run build:staging
-
-      - name: Build landing EN (staging)
-        working-directory: landing
-        run: npm run build:staging-en
+        run: |
+          set +e
+          mkdir -p /tmp/build-logs
+          (cd backend && npm test -- --passWithNoTests && npm run build) > /tmp/build-logs/backend.log 2>&1 &
+          BE=$!
+          (cd frontend && npm run build:staging && npm run build:staging-en) > /tmp/build-logs/frontend.log 2>&1 &
+          FE=$!
+          (cd landing && npm run build:staging && npm run build:staging-en) > /tmp/build-logs/landing.log 2>&1 &
+          LD=$!
+          FAIL=0
+          wait $BE; BE_RC=$?
+          wait $FE; FE_RC=$?
+          wait $LD; LD_RC=$?
+          echo "===== backend build (rc=$BE_RC) ====="
+          cat /tmp/build-logs/backend.log
+          echo "===== frontend build (rc=$FE_RC) ====="
+          cat /tmp/build-logs/frontend.log
+          echo "===== landing build (rc=$LD_RC) ====="
+          cat /tmp/build-logs/landing.log
+          [ $BE_RC -ne 0 ] && { echo "::error::backend build failed"; FAIL=1; }
+          [ $FE_RC -ne 0 ] && { echo "::error::frontend build failed"; FAIL=1; }
+          [ $LD_RC -ne 0 ] && { echo "::error::landing build failed"; FAIL=1; }
+          exit $FAIL
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
@@ -124,7 +141,8 @@ jobs:
             --only hosting:app-staging,hosting:app-staging-en,hosting:landing-staging,hosting:landing-staging-en,functions:apiStaging \
             --token "$FIREBASE_TOKEN" \
             --project project-c64b9be9-1d92-4bc6-be7 \
-            --non-interactive
+            --non-interactive \
+            --force
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
