@@ -163,8 +163,8 @@ Po czterech godzinach: około 25-40 rekordów oznaczonych, garść mergów, gar�
         tone: 'warning',
         title: 'Stale data is now a compliance exposure, not just an efficiency problem',
         titlePl: 'Stare dane to dziś ekspozycja compliance, nie tylko problem efektywności',
-        text: 'Under CSDDD (2026) and CSRD, you must demonstrate due-diligence on supplier status. An auditor pulling a €180k invoice issued to a supplier whose VAT was deregistered 14 months earlier will not accept "we didn\'t know" — remediation bills from findings like this run €20k-€80k per jurisdiction.',
-        textPl: 'Pod CSDDD (2026) i CSRD musisz wykazać due-diligence nad statusem dostawcy. Audytor sprawdzający fakturę €180k wystawioną dostawcy z VAT wyrejestrowanym 14 miesięcy wcześniej nie zaakceptuje „nie wiedzieliśmy" — remediation za takie findingi to €20k-€80k per jurysdykcja.',
+        text: 'Under CSDDD (phasing in from 2027 for large-cap, 2028+ mid-market) and CSRD, in-scope buyers must demonstrate due-diligence on supplier status. An auditor pulling a €180k invoice issued to a supplier whose VAT was deregistered 14 months earlier will not accept "we didn\'t know" — remediation bills from findings like this run €20k-€80k per jurisdiction.',
+        textPl: 'Pod CSDDD (wchodzi etapowo od 2027 dla large-cap, 2028+ mid-market) i CSRD kupcy w zakresie muszą wykazać due-diligence nad statusem dostawcy. Audytor sprawdzający fakturę €180k wystawioną dostawcy z VAT wyrejestrowanym 14 miesięcy wcześniej nie zaakceptuje „nie wiedzieliśmy" — remediation za takie findingi to €20k-€80k per jurysdykcja.',
       },
     },
     {

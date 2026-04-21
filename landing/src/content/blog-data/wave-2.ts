@@ -656,7 +656,7 @@ const post3: RichBlogPost = {
 
 Three regulatory and market shifts are forcing the change:
 
-<strong>CSDDD (Corporate Sustainability Due Diligence Directive)</strong> — the EU rule that came into practical force in 2026 requires in-scope companies (staged thresholds, down to ~1000 employees and €450M turnover by 2027) to identify, prevent, mitigate, and account for adverse human rights and environmental impacts <em>throughout their chain of activities</em>. Cascading duty means tier-2 and tier-3 supplier risk is now your risk. You cannot contractually outsource it.
+<strong>CSDDD (Corporate Sustainability Due Diligence Directive)</strong> — the EU rule that phases in by company size: large cap (≥€150M turnover or ≥500 employees) from 2027, mid-market (€40M-€150M) from 2028, smaller firms from 2029. In-scope companies must identify, prevent, mitigate, and account for adverse human rights and environmental impacts <em>throughout their chain of activities</em>. Cascading duty means tier-2 and tier-3 supplier risk is your risk once you are in scope. You cannot contractually outsource it.
 
 <strong>Germany's LkSG (Lieferkettengesetz)</strong> has been in force since 2023 and hit the 1000-employee threshold in 2024. Any EU supplier serving a German customer above that threshold already faces documented supplier risk requirements and monthly reporting to BAFA. If you sell into German supply chains, your buyers are already asking.
 
@@ -667,20 +667,40 @@ The operational question is not "should we do supplier risk management" — by 2
 
 Trzy zmiany regulacyjno-rynkowe wymuszają tę zmianę:
 
-<strong>CSDDD (Corporate Sustainability Due Diligence Directive)</strong> — unijne prawo, które praktycznie weszło w życie w 2026, wymaga od firm w zakresie (stopniowanie progów, do ~1000 pracowników i €450M obrotu do 2027) identyfikacji, zapobiegania, mitygacji i rozliczania negatywnych skutków dla praw człowieka i środowiska <em>w całym łańcuchu działań</em>. Kaskadowy obowiązek oznacza, że ryzyko dostawców tier-2 i tier-3 jest teraz twoim ryzykiem. Nie można tego kontraktowo wypchnąć.
+<strong>CSDDD (Corporate Sustainability Due Diligence Directive)</strong> — unijne prawo wchodzące etapowo wg wielkości firmy: large cap (≥€150M obrotu lub ≥500 pracowników) od 2027, mid-market (€40M-€150M) od 2028, mniejsze firmy od 2029. Firmy w zakresie muszą identyfikować, zapobiegać, mitygować i rozliczać negatywne skutki dla praw człowieka i środowiska <em>w całym łańcuchu działań</em>. Kaskadowy obowiązek oznacza, że ryzyko dostawców tier-2 i tier-3 staje się twoim ryzykiem gdy wchodzisz w zakres. Nie można tego kontraktowo wypchnąć.
 
 <strong>Niemiecka LkSG (Lieferkettengesetz)</strong> obowiązuje od 2023, próg 1000 pracowników uruchomił się w 2024. Każdy dostawca z UE obsługujący niemieckiego klienta powyżej tego progu już ma udokumentowane wymagania ryzyka i miesięczne raportowanie do BAFA. Jeśli sprzedajesz w niemieckie łańcuchy, kupcy już pytają.
 
 <strong>Operacyjna kruchość od 2020.</strong> Blokada Sueza, pandemia, sankcje Rosji, kryzys Morza Czerwonego, eskalacje celne 2024-25. Ryzyko dostawców, które dawniej było rocznym audytem, jest teraz cotygodniowym monitoringiem. Jeden zablokowany kontener, jedna sankcjonowana spółka matka, jeden cofnięty certyfikat kosztuje więcej w jednym zdarzeniu niż roczne wynagrodzenie zespołu ryzyka.
 
 Pytanie operacyjne nie brzmi „czy robić zarządzanie ryzykiem" — w 2026 to odpowiedziane. Brzmi „ile da się zautomatyzować, ile musi być ludzką oceną, i jaki jest minimalny obronialny program dla naszego zakresu regulacyjnego".`,
+      subSections: [
+        {
+          heading: 'CSDDD applicability by company size',
+          headingPl: 'Stosowanie CSDDD wg wielkości firmy',
+          body: `CSDDD is often cited as "enforceable 2026," which is misleading. The directive phases in by company size over three years, and most mid-market firms are not in scope until 2028 at the earliest.
+
+<strong>Large cap</strong> — ≥€150M annual turnover or ≥500 employees: mandatory from 2027.
+<strong>Mid-market</strong> — €40M-€150M turnover: phased in from 2028.
+<strong>Smaller firms</strong> — below €40M: compliance expected from 2029 onward, with Member States finalising transposition details.
+
+Check your group-level scope before over-investing in 2026. If you sell into a large-cap customer's supply chain, their CSDDD cascade may pull you into documentation requirements earlier than your own threshold — that is the indirect-scope case worth preparing for.`,
+          bodyPl: `CSDDD jest często cytowane jako „egzekwowalne w 2026", co wprowadza w błąd. Dyrektywa wchodzi etapowo wg wielkości firmy przez trzy lata, a większość firm mid-market nie jest w zakresie wcześniej niż w 2028.
+
+<strong>Large cap</strong> — ≥€150M rocznego obrotu lub ≥500 pracowników: obowiązkowo od 2027.
+<strong>Mid-market</strong> — €40M-€150M obrotu: etapowo od 2028.
+<strong>Mniejsze firmy</strong> — poniżej €40M: compliance oczekiwane od 2029, państwa członkowskie finalizują szczegóły transpozycji.
+
+Sprawdź swój zakres na poziomie grupy, zanim przeinwestujesz w 2026. Jeśli sprzedajesz do łańcucha dostaw klienta large-cap, jego kaskada CSDDD może wciągnąć cię w wymogi dokumentacyjne wcześniej niż twój własny próg — ten pośredni przypadek warto przygotować.`,
+        },
+      ],
       statBlock: {
         columns: 4,
         stats: [
           { value: '4', label: 'Risk categories to track', labelPl: 'Kategorie ryzyka' },
           { value: '20', label: 'Point audit checklist', labelPl: 'Punkty checklisty' },
           { value: '40%', label: 'Supplier data stale/yr', labelPl: 'Starzeje się rocznie' },
-          { value: '2026', label: 'CSDDD goes live', labelPl: 'CSDDD wchodzi' },
+          { value: '2027+', label: 'CSDDD phase-in starts', labelPl: 'Start etapowego CSDDD' },
         ],
       },
     },
