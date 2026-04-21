@@ -47,10 +47,38 @@ export class PortalController {
         await this.portalService.validateTokenForUpload(accessToken);
 
         // Parse multipart file
-        const file = await this.parseMultipart(req);
+        const { file } = await this.parseMultipart(req);
+        if (!file) throw new BadRequestException('No file provided');
 
         // Use existing uploads service to save file
         return this.uploadsService.saveFile(file);
+    }
+
+    @Post('offers/:accessToken/certificate')
+    @Throttle({ default: { ttl: 60000, limit: 5 } })
+    async uploadCertificate(
+        @Param('accessToken') accessToken: string,
+        @Req() req: Request,
+    ) {
+        // Expiry / state check before accepting the upload
+        await this.portalService.validateTokenForUpload(accessToken);
+
+        const { file, fields } = await this.parseMultipart(req);
+        if (!file) throw new BadRequestException('No file provided');
+
+        const required = ['type', 'code', 'validUntil'];
+        for (const key of required) {
+            if (!fields[key]) throw new BadRequestException(`Missing field: ${key}`);
+        }
+
+        return this.portalService.uploadCertificateForToken(accessToken, file, {
+            type: fields.type,
+            code: fields.code,
+            validUntil: fields.validUntil,
+            issuer: fields.issuer,
+            certNumber: fields.certNumber,
+            issuedAt: fields.issuedAt,
+        });
     }
 
     @Get('branding/:orgId')
@@ -70,12 +98,17 @@ export class PortalController {
 
     /**
      * Parse multipart/form-data manually using busboy.
-     * Reuses the same pattern as UploadsController to handle Cloud Functions pre-parsed body.
+     * Returns the (optional) single file and a flat record of text fields.
+     * Handles Cloud Functions pre-parsed body via req.rawBody.
      */
-    private parseMultipart(req: Request): Promise<{ buffer: Buffer; originalname: string; mimetype: string; size: number }> {
+    private parseMultipart(req: Request): Promise<{
+        file: { buffer: Buffer; originalname: string; mimetype: string; size: number } | null;
+        fields: Record<string, string>;
+    }> {
         return new Promise((resolve, reject) => {
             const busboy = Busboy({ headers: req.headers, limits: { fileSize: 10 * 1024 * 1024 } });
             const chunks: Buffer[] = [];
+            const fields: Record<string, string> = {};
             let fileInfo: { filename: string; mimeType: string } | null = null;
             let limitReached = false;
 
@@ -85,21 +118,28 @@ export class PortalController {
                 file.on('limit', () => { limitReached = true; });
             });
 
+            busboy.on('field', (fieldname: string, value: string) => {
+                fields[fieldname] = value;
+            });
+
             busboy.on('finish', () => {
                 if (limitReached) {
                     reject(new BadRequestException('File too large (max 10MB)'));
                     return;
                 }
                 if (!fileInfo) {
-                    reject(new BadRequestException('No file provided'));
+                    resolve({ file: null, fields });
                     return;
                 }
                 const buffer = Buffer.concat(chunks);
                 resolve({
-                    buffer,
-                    originalname: fileInfo.filename,
-                    mimetype: fileInfo.mimeType,
-                    size: buffer.length,
+                    file: {
+                        buffer,
+                        originalname: fileInfo.filename,
+                        mimetype: fileInfo.mimeType,
+                        size: buffer.length,
+                    },
+                    fields,
                 });
             });
 

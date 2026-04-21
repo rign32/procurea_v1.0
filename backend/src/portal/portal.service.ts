@@ -3,6 +3,9 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationService } from '../common/services/notification.service';
 import { getLanguageForCountry } from '../common/normalize-country';
+import { UploadsService } from '../uploads/uploads.service';
+import { CertificatesService } from '../suppliers/certificates.service';
+import { CERTIFICATE_TYPES, type CertificateType } from '../suppliers/certificate-types';
 
 interface PriceTierDto {
     minQty: number;
@@ -45,6 +48,8 @@ export class PortalService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly notifications: NotificationService,
+        private readonly uploads: UploadsService,
+        private readonly certificates: CertificatesService,
     ) {}
 
     async getOfferByToken(accessToken: string) {
@@ -323,6 +328,96 @@ export class PortalService {
 
             return { saved: items.length };
         });
+    }
+
+    /**
+     * Supplier-side: upload a certificate PDF + metadata via portal access token.
+     * Creates Document + SupplierCertificate. Document.uploadedById is the RFQ owner
+     * (supplier has no User record) so the file is owned by the buyer's org.
+     */
+    async uploadCertificateForToken(
+        accessToken: string,
+        file: { buffer: Buffer; originalname: string; mimetype: string; size: number },
+        meta: {
+            type: string;
+            code: string;
+            validUntil: string;
+            issuer?: string;
+            certNumber?: string;
+            issuedAt?: string;
+        },
+    ) {
+        if (!CERTIFICATE_TYPES.includes(meta.type as CertificateType)) {
+            throw new BadRequestException(`Invalid certificate type: ${meta.type}`);
+        }
+        if (!meta.code || meta.code.trim().length === 0) {
+            throw new BadRequestException('Certificate code is required');
+        }
+        const validUntil = new Date(meta.validUntil);
+        if (Number.isNaN(validUntil.getTime())) {
+            throw new BadRequestException('Invalid validUntil date');
+        }
+
+        const offer = await this.prisma.offer.findUnique({
+            where: { accessToken },
+            include: {
+                rfqRequest: { select: { ownerId: true, owner: { select: { organizationId: true } } } },
+            },
+        });
+        if (!offer) throw new NotFoundException('Offer not found');
+        if (offer.tokenExpiresAt && offer.tokenExpiresAt < new Date()) {
+            throw new BadRequestException('This link has expired.');
+        }
+        if (!offer.supplierId) {
+            throw new BadRequestException('Offer has no supplier linked');
+        }
+
+        // Store the file (Firebase Storage or local stub)
+        const saved = await this.uploads.saveFile(file);
+
+        // Persist Document record so the cert has a navigable link + versioning
+        const ownerId = offer.rfqRequest?.ownerId;
+        if (!ownerId) {
+            throw new BadRequestException('RFQ has no owner');
+        }
+        const document = await this.prisma.document.create({
+            data: {
+                uploadedById: ownerId,
+                organizationId: offer.rfqRequest?.owner?.organizationId ?? null,
+                filename: saved.storedFilename,
+                originalName: saved.filename,
+                mimeType: saved.mimeType,
+                sizeBytes: saved.size,
+                url: saved.url,
+                category: 'certificate',
+                entityType: 'supplier',
+                entityId: offer.supplierId,
+            },
+        });
+
+        // Create the structured cert record linked to the Document
+        const cert = await this.certificates.createInternal(offer.supplierId, {
+            type: meta.type as CertificateType,
+            code: meta.code.trim(),
+            issuer: meta.issuer?.trim() || undefined,
+            certNumber: meta.certNumber?.trim() || undefined,
+            issuedAt: meta.issuedAt || null,
+            validUntil: meta.validUntil,
+            documentId: document.id,
+        });
+
+        this.logger.log(
+            `Portal cert upload: supplier=${offer.supplierId} type=${meta.type} code=${meta.code} doc=${document.id}`,
+        );
+
+        return {
+            certificate: cert,
+            document: {
+                id: document.id,
+                originalName: document.originalName,
+                url: document.url,
+            },
+        };
     }
 
     async submitOffer(accessToken: string, dto: SubmitOfferDto) {

@@ -22,6 +22,7 @@ import { usePortalOffer, useSubmitPortalOffer, usePortalTranslations } from '@/h
 import portalService from '@/services/portal.service';
 import type { OfferAttachment } from '@/services/portal.service';
 import { PortalLineItemsGrid } from '@/components/portal/PortalLineItemsGrid';
+import { PortalCertificatesSection } from '@/components/portal/PortalCertificatesSection';
 import {
   getPortalTranslations,
   SUPPORTED_PORTAL_LANGUAGES,
@@ -741,6 +742,14 @@ export function SupplierPortalPage() {
                   accessToken={accessToken}
                   lineItems={(data.rfq as any).lineItems}
                   currency={rfq.currency}
+                  locked={['SUBMITTED', 'ACCEPTED', 'REJECTED'].includes(offer.status)}
+                />
+              )}
+
+              {accessToken && (
+                <PortalCertificatesSection
+                  accessToken={accessToken}
+                  lang={effectiveLang}
                   locked={['SUBMITTED', 'ACCEPTED', 'REJECTED'].includes(offer.status)}
                 />
               )}

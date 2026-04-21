@@ -166,6 +166,44 @@ export const portalService = {
     return data;
   },
 
+  uploadCertificate: async (
+    accessToken: string,
+    file: File,
+    meta: {
+      type: string;
+      code: string;
+      validUntil: string; // ISO date (yyyy-mm-dd)
+      issuer?: string;
+      certNumber?: string;
+      issuedAt?: string;
+    },
+  ): Promise<{
+    certificate: {
+      id: string;
+      type: string;
+      code: string;
+      validUntil: string;
+      status: string;
+      document: { id: string; originalName: string; url: string } | null;
+    };
+    document: { id: string; originalName: string; url: string };
+  }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', meta.type);
+    formData.append('code', meta.code);
+    formData.append('validUntil', meta.validUntil);
+    if (meta.issuer) formData.append('issuer', meta.issuer);
+    if (meta.certNumber) formData.append('certNumber', meta.certNumber);
+    if (meta.issuedAt) formData.append('issuedAt', meta.issuedAt);
+    const { data } = await apiClient.post(
+      `/portal/offers/${accessToken}/certificate`,
+      formData,
+      { headers: { 'Content-Type': undefined } },
+    );
+    return data;
+  },
+
   // Supplier-side per-line quote save (Faza 2B follow-up)
   saveLineItems: async (
     accessToken: string,
