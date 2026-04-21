@@ -194,6 +194,8 @@ export interface User {
   orgCredits?: number;
   orgPlan?: string;
   orgTrialCreditsUsed?: boolean;
+  organizationName?: string | null;
+  trialEndedAcknowledgedAt?: string | null;
   hasOrganization?: boolean;
   organization?: {
     id: string;

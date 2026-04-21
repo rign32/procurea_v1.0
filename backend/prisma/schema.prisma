@@ -75,6 +75,7 @@ model User {
 
   // Trial
   trialCreditsUsed  Boolean @default(false)
+  trialEndedAcknowledgedAt DateTime?
 
   // Demo Mode
   isDemo        Boolean   @default(false)

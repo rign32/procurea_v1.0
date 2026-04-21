@@ -128,7 +128,8 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
-      - name: Post-deploy health check
+      - name: Post-deploy smoke test
+        working-directory: backend
         run: |
           sleep 10
-          curl -sf https://procurea-app-staging.web.app/api/health/ping || echo "⚠️ Health check failed — backend may still be warming up"
+          BASE_URL=https://procurea-app-staging.web.app node scripts/smoke-staging.cjs

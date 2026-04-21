@@ -34,6 +34,7 @@ import { FeedbackWidget } from "@/components/feedback/FeedbackWidget"
 import { WhatsNewModal } from "@/components/changelog/WhatsNewModal"
 import { usePendingApprovalsCount } from "@/hooks/useApprovals"
 import { NotificationBell } from "@/components/notifications/NotificationBell"
+import { CommandPalette } from "@/components/palette/CommandPalette"
 
 interface AppLayoutProps {
     onLogout?: () => void
@@ -49,6 +50,7 @@ type NavItem = {
 
 export default function AppLayout({ onLogout }: AppLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(false)
+    const [paletteOpen, setPaletteOpen] = useState(false)
     const { billingModalOpen, setBillingModalOpen, openBillingModal } = useUIStore()
     const location = useLocation()
     const [searchParams] = useSearchParams()
@@ -60,8 +62,19 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
         }
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault()
+                setPaletteOpen((v) => !v)
+            }
+        }
+        window.addEventListener('keydown', onKey)
+        return () => window.removeEventListener('keydown', onKey)
+    }, [])
+
     const isFullPlan = user?.plan === 'full'
-    const isUnlimited = user?.plan === 'unlimited' || (user as unknown as Record<string, unknown>)?.orgPlan === 'unlimited'
+    const isUnlimited = user?.plan === 'unlimited' || user?.orgPlan === 'unlimited'
     const isDemo = user?.isDemo ?? false
     const { data: pendingApprovalsCount } = usePendingApprovalsCount()
 
@@ -87,7 +100,7 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
     ]
 
     const initials = user?.name?.substring(0, 2).toUpperCase() || user?.email?.substring(0, 2).toUpperCase() || 'U'
-    const orgLine = (user as unknown as Record<string, unknown>)?.organizationName as string | undefined
+    const orgLine = user?.organizationName || user?.organization?.name
     const orgLabel = orgLine ? `${orgLine} · CEO` : isEN ? 'Procurea · CEO' : 'Procurea · CEO'
 
     /** Breadcrumb derivation from pathname. */
@@ -301,16 +314,19 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
 
                         <div className="flex-1" />
 
-                        {/* Search */}
-                        <div className="hidden md:flex relative w-[260px] max-w-full">
-                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-ink-2 pointer-events-none" />
-                            <input
-                                type="search"
-                                placeholder={isEN ? 'Search campaigns, suppliers…' : 'Szukaj kampanii, dostawców…'}
-                                className="w-full h-8 pl-8 pr-14 rounded-[8px] bg-surface border border-rule-2 text-[12.5px] placeholder:text-muted-ink-2 focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_rgba(22,42,82,0.15)] transition-[border-color,box-shadow] duration-150"
-                            />
+                        {/* Search → opens command palette (⌘K) */}
+                        <button
+                            type="button"
+                            onClick={() => setPaletteOpen(true)}
+                            className="hidden md:flex relative w-[260px] max-w-full h-8 items-center pl-8 pr-14 rounded-[8px] bg-surface border border-rule-2 text-[12.5px] text-muted-ink-2 hover:border-rule-3 hover:text-ink-2 transition-colors text-left"
+                            aria-label={isEN ? 'Open command palette' : 'Otwórz panel wyszukiwania'}
+                        >
+                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 pointer-events-none" />
+                            <span className="truncate">
+                                {isEN ? 'Search campaigns, suppliers…' : 'Szukaj kampanii, dostawców…'}
+                            </span>
                             <span className="kbd absolute right-2 top-1/2 -translate-y-1/2 select-none">⌘K</span>
-                        </div>
+                        </button>
 
                         {/* Actions */}
                         <a
@@ -336,6 +352,7 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
 
             {!isDemo && <BillingModal open={billingModalOpen} onOpenChange={setBillingModalOpen} />}
             <FeedbackWidget />
+            <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
         </div>
     )
 }

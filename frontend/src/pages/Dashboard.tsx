@@ -4,52 +4,60 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Status } from '@/components/ui/status';
 import {
-  Plus, ArrowRight, History, Copy, Upload, Target,
+  Plus, ArrowRight, History, Copy, Upload, Target, AlertTriangle,
+  ClipboardCheck, Timer, CircleAlert, Check, Loader2,
 } from 'lucide-react';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
   DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
 import { RecommendedSuppliers } from '@/components/suppliers/RecommendedSuppliers';
+import { CloneCampaignDialog } from '@/components/campaigns/CloneCampaignDialog';
 import { useCampaigns } from '@/hooks/useCampaigns';
+import { useDashboardStats, useDashboardActivity } from '@/hooks/useDashboard';
 import { useAuthStore } from '@/stores/auth.store';
 import { useUIStore } from '@/stores/ui.store';
 import { t, isEN } from '@/i18n';
 import { analytics, startHesitationTracker } from '@/lib/analytics';
-import { cn } from '@/lib/utils';
+import { cn, formatNumber, formatRelative, formatTime } from '@/lib/utils';
+import profileService from '@/services/profile.service';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
-  const { data: campaigns, isLoading } = useCampaigns();
-
-  const stats = useMemo(() => {
-    const list = campaigns ?? [];
-    const active = list.filter((c) => c.status === 'RUNNING').length;
-    const total = list.length;
-    const totalSuppliers = list.reduce((s, c) => s + (c.suppliersFound || 0), 0);
-    const pendingOffers = list.reduce((s, c) => s + (c.pendingOffers || 0), 0);
-    const scoredLast30 = Math.round(totalSuppliers * 0.22); // rough recency estimate
-    return { active, total, totalSuppliers, pendingOffers, scoredLast30 };
-  }, [campaigns]);
+  const { user, setUser } = useAuthStore();
+  const { data: campaigns, isLoading: campaignsLoading } = useCampaigns();
+  const { data: stats, isLoading: statsLoading } = useDashboardStats();
+  const { data: activity } = useDashboardActivity(8);
 
   const isFullPlan = user?.plan === 'full';
   const [showTopUpDialog, setShowTopUpDialog] = useState(false);
-  const [trialPopupDismissed, setTrialPopupDismissed] = useState(() =>
-    !!localStorage.getItem(`procurea_trial_dismissed_${user?.id}`)
-  );
+  const [showCloneDialog, setShowCloneDialog] = useState(false);
   const hasCredits = user?.plan === 'unlimited' || (user?.searchCredits ?? 0) > 0;
 
   const showTrialEndedPopup =
     user?.trialCreditsUsed === true &&
     (user?.searchCredits ?? 0) <= 0 &&
     user?.plan === 'research' &&
-    !trialPopupDismissed;
+    !user?.trialEndedAcknowledgedAt;
+
+  const acknowledgeTrial = async () => {
+    try {
+      await profileService.acknowledgeTrialEnded();
+      if (user) setUser({ ...user, trialEndedAcknowledgedAt: new Date().toISOString() });
+    } catch {
+      // non-critical; popup will reappear on next refresh
+    }
+  };
 
   const handleCreateCampaign = () => {
     if (!hasCredits) { setShowTopUpDialog(true); return; }
     analytics.dashboardCtaClick();
     navigate('/campaigns/new');
+  };
+
+  const handleCloneClick = () => {
+    if ((stats?.campaigns.total ?? 0) === 0) return;
+    setShowCloneDialog(true);
   };
 
   useEffect(() => {
@@ -62,6 +70,7 @@ export default function Dashboard() {
   const dateLabel = useMemo(() => formatDateLabel(isEN), []);
 
   const recentCampaigns = (campaigns ?? []).slice(0, 5);
+  const attentionItems = buildAttentionItems(stats, navigate);
 
   return (
     <div className="flex flex-col gap-6">
@@ -76,7 +85,7 @@ export default function Dashboard() {
             .
           </h1>
           <div className="mt-1.5 font-mono text-[12.5px] text-muted-ink tabular-nums">
-            {dateLabel} · {stats.active} {isEN ? 'active' : 'aktywnych'} · {stats.totalSuppliers.toLocaleString('en-US')} {isEN ? 'suppliers tracked' : 'dostawców'}
+            {dateLabel} · {stats?.campaigns.active ?? 0} {isEN ? 'active' : 'aktywnych'} · {formatNumber(stats?.suppliers.total ?? 0)} {isEN ? 'suppliers tracked' : 'dostawców'}
           </div>
         </div>
         <div className="flex gap-2">
@@ -99,9 +108,21 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* KPI row */}
+      {/* Needs attention — rendered only if there's something to act on */}
+      {attentionItems.length > 0 && (
+        <section>
+          <div className="label-mono mb-3">{isEN ? 'Needs your attention' : 'Wymaga uwagi'}</div>
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+            {attentionItems.map((item) => (
+              <AttentionTile key={item.id} {...item} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* KPI row — real data only */}
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-        {!campaigns && isLoading ? (
+        {statsLoading && !stats ? (
           Array.from({ length: 4 }).map((_, i) => (
             <KpiSkeleton key={i} />
           ))
@@ -109,39 +130,45 @@ export default function Dashboard() {
           <>
             <KpiTile
               label={isEN ? 'Active campaigns' : 'Aktywne kampanie'}
-              value={stats.total}
-              delta={stats.active > 0 ? `+${stats.active}` : undefined}
-              deltaLabel={isEN ? 'running now' : 'w toku'}
-              deltaTone="good"
+              value={stats?.campaigns.active ?? 0}
+              delta={stats && stats.campaigns.total > 0
+                ? `${stats.campaigns.total} ${isEN ? 'total' : 'łącznie'}`
+                : undefined}
+              deltaTone="neutral"
               onClick={() => navigate('/campaigns')}
             />
             <KpiTile
               label={isEN ? 'Suppliers scored' : 'Dostawców ocenionych'}
-              value={stats.totalSuppliers}
-              delta={stats.scoredLast30 > 0 ? `+${stats.scoredLast30.toLocaleString('en-US')}` : undefined}
+              value={stats?.suppliers.total ?? 0}
+              delta={stats && stats.suppliers.last30d > 0
+                ? `+${formatNumber(stats.suppliers.last30d)}`
+                : undefined}
               deltaLabel={isEN ? 'last 30d' : 'ostatnie 30 dni'}
               deltaTone="good"
               onClick={() => navigate('/suppliers')}
             />
             <KpiTile
-              label={isEN ? 'Shortlists built' : 'Shortlisty'}
-              value={stats.total > 0 ? Math.ceil(stats.total * 0.7) : 0}
-              delta={stats.active > 0 ? `${stats.active} ${isEN ? 'in progress' : 'w toku'}` : undefined}
+              label={isEN ? 'Shortlisted offers' : 'Shortlistowane oferty'}
+              value={stats?.suppliers.shortlisted ?? 0}
+              delta={stats && stats.suppliers.shortlisted > 0 ? (isEN ? 'ready to compare' : 'gotowe do porównania') : undefined}
               deltaTone="neutral"
+              onClick={() => navigate('/rfqs')}
             />
             {isFullPlan ? (
               <KpiTile
                 label={isEN ? 'Pending offers' : 'Oczekujące oferty'}
-                value={stats.pendingOffers}
-                delta={stats.pendingOffers > 0 ? (isEN ? 'action needed' : 'do akcji') : undefined}
-                deltaTone={stats.pendingOffers > 0 ? 'warn' : 'neutral'}
+                value={stats?.offers.pending ?? 0}
+                delta={stats && stats.offers.pending > 0 ? (isEN ? 'action needed' : 'do akcji') : undefined}
+                deltaTone={stats && stats.offers.pending > 0 ? 'warn' : 'neutral'}
                 onClick={() => navigate('/rfqs')}
               />
             ) : (
               <KpiTile
                 label={isEN ? 'Avg match · top 10%' : 'Śr. dopasowanie · top 10%'}
-                value={stats.totalSuppliers > 0 ? '91%' : '—'}
-                delta={isEN ? 'across campaigns' : 'w kampaniach'}
+                value={stats?.suppliers.avgMatchTopDecile != null
+                  ? `${stats.suppliers.avgMatchTopDecile}%`
+                  : '—'}
+                delta={isEN ? 'across scored suppliers' : 'wśród ocenionych'}
                 deltaTone="neutral"
               />
             )}
@@ -167,23 +194,23 @@ export default function Dashboard() {
             icon={<Copy className="h-4 w-4" strokeWidth={1.5} />}
             title={isEN ? 'Clone past campaign' : 'Skopiuj kampanię'}
             desc={isEN
-              ? `Re-run a successful sourcing job with updated volumes or refreshed pool.`
-              : 'Uruchom ponownie udaną kampanię ze zmienionymi wolumenami lub odświeżoną pulą.'}
-            action={stats.total > 0
-              ? (isEN ? `Pick from ${stats.total}` : `Wybierz z ${stats.total}`)
+              ? 'Re-run a completed sourcing job with the same search criteria.'
+              : 'Uruchom ponownie zakończoną kampanię z tymi samymi kryteriami.'}
+            action={(stats?.campaigns.total ?? 0) > 0
+              ? (isEN ? `Pick from ${stats?.campaigns.total}` : `Wybierz z ${stats?.campaigns.total}`)
               : (isEN ? 'Create first to clone' : 'Najpierw utwórz kampanię')
             }
-            disabled={stats.total === 0}
-            onClick={() => navigate('/campaigns')}
+            disabled={(stats?.campaigns.total ?? 0) === 0}
+            onClick={handleCloneClick}
           />
           <QuickStartCard
             icon={<Upload className="h-4 w-4" strokeWidth={1.5} />}
             title={isEN ? 'Upload spec document' : 'Wgraj specyfikację'}
             desc={isEN
-              ? 'Drop PDF / DWG / BOM — AI pre-fills the wizard from attachments.'
-              : 'Upuść PDF / DWG / BOM — AI wypełni wizard na bazie załącznika.'}
-            action={isEN ? 'Upload' : 'Wgraj'}
-            onClick={() => navigate('/documents')}
+              ? 'Start the wizard with your PDF / DWG / BOM attached from step 1.'
+              : 'Uruchom wizarda z załączonym plikiem PDF / DWG / BOM już od kroku 1.'}
+            action={isEN ? 'Open wizard' : 'Otwórz wizarda'}
+            onClick={() => navigate('/campaigns/new')}
           />
         </div>
       </section>
@@ -194,18 +221,18 @@ export default function Dashboard() {
         <div className="bg-surface border border-rule rounded-[10px] overflow-hidden">
           <header className="flex items-center gap-3 px-5 py-3.5 border-b border-rule bg-surface-2">
             <h3 className="text-[14px] font-semibold tracking-[-0.015em] text-ink">
-              {isEN ? 'Active campaigns' : 'Aktywne kampanie'}
+              {isEN ? 'Recent campaigns' : 'Ostatnie kampanie'}
             </h3>
             <button
               type="button"
               onClick={() => navigate('/campaigns')}
               className="ml-auto font-mono text-[10.5px] tracking-[0.04em] text-brand hover:underline"
             >
-              {isEN ? `See all ${stats.total}` : `Zobacz wszystkie ${stats.total}`} →
+              {isEN ? `See all ${stats?.campaigns.total ?? 0}` : `Zobacz wszystkie ${stats?.campaigns.total ?? 0}`} →
             </button>
           </header>
 
-          {!campaigns && isLoading ? (
+          {!campaigns && campaignsLoading ? (
             <div>
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="grid grid-cols-[1fr_140px_120px_90px_32px] gap-3.5 items-center px-5 py-3 border-b border-rule last:border-0">
@@ -239,18 +266,25 @@ export default function Dashboard() {
         <div className="flex flex-col gap-4">
           {(() => {
             if (!campaigns || campaigns.length === 0) return null;
-            const latest = campaigns.find(c => c.rfqRequest?.productName);
+            const latest = [...campaigns]
+              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+              .find(c => c.rfqRequest?.productName);
             if (!latest?.rfqRequest?.productName) return null;
             return (
               <div className="bg-surface border border-rule rounded-[10px] overflow-hidden">
                 <header className="flex items-center gap-3 px-5 py-3.5 border-b border-rule bg-surface-2">
-                  <h3 className="text-[14px] font-semibold tracking-[-0.015em]">
-                    {isEN ? 'Recommended suppliers' : 'Polecani dostawcy'}
-                  </h3>
+                  <div className="min-w-0">
+                    <h3 className="text-[14px] font-semibold tracking-[-0.015em] truncate">
+                      {isEN ? 'Recommended for' : 'Polecani dla'}: {latest.rfqRequest.productName}
+                    </h3>
+                    <div className="font-mono text-[10.5px] text-muted-ink-2 truncate">
+                      {isEN ? 'from' : 'z'} {latest.name}
+                    </div>
+                  </div>
                   <button
                     type="button"
                     onClick={() => navigate('/suppliers')}
-                    className="ml-auto font-mono text-[10.5px] tracking-[0.04em] text-brand hover:underline"
+                    className="ml-auto font-mono text-[10.5px] tracking-[0.04em] text-brand hover:underline shrink-0"
                   >
                     {isEN ? 'Open all' : 'Otwórz wszystkie'} →
                   </button>
@@ -265,17 +299,16 @@ export default function Dashboard() {
             );
           })()}
 
-          {/* Activity stream card */}
-          <ActivityCard campaigns={campaigns ?? []} />
+          {/* Real activity stream */}
+          <ActivityCard events={activity ?? []} onOpen={(href) => navigate(href)} />
         </div>
       </div>
 
-      {/* Dialogs (preserved business logic) */}
+      {/* Dialogs */}
       <Dialog
         open={showTrialEndedPopup}
-        onOpenChange={() => {
-          localStorage.setItem(`procurea_trial_dismissed_${user?.id}`, 'true');
-          setTrialPopupDismissed(true);
+        onOpenChange={(open) => {
+          if (!open) void acknowledgeTrial();
         }}
       >
         <DialogContent>
@@ -284,15 +317,11 @@ export default function Dashboard() {
             <DialogDescription>{t.settings.billing.trial.ended.description}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              localStorage.setItem(`procurea_trial_dismissed_${user?.id}`, 'true');
-              setTrialPopupDismissed(true);
-            }}>
+            <Button variant="outline" onClick={() => void acknowledgeTrial()}>
               {t.settings.billing.trial.ended.dismiss}
             </Button>
             <Button onClick={() => {
-              localStorage.setItem(`procurea_trial_dismissed_${user?.id}`, 'true');
-              setTrialPopupDismissed(true);
+              void acknowledgeTrial();
               useUIStore.getState().openBillingModal();
             }}>
               {t.settings.billing.trial.ended.action}
@@ -317,8 +346,121 @@ export default function Dashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <CloneCampaignDialog
+        open={showCloneDialog}
+        onOpenChange={setShowCloneDialog}
+        campaigns={campaigns ?? []}
+      />
     </div>
   );
+}
+
+/* ──────────── Needs attention ──────────── */
+
+type AttentionTileProps = {
+  id: string;
+  icon: React.ReactNode;
+  label: string;
+  value: string | number;
+  description?: string;
+  tone: 'warn' | 'bad' | 'info';
+  onClick?: () => void;
+};
+
+function AttentionTile({ icon, label, value, description, tone, onClick }: AttentionTileProps) {
+  const toneBorder =
+    tone === 'bad' ? 'border-bad-border bg-bad-soft' :
+    tone === 'warn' ? 'border-warn-border bg-warn-soft' :
+    'border-info-border bg-info-soft';
+  const toneText =
+    tone === 'bad' ? 'text-bad' :
+    tone === 'warn' ? 'text-warn' :
+    'text-info';
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'relative text-left rounded-[10px] border px-4 py-3 transition-all duration-150',
+        toneBorder,
+        onClick && 'cursor-pointer hover:shadow-ds-sm'
+      )}
+    >
+      <div className="flex items-center gap-2">
+        <span className={toneText}>{icon}</span>
+        <div className="label-mono">{label}</div>
+      </div>
+      <div className="font-mono text-[24px] font-bold tracking-[-0.03em] mt-0.5 tabular-nums leading-none">
+        {typeof value === 'number' ? formatNumber(value) : value}
+      </div>
+      {description && (
+        <div className="mt-1 font-mono text-[11px] text-muted-ink truncate">
+          {description}
+        </div>
+      )}
+    </button>
+  );
+}
+
+function buildAttentionItems(
+  stats: ReturnType<typeof useDashboardStats>['data'],
+  navigate: (path: string) => void,
+): AttentionTileProps[] {
+  if (!stats) return [];
+  const items: AttentionTileProps[] = [];
+
+  if (stats.attention.pendingApprovals > 0) {
+    items.push({
+      id: 'approvals',
+      icon: <ClipboardCheck className="h-3.5 w-3.5" strokeWidth={1.5} />,
+      label: isEN ? 'Approvals' : 'Akceptacje',
+      value: stats.attention.pendingApprovals,
+      description: isEN ? 'waiting for your review' : 'czeka na Twoją decyzję',
+      tone: 'warn',
+      onClick: () => navigate('/approvals'),
+    });
+  }
+
+  if (stats.attention.stuckCampaigns.length > 0) {
+    const first = stats.attention.stuckCampaigns[0];
+    items.push({
+      id: 'stuck',
+      icon: <AlertTriangle className="h-3.5 w-3.5" strokeWidth={1.5} />,
+      label: isEN ? 'Stuck campaigns' : 'Zacięte kampanie',
+      value: stats.attention.stuckCampaigns.length,
+      description: first ? `${first.name} — ${first.stage}` : undefined,
+      tone: 'bad',
+      onClick: () => navigate(first ? `/campaigns/${first.id}` : '/campaigns'),
+    });
+  }
+
+  if (stats.offers.expiringSoon > 0) {
+    items.push({
+      id: 'expiring',
+      icon: <Timer className="h-3.5 w-3.5" strokeWidth={1.5} />,
+      label: isEN ? 'Offers expiring' : 'Oferty wygasają',
+      value: stats.offers.expiringSoon,
+      description: isEN ? 'within 7 days' : 'w ciągu 7 dni',
+      tone: 'warn',
+      onClick: () => navigate('/rfqs'),
+    });
+  }
+
+  if (stats.attention.zeroSupplierCampaigns7d > 0) {
+    items.push({
+      id: 'zero-suppliers',
+      icon: <CircleAlert className="h-3.5 w-3.5" strokeWidth={1.5} />,
+      label: isEN ? 'Empty campaigns' : 'Puste kampanie',
+      value: stats.attention.zeroSupplierCampaigns7d,
+      description: isEN ? 'last 7 days · zero suppliers' : 'ostatnie 7 dni · brak dostawców',
+      tone: 'warn',
+      onClick: () => navigate('/campaigns?tab=completed'),
+    });
+  }
+
+  return items;
 }
 
 /* ──────────── KPI ──────────── */
@@ -335,7 +477,7 @@ function KpiTile({
   deltaTone?: DeltaTone;
   onClick?: () => void;
 }) {
-  const formatted = typeof value === 'number' ? value.toLocaleString('en-US') : value;
+  const formatted = typeof value === 'number' ? formatNumber(value) : value;
   const toneClass =
     deltaTone === 'good' ? 'text-good' :
     deltaTone === 'warn' ? 'text-warn' :
@@ -478,7 +620,7 @@ function CampaignRow({
           {campaign.name}
         </div>
         <div className="mt-0.5 font-mono text-[10.5px] text-muted-ink flex gap-2">
-          <span className="tabular-nums">{suppliers.toLocaleString('en-US')} {isEN ? 'found' : 'znalezionych'}</span>
+          <span className="tabular-nums">{formatNumber(suppliers)} {isEN ? 'found' : 'znalezionych'}</span>
           <span className="text-rule-3">·</span>
           <span className="tabular-nums">{new Date(campaign.createdAt).toLocaleDateString(isEN ? 'en-US' : 'pl-PL', { month: 'short', day: 'numeric' })}</span>
         </div>
@@ -523,58 +665,66 @@ function EmptyCampaigns({ onCreate }: { onCreate: () => void }) {
   );
 }
 
-/* ──────────── Activity stream ──────────── */
+/* ──────────── Activity stream (real data from /dashboard/activity) ──────────── */
 
-function ActivityCard({ campaigns }: { campaigns: Array<{ id: string; name: string; status: string; createdAt: string | Date }> }) {
-  const events = useMemo(() => {
-    // Build pseudo-activity from campaign states (real activity stream can wire in later).
-    const items: { ts: string; glyph: string; tone: 'ok' | 'warn' | 'info'; text: string }[] = [];
-    campaigns.slice(0, 6).forEach((c) => {
-      const dt = new Date(c.createdAt);
-      const ts = dt.toLocaleTimeString(isEN ? 'en-US' : 'pl-PL', { hour: '2-digit', minute: '2-digit' });
-      if (c.status === 'COMPLETED') {
-        items.push({ ts, glyph: '✓', tone: 'ok', text: `${c.name} — ${isEN ? 'completed' : 'ukończona'}` });
-      } else if (c.status === 'ERROR') {
-        items.push({ ts, glyph: '!', tone: 'warn', text: `${c.name} — ${isEN ? 'error, needs review' : 'błąd, wymaga przeglądu'}` });
-      } else if (c.status === 'RUNNING') {
-        items.push({ ts, glyph: '›', tone: 'info', text: `${c.name} — ${isEN ? 'pipeline running' : 'pipeline w toku'}` });
-      } else {
-        items.push({ ts, glyph: '›', tone: 'info', text: `${c.name} — ${isEN ? 'queued' : 'w kolejce'}` });
-      }
-    });
-    return items;
-  }, [campaigns]);
-
+function ActivityCard({
+  events,
+  onOpen,
+}: {
+  events: Array<{ id: string; tone: 'ok' | 'warn' | 'info'; text: string; ts: string; href?: string }>;
+  onOpen: (href: string) => void;
+}) {
   return (
     <div className="bg-surface border border-rule rounded-[10px] overflow-hidden">
       <header className="flex items-center gap-3 px-5 py-3.5 border-b border-rule bg-surface-2">
         <h3 className="text-[14px] font-semibold tracking-[-0.015em]">
-          {isEN ? 'Activity' : 'Aktywność'}
+          {isEN ? 'Recent activity' : 'Ostatnia aktywność'}
         </h3>
-        <span className="ml-auto label-mono">{isEN ? 'Live' : 'Na żywo'}</span>
+        <span className="ml-auto label-mono" title={isEN ? 'Last 7 days' : 'Ostatnie 7 dni'}>
+          {isEN ? 'Last 7d' : 'Ostatnie 7d'}
+        </span>
       </header>
       <div className="p-3">
         {events.length === 0 ? (
           <div className="px-2 py-6 text-center font-mono text-[11.5px] text-muted-ink">
-            {isEN ? 'No activity yet.' : 'Brak aktywności.'}
+            {isEN ? 'No recent activity.' : 'Brak ostatniej aktywności.'}
           </div>
         ) : (
           <ul className="space-y-1.5 font-mono text-[11.5px] leading-[1.5]">
-            {events.map((e, i) => (
-              <li key={i} className="grid grid-cols-[48px_16px_1fr] gap-2 items-start">
-                <span className="text-muted-ink-2 tabular-nums">{e.ts}</span>
-                <span className={cn(
-                  'text-center font-bold',
-                  e.tone === 'ok' ? 'text-good' : e.tone === 'warn' ? 'text-warn' : 'text-info'
-                )}>{e.glyph}</span>
-                <span className="text-ink-2 truncate">{e.text}</span>
-              </li>
-            ))}
+            {events.map((e) => {
+              const ts = new Date(e.ts);
+              const glyph = e.tone === 'ok' ? <Check className="h-3 w-3" /> : e.tone === 'warn' ? '!' : <Loader2 className="h-3 w-3" />;
+              const toneClass = e.tone === 'ok' ? 'text-good' : e.tone === 'warn' ? 'text-warn' : 'text-info';
+              return (
+                <li key={e.id}>
+                  <button
+                    type="button"
+                    disabled={!e.href}
+                    onClick={() => e.href && onOpen(e.href)}
+                    className={cn(
+                      'w-full grid grid-cols-[56px_16px_1fr] gap-2 items-start text-left rounded-[4px] px-1 py-0.5',
+                      e.href && 'hover:bg-bg-2 cursor-pointer'
+                    )}
+                    title={ts.toLocaleString(isEN ? 'en-US' : 'pl-PL')}
+                  >
+                    <span className="text-muted-ink-2 tabular-nums">{formatTimeOrRelative(ts)}</span>
+                    <span className={cn('text-center font-bold grid place-items-center', toneClass)}>{glyph}</span>
+                    <span className="text-ink-2 truncate">{e.text}</span>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
     </div>
   );
+}
+
+function formatTimeOrRelative(d: Date): string {
+  const diff = Date.now() - d.getTime();
+  if (diff < 24 * 60 * 60 * 1000) return formatTime(d);
+  return formatRelative(d);
 }
 
 /* ──────────── helpers ──────────── */

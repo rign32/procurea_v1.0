@@ -18,6 +18,10 @@ export const profileService = {
         const { data } = await apiClient.patch<User>('/auth/me/profile', dto);
         return data;
     },
+
+    acknowledgeTrialEnded: async (): Promise<void> => {
+        await apiClient.post('/auth/me/acknowledge-trial-ended');
+    },
 };
 
 export default profileService;

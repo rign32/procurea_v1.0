@@ -42,6 +42,7 @@ import { IntegrationsModule } from './integrations/integrations.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { EnrichmentModule } from './enrichment/enrichment.module';
 import { PurchaseOrdersModule } from './purchase-orders/purchase-orders.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 import { SentryModule } from '@sentry/nestjs/setup';
 
 @Module({
@@ -96,6 +97,7 @@ import { SentryModule } from '@sentry/nestjs/setup';
     WebhooksModule,
     EnrichmentModule,
     PurchaseOrdersModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [

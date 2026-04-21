@@ -107,6 +107,8 @@ export class AuthController {
             plan: org?.plan ?? user.plan ?? 'research',
             searchCredits: (user.searchCredits ?? 0) + (org?.searchCredits ?? 0),
             trialCreditsUsed: org?.trialCreditsUsed ?? user.trialCreditsUsed ?? true,
+            trialEndedAcknowledgedAt: user.trialEndedAcknowledgedAt ?? null,
+            organizationName: org?.name ?? null,
             hasOrganization: !!user.organizationId,
             isDemo: user.isDemo ?? false,
             organization: org ? {
@@ -1093,6 +1095,14 @@ export class AuthController {
         if (!body.preferences) throw new BadRequestException('Missing preferences');
         const userId = req.user.userId || req.user.sub;
         return this.authService.updatePreferences(userId, body.preferences);
+    }
+
+    @Post('me/acknowledge-trial-ended')
+    @UseGuards(AuthGuard('jwt'))
+    async acknowledgeTrialEnded(@Req() req) {
+        const userId = req.user.userId || req.user.sub;
+        await this.authService.acknowledgeTrialEnded(userId);
+        return { success: true };
     }
 
     @Post('admin/delete-all-users')

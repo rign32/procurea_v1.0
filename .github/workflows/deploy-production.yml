@@ -127,15 +127,11 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
-      - name: Post-deploy health check
+      - name: Post-deploy smoke test
+        working-directory: backend
         run: |
           sleep 15
-          curl -sf https://app.procurea.pl/api/health/ping || echo "⚠️ Health ping failed — backend may still be warming up"
-          SCHEMA_STATUS=$(curl -sf https://app.procurea.pl/api/health/db-schema 2>/dev/null || echo '{"status":"unreachable"}')
-          echo "Schema check: $SCHEMA_STATUS"
-          if echo "$SCHEMA_STATUS" | grep -q '"status":"drift"'; then
-            echo "::warning::Database schema drift detected — pending migrations exist!"
-          fi
+          BASE_URL=https://app.procurea.pl node scripts/smoke-staging.cjs
 
       - name: Install landing dependencies
         working-directory: landing

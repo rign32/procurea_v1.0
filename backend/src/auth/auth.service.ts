@@ -654,6 +654,13 @@ export class AuthService {
         });
     }
 
+    async acknowledgeTrialEnded(userId: string) {
+        return this.prisma.user.update({
+            where: { id: userId },
+            data: { trialEndedAcknowledgedAt: new Date() },
+        });
+    }
+
     /**
      * Cancel registration - delete user who hasn't completed onboarding
      * Only allows deletion if onboardingCompleted is false
