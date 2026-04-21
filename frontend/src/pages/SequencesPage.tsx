@@ -177,14 +177,14 @@ export function SequencesPage() {
             case 'INITIAL': return 'bg-[#5E8C8F]/10 text-[#4A7174] border-[#5E8C8F]/20';
             case 'REMINDER': return 'bg-amber-500/10 text-amber-600 border-amber-500/20';
             case 'FINAL': return 'bg-red-500/10 text-red-600 border-red-500/20';
-            default: return 'bg-muted text-muted-foreground';
+            default: return 'bg-muted text-muted-ink';
         }
     };
 
     if (isLoading) {
         return (
             <div className="flex h-full items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <Loader2 className="h-8 w-8 animate-spin text-muted-ink" />
             </div>
         );
     }
@@ -201,8 +201,8 @@ export function SequencesPage() {
             {/* Header */}
             <motion.div variants={itemVariants} className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold">{t.sequences.title}</h1>
-                    <p className="text-muted-foreground mt-1">
+                    <h1 className="text-[30px] leading-[1.1] tracking-[-0.03em] font-bold">{t.sequences.title}</h1>
+                    <p className="text-muted-ink mt-1">
                         {t.sequences.subtitle}
                     </p>
                 </div>
@@ -217,8 +217,8 @@ export function SequencesPage() {
                 <motion.div variants={itemVariants}>
                     <Card>
                         <CardContent className="py-12 text-center">
-                            <Mail className="mx-auto h-12 w-12 text-muted-foreground opacity-50 mb-4" />
-                            <p className="text-muted-foreground">{t.sequences.emptyTitle}</p>
+                            <Mail className="mx-auto h-12 w-12 text-muted-ink opacity-50 mb-4" />
+                            <p className="text-muted-ink">{t.sequences.emptyTitle}</p>
                             <Button variant="link" onClick={() => setCreateDialog(true)}>
                                 {t.sequences.emptyAction}
                             </Button>
@@ -237,7 +237,7 @@ export function SequencesPage() {
                                         onClick={() => setExpandedId(isExpanded ? null : template.id)}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className="text-muted-foreground">
+                                            <div className="text-muted-ink">
                                                 {isExpanded ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
                                             </div>
                                             <Mail className="h-5 w-5 text-primary" />
@@ -250,7 +250,7 @@ export function SequencesPage() {
                                                         </Badge>
                                                     )}
                                                 </div>
-                                                <p className="text-sm text-muted-foreground">
+                                                <p className="text-sm text-muted-ink">
                                                     {template.steps.length} {t.sequences.steps.toLowerCase()} · {t.sequences.created} {new Date(template.createdAt).toLocaleDateString(isEN ? 'en-US' : 'pl-PL')}
                                                 </p>
                                             </div>
@@ -298,14 +298,14 @@ export function SequencesPage() {
                                                             <div className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold border ${stepTypeColor(step.type)}`}>
                                                                 {stepTypeLabel(step.type)}
                                                             </div>
-                                                            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                                                            <div className="flex items-center gap-1 text-xs text-muted-ink mt-1">
                                                                 <Clock className="h-3 w-3" />
                                                                 {t.sequences.day} {step.dayOffset}
                                                             </div>
                                                         </div>
                                                         <div className="flex-1 min-w-0">
                                                             <p className="font-medium text-sm">{step.subject}</p>
-                                                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2 whitespace-pre-line">
+                                                            <p className="text-xs text-muted-ink mt-1 line-clamp-2 whitespace-pre-line">
                                                                 {step.bodySnippet}
                                                             </p>
                                                         </div>
@@ -380,7 +380,7 @@ export function SequencesPage() {
                                                     </Button>
                                                 )}
                                                 {template.isSystem && (
-                                                    <p className="text-xs text-muted-foreground text-center py-2">
+                                                    <p className="text-xs text-muted-ink text-center py-2">
                                                         {t.sequences.systemReadonly}
                                                     </p>
                                                 )}
@@ -388,7 +388,7 @@ export function SequencesPage() {
 
                                             {/* Variables Reference */}
                                             <div className="border-t px-4 py-3 bg-muted/30">
-                                                <p className="text-xs text-muted-foreground">
+                                                <p className="text-xs text-muted-ink">
                                                     <span className="font-medium">{t.sequences.variables}:</span>{' '}
                                                     {t.sequences.variablesList}
                                                 </p>
@@ -477,12 +477,12 @@ export function SequencesPage() {
                             <div className="space-y-2">
                                 <Label>{t.sequences.body}</Label>
                                 <textarea
-                                    className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                    className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                     value={editingStep.body}
                                     onChange={(e) => setEditingStep(prev => prev ? { ...prev, body: e.target.value } : null)}
                                 />
                             </div>
-                            <div className="text-xs text-muted-foreground">
+                            <div className="text-xs text-muted-ink">
                                 {t.sequences.variables}: {t.sequences.variablesList}
                             </div>
                         </div>
@@ -540,7 +540,7 @@ export function SequencesPage() {
                         <div className="space-y-2">
                             <Label>{t.sequences.body}</Label>
                             <textarea
-                                className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                 value={newStep.bodySnippet}
                                 onChange={(e) => setNewStep(prev => ({ ...prev, bodySnippet: e.target.value }))}
                                 placeholder={t.sequences.bodyPlaceholder}

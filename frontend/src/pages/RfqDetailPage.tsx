@@ -88,7 +88,7 @@ function PriceTiersDisplay({ tiers, currency, unit }: { tiers: OfferPriceTier[];
     <div className="space-y-1">
       {tiers.map((tier) => (
         <div key={tier.id} className="flex justify-between text-xs">
-          <span className="text-muted-foreground">{formatTierRange(tier, unit)}</span>
+          <span className="text-muted-ink">{formatTierRange(tier, unit)}</span>
           <span className="font-medium">{formatPrice(tier.unitPrice)}</span>
         </div>
       ))}
@@ -115,11 +115,11 @@ function AlternativeOfferCard({ alt, unit }: { alt: Offer; unit: string }) {
         )}
       </div>
       {alt.altDescription && (
-        <p className="text-xs text-muted-foreground italic mb-2">{alt.altDescription}</p>
+        <p className="text-xs text-muted-ink italic mb-2">{alt.altDescription}</p>
       )}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
         <div>
-          <p className="text-muted-foreground text-xs">{t.rfqs.offer.price}</p>
+          <p className="text-muted-ink text-xs">{t.rfqs.offer.price}</p>
           {alt.priceTiers && alt.priceTiers.length > 0 ? (
             <PriceTiersDisplay tiers={alt.priceTiers} currency={alt.currency || 'EUR'} unit={unit} />
           ) : (
@@ -127,18 +127,18 @@ function AlternativeOfferCard({ alt, unit }: { alt: Offer; unit: string }) {
           )}
         </div>
         <div>
-          <p className="text-muted-foreground text-xs">{t.rfqs.offer.moq}</p>
+          <p className="text-muted-ink text-xs">{t.rfqs.offer.moq}</p>
           <p className="font-medium text-xs">{alt.moq || '—'}</p>
         </div>
         <div>
-          <p className="text-muted-foreground text-xs">{t.rfqs.offer.leadTime}</p>
+          <p className="text-muted-ink text-xs">{t.rfqs.offer.leadTime}</p>
           <p className="font-medium text-xs">
             {alt.leadTime ? `${alt.leadTime} ${t.rfqs.detail.weeks}` : '—'}
           </p>
         </div>
       </div>
       {alt.comments && (
-        <p className="mt-1.5 text-xs text-muted-foreground">{alt.comments}</p>
+        <p className="mt-1.5 text-xs text-muted-ink">{alt.comments}</p>
       )}
     </div>
   );
@@ -367,7 +367,7 @@ export function RfqDetailPage() {
   if (rfqLoading || offersLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-ink" />
       </div>
     );
   }
@@ -414,7 +414,7 @@ export function RfqDetailPage() {
       return (
         <div>
           <p className="font-semibold">{originalPrice}</p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-ink">
             ≈ {convertedAmount}
           </p>
         </div>
@@ -440,7 +440,7 @@ export function RfqDetailPage() {
       className="space-y-6"
     >
       {/* Breadcrumbs */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-[-10px]">
+      <div className="flex items-center gap-2 text-sm text-muted-ink mb-[-10px]">
         <button onClick={() => navigate('/rfqs')} className="hover:text-foreground transition-colors">{t.rfqs.title}</button>
         <ChevronRight className="h-4 w-4" />
         <span className="text-foreground font-medium line-clamp-1">{rfq.productName}</span>
@@ -460,8 +460,8 @@ export function RfqDetailPage() {
 
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">{rfq.productName}</h1>
-            <p className="text-muted-foreground text-sm mt-1">
+            <h1 className="text-[30px] leading-[1.1] tracking-[-0.03em] font-bold">{rfq.productName}</h1>
+            <p className="text-muted-ink text-sm mt-1">
               {(rfq as any).publicId || rfq.id.substring(0, 8)}
             </p>
           </div>
@@ -477,40 +477,40 @@ export function RfqDetailPage() {
           <CardContent className="pt-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
-                <p className="text-muted-foreground">{t.rfqs.detail.quantity}</p>
+                <p className="text-muted-ink">{t.rfqs.detail.quantity}</p>
                 <p className="font-medium">{rfq.quantity} {rfqUnit}</p>
               </div>
               <div>
-                <p className="text-muted-foreground">{t.rfqs.detail.targetPrice}</p>
+                <p className="text-muted-ink">{t.rfqs.detail.targetPrice}</p>
                 <p className="font-medium">{formatCurrency(rfq.targetPrice, rfq.currency)}</p>
               </div>
               {rfq.material && (
                 <div>
-                  <p className="text-muted-foreground">{t.rfqs.detail.material}</p>
+                  <p className="text-muted-ink">{t.rfqs.detail.material}</p>
                   <p className="font-medium">{rfq.material}</p>
                 </div>
               )}
               {rfq.eau && (
                 <div>
-                  <p className="text-muted-foreground">{t.rfqs.detail.eau}</p>
+                  <p className="text-muted-ink">{t.rfqs.detail.eau}</p>
                   <p className="font-medium">{rfq.eau} {t.rfqs.detail.perYear}</p>
                 </div>
               )}
               {rfq.incoterms && (
                 <div>
-                  <p className="text-muted-foreground">{t.rfqs.detail.incoterms}</p>
+                  <p className="text-muted-ink">{t.rfqs.detail.incoterms}</p>
                   <p className="font-medium">{rfq.incoterms}</p>
                 </div>
               )}
               {rfq.desiredDeliveryDate && (
                 <div>
-                  <p className="text-muted-foreground">{t.rfqs.detail.delivery}</p>
+                  <p className="text-muted-ink">{t.rfqs.detail.delivery}</p>
                   <p className="font-medium">{new Date(rfq.desiredDeliveryDate).toLocaleDateString(isEN ? 'en-US' : 'pl-PL')}</p>
                 </div>
               )}
               {rfq.campaignId && (
                 <div>
-                  <p className="text-muted-foreground">{t.rfqs.detail.linkedCampaign}</p>
+                  <p className="text-muted-ink">{t.rfqs.detail.linkedCampaign}</p>
                   <button
                     onClick={() => navigate(`/campaigns/${rfq.campaignId}`)}
                     className="font-medium text-primary hover:underline"
@@ -589,12 +589,12 @@ export function RfqDetailPage() {
                 <div>
                   <CardTitle className="text-base">{t.rfqs.detail.comparison}</CardTitle>
                   {comparisonResult.baseCurrency && (
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-xs text-muted-ink mt-1">
                       {t.rfqs.detail.comparisonCurrency.replace('{currency}', comparisonResult.baseCurrency)}
                     </p>
                   )}
                   {comparisonResult.ranking?.weights && (
-                    <p className="text-[11px] text-muted-foreground mt-1">
+                    <p className="text-[11px] text-muted-ink mt-1">
                       Wagi: cena {Math.round(comparisonResult.ranking.weights.price * 100)}% ·
                       {' '}lead {Math.round(comparisonResult.ranking.weights.leadTime * 100)}% ·
                       {' '}MOQ {Math.round(comparisonResult.ranking.weights.moq * 100)}% ·
@@ -706,7 +706,7 @@ export function RfqDetailPage() {
                                 {Math.round(offer.qualityScore)}/100
                               </span>
                             ) : (
-                              <span className="text-muted-foreground text-xs">—</span>
+                              <span className="text-muted-ink text-xs">—</span>
                             )}
                           </td>
                           <td className="py-2 px-4 text-center">
@@ -720,14 +720,14 @@ export function RfqDetailPage() {
                                   {offer.weightedRanking.finalScore}/100
                                 </span>
                                 <span
-                                  className="text-[10px] text-muted-foreground tabular-nums"
+                                  className="text-[10px] text-muted-ink tabular-nums"
                                   title={`Cena: ${offer.weightedRanking.priceScore} · Lead: ${offer.weightedRanking.leadTimeScore} · MOQ: ${offer.weightedRanking.moqScore} · Jakość: ${offer.weightedRanking.qualityScore} · Compliance: ${offer.weightedRanking.complianceScore}`}
                                 >
                                   {offer.weightedRanking.priceScore}·{offer.weightedRanking.leadTimeScore}·{offer.weightedRanking.moqScore}·{offer.weightedRanking.qualityScore}·{offer.weightedRanking.complianceScore}
                                 </span>
                               </div>
                             ) : (
-                              <span className="text-muted-foreground text-xs">—</span>
+                              <span className="text-muted-ink text-xs">—</span>
                             )}
                           </td>
                           <td className="py-2 px-4 text-center">
@@ -740,7 +740,7 @@ export function RfqDetailPage() {
                                 {aiScore.score}/100
                               </span>
                             ) : (
-                              <span className="text-muted-foreground text-xs">—</span>
+                              <span className="text-muted-ink text-xs">—</span>
                             )}
                           </td>
                           <td className="py-2 pl-4 text-right">{getStatusBadge(offer.status)}</td>
@@ -750,9 +750,37 @@ export function RfqDetailPage() {
                   </tbody>
                 </table>
               </div>
-              <Button variant="ghost" size="sm" className="mt-2" onClick={() => setComparisonResult(null)}>
-                {t.rfqs.detail.closeComparison}
-              </Button>
+              <div className="mt-4 pt-4 border-t border-rule flex items-center gap-3">
+                <Button variant="quiet" size="ds-sm" onClick={() => setComparisonResult(null)}>
+                  {t.rfqs.detail.closeComparison}
+                </Button>
+                {(() => {
+                  const topId =
+                    comparisonResult.aiRecommendation?.recommendedOfferId ||
+                    comparisonResult.ranking?.rankings?.[0]?.offerId ||
+                    comparisonResult.offers?.[0]?.id;
+                  if (!topId) return null;
+                  const topOffer = comparisonResult.offers.find((o: any) => o.id === topId);
+                  if (!topOffer || topOffer.status === 'ACCEPTED') return null;
+                  const topSupplierName = topOffer.supplier?.name || '#1';
+                  return (
+                    <Button
+                      variant="cta"
+                      size="ds"
+                      className="ml-auto"
+                      onClick={() => handleAccept(topId)}
+                      disabled={acceptMutation.isPending}
+                    >
+                      {acceptMutation.isPending ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={2} />
+                      )}
+                      {isEN ? `Accept #1 · ${topSupplierName}` : `Akceptuj #1 · ${topSupplierName}`}
+                    </Button>
+                  );
+                })()}
+              </div>
             </CardContent>
           </Card>
         </motion.div>
@@ -763,8 +791,8 @@ export function RfqDetailPage() {
         <motion.div variants={itemVariants}>
           <Card className="border-dashed">
             <CardContent className="flex flex-col items-center py-12">
-              <SendIcon className="h-10 w-10 text-muted-foreground mb-3" />
-              <p className="text-muted-foreground">{t.rfqs.detail.noOffers}</p>
+              <SendIcon className="h-10 w-10 text-muted-ink mb-3" />
+              <p className="text-muted-ink">{t.rfqs.detail.noOffers}</p>
             </CardContent>
           </Card>
         </motion.div>
@@ -798,7 +826,7 @@ export function RfqDetailPage() {
                             {offer.supplier?.name || t.rfqs.offer.supplier}
                           </Link>
                           {offer.supplier?.country && (
-                            <span className="text-xs text-muted-foreground">({offer.supplier.country})</span>
+                            <span className="text-xs text-muted-ink">({offer.supplier.country})</span>
                           )}
                           {offer.alternatives && offer.alternatives.length > 0 && (
                             <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-amber-600 border-amber-300">
@@ -827,7 +855,7 @@ export function RfqDetailPage() {
 
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                         <div>
-                          <p className="text-muted-foreground">{t.rfqs.offer.price}</p>
+                          <p className="text-muted-ink">{t.rfqs.offer.price}</p>
                           {offer.priceTiers && offer.priceTiers.length > 0 ? (
                             <PriceTiersDisplay
                               tiers={offer.priceTiers}
@@ -839,17 +867,17 @@ export function RfqDetailPage() {
                           )}
                         </div>
                         <div>
-                          <p className="text-muted-foreground">{t.rfqs.offer.moq}</p>
+                          <p className="text-muted-ink">{t.rfqs.offer.moq}</p>
                           <p className="font-medium">{offer.moq || '—'}</p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground">{t.rfqs.offer.leadTime}</p>
+                          <p className="text-muted-ink">{t.rfqs.offer.leadTime}</p>
                           <p className="font-medium">
                             {offer.leadTime ? `${offer.leadTime} ${t.rfqs.detail.weeks}` : '—'}
                           </p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground">{t.rfqs.detail.created}</p>
+                          <p className="text-muted-ink">{t.rfqs.detail.created}</p>
                           <p className="font-medium text-xs">
                             {new Date(offer.createdAt).toLocaleDateString(isEN ? 'en-US' : 'pl-PL')}
                           </p>
@@ -857,13 +885,13 @@ export function RfqDetailPage() {
                       </div>
 
                       {offer.comments && (
-                        <p className="mt-2 text-sm text-muted-foreground border-t pt-2">
+                        <p className="mt-2 text-sm text-muted-ink border-t pt-2">
                           {offer.comments}
                         </p>
                       )}
 
                       {/* Status indicators */}
-                      <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-3 mt-2 text-xs text-muted-ink">
                         {offer.viewedAt && (
                           <span className="flex items-center gap-1">
                             <Eye className="h-3 w-3" />
@@ -920,25 +948,25 @@ export function RfqDetailPage() {
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                                 {terms.price != null && (
                                   <div>
-                                    <p className="text-muted-foreground text-xs">{t.rfqs.offer.counterPrice}</p>
+                                    <p className="text-muted-ink text-xs">{t.rfqs.offer.counterPrice}</p>
                                     <p className="font-medium text-xs">{formatCurrency(terms.price, offer.currency)}</p>
                                   </div>
                                 )}
                                 {terms.moq != null && (
                                   <div>
-                                    <p className="text-muted-foreground text-xs">{t.rfqs.offer.counterMoq}</p>
+                                    <p className="text-muted-ink text-xs">{t.rfqs.offer.counterMoq}</p>
                                     <p className="font-medium text-xs">{terms.moq}</p>
                                   </div>
                                 )}
                                 {terms.leadTime != null && (
                                   <div>
-                                    <p className="text-muted-foreground text-xs">{t.rfqs.offer.counterLeadTime}</p>
+                                    <p className="text-muted-ink text-xs">{t.rfqs.offer.counterLeadTime}</p>
                                     <p className="font-medium text-xs">{terms.leadTime} {t.rfqs.detail.weeks}</p>
                                   </div>
                                 )}
                                 {terms.comments && (
                                   <div className="col-span-2 md:col-span-4">
-                                    <p className="text-muted-foreground text-xs">{t.rfqs.offer.counterComments}</p>
+                                    <p className="text-muted-ink text-xs">{t.rfqs.offer.counterComments}</p>
                                     <p className="font-medium text-xs">{terms.comments}</p>
                                   </div>
                                 )}
@@ -984,25 +1012,25 @@ export function RfqDetailPage() {
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                               {offer.counterPrice != null && (
                                 <div>
-                                  <p className="text-muted-foreground text-xs">{t.rfqs.offer.counterPrice}</p>
+                                  <p className="text-muted-ink text-xs">{t.rfqs.offer.counterPrice}</p>
                                   <p className="font-medium text-xs">{formatCurrency(offer.counterPrice, offer.currency)}</p>
                                 </div>
                               )}
                               {offer.counterMoq != null && (
                                 <div>
-                                  <p className="text-muted-foreground text-xs">{t.rfqs.offer.counterMoq}</p>
+                                  <p className="text-muted-ink text-xs">{t.rfqs.offer.counterMoq}</p>
                                   <p className="font-medium text-xs">{offer.counterMoq}</p>
                                 </div>
                               )}
                               {offer.counterLeadTime != null && (
                                 <div>
-                                  <p className="text-muted-foreground text-xs">{t.rfqs.offer.counterLeadTime}</p>
+                                  <p className="text-muted-ink text-xs">{t.rfqs.offer.counterLeadTime}</p>
                                   <p className="font-medium text-xs">{offer.counterLeadTime} {t.rfqs.detail.weeks}</p>
                                 </div>
                               )}
                               {offer.counterComments && (
                                 <div className="col-span-2 md:col-span-4">
-                                  <p className="text-muted-foreground text-xs">{t.rfqs.offer.counterComments}</p>
+                                  <p className="text-muted-ink text-xs">{t.rfqs.offer.counterComments}</p>
                                   <p className="font-medium text-xs">{offer.counterComments}</p>
                                 </div>
                               )}
@@ -1114,7 +1142,7 @@ export function RfqDetailPage() {
                 <CardTitle>{t.rfqs.offer.reject}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">{t.rfqs.detail.confirmReject}</p>
+                <p className="text-sm text-muted-ink">{t.rfqs.detail.confirmReject}</p>
                 <div>
                   <label className="block text-sm font-medium mb-1">{t.rfqs.detail.rejectReason}</label>
                   <textarea
@@ -1155,7 +1183,7 @@ export function RfqDetailPage() {
                 <CardTitle>{t.rfqs.offer.acceptOffer}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">{t.rfqs.detail.confirmAccept}</p>
+                <p className="text-sm text-muted-ink">{t.rfqs.detail.confirmAccept}</p>
                 <div className="flex gap-2 justify-end">
                   <Button variant="outline" onClick={() => setAcceptDialogId(null)}>
                     {t.common.cancel}
@@ -1202,7 +1230,7 @@ export function RfqDetailPage() {
           </DialogHeader>
 
           {contractDraftSource && (
-            <div className="rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground">
+            <div className="rounded-md border bg-muted/40 p-3 text-xs text-muted-ink">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 <div>
                   <p className="text-[11px] uppercase tracking-wide">{isEN ? 'Product' : 'Produkt'}</p>
@@ -1274,7 +1302,7 @@ export function RfqDetailPage() {
                 maxLength={5000}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-xs leading-relaxed ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-y"
               />
-              <p className="mt-1 text-[11px] text-muted-foreground">
+              <p className="mt-1 text-[11px] text-muted-ink">
                 {isEN
                   ? 'Replace [PLACEHOLDER] markers with actual values where needed.'
                   : 'Zastąp znaczniki [PLACEHOLDER] właściwymi wartościami, gdzie to konieczne.'}

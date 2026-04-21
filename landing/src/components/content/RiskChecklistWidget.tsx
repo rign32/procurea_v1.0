@@ -63,12 +63,14 @@ export function RiskChecklistWidget() {
     }
   }, [checked])
 
+  const hasAnyCheck = checked.size > 0
   const verdict = useMemo(() => {
-    if (autoReject >= 1) return { en: "Auto-reject triggered", pl: "Auto-odrzucenie", tone: "bad" as const }
-    if (score >= 85) return { en: "Pass — proceed to RFQ", pl: "Zielone światło — RFQ", tone: "good" as const }
-    if (score >= 65) return { en: "Conditional — flag for review", pl: "Warunkowe — do przeglądu", tone: "warn" as const }
-    return { en: "Too many gaps", pl: "Zbyt wiele luk", tone: "bad" as const }
-  }, [score, autoReject])
+    if (!hasAnyCheck) return { en: "Tick the checks you've verified", pl: "Odhacz punkty, które zweryfikowałeś", tone: "neutral" as const }
+    if (score >= 85 && autoReject === 0) return { en: "Pass — proceed to RFQ", pl: "Zielone światło — RFQ", tone: "good" as const }
+    if (score >= 65 && autoReject === 0) return { en: "Conditional — flag for review", pl: "Warunkowe — do przeglądu", tone: "warn" as const }
+    if (autoReject >= 1 && score >= 40) return { en: "Auto-reject triggered", pl: "Auto-odrzucenie", tone: "bad" as const }
+    return { en: "Too many gaps still", pl: "Jeszcze za mało spełnionych", tone: "warn" as const }
+  }, [score, autoReject, hasAnyCheck])
 
   return (
     <div className="rounded-2xl bg-white border border-black/[0.08] overflow-hidden shadow-[0_4px_14px_rgba(11,18,32,0.06)]">
@@ -98,6 +100,7 @@ export function RiskChecklistWidget() {
           <div className="text-center min-w-[120px]">
             <div
               className={`text-5xl font-mono font-bold tabular-nums tracking-tight ${
+                !hasAnyCheck ? "text-slate-300" :
                 verdict.tone === "good" ? "text-emerald-600" :
                 verdict.tone === "warn" ? "text-amber-600" :
                 "text-rose-600"
@@ -114,6 +117,7 @@ export function RiskChecklistWidget() {
         {/* Verdict banner */}
         <div
           className={`mt-4 p-3 rounded-lg flex gap-3 items-center border ${
+            verdict.tone === "neutral" ? "bg-slate-50 border-slate-200 text-slate-700" :
             verdict.tone === "good" ? "bg-emerald-50 border-emerald-200 text-emerald-900" :
             verdict.tone === "warn" ? "bg-amber-50 border-amber-200 text-amber-900" :
             "bg-rose-50 border-rose-200 text-rose-900"
@@ -121,12 +125,14 @@ export function RiskChecklistWidget() {
         >
           {verdict.tone === "good" ? (
             <CheckCircle2 className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
+          ) : verdict.tone === "neutral" ? (
+            <Circle className="h-5 w-5 flex-shrink-0 text-slate-400" aria-hidden="true" />
           ) : (
             <AlertTriangle className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
           )}
           <div>
             <div className="font-bold text-sm">{verdict[isEN ? "en" : "pl"]}</div>
-            {autoReject >= 1 && (
+            {hasAnyCheck && autoReject >= 1 && (
               <div className="text-xs mt-0.5 opacity-85">
                 {isEN
                   ? `${autoReject} high-weight check${autoReject > 1 ? "s" : ""} not met — investigate before proceeding.`
@@ -165,9 +171,8 @@ export function RiskChecklistWidget() {
                       {DIM_LABELS[c.dim][isEN ? "en" : "pl"]}
                     </span>
                     {isAutoReject && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-mono text-[9.5px] uppercase tracking-[0.1em] font-bold">
-                        <AlertTriangle className="h-2.5 w-2.5" aria-hidden="true" />
-                        {isEN ? "Auto-reject" : "Auto-stop"}
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-mono text-[9.5px] uppercase tracking-[0.1em] font-bold">
+                        {isEN ? "High weight" : "Krytyczne"}
                       </span>
                     )}
                   </div>

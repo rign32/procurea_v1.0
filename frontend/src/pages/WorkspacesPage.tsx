@@ -181,7 +181,7 @@ export function WorkspacesPage() {
   if (!workspaces && isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-ink" />
       </div>
     );
   }
@@ -210,10 +210,10 @@ export function WorkspacesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">
+          <h1 className="text-[30px] leading-[1.1] tracking-[-0.03em] font-bold">
             {isEN ? 'Workspaces' : 'Przestrzenie robocze'}
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-ink mt-1">
             {isEN
               ? 'Organize your team into workspaces'
               : 'Organizuj swoj zespol w przestrzeniach roboczych'}
@@ -279,7 +279,7 @@ export function WorkspacesPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        className="h-8 w-8 text-muted-ink hover:text-destructive"
                         onClick={() => handleDelete(ws)}
                         title={isEN ? 'Delete' : 'Usun'}
                       >
@@ -291,14 +291,14 @@ export function WorkspacesPage() {
 
                 <CardContent className="flex-1 flex flex-col justify-between">
                   {ws.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                    <p className="text-sm text-muted-ink line-clamp-2 mb-4">
                       {ws.description}
                     </p>
                   )}
                   {!ws.description && <div className="flex-1" />}
 
                   <div className="flex items-center justify-between pt-3 border-t">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2 text-sm text-muted-ink">
                       <Users className="h-4 w-4" />
                       <span>
                         {ws.memberCount ?? ws.members?.length ?? 0}{' '}
@@ -360,12 +360,12 @@ export function WorkspacesPage() {
             <div className="space-y-2">
               <Label>
                 {isEN ? 'Description' : 'Opis'}{' '}
-                <span className="text-muted-foreground text-xs">
+                <span className="text-muted-ink text-xs">
                   ({isEN ? 'optional' : 'opcjonalne'})
                 </span>
               </Label>
               <textarea
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 value={formDescription}
                 onChange={(e) => setFormDescription(e.target.value)}
                 placeholder={
@@ -433,10 +433,10 @@ export function WorkspacesPage() {
           <div className="py-2 max-h-[400px] overflow-y-auto">
             {orgMembersLoading ? (
               <div className="flex justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                <Loader2 className="h-6 w-6 animate-spin text-muted-ink" />
               </div>
             ) : orgMembers.length === 0 ? (
-              <p className="text-center text-sm text-muted-foreground py-8">
+              <p className="text-center text-sm text-muted-ink py-8">
                 {isEN
                   ? 'No organization members found.'
                   : 'Nie znaleziono czlonkow organizacji.'}
@@ -464,7 +464,7 @@ export function WorkspacesPage() {
                             </Badge>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground truncate">
+                        <p className="text-xs text-muted-ink truncate">
                           {member.email}
                         </p>
                       </div>

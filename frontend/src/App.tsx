@@ -385,6 +385,16 @@ function App() {
           {/* Beta: onboarding skipped — redirect to dashboard */}
           <Route path="/onboarding" element={<Navigate to="/" />} />
 
+          {/* Distraction-free wizard — authenticated, no AppLayout shell */}
+          <Route
+            path="/campaigns/new"
+            element={
+              isAuthenticated
+                ? (needsOnboarding ? <Navigate to="/onboarding" /> : <RfqWizardPage />)
+                : <Navigate to="/login" />
+            }
+          />
+
           {/* Protected Routes */}
           <Route element={
             isAuthenticated
@@ -393,7 +403,6 @@ function App() {
           }>
             <Route path="/" element={<Dashboard />} />
             <Route path="/campaigns" element={<CampaignsPage />} />
-            <Route path="/campaigns/new" element={<RfqWizardPage />} />
             <Route path="/campaigns/:id" element={<CampaignDetailPage />} />
             <Route path="/rfqs" element={<PlanGuard feature="RFQ"><RfqsPage /></PlanGuard>} />
             <Route path="/rfqs/:id" element={<PlanGuard feature="RFQ"><RfqDetailPage /></PlanGuard>} />

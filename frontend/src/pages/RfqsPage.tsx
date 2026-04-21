@@ -66,7 +66,7 @@ export function RfqsPage() {
   if (!data && isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-ink" />
       </div>
     );
   }
@@ -89,8 +89,8 @@ export function RfqsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">{t.rfqs.title}</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-[30px] leading-[1.1] tracking-[-0.03em] font-bold">{t.rfqs.title}</h1>
+          <p className="text-muted-ink mt-1">
             {t.rfqs.subtitle}
           </p>
         </div>
@@ -110,7 +110,7 @@ export function RfqsPage() {
             onClick={() => setActiveTab(tab.key)}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === tab.key
                 ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
+                : 'text-muted-ink hover:text-foreground'
               }`}
           >
             {tab.label}
@@ -123,9 +123,9 @@ export function RfqsPage() {
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <div className="text-center">
-              <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <FileText className="mx-auto h-12 w-12 text-muted-ink mb-4" />
               <h3 className="text-lg font-semibold mb-2">{t.common.noData}</h3>
-              <p className="text-muted-foreground mb-6">
+              <p className="text-muted-ink mb-6">
                 {t.rfqs.emptyCategory} &ldquo;{tabs.find((tab) => tab.key === activeTab)?.label}&rdquo;
               </p>
               {canCreate && (
@@ -172,21 +172,21 @@ export function RfqsPage() {
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
-                      <p className="text-muted-foreground">{t.rfqs.detail.quantity}</p>
+                      <p className="text-muted-ink">{t.rfqs.detail.quantity}</p>
                       <p className="font-medium">
                         {rfq.quantity != null ? `${rfq.quantity} ${rfq.unit || 'szt.'}` : '—'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">{t.rfqs.detail.targetPrice}</p>
+                      <p className="text-muted-ink">{t.rfqs.detail.targetPrice}</p>
                       <p className="font-medium">{formatCurrency(rfq.targetPrice, rfq.currency)}</p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">{t.rfqs.detail.offers}</p>
+                      <p className="text-muted-ink">{t.rfqs.detail.offers}</p>
                       <p className="font-medium">{rfq.offers?.length ?? 0} {t.rfqs.detail.offersReceived}</p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">Utworzono</p>
+                      <p className="text-muted-ink">Utworzono</p>
                       <p className="font-medium">
                         {new Date(rfq.createdAt).toLocaleDateString('pl-PL')}
                       </p>
@@ -195,7 +195,7 @@ export function RfqsPage() {
 
                   {rfq.campaignId && (
                     <div className="mt-3 pt-3 border-t">
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-ink">
                         {t.rfqs.detail.linkedCampaign}: {rfq.campaign?.name || rfq.campaignId}
                       </p>
                     </div>

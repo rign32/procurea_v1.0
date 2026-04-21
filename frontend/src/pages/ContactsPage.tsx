@@ -136,15 +136,15 @@ export function ContactsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{t.campaigns.detail.contactsTitle}</h1>
-          <p className="text-muted-foreground mt-1">{t.campaigns.detail.contactsSubtitle}</p>
+          <h1 className="text-[30px] leading-[1.1] tracking-[-0.03em] font-bold">{t.campaigns.detail.contactsTitle}</h1>
+          <p className="text-muted-ink mt-1">{t.campaigns.detail.contactsSubtitle}</p>
         </div>
         <div className="flex items-center gap-3">
           <Button size="sm" onClick={() => setAddDialogOpen(true)}>
             <Plus className="mr-1 h-4 w-4" />
             {isEN ? 'Add Contact' : 'Dodaj kontakt'}
           </Button>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 text-sm text-muted-ink">
           <Badge className="bg-green-100 text-green-800">{withEmailCount} {t.campaigns.detail.filterWithEmail}</Badge>
           <Badge variant="secondary">{withoutEmailCount} {t.campaigns.detail.filterWithout}</Badge>
           <Badge variant="outline">{contacts.length} {t.campaigns.detail.filterAll}</Badge>
@@ -157,7 +157,7 @@ export function ContactsPage() {
         <CardContent className="pt-4 pb-4">
           <div className="flex gap-3 items-center">
             <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-ink" />
               <Input
                 placeholder={isEN ? 'Search by name, email or company...' : 'Szukaj po nazwisku, email lub firmie...'}
                 value={searchQuery}
@@ -197,15 +197,15 @@ export function ContactsPage() {
       {/* Contacts Table */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <Loader2 className="h-8 w-8 animate-spin text-muted-ink" />
         </div>
       ) : filteredContacts.length === 0 ? (
         <Card>
           <CardContent className="py-12">
             <div className="text-center">
-              <Users className="mx-auto h-12 w-12 text-muted-foreground/50" />
+              <Users className="mx-auto h-12 w-12 text-muted-ink/50" />
               <h3 className="mt-4 text-lg font-medium">{isEN ? 'No contacts yet' : 'Brak kontaktów'}</h3>
-              <p className="mt-2 text-muted-foreground">
+              <p className="mt-2 text-muted-ink">
                 {isEN
                   ? 'Contacts will appear here after accepting suppliers in a campaign.'
                   : 'Kontakty pojawią się tutaj po zaakceptowaniu dostawców w kampanii.'}
@@ -242,7 +242,7 @@ export function ContactsPage() {
                       >
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2">
-                            <span className={contact.name ? 'font-medium' : 'text-muted-foreground'}>{displayName}</span>
+                            <span className={contact.name ? 'font-medium' : 'text-muted-ink'}>{displayName}</span>
                             {contact.linkedinUrl && (
                               <a
                                 href={contact.linkedinUrl}
@@ -255,17 +255,17 @@ export function ContactsPage() {
                             )}
                           </div>
                           {contact.seniority && (
-                            <span className="text-xs text-muted-foreground capitalize">{contact.seniority}</span>
+                            <span className="text-xs text-muted-ink capitalize">{contact.seniority}</span>
                           )}
                         </td>
-                        <td className="py-3 px-4 text-muted-foreground">{displayRole}</td>
+                        <td className="py-3 px-4 text-muted-ink">{displayRole}</td>
                         <td className="py-3 px-4">
                           {contact.email ? (
                             <a href={`mailto:${contact.email}`} className="text-blue-600 hover:underline">
                               {contact.email}
                             </a>
                           ) : (
-                            <span className="text-muted-foreground">—</span>
+                            <span className="text-muted-ink">—</span>
                           )}
                         </td>
                         <td className="py-3 px-4">
@@ -283,13 +283,13 @@ export function ContactsPage() {
                             )}
                           </div>
                         </td>
-                        <td className="py-3 px-4 text-muted-foreground text-xs">
+                        <td className="py-3 px-4 text-muted-ink text-xs">
                           {contact.supplier?.campaign?.name || '—'}
                         </td>
                         <td className="py-3 px-4">
                           <Badge className={status.className}>{status.label}</Badge>
                         </td>
-                        <td className="py-3 px-4 text-muted-foreground text-xs">
+                        <td className="py-3 px-4 text-muted-ink text-xs">
                           {contact.enrichedAt
                             ? new Date(contact.enrichedAt).toLocaleDateString(isEN ? 'en-US' : 'pl-PL')
                             : '—'}
