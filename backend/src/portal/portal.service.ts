@@ -404,11 +404,33 @@ export class PortalService {
             issuedAt: meta.issuedAt || null,
             validUntil: meta.validUntil,
             documentId: document.id,
+            source: 'PORTAL',
         });
 
         this.logger.log(
             `Portal cert upload: supplier=${offer.supplierId} type=${meta.type} code=${meta.code} doc=${document.id}`,
         );
+
+        // Notify RFQ owner so the cert doesn't land silently
+        try {
+            const supplier = await this.prisma.supplier.findUnique({
+                where: { id: offer.supplierId },
+                select: { name: true },
+            });
+            await this.notifications.send(ownerId, 'CERTIFICATE_UPLOADED', {
+                subject: 'Nowy certyfikat od dostawcy',
+                message: `Dostawca ${supplier?.name ?? 'Unknown'} przesłał certyfikat ${meta.type} (${meta.code.trim()}) przez portal.`,
+                data: {
+                    supplierId: offer.supplierId,
+                    certificateId: cert.id,
+                    documentId: document.id,
+                    type: meta.type,
+                    code: meta.code.trim(),
+                },
+            });
+        } catch (err) {
+            this.logger.warn(`Failed to send CERTIFICATE_UPLOADED notification: ${(err as Error).message}`);
+        }
 
         return {
             certificate: cert,

@@ -23,6 +23,7 @@ interface CertificateInput {
   issuedAt?: string | Date | null;
   validUntil: string | Date;
   documentId?: string | null;
+  source?: 'MANUAL' | 'PORTAL';
 }
 
 @Injectable()
@@ -98,6 +99,7 @@ export class CertificatesService {
         validUntil,
         documentId: input.documentId || null,
         status,
+        source: input.source ?? 'MANUAL',
       },
       include: {
         document: {
