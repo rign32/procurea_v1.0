@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
-  ChevronRight,
   Globe,
   MapPin,
   Brain,
@@ -22,7 +21,6 @@ import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { apiClient } from '@/services/api.client';
 import { suppliersService } from '@/services/suppliers.service';
 import { toast } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
@@ -112,6 +110,20 @@ export function SupplierDetailPage() {
     return 'destructive';
   };
 
+  const getScoreBarColor = (score: number): string => {
+    if (score >= 85) return 'bg-good';
+    if (score >= 70) return 'bg-warn';
+    return 'bg-muted-ink-2';
+  };
+
+  const getScoreBadgeVariant = (
+    score: number
+  ): 'good' | 'warn' | 'bad' => {
+    if (score >= 85) return 'good';
+    if (score >= 70) return 'warn';
+    return 'bad';
+  };
+
   if (!supplier && isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -155,35 +167,40 @@ export function SupplierDetailPage() {
       animate="show"
       className="space-y-6"
     >
-      {/* Breadcrumbs */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-[-10px]">
-        <button onClick={() => navigate('/suppliers')} className="hover:text-foreground transition-colors">{t.suppliers.title}</button>
-        <ChevronRight className="h-4 w-4" />
-        <span className="text-foreground font-medium line-clamp-1">{supplier.name}</span>
-      </div>
+      {/* Breadcrumb back link */}
+      <button
+        onClick={handleBack}
+        className="inline-flex items-center gap-1.5 text-[12.5px] font-mono text-muted-ink hover:text-ink transition-colors"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" />
+        {t.suppliers.title}
+      </button>
 
-      {/* Back Button + Header */}
+      {/* Page Header */}
       <motion.div variants={itemVariants}>
-        <Button
-          variant="ghost"
-          onClick={handleBack}
-          className="mb-4"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          {t.common.back}
-        </Button>
-
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">
+        <div className="flex flex-wrap items-end justify-between gap-4 pb-5 border-b border-rule">
+          <div className="min-w-0">
+            <h1 className="text-[30px] leading-[1.1] tracking-[-0.03em] font-bold truncate">
               {supplier.name || 'Unknown'}
             </h1>
-            <div className="flex items-center gap-3 text-muted-foreground mt-2">
+            <p className="mt-1.5 font-mono text-[12.5px] text-muted-ink tabular-nums flex flex-wrap items-center gap-x-3 gap-y-1">
               {supplier.country && (
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
+                <span className="inline-flex items-center gap-1">
+                  <MapPin className="h-3 w-3" strokeWidth={1.5} />
                   {supplier.country}
                   {supplier.city && ` / ${supplier.city}`}
+                </span>
+              )}
+              {supplier.employeeCount && supplier.employeeCount !== 'N/A' && (
+                <span className="inline-flex items-center gap-1">
+                  <Users className="h-3 w-3" strokeWidth={1.5} />
+                  {supplier.employeeCount}
+                </span>
+              )}
+              {certificates.length > 0 && (
+                <span className="inline-flex items-center gap-1">
+                  <Award className="h-3 w-3" strokeWidth={1.5} />
+                  {certificates.length} {t.suppliers.detail.certificates.toLowerCase()}
                 </span>
               )}
               {supplier.website && (
@@ -191,29 +208,29 @@ export function SupplierDetailPage() {
                   href={supplier.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                  className="inline-flex items-center gap-1 text-brand hover:underline"
                 >
-                  <Globe className="h-4 w-4" />
+                  <Globe className="h-3 w-3" strokeWidth={1.5} />
                   {supplier.website}
                 </a>
               )}
-            </div>
+            </p>
           </div>
           <div className="flex gap-2 items-center">
-            <Button
-              variant="destructive"
-              className="px-3"
-              onClick={() => setIsBlacklistDialogOpen(true)}
-            >
-              <ShieldAlert className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">{t.suppliers.detail.reportSupplier}</span>
-            </Button>
             <Badge
-              variant={getScoreVariant(scorePercent)}
-              className="text-lg px-4 py-1 font-semibold"
+              variant={getScoreBadgeVariant(scorePercent)}
+              className="font-mono tabular-nums text-[13px] px-3 py-1"
             >
               {scorePercent}%
             </Badge>
+            <Button
+              variant="ds-danger"
+              size="ds"
+              onClick={() => setIsBlacklistDialogOpen(true)}
+            >
+              <ShieldAlert className="h-3.5 w-3.5" strokeWidth={2} />
+              <span className="hidden md:inline">{t.suppliers.detail.reportSupplier}</span>
+            </Button>
           </div>
         </div>
       </motion.div>
@@ -224,14 +241,14 @@ export function SupplierDetailPage() {
         <div className="lg:col-span-2 space-y-6">
           {/* Overview Card */}
           <motion.div variants={itemVariants}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Globe className="h-5 w-5" />
+            <div className="bg-surface border border-rule rounded-[10px] overflow-hidden">
+              <header className="flex items-center gap-3 px-5 py-3.5 border-b border-rule bg-surface-2">
+                <Globe className="h-4 w-4 text-muted-ink" strokeWidth={1.5} />
+                <h3 className="text-[14px] font-semibold tracking-[-0.015em]">
                   {t.suppliers.detail.overview}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                </h3>
+              </header>
+              <div className="p-5">
                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
                   <div>
                     <dt className="text-sm font-medium text-muted-foreground">
@@ -288,53 +305,48 @@ export function SupplierDetailPage() {
                     </div>
                   )}
                 </dl>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </motion.div>
 
           {/* AI Analysis Card */}
           <motion.div variants={itemVariants}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Brain className="h-5 w-5" />
+            <div className="bg-surface border border-rule rounded-[10px] overflow-hidden">
+              <header className="flex items-center gap-3 px-5 py-3.5 border-b border-rule bg-surface-2">
+                <Brain className="h-4 w-4 text-muted-ink" strokeWidth={1.5} />
+                <h3 className="text-[14px] font-semibold tracking-[-0.015em]">
                   {t.suppliers.detail.aiInsights}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+                </h3>
+              </header>
+              <div className="p-5 space-y-4">
                 <div className="flex items-center gap-4">
                   <div className="text-center">
-                    <div className="text-4xl font-bold">{scorePercent}%</div>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <div className="text-4xl font-bold font-mono tabular-nums">{scorePercent}%</div>
+                    <p className="label-mono mt-1">
                       {t.suppliers.detail.overall}
                     </p>
                   </div>
                   <div className="flex-1">
-                    <div className="h-3 rounded-full bg-muted overflow-hidden">
+                    <div className="h-2.5 rounded-full bg-rule-2 overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all ${scorePercent >= 80
-                          ? 'bg-green-500'
-                          : scorePercent >= 60
-                            ? 'bg-yellow-500'
-                            : 'bg-red-500'
-                          }`}
+                        className={`h-full rounded-full transition-all ${getScoreBarColor(scorePercent)}`}
                         style={{ width: `${scorePercent}%` }}
                       />
                     </div>
                   </div>
                 </div>
                 {supplier.analysisReason && (
-                  <div className="rounded-lg bg-muted/50 p-4">
-                    <p className="text-sm font-medium mb-1">
+                  <div className="rounded-[8px] bg-surface-2 border border-rule-2 p-4">
+                    <p className="text-sm font-semibold mb-1 text-ink">
                       {t.suppliers.detail.recommendation}
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-ink">
                       {supplier.analysisReason}
                     </p>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </motion.div>
 
           {/* Performance Scorecard */}
@@ -345,14 +357,14 @@ export function SupplierDetailPage() {
           {/* Contacts Card — only visible for full plan */}
           {isFullPlan && (
           <motion.div variants={itemVariants}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
+            <div className="bg-surface border border-rule rounded-[10px] overflow-hidden">
+              <header className="flex items-center gap-3 px-5 py-3.5 border-b border-rule bg-surface-2">
+                <Users className="h-4 w-4 text-muted-ink" strokeWidth={1.5} />
+                <h3 className="text-[14px] font-semibold tracking-[-0.015em]">
                   {t.suppliers.detail.contacts}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                </h3>
+              </header>
+              <div className="p-5">
                 {supplier.contacts && supplier.contacts.length > 0 ? (
                   <div className="space-y-4">
                     {supplier.contacts.map((contact: Contact) => (
@@ -423,33 +435,33 @@ export function SupplierDetailPage() {
                     {t.common.noData}
                   </p>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </motion.div>
           )}
 
           {/* Internal Notes Card (collapsible) */}
           <motion.div variants={itemVariants}>
-            <Card>
-              <CardHeader
-                className="cursor-pointer select-none"
+            <div className="bg-surface border border-rule rounded-[10px] overflow-hidden">
+              <header
+                className="flex items-center justify-between gap-3 px-5 py-3.5 border-b border-rule bg-surface-2 cursor-pointer select-none"
                 onClick={() => setNotesOpen((v) => !v)}
               >
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <StickyNote className="h-5 w-5" />
+                <span className="flex items-center gap-3">
+                  <StickyNote className="h-4 w-4 text-muted-ink" strokeWidth={1.5} />
+                  <h3 className="text-[14px] font-semibold tracking-[-0.015em]">
                     {t.suppliers.detail.internalNotes.title}
-                    {(internalNotes || internalTags.length > 0) && (
-                      <Badge variant="secondary" className="text-xs ml-1">
-                        {internalTags.length > 0 ? internalTags.length : ''}
-                      </Badge>
-                    )}
-                  </span>
-                  <ChevronDown
-                    className={`h-4 w-4 text-muted-foreground transition-transform ${notesOpen ? 'rotate-180' : ''}`}
-                  />
-                </CardTitle>
-              </CardHeader>
+                  </h3>
+                  {(internalNotes || internalTags.length > 0) && internalTags.length > 0 && (
+                    <Badge variant="mono" className="text-[11px]">
+                      {internalTags.length}
+                    </Badge>
+                  )}
+                </span>
+                <ChevronDown
+                  className={`h-4 w-4 text-muted-ink transition-transform ${notesOpen ? 'rotate-180' : ''}`}
+                />
+              </header>
               <AnimatePresence initial={false}>
                 {notesOpen && (
                   <motion.div
@@ -459,7 +471,7 @@ export function SupplierDetailPage() {
                     transition={{ duration: 0.2 }}
                     className="overflow-hidden"
                   >
-                    <CardContent className="space-y-4">
+                    <div className="p-5 space-y-4">
                       <Textarea
                         value={internalNotes}
                         onChange={(e) => {
@@ -485,59 +497,62 @@ export function SupplierDetailPage() {
                       </div>
                       <div className="flex justify-end">
                         <Button
-                          size="sm"
+                          variant="accent"
+                          size="ds-sm"
                           disabled={!notesDirty || notesMutation.isPending}
                           onClick={() => notesMutation.mutate()}
                         >
                           {notesMutation.isPending ? (
-                            <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
                           ) : (
-                            <Save className="mr-2 h-3.5 w-3.5" />
+                            <Save className="h-3.5 w-3.5" strokeWidth={2} />
                           )}
                           {t.suppliers.detail.internalNotes.save}
                         </Button>
                       </div>
-                    </CardContent>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
-            </Card>
+            </div>
           </motion.div>
         </div>
 
         {/* Right Column - Sidebar */}
         <motion.div variants={itemVariants} className="space-y-6">
           {/* Certificates Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Award className="h-5 w-5" />
+          <div className="bg-surface border border-rule rounded-[10px] overflow-hidden">
+            <header className="flex items-center gap-3 px-5 py-3.5 border-b border-rule bg-surface-2">
+              <Award className="h-4 w-4 text-muted-ink" strokeWidth={1.5} />
+              <h3 className="text-[14px] font-semibold tracking-[-0.015em]">
                 {t.suppliers.detail.certificates}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+              </h3>
+            </header>
+            <div className="p-5">
               {certificates.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {certificates.map((cert, index) => (
-                    <Badge key={index} variant="outline">
+                    <Badge key={index} variant="mono">
                       {cert}
                     </Badge>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-ink">
                   {t.common.noData}
                 </p>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Quick Info Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">{t.suppliers.detail.scoring}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+          <div className="bg-surface border border-rule rounded-[10px] overflow-hidden">
+            <header className="flex items-center gap-3 px-5 py-3.5 border-b border-rule bg-surface-2">
+              <h3 className="text-[14px] font-semibold tracking-[-0.015em]">
+                {t.suppliers.detail.scoring}
+              </h3>
+            </header>
+            <div className="p-5 space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">
                   {t.suppliers.detail.overall}
@@ -574,13 +589,13 @@ export function SupplierDetailPage() {
                 </div>
               )}
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">
+                <span className="text-muted-ink">
                   {t.suppliers.detail.certificates}
                 </span>
-                <span>{certificates.length}</span>
+                <span className="font-mono tabular-nums">{certificates.length}</span>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Supplier Documents */}
           {id && <SupplierDocuments supplierId={id} />}
@@ -591,11 +606,11 @@ export function SupplierDetailPage() {
       {/* Comments Section */}
       {id && (
         <motion.div variants={itemVariants}>
-          <Card>
-            <CardContent className="pt-6">
+          <div className="bg-surface border border-rule rounded-[10px] overflow-hidden">
+            <div className="p-5">
               <CommentThread entityType="supplier" entityId={id} />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </motion.div>
       )}
 

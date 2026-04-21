@@ -93,15 +93,15 @@ export function CampaignsPage() {
   ];
 
   const getStatusBadge = (status: Campaign['status']) => {
-    const variants: Record<CampaignStatus, 'default' | 'secondary' | 'destructive'> = {
-      RUNNING: 'secondary',
-      COMPLETED: 'default',
-      STOPPED: 'secondary',
-      ERROR: 'destructive',
-      PAUSED: 'secondary',
-      SENDING: 'default',
-      ACCEPTED: 'default',
-      DONE: 'default',
+    const variants: Record<CampaignStatus, 'brand-chip' | 'good' | 'bad' | 'warn' | 'neutral'> = {
+      RUNNING: 'brand-chip',
+      COMPLETED: 'good',
+      STOPPED: 'neutral',
+      ERROR: 'bad',
+      PAUSED: 'warn',
+      SENDING: 'brand-chip',
+      ACCEPTED: 'good',
+      DONE: 'good',
     };
     return (
       <Badge variant={variants[status]}>
@@ -111,7 +111,7 @@ export function CampaignsPage() {
   };
 
   const getStageBadge = (stage: Campaign['stage']) => (
-    <Badge variant="outline">
+    <Badge variant="mono">
       {t.campaigns.stage[stage.toLowerCase() as keyof typeof t.campaigns.stage]}
     </Badge>
   );
@@ -138,21 +138,28 @@ export function CampaignsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-end justify-between gap-4 pb-5 border-b border-rule">
         <div>
-          <h1 className="text-3xl font-bold">{t.campaigns.title}</h1>
-          <p className="text-muted-foreground mt-1">{t.campaigns.subtitle}</p>
+          <h1 className="text-[30px] leading-[1.1] tracking-[-0.03em] font-bold">
+            {t.campaigns.title}
+          </h1>
+          <p className="mt-1.5 font-mono text-[12.5px] text-muted-ink tabular-nums">
+            {statusCounts.ALL} {isEN ? 'total' : 'łącznie'} · {statusCounts.RUNNING} {isEN ? 'running' : 'w toku'} · {statusCounts.COMPLETED} {isEN ? 'done' : 'ukończonych'}
+          </p>
         </div>
         {canCreate && (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {user?.plan !== 'unlimited' && user?.trialCreditsUsed !== false && (
-              <Badge variant={credits > 0 ? 'secondary' : 'destructive'} className="flex items-center gap-1.5 px-3 py-1">
-                <Search className="h-3.5 w-3.5" />
+              <Badge
+                variant={credits > 0 ? 'mono' : 'bad'}
+                className="gap-1.5"
+              >
+                <Search className="h-3 w-3" />
                 {credits} {t.campaigns.searchesCount}
               </Badge>
             )}
-            <Button onClick={handleCreateCampaign} size="lg">
-              <Plus className="mr-2 h-5 w-5" />
+            <Button variant="cta" size="ds" onClick={handleCreateCampaign}>
+              <Plus className="h-3.5 w-3.5" strokeWidth={2} />
               {t.campaigns.createNew}
             </Button>
           </div>
@@ -172,14 +179,16 @@ export function CampaignsPage() {
 
       {/* Campaigns Grid */}
       {filtered.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">{t.campaigns.noCampaigns}</h3>
-              <p className="text-muted-foreground mb-6">{t.campaigns.createFirst}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="rounded-[10px] border border-dashed border-rule-2 bg-surface-2 px-6 py-16 text-center">
+          <h3 className="text-[16px] font-semibold text-ink">{t.campaigns.noCampaigns}</h3>
+          <p className="mt-1.5 text-[13px] text-muted-ink">{t.campaigns.createFirst}</p>
+          {canCreate && (
+            <Button variant="cta" size="ds" className="mt-5 inline-flex" onClick={handleCreateCampaign}>
+              <Plus className="h-3.5 w-3.5" strokeWidth={2} />
+              {t.campaigns.createNew}
+            </Button>
+          )}
+        </div>
       ) : (
         <>
           <motion.div

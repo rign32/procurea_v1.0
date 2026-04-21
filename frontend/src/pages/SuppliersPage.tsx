@@ -361,25 +361,32 @@ export function SuppliersPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-end justify-between gap-4 pb-5 border-b border-rule">
         <div>
-          <h1 className="text-3xl font-bold">{t.suppliers.title}</h1>
-          <p className="text-muted-foreground mt-1">{t.suppliers.allSuppliers}</p>
+          <h1 className="text-[30px] leading-[1.1] tracking-[-0.03em] font-bold text-ink">
+            {t.suppliers.title}
+          </h1>
+          <p className="mt-1.5 font-mono text-[12.5px] text-muted-ink tabular-nums">
+            <span className="tabular-nums">{serverTotal}</span> {t.suppliers.allSuppliers.toLowerCase()}
+            {countries.length > 0 && (
+              <> <span className="text-rule-2">·</span> <span className="tabular-nums">{countries.length}</span> {isEN ? 'countries' : 'krajów'}</>
+            )}
+          </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => { resetImportDialog(); setImportDialogOpen(true); }}>
-            <Upload className="mr-2 h-4 w-4" />
+        <div className="flex items-center gap-2">
+          <Button variant="ds-ghost" size="ds" onClick={() => { resetImportDialog(); setImportDialogOpen(true); }}>
+            <Upload className="mr-1.5 h-4 w-4" />
             {isEN ? 'Import' : 'Importuj'}
           </Button>
-          <Button variant="outline" onClick={handleExportCSV}>
-            <Download className="mr-2 h-4 w-4" />
+          <Button variant="ds-ghost" size="ds" onClick={handleExportCSV}>
+            <Download className="mr-1.5 h-4 w-4" />
             {t.common.export}
           </Button>
         </div>
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="bg-surface border border-rule rounded-[10px] p-4 flex flex-col sm:flex-row gap-4">
         <div className="flex-1 space-y-1">
           <SearchInput
             value={searchQuery}

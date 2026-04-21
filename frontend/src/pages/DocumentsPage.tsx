@@ -19,11 +19,9 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { t } from '@/i18n';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { EmptyState } from '@/components/ui/empty-state';
 import { TagInput } from '@/components/ui/tag-input';
 import {
   Tooltip,
@@ -144,24 +142,40 @@ export function DocumentsPage() {
     },
   });
 
+  const totalBytes = documents.reduce((acc, d) => acc + (d.sizeBytes || 0), 0);
+  const categoryCounts = documents.reduce<Record<string, number>>((acc, d) => {
+    const key = d.category || 'other';
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+  const topCategoryCount = Object.keys(categoryCounts).length;
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* Page Header */}
+      <div className="flex flex-wrap items-end justify-between gap-4 pb-5 border-b border-rule">
         <div>
-          <h1 className="text-2xl font-bold">{t.documents.title}</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            {t.documents.subtitle}
+          <h1 className="text-[30px] leading-[1.1] tracking-[-0.03em] font-bold">
+            {t.documents.title}
+          </h1>
+          <p className="mt-1.5 font-mono text-[12.5px] text-muted-ink tabular-nums">
+            <span>{total} total</span>
+            <span className="mx-2 text-rule-2">·</span>
+            <span>{formatBytes(totalBytes)}</span>
+            <span className="mx-2 text-rule-2">·</span>
+            <span>{topCategoryCount} {topCategoryCount === 1 ? 'category' : 'categories'}</span>
           </p>
         </div>
-        <Button onClick={() => setUploadOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          {t.documents.upload}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="cta" size="ds" onClick={() => setUploadOpen(true)}>
+            <Plus className="h-3.5 w-3.5" strokeWidth={2} />
+            {t.documents.upload}
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 bg-surface border border-rule rounded-[10px] p-4">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -209,17 +223,15 @@ export function DocumentsPage() {
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       ) : documents.length === 0 ? (
-        <EmptyState
-          icon={FileText}
-          title={t.documents.noDocuments}
-          description={t.documents.noDocumentsDesc}
-          action={
-            <Button onClick={() => setUploadOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              {t.documents.upload}
-            </Button>
-          }
-        />
+        <div className="rounded-[10px] border border-dashed border-rule-2 bg-surface-2 px-6 py-16 text-center">
+          <FileText className="h-10 w-10 mx-auto mb-3 text-muted-ink-2" strokeWidth={1.2} />
+          <h3 className="text-[16px] font-semibold text-ink">{t.documents.noDocuments}</h3>
+          <p className="mt-1.5 text-[13px] text-muted-ink">{t.documents.noDocumentsDesc}</p>
+          <Button variant="cta" size="ds" className="mt-5 inline-flex" onClick={() => setUploadOpen(true)}>
+            <Plus className="h-3.5 w-3.5" strokeWidth={2} />
+            {t.documents.upload}
+          </Button>
+        </div>
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -352,8 +364,7 @@ function DocumentCard({
   onUploadVersion: () => void;
 }) {
   return (
-    <Card className="group hover:shadow-md transition-shadow">
-      <CardContent className="p-4 space-y-3">
+    <div className="group bg-surface border border-rule rounded-[10px] p-4 space-y-3 hover:border-rule-3 hover:shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all">
         {/* File icon + name — click opens preview */}
         <div className="flex items-start gap-3 cursor-pointer" onClick={onPreview}>
           <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
@@ -479,8 +490,7 @@ function DocumentCard({
             </Tooltip>
           </div>
         </TooltipProvider>
-      </CardContent>
-    </Card>
+    </div>
   );
 }
 

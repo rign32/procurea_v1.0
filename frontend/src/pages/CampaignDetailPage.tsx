@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronRight, Download, Loader2, AlertTriangle, Trash2, BarChart3, CheckCircle2, Mail, Clock, Send, FileDown, StopCircle, Monitor, Circle, X, Search, Copy } from 'lucide-react';
+import { ArrowLeft, Download, Loader2, AlertTriangle, Trash2, BarChart3, CheckCircle2, Mail, Clock, Send, FileDown, StopCircle, Monitor, Circle, X, Search, Copy } from 'lucide-react';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Status } from '@/components/ui/status';
 import { AgentAnimation } from '@/components/campaigns/AgentAnimation';
 import { LiveSupplierFeed } from '@/components/campaigns/LiveSupplierFeed';
 import { useCampaign, useExportCampaign } from '@/hooks/useCampaigns';
@@ -133,10 +134,6 @@ export function CampaignDetailPage() {
     }
     prevCompletedSignal.current = completedSignal;
   }, [completedSignal, refetchCampaign]);
-
-  const handleBack = () => {
-    navigate('/campaigns');
-  };
 
   const handleStopCampaign = async () => {
     if (!id || !await confirm({ title: t.campaigns.detail.stopConfirm, variant: 'destructive' })) return;
@@ -288,17 +285,12 @@ export function CampaignDetailPage() {
   const isError = campaign.status === 'ERROR';
 
   const getStatusBadge = () => {
-    if (isError) return <Badge variant="destructive">{t.campaigns.status.error}</Badge>;
-    if (campaign.status === 'SENDING') return <Badge className="bg-[#4A7174]">{t.campaigns.status.sending}</Badge>;
-    if (campaign.status === 'ACCEPTED') return <Badge className="bg-green-600">{t.campaigns.status.accepted}</Badge>;
-    if (campaign.status === 'DONE') return <Badge className="bg-emerald-700">{t.campaigns.status.done}</Badge>;
-    if (isCompleted) return <Badge variant="default">{t.campaigns.status.completed}</Badge>;
-    return (
-      <Badge variant="secondary" className="animate-pulse bg-[#D4E6E7] text-[#2A5C5D] border-[#C5E0E2]">
-        <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-        {t.campaigns.status.running}
-      </Badge>
-    );
+    if (isError) return <Status state="err">{t.campaigns.status.error}</Status>;
+    if (campaign.status === 'SENDING') return <Status state="live">{t.campaigns.status.sending}</Status>;
+    if (campaign.status === 'ACCEPTED') return <Status state="done">{t.campaigns.status.accepted}</Status>;
+    if (campaign.status === 'DONE') return <Status state="done">{t.campaigns.status.done}</Status>;
+    if (isCompleted) return <Status state="done">{t.campaigns.status.completed}</Status>;
+    return <Status state="live" pulse>{t.campaigns.status.running}</Status>;
   };
 
   const qualifiedCount = isAccepted ? (report?.qualifiedCount || suppliers.length) : 0;
@@ -316,51 +308,54 @@ export function CampaignDetailPage() {
       animate="show"
       className="space-y-6"
     >
-      {/* Breadcrumbs */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-[-10px]">
-        <button onClick={() => navigate('/campaigns')} className="hover:text-foreground transition-colors">{t.campaigns.title}</button>
-        <ChevronRight className="h-4 w-4" />
-        <span className="text-foreground font-medium line-clamp-1">{campaign.name}</span>
-      </div>
-
       <motion.div variants={itemVariants}>
+        {/* Back link */}
+        <button
+          onClick={() => navigate('/campaigns')}
+          className="inline-flex items-center gap-1.5 font-mono text-[10.5px] uppercase tracking-[0.06em] text-muted-ink hover:text-ink transition-colors mb-3"
+        >
+          <ArrowLeft className="h-3 w-3" />
+          {t.campaigns.title}
+        </button>
+
         {/* Header */}
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-4">
-            <Button variant="ghost" size="icon" onClick={handleBack} title={t.campaigns.detail.backToCampaigns}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold">{campaign.name}</h1>
-              <div className="flex items-center gap-2 mt-2">
-                {getStatusBadge()}
-                <span className="text-sm text-muted-foreground">
-                  {t.campaigns.detail.created + ':'} {new Date(campaign.createdAt).toLocaleDateString(isEN ? 'en-US' : 'pl-PL')}
-                </span>
-              </div>
+        <div className="flex flex-wrap items-end justify-between gap-4 pb-5 border-b border-rule">
+          <div className="min-w-0">
+            <h1 className="text-[30px] leading-[1.1] tracking-[-0.03em] font-bold text-ink line-clamp-2">
+              {campaign.name}
+            </h1>
+            <div className="mt-2 flex items-center gap-3 flex-wrap">
+              {getStatusBadge()}
+              <span className="font-mono text-[12.5px] text-muted-ink tabular-nums">
+                {t.campaigns.detail.created + ':'} {new Date(campaign.createdAt).toLocaleDateString(isEN ? 'en-US' : 'pl-PL')}
+                {suppliers.length > 0 && (
+                  <> <span className="text-rule-2">·</span> <span className="tabular-nums">{suppliers.length}</span> {t.campaigns.detail.suppliersFoundLabel.toLowerCase()}</>
+                )}
+              </span>
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             {isRunning && (
-              <Button variant="outline" onClick={handleStopCampaign} className="text-amber-600 hover:bg-amber-50 border-amber-200">
-                <StopCircle className="mr-2 h-4 w-4" />
+              <Button variant="ds-danger" size="ds" onClick={handleStopCampaign}>
+                <StopCircle className="mr-1.5 h-4 w-4" />
                 {t.campaigns.detail.stopButton}
               </Button>
             )}
             <Button
-              variant="outline"
+              variant="ds-ghost"
+              size="ds"
               onClick={() => id && cloneMutation.mutate(id)}
               disabled={cloneMutation.isPending}
             >
               {cloneMutation.isPending
-                ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                : <Copy className="mr-2 h-4 w-4" />
+                ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                : <Copy className="mr-1.5 h-4 w-4" />
               }
               {t.campaigns_clone.cloneCampaign}
             </Button>
-            <Button variant="outline" onClick={() => setShowDelete(true)} className="text-destructive hover:bg-destructive/10">
-              <Trash2 className="mr-2 h-4 w-4" />
+            <Button variant="ds-danger" size="ds" onClick={() => setShowDelete(true)}>
+              <Trash2 className="mr-1.5 h-4 w-4" />
               {t.campaigns.deleteCampaign}
             </Button>
           </div>
@@ -877,22 +872,24 @@ export function CampaignDetailPage() {
           {(!isRunning || suppliers.length > 0) && (
             <div className="space-y-3 mb-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">{t.campaigns.detail.suppliersList} ({suppliers.length})</h2>
+              <h2 className="text-[16px] font-semibold tracking-[-0.015em] text-ink">
+                {t.campaigns.detail.suppliersList} <span className="font-mono tabular-nums text-muted-ink">({suppliers.length})</span>
+              </h2>
               <div className="flex gap-2">
                 {isFullPlan && isCompleted && !isAccepted && (
                   <Button
-                    size="sm"
+                    variant="cta"
+                    size="ds"
                     onClick={handleAcceptAll}
                     disabled={suppliers.length === 0 || accepting}
-                    className="bg-green-600 hover:bg-green-700"
                   >
-                    {accepting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
+                    {accepting ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-1.5 h-4 w-4" />}
                     {accepting ? t.campaigns.detail.accepting : t.campaigns.detail.acceptAllSuppliers}
                   </Button>
                 )}
                 {(isCompleted || isAccepted) && (
-                  <Button variant="outline" size="sm" onClick={handleExport} disabled={exportMutation.isPending}>
-                    <Download className="mr-2 h-4 w-4" />
+                  <Button variant="ds-ghost" size="ds" onClick={handleExport} disabled={exportMutation.isPending}>
+                    <Download className="mr-1.5 h-4 w-4" />
                     {t.campaigns.detail.exportCSV}
                   </Button>
                 )}

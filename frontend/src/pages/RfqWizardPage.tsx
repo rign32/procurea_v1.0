@@ -15,20 +15,22 @@ export function RfqWizardPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate('/campaigns')}
-          title={t.campaigns.detail.backToCampaigns}
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold">{t.campaigns.wizard.title}</h1>
-          <p className="text-muted-foreground mt-1">
-            {t.campaigns.wizard.description}
-          </p>
+      <div className="flex flex-wrap items-end justify-between gap-4 pb-5 border-b border-rule">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ds-ghost"
+            size="icon"
+            onClick={() => navigate('/campaigns')}
+            title={t.campaigns.detail.backToCampaigns}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-[30px] leading-[1.1] tracking-[-0.03em] font-bold">{t.campaigns.wizard.title}</h1>
+            <p className="mt-1.5 font-mono text-[12.5px] text-muted-ink tabular-nums">
+              {t.campaigns.wizard.description}
+            </p>
+          </div>
         </div>
       </div>
 

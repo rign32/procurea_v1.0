@@ -3,22 +3,12 @@ import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
-// Note: Radix UI is standard for shadcn, but for now I'll simulate it or use standard HTML attributes if I don't want to install @radix-ui/react-slot yet.
-// Actually, let's install class-variance-authority and @radix-ui/react-slot for true premium feel if we want to follow shadcn perfectly. 
-// For this MVP step, I'll stick to simple props but structure it like shadcn.
-// Wait, I missed installing `class-variance-authority` in the previous step. I should efficiently add it or implement a simpler version. 
-// Let's implement a simpler version without CVA for now to save a step, or better yet, install it quickly because it's worth it for "Premium".
-
-// Decision: Install class-variance-authority and @radix-ui/react-slot. It's robust.
-// Command: npm install class-variance-authority @radix-ui/react-slot
-
-// For this specific file write, I will write the component assuming CVA is there, and then run the install command immediately after.
-
 const buttonVariants = cva(
-    "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
     {
         variants: {
             variant: {
+                /* ── shadcn legacy (maps to navy via primary) ── */
                 default: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-primary/20 hover:shadow-md",
                 destructive:
                     "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 hover:shadow-destructive/20 hover:shadow-md",
@@ -28,12 +18,25 @@ const buttonVariants = cva(
                     "bg-secondary/50 text-secondary-foreground shadow-sm hover:bg-secondary/80",
                 ghost: "hover:bg-accent/50 hover:text-accent-foreground",
                 link: "text-primary underline-offset-4 hover:underline",
+
+                /* ── new product design system (Wave 2+) ── */
+                cta: "bg-cta text-cta-ink shadow-[inset_0_-2px_0_rgba(14,22,20,0.1)] hover:bg-cta-hover font-semibold",
+                accent: "bg-brand text-brand-ink hover:bg-brand-2 font-semibold",
+                ink: "bg-ink text-surface hover:bg-ink-2 font-semibold",
+                quiet: "bg-transparent text-ink-2 hover:bg-bg-2 hover:text-ink",
+                "ds-ghost": "bg-surface text-ink-2 border border-rule-2 hover:border-ink-3 hover:text-ink",
+                "ds-danger": "bg-transparent text-bad hover:bg-bad-soft border border-transparent",
             },
             size: {
                 default: "h-10 px-4 py-2",
                 sm: "h-9 rounded-md px-3",
                 lg: "h-11 rounded-md px-8",
                 icon: "h-10 w-10",
+                /* ── new product sizes ── */
+                ds: "h-9 px-3.5 py-2 text-[13px] rounded-[8px]",
+                "ds-sm": "h-7 px-2.5 text-[12px] rounded-[6px]",
+                "ds-lg": "h-11 px-4.5 text-sm rounded-[10px]",
+                "ds-icon": "h-7 w-7 p-0",
             },
         },
         defaultVariants: {

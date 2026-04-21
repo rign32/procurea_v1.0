@@ -14,6 +14,15 @@ const badgeVariants = cva(
         destructive:
           'border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80',
         outline: 'text-foreground',
+
+        /* ── new product chips (Wave 2+) — match redesign/tokens.css §245-263 ── */
+        good: 'bg-good-soft text-good border-good-border',
+        warn: 'bg-warn-soft text-warn border-warn-border',
+        bad: 'bg-bad-soft text-bad border-bad-border',
+        info: 'bg-info-soft text-info border-info-border',
+        'brand-chip': 'bg-brand-soft text-brand border-[#c8d4ea]',
+        mono: 'bg-bg-2 text-ink-2 border-rule font-mono text-[10.5px] tracking-[0.02em] px-2',
+        neutral: 'bg-bg-2 text-ink-2 border-rule',
       },
     },
     defaultVariants: {

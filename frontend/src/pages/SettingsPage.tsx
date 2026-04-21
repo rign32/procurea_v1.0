@@ -53,7 +53,7 @@ export function SettingsPage() {
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-ink" />
       </div>
     );
   }
@@ -61,43 +61,47 @@ export function SettingsPage() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">{t.settings.title}</h1>
-        <p className="text-muted-foreground mt-1">
-          {t.settings.subtitle}
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-4 pb-5 border-b border-rule">
+        <div>
+          <h1 className="text-[30px] leading-[1.1] tracking-[-0.03em] font-bold">{t.settings.title}</h1>
+          <p className="mt-1.5 font-mono text-[12.5px] text-muted-ink tabular-nums">
+            {t.settings.subtitle}
+          </p>
+        </div>
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex flex-wrap gap-1 rounded-lg bg-muted p-1 w-fit">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => tab.locked ? handleTabChange('profile') : handleTabChange(tab.key)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              tab.locked
-                ? 'text-muted-foreground/50 cursor-not-allowed'
-                : activeTab === tab.key
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            title={tab.locked ? (isEN ? 'Available on Full plan' : 'Dostępne w planie Full') : undefined}
-          >
-            {tab.locked ? <Lock className="h-3.5 w-3.5" /> : tab.icon}
-            {tab.label}
-          </button>
-        ))}
-        {/* Plan button — opens popup, hidden for trial users with credits */}
-        {!isTrialWithCredits && (
-          <button
-            onClick={() => useUIStore.getState().openBillingModal()}
-            className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors text-muted-foreground hover:text-foreground"
-          >
-            <CreditCard className="h-4 w-4" />
-            {t.settings.tabs.billing}
-            <ArrowUpRight className="h-3 w-3 opacity-50" />
-          </button>
-        )}
+      <div className="bg-surface border border-rule rounded-[10px] p-2">
+        <div className="flex flex-wrap gap-1">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => tab.locked ? handleTabChange('profile') : handleTabChange(tab.key)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-[8px] text-[13px] font-medium transition-colors ${
+                tab.locked
+                  ? 'text-muted-ink/50 cursor-not-allowed'
+                  : activeTab === tab.key
+                    ? 'bg-brand text-white'
+                    : 'text-muted-ink hover:text-ink hover:bg-surface-2'
+                }`}
+              title={tab.locked ? (isEN ? 'Available on Full plan' : 'Dostępne w planie Full') : undefined}
+            >
+              {tab.locked ? <Lock className="h-3.5 w-3.5" /> : tab.icon}
+              {tab.label}
+            </button>
+          ))}
+          {/* Plan button — opens popup, hidden for trial users with credits */}
+          {!isTrialWithCredits && (
+            <button
+              onClick={() => useUIStore.getState().openBillingModal()}
+              className="flex items-center gap-2 px-4 py-2 rounded-[8px] text-[13px] font-medium transition-colors text-muted-ink hover:text-ink hover:bg-surface-2"
+            >
+              <CreditCard className="h-4 w-4" />
+              {t.settings.tabs.billing}
+              <ArrowUpRight className="h-3 w-3 opacity-50" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Tab Content */}
