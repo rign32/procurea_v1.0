@@ -76,7 +76,7 @@ function csvCell(v: string | number | null | undefined): string {
 }
 
 function buildInsightsCsv(data: InsightsResponse): string {
-  const rows: string[][] = [];
+  const rows: Array<Array<string | number>> = [];
   rows.push(['Section', 'Metric', 'Value']);
   rows.push(['Summary', 'Total suppliers', data.totalSuppliers]);
   rows.push(['Summary', 'Certified', data.certifiedCount]);
