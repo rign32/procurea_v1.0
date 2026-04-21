@@ -56,6 +56,23 @@ export class AllExceptionsFilter implements ExceptionFilter {
                 error = defaultErrorForStatus(status);
             }
         }
+        // Body-parser errors (malformed JSON, body too large) — Express5Adapter's
+        // registerParserMiddleware re-installs its own express.json() during
+        // app.init(), so handlers on the outer expressApp get bypassed. Catching
+        // them here normalizes the response to structured JSON 400/413.
+        else if (
+            exception instanceof SyntaxError ||
+            (exception as any)?.type === 'entity.parse.failed'
+        ) {
+            status = HttpStatus.BAD_REQUEST;
+            message = 'Invalid JSON body';
+            error = 'Bad Request';
+        }
+        else if ((exception as any)?.type === 'entity.too.large') {
+            status = HttpStatus.PAYLOAD_TOO_LARGE;
+            message = 'Request body exceeds size limit';
+            error = 'Payload Too Large';
+        }
         // Prisma known request errors
         else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
             switch (exception.code) {
