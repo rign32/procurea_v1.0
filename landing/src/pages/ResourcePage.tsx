@@ -31,7 +31,7 @@ export function ResourcePage() {
             <h1 className="text-3xl font-bold mb-4">
               {isEN ? "Resource not found" : "Nie znaleziono materiału"}
             </h1>
-            <Link to={pathMappings.resourcesHub[LANG]} className="text-amber-700 hover:underline">
+            <Link to={pathMappings.resourcesHub[LANG]} className="text-[hsl(var(--ds-accent))] hover:underline">
               {isEN ? "← All resources" : "← Wszystkie materiały"}
             </Link>
           </div>
@@ -93,7 +93,7 @@ export function ResourcePage() {
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <Link
               to={resourcesBase}
-              className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-amber-700 transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-[hsl(var(--ds-accent))] transition-colors"
             >
               <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
               {isEN ? "All resources" : "Wszystkie materiały"}
@@ -109,7 +109,7 @@ export function ResourcePage() {
               <div className="lg:col-span-3">
                 <RevealOnScroll>
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-mono text-[10px] uppercase tracking-[0.12em] font-bold">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[hsl(var(--ds-accent-soft))] text-[hsl(var(--ds-accent))] font-mono text-[10px] uppercase tracking-[0.12em] font-bold">
                       <Download className="h-3 w-3 mr-1" aria-hidden="true" />
                       {resource.formatLabel}
                     </span>
@@ -133,7 +133,7 @@ export function ResourcePage() {
                   <ul className="space-y-3 mb-8">
                     {resource.valueProps.map((prop, i) => (
                       <li key={i} className="flex gap-3">
-                        <CheckCircle2 className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                        <CheckCircle2 className="h-5 w-5 text-[hsl(var(--ds-accent))] flex-shrink-0 mt-0.5" aria-hidden="true" />
                         <span className="text-sm sm:text-base text-slate-700 leading-relaxed">{prop}</span>
                       </li>
                     ))}
@@ -223,7 +223,7 @@ export function ResourcePage() {
                           <button
                             type="submit"
                             disabled={state === "loading"}
-                            className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 text-sm transition-colors disabled:opacity-70"
+                            className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[hsl(var(--ds-accent))] hover:bg-[hsl(var(--ds-accent))]/90 text-white font-semibold py-3 text-sm transition-colors disabled:opacity-70"
                           >
                             {state === "loading" ? (
                               <span>{isEN ? "Sending…" : "Wysyłanie…"}</span>
@@ -262,7 +262,7 @@ export function ResourcePage() {
           <section className="py-12 border-t border-black/[0.06] bg-slate-50/40">
             <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
               <div className="mb-6">
-                <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-amber-700 font-bold">
+                <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[hsl(var(--ds-accent))] font-bold">
                   {isEN ? "Free preview · no signup" : "Darmowy podgląd · bez rejestracji"}
                 </span>
                 <h2 className="text-2xl sm:text-3xl font-bold font-display tracking-tight text-slate-900 mt-2 max-w-[28ch]">
@@ -286,7 +286,7 @@ export function ResourcePage() {
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <Link
               to={resourcesBase}
-              className="inline-flex items-center gap-2 text-sm font-semibold text-amber-700 hover:underline"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-[hsl(var(--ds-accent))] hover:underline"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               {isEN ? "Browse all resources" : "Przeglądaj wszystkie materiały"}
@@ -338,7 +338,7 @@ function FormField({
         value={value}
         onChange={e => onChange(e.target.value)}
         disabled={disabled}
-        className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-black/[0.1] bg-white outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500/50 transition-all disabled:opacity-60"
+        className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-black/[0.1] bg-white outline-none focus:ring-2 focus:ring-[hsl(var(--ds-accent))]/30 focus:border-[hsl(var(--ds-accent))]/50 transition-all disabled:opacity-60"
       />
     </div>
   )

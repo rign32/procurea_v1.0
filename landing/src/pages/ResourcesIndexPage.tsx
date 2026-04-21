@@ -70,14 +70,14 @@ export function ResourcesIndexPage() {
 
       <main id="main-content" className="flex-1">
         {/* ═══════ HERO — light, matches landing warmth ═══════ */}
-        <section className="relative pt-28 sm:pt-32 pb-10 sm:pb-14 bg-gradient-to-b from-white via-amber-50/30 to-white overflow-hidden">
+        <section className="relative pt-28 sm:pt-32 pb-10 sm:pb-14 bg-gradient-to-b from-white via-[hsl(var(--ds-accent-soft))]/40 to-white overflow-hidden">
           <div
-            className="absolute top-10 -right-40 w-[500px] h-[500px] rounded-full bg-amber-500/[0.06] blur-[120px] pointer-events-none"
+            className="absolute top-10 -right-40 w-[500px] h-[500px] rounded-full bg-[hsl(var(--ds-accent))]/[0.06] blur-[120px] pointer-events-none"
             aria-hidden="true"
           />
           <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center">
             <RevealOnScroll>
-              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-amber-700 mb-4">
+              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-[hsl(var(--ds-accent))] mb-4">
                 <Download className="h-3.5 w-3.5" aria-hidden="true" />
                 {isEN ? "Free · No credit card" : "Za darmo · bez karty"}
               </span>
@@ -101,7 +101,7 @@ export function ResourcesIndexPage() {
             <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <Link
                 to={`${resourcesBase}/${flagship.slug}`}
-                className="group block rounded-3xl bg-gradient-to-br from-amber-50 via-white to-white border border-black/[0.06] overflow-hidden hover:shadow-[0_20px_60px_-20px_rgba(0,0,0,0.18)] transition-all duration-300"
+                className="group block rounded-3xl bg-gradient-to-br from-[hsl(var(--ds-accent-soft))] via-white to-white border border-black/[0.06] overflow-hidden hover:shadow-[0_20px_60px_-20px_rgba(0,0,0,0.18)] transition-all duration-300"
               >
                 <div className="grid md:grid-cols-2 gap-0 items-stretch">
                   {/* Cover */}
@@ -114,7 +114,7 @@ export function ResourcesIndexPage() {
                   {/* Body */}
                   <div className="p-8 sm:p-10 md:p-12 flex flex-col justify-center">
                     <div className="flex items-center gap-2 mb-3">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-mono text-[10px] uppercase tracking-[0.12em] font-bold">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[hsl(var(--ds-accent-soft))] text-[hsl(var(--ds-accent))] font-mono text-[10px] uppercase tracking-[0.12em] font-bold">
                         {isEN ? "Flagship" : "Flagowy"}
                       </span>
                       <span className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-slate-500 font-bold">
@@ -128,7 +128,7 @@ export function ResourcesIndexPage() {
                       {flagship.excerpt}
                     </p>
                     <div className="flex items-center gap-3 flex-wrap mt-auto">
-                      <span className="inline-flex items-center gap-2 rounded-lg bg-amber-500 group-hover:bg-amber-600 text-white font-semibold py-3 px-5 text-sm transition-colors">
+                      <span className="inline-flex items-center gap-2 rounded-lg bg-[hsl(var(--ds-accent))] group-hover:bg-[hsl(var(--ds-accent))]/90 text-white font-semibold py-3 px-5 text-sm transition-colors">
                         <Download className="h-4 w-4" aria-hidden="true" />
                         {isEN ? "Download free" : "Pobierz za darmo"}
                       </span>
@@ -160,11 +160,11 @@ export function ResourcesIndexPage() {
                   className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all ${
                     active
                       ? "bg-slate-900 text-white border-slate-900"
-                      : "bg-white text-slate-700 border-black/[0.08] hover:border-amber-500 hover:text-amber-700"
+                      : "bg-white text-slate-700 border-black/[0.08] hover:border-[hsl(var(--ds-accent))] hover:text-[hsl(var(--ds-accent))]"
                   }`}
                 >
                   {FILTER_LABELS[f][isEN ? "en" : "pl"]}
-                  <span className={`font-mono text-[10px] ${active ? "text-amber-400" : "text-slate-400"}`}>
+                  <span className={`font-mono text-[10px] ${active ? "text-white/70" : "text-slate-400"}`}>
                     {count}
                   </span>
                 </button>
@@ -234,17 +234,17 @@ function ResourceCard({ resource, resourcesBase }: ResourceCardProps) {
         className="group flex flex-col rounded-2xl bg-white border border-black/[0.06] overflow-hidden h-full
           hover:shadow-[0_16px_48px_-12px_rgba(0,0,0,0.15)] hover:-translate-y-1 hover:border-black/[0.12]
           transition-all duration-300
-          focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+          focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ds-accent))] focus-visible:ring-offset-2"
       >
         {/* Cover illustration — navy bg already in illustration */}
         <ResourceCover slug={resource.slug} title={resource.title} hover={false} />
 
         {/* Body */}
         <div className="flex flex-col flex-1 p-6">
-          <div className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-amber-700 font-bold mb-3">
+          <div className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-[hsl(var(--ds-accent))] font-bold mb-3">
             {resource.formatLabel}
           </div>
-          <h3 className="text-lg sm:text-xl font-bold font-display tracking-tight text-slate-900 leading-tight mb-2 line-clamp-2 group-hover:text-amber-800 transition-colors">
+          <h3 className="text-lg sm:text-xl font-bold font-display tracking-tight text-slate-900 leading-tight mb-2 line-clamp-2 group-hover:text-[hsl(var(--ds-accent))] transition-colors">
             {resource.title}
           </h3>
           <p className="text-sm text-slate-600 leading-relaxed line-clamp-3 flex-1 mb-4">
@@ -255,8 +255,8 @@ function ResourceCard({ resource, resourcesBase }: ResourceCardProps) {
               {resource.fileSize}
               {resource.pageCount ? ` · ${resource.pageCount} str` : ""}
             </span>
-            <span className="font-semibold text-amber-700 inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-              Pobierz
+            <span className="font-semibold text-[hsl(var(--ds-accent))] inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+              {isEN ? "Download" : "Pobierz"}
               <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </span>
           </div>

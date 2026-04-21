@@ -31,16 +31,16 @@ export function CaseStudiesIndexPage() {
       <Navbar />
 
       <main id="main-content" className="flex-1">
-        <section className="relative pt-28 sm:pt-32 pb-12 sm:pb-16 bg-gradient-to-b from-white to-emerald-50/20 overflow-hidden">
+        <section className="relative pt-28 sm:pt-32 pb-12 sm:pb-16 bg-gradient-to-b from-white to-[hsl(var(--ds-accent-soft))]/40 overflow-hidden">
           <div
-            className="absolute top-20 -right-40 w-[600px] h-[600px] rounded-full bg-emerald-500/[0.08] blur-[120px] pointer-events-none"
+            className="absolute top-20 -right-40 w-[600px] h-[600px] rounded-full bg-[hsl(var(--ds-accent))]/[0.08] blur-[120px] pointer-events-none"
             aria-hidden="true"
           />
           <AnimatedGrid className="opacity-30" />
 
           <div className="relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
             <RevealOnScroll>
-              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-emerald-700 mb-4">
+              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-[hsl(var(--ds-accent))] mb-4">
                 <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />
                 {isEN ? 'Case Studies' : 'Case Studies'}
               </span>
@@ -71,17 +71,17 @@ export function CaseStudiesIndexPage() {
                       aria-label={cs.title}
                       className="group flex flex-col rounded-2xl border border-black/[0.08] bg-white overflow-hidden h-full
                         hover:shadow-[0_12px_40px_-8px_rgba(0,0,0,0.15)] hover:-translate-y-1 transition-all duration-300
-                        focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+                        focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ds-accent))] focus-visible:ring-offset-2"
                     >
                       {/* Industry header — uses Graphic Designer's SVG thumbnail */}
                       <div className="relative overflow-hidden">
                         {Thumbnail ? (
                           <Thumbnail className="w-full" />
                         ) : (
-                          <div className="aspect-[16/9] bg-gradient-to-br from-emerald-400 via-teal-600 to-slate-800" />
+                          <div className="aspect-[16/9] bg-gradient-to-br from-[hsl(var(--ds-accent))] via-[hsl(var(--ds-accent))]/80 to-slate-900" />
                         )}
                         <div className="absolute top-4 left-4">
-                          <span className="inline-flex items-center rounded-full bg-white/95 backdrop-blur-sm px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-800 shadow-sm">
+                          <span className="inline-flex items-center rounded-full bg-white/95 backdrop-blur-sm px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--ds-accent))] shadow-sm">
                             {cs.industryLabel}
                           </span>
                         </div>
@@ -101,26 +101,26 @@ export function CaseStudiesIndexPage() {
                           {cs.stats.slice(0, 3).map((stat, i) => (
                             <div
                               key={i}
-                              className="inline-flex flex-col rounded-lg bg-emerald-50 border border-emerald-100 px-3 py-2 min-w-[80px]"
+                              className="inline-flex flex-col rounded-lg bg-[hsl(var(--ds-accent-soft))] border border-[hsl(var(--ds-accent))]/15 px-3 py-2 min-w-[80px]"
                             >
-                              <span className="text-lg font-bold text-emerald-800 leading-none">
+                              <span className="text-lg font-bold text-[hsl(var(--ds-accent))] leading-none">
                                 {stat.value}
                               </span>
-                              <span className="text-[10px] text-emerald-700 mt-1 leading-tight line-clamp-1">
+                              <span className="text-[10px] text-[hsl(var(--ds-accent))]/80 mt-1 leading-tight line-clamp-1">
                                 {stat.label}
                               </span>
                             </div>
                           ))}
                         </div>
 
-                        <h2 className="font-bold font-display tracking-tight text-xl leading-tight line-clamp-2 mb-3 text-slate-900 group-hover:text-emerald-700 transition-colors">
+                        <h2 className="font-bold font-display tracking-tight text-xl leading-tight line-clamp-2 mb-3 text-slate-900 group-hover:text-[hsl(var(--ds-accent))] transition-colors">
                           {cs.title}
                         </h2>
                         <p className="text-sm text-slate-600 leading-relaxed line-clamp-3 flex-1">
                           {cs.excerpt}
                         </p>
                         <div className="mt-5 pt-4 border-t border-black/[0.05] flex items-center justify-end">
-                          <span className="text-sm font-semibold text-emerald-700 inline-flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                          <span className="text-sm font-semibold text-[hsl(var(--ds-accent))] inline-flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
                             {isEN ? 'Read the story' : 'Przeczytaj case'}
                             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                           </span>

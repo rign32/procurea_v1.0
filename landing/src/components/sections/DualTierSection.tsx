@@ -13,47 +13,47 @@ const copy = {
   sectionLabel: isEN ? 'TWO WAYS TO BUY' : 'DWIE OPCJE ZAKUPU',
   heading: isEN ? 'Research only, or full workflow' : 'Tylko research, lub pełen workflow',
   subheading: isEN
-    ? 'Pay for what you use. AI Sourcing alone, AI Procurement workflow, or Bundle them for end-to-end campaigns with 15% savings.'
-    : 'Płacisz za to co używasz. Samo AI Sourcing, pełny workflow AI Procurement, lub Bundle dla kampanii end-to-end z 15% oszczędnością.',
+    ? 'Pay for what you use. AI Sourcing alone, or add AI Procurement workflow on demand — only on the campaigns where you want full RFQ outreach.'
+    : 'Płacisz za to co używasz. Samo AI Sourcing albo dodaj workflow AI Procurement na żądanie — tylko na tych kampaniach, gdzie chcesz pełny outreach RFQ.',
 
   sourcingLabel: 'AI Sourcing',
-  sourcingPrice: isEN ? 'From $89 / 10 credits' : 'Od $89 / 10 kredytów',
+  sourcingPrice: isEN ? 'From $69 / month — 10 campaigns' : 'Od 289 zł / miesiąc — 10 kampanii',
   sourcingDesc: isEN
-    ? 'Find 50–250 verified vendors per campaign in 26 languages. Excel export. Self-serve.'
-    : 'Znajdź 50–250 zweryfikowanych dostawców na kampanię w 26 językach. Eksport Excel. Self-serve.',
+    ? 'Find up to 250 verified suppliers per campaign in 30+ languages. Excel export. Self-serve.'
+    : 'Znajdź do 250 zweryfikowanych dostawców na kampanię w 30+ językach. Eksport Excel. Self-serve.',
   sourcingFeatures: isEN ? [
-    'AI pipeline — 50–250 vendors per campaign',
-    '26-language research + Supplier Database',
+    'AI pipeline — up to 250 suppliers per campaign',
+    '30+ business languages + Supplier Database',
     'One-click Excel export',
-    '10 free credits on signup',
+    '3 free campaigns on signup — no credit card',
   ] : [
-    'AI pipeline — 50–250 dostawców na kampanię',
-    'Wielojęzyczny research (26 j.) + Baza Dostawców',
+    'AI pipeline — do 250 dostawców na kampanię',
+    '30+ języków biznesowych + Baza Dostawców',
     'Eksport Excel jednym kliknięciem',
-    '10 darmowych kredytów po rejestracji',
+    '3 darmowe kampanie po rejestracji — bez karty',
   ],
   sourcingCta: isEN ? 'Start free' : 'Zacznij za darmo',
 
-  fullLabel: isEN ? 'Full Workflow (Bundle)' : 'Pełen Workflow (Bundle)',
-  fullBadge: isEN ? 'Save 15%' : 'Oszczędzasz 15%',
-  fullPrice: isEN ? 'From $399 / 10 full campaigns' : 'Od $399 / 10 pełnych kampanii',
+  fullLabel: isEN ? 'AI Procurement add-on' : 'Dodatek AI Procurement',
+  fullBadge: isEN ? 'Per run' : 'Za run',
+  fullPrice: isEN ? '$29 / workflow' : '129 zł / workflow',
   fullDesc: isEN
-    ? 'AI Sourcing + AI Procurement together. Outreach in local language, supplier portal, offer comparison, AI Insights. Contact sales to set up.'
-    : 'AI Sourcing + AI Procurement razem. Outreach w języku lokalnym, supplier portal, porównanie ofert, AI Insights. Contact sales do uruchomienia.',
+    ? 'Extend any sourcing campaign with the full RFQ workflow — localized email outreach, Supplier Portal, offer collection, side-by-side comparison and AI Insights reports.'
+    : 'Rozszerz dowolną kampanię sourcingową o pełny workflow RFQ — zlokalizowany outreach email, Supplier Portal, zbieranie ofert, porównanie side-by-side i raporty AI Insights.',
   fullFeatures: isEN ? [
-    'Everything in AI Sourcing',
-    'Bulk RFQ outreach — 26 languages',
-    'Supplier Portal + structured offers',
+    'Contact enrichment — decision-makers, emails, phones',
+    'Bulk RFQ outreach — 30+ languages',
+    'Supplier Portal + structured offer collection',
     'AI Insights reports (PDF / PPTX)',
   ] : [
-    'Wszystko z AI Sourcing',
-    'Bulk RFQ outreach — 26 języków',
-    'Supplier Portal + strukturalne oferty',
+    'Enrichment kontaktów — decydenci, emaile, telefony',
+    'Bulk RFQ outreach — 30+ języków',
+    'Supplier Portal + strukturalne zbieranie ofert',
     'Raporty AI Insights (PDF / PPTX)',
   ],
-  fullCta: isEN ? 'Talk to sales' : 'Porozmawiaj z nami',
+  fullCta: isEN ? 'See how it works' : 'Zobacz jak działa',
 
-  pricingCta: isEN ? 'See full pricing — 4 products' : 'Zobacz pełen cennik — 4 produkty',
+  pricingCta: isEN ? 'See full pricing' : 'Zobacz pełen cennik',
 }
 
 export function DualTierSection() {

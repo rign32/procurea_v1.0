@@ -53,8 +53,8 @@ export function SavingsCalculator({ variant = "home" }: SavingsCalculatorProps) 
       12,
       Math.ceil(rounded / 500_000) * 12
     )
-    // Bundle price: $39.9 per credit (based on $399/10 credits)
-    const annualCost = Math.round(estimatedCampaignsPerYear * 39.9)
+    // Full-campaign cost: Starter pack sourcing ($11.90/campaign) + AI Procurement workflow ($29/run)
+    const annualCost = Math.round(estimatedCampaignsPerYear * 40.9)
     const netSavings = annualSavings - annualCost
     return { rounded, annualSavings, annualCost, netSavings }
   }, [sliderPos])

@@ -160,9 +160,6 @@ export function Navbar() {
               <span className="text-[17px] font-bold tracking-[-0.01em] text-foreground">
                 Procurea
               </span>
-              <span className="ml-0.5 px-1.5 py-[3px] rounded font-mono bg-[hsl(var(--ds-accent-soft))] text-[hsl(var(--ds-accent))] text-[10px] font-medium uppercase tracking-[0.05em] hidden sm:inline-flex">
-                Beta
-              </span>
             </Link>
 
             {/* Desktop nav -- visible at lg (1024px) and up */}

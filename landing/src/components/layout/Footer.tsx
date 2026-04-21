@@ -147,9 +147,6 @@ export function Footer() {
                 <span className="text-[17px] font-bold tracking-[-0.01em] text-[hsl(var(--ds-ink))]">
                   Procurea
                 </span>
-                <span className="ml-0.5 px-1.5 py-[3px] rounded font-mono bg-[hsl(var(--ds-accent-soft))] text-[hsl(var(--ds-accent))] text-[10px] font-medium uppercase tracking-[0.05em]">
-                  Beta
-                </span>
               </Link>
               <p className="text-[13px] text-[hsl(var(--ds-muted))] leading-relaxed max-w-[26ch] mb-6">
                 {t.footer.brand}

@@ -412,13 +412,13 @@ export const PL = {
     grossSavings: 'Oszczędności brutto',
     procureaCost: 'Koszt Procurea',
     netSavings: 'Oszczędności netto',
-    costBasis: 'Koszt szacowany na bazie planu Bundle ($39.9/kredyt)',
-    roiLabel: 'Zwrot z planu Bundle',
+    costBasis: 'Koszt szacowany: pakiet Starter ($11,90/kampania) + AI Procurement workflow ($29/run)',
+    roiLabel: 'Czas zwrotu Procurea',
     roiSuffix: 'dni',
     roiNotReached: '—',
     cta: 'Zacznij oszczędzać',
     pricingTitle: 'Zobacz jak Procurea zwróci się w kilka tygodni',
-    pricingSubtitle: 'Suwak: Twój roczny budżet zakupowy. Wynik: oszczędności i czas zwrotu planu Bundle (od $399 / 10 kredytów).',
+    pricingSubtitle: 'Suwak: Twój roczny budżet zakupowy. Wynik: oszczędności i czas zwrotu pełnej kampanii (sourcing + AI Procurement).',
   },
   pricing: {
     creditPacks: {

@@ -404,13 +404,13 @@ export const EN: LandingTranslations = {
     grossSavings: 'Gross savings',
     procureaCost: 'Procurea cost',
     netSavings: 'Net savings',
-    costBasis: 'Cost estimated based on Bundle plan ($39.9/credit)',
-    roiLabel: 'Bundle plan payback',
+    costBasis: 'Cost estimated: Starter pack ($11.90/campaign) + AI Procurement workflow ($29/run)',
+    roiLabel: 'Procurea payback',
     roiSuffix: 'days',
     roiNotReached: '—',
     cta: 'Start saving',
     pricingTitle: 'See how Procurea pays for itself in weeks',
-    pricingSubtitle: 'Slider: your annual procurement spend. Output: savings + Bundle plan (from $399 / 10 credits) payback time.',
+    pricingSubtitle: 'Slider: your annual procurement spend. Output: savings + payback time for a full campaign (sourcing + AI Procurement).',
   },
   pricing: {
     creditPacks: {
