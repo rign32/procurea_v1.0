@@ -20,8 +20,18 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.3 } }
 };
 
+type QualityTier = 'all' | 'high' | 'medium' | 'low';
+
+const TIER_BOUNDS: Record<QualityTier, (score: number | null | undefined) => boolean> = {
+  all: () => true,
+  high: (s) => s != null && s >= 8,
+  medium: (s) => s != null && s >= 5 && s < 8,
+  low: (s) => s != null && s < 5,
+};
+
 export function RegistryPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [qualityTier, setQualityTier] = useState<QualityTier>('all');
   const { data, isLoading, error } = useSuppliers();
   const suppliers = data?.suppliers;
 
@@ -39,16 +49,19 @@ export function RegistryPage() {
   }, [suppliers]);
 
   const filteredCompanies = useMemo(() => {
-    if (!searchQuery.trim()) return companies;
-    const q = searchQuery.toLowerCase();
-    return companies.filter(
-      (c) =>
+    const q = searchQuery.trim().toLowerCase();
+    const tierPredicate = TIER_BOUNDS[qualityTier];
+    return companies.filter((c) => {
+      if (!tierPredicate(c.analysisScore)) return false;
+      if (!q) return true;
+      return (
         c.name?.toLowerCase().includes(q) ||
         c.country?.toLowerCase().includes(q) ||
         c.city?.toLowerCase().includes(q) ||
         c.specialization?.toLowerCase().includes(q)
-    );
-  }, [companies, searchQuery]);
+      );
+    });
+  }, [companies, searchQuery, qualityTier]);
 
   // Stats
   const stats = useMemo(() => {
@@ -129,16 +142,42 @@ export function RegistryPage() {
         </Card>
       </motion.div>
 
-      {/* Search Bar */}
-      <motion.div variants={itemVariants} className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder={`${t.common.search}...`}
-          className="w-full rounded-md border border-input bg-background px-10 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        />
+      {/* Search + Quality Filter */}
+      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={`${t.common.search}...`}
+            className="w-full rounded-md border border-input bg-background px-10 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          />
+        </div>
+        <div className="flex items-center gap-1 p-1 rounded-md border border-input bg-background">
+          {(['all', 'high', 'medium', 'low'] as QualityTier[]).map((tier) => {
+            const labels: Record<QualityTier, string> = {
+              all: t.common.all,
+              high: '≥ 8',
+              medium: '5–8',
+              low: '< 5',
+            };
+            return (
+              <button
+                key={tier}
+                type="button"
+                onClick={() => setQualityTier(tier)}
+                className={`px-3 py-1 text-xs rounded transition-colors ${
+                  qualityTier === tier
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                }`}
+              >
+                {labels[tier]}
+              </button>
+            );
+          })}
+        </div>
       </motion.div>
 
       {/* Companies Table */}

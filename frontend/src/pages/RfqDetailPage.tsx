@@ -325,7 +325,7 @@ export function RfqDetailPage() {
     }
   };
 
-  const _handleSuggestCounter = async (offerId: string) => {
+  const handleSuggestCounter = async (offerId: string) => {
     try {
       const result = await suggestCounterMutation.mutateAsync(offerId);
       setAiSuggestion(prev => ({ ...prev, [offerId]: result }));
@@ -377,7 +377,7 @@ export function RfqDetailPage() {
 
   const formatCurrency = (price?: number | null, currency?: string | null) => {
     if (price == null) return '—';
-    return new Intl.NumberFormat('pl-PL', {
+    return new Intl.NumberFormat(isEN ? 'en-US' : 'pl-PL', {
       style: 'currency',
       currency: currency || 'EUR',
     }).format(price);
@@ -1138,6 +1138,20 @@ export function RfqDetailPage() {
                             {t.rfqs.offer.shortlisted}
                           </Button>
                         )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleSuggestCounter(offer.id)}
+                          disabled={suggestCounterMutation.isPending}
+                          title={isEN ? 'Ask AI to suggest a counter-offer' : 'Poproś AI o kontrpropozycję'}
+                        >
+                          {suggestCounterMutation.isPending && suggestCounterMutation.variables === offer.id ? (
+                            <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Sparkles className="mr-1 h-3.5 w-3.5" />
+                          )}
+                          {isEN ? 'AI counter' : 'Kontra AI'}
+                        </Button>
                         <Button
                           size="sm"
                           variant="outline"

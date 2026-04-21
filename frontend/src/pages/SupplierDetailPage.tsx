@@ -16,7 +16,9 @@ import {
   StickyNote,
   ChevronDown,
   Save,
+  Info,
 } from 'lucide-react';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { apiClient } from '@/services/api.client';
 import { suppliersService } from '@/services/suppliers.service';
@@ -29,7 +31,7 @@ import { BlacklistDialog } from '@/components/suppliers/BlacklistDialog';
 import { SupplierScorecard } from '@/components/suppliers/SupplierScorecard';
 import { useSupplier } from '@/hooks/useSuppliers';
 import { useAuthStore } from '@/stores/auth.store';
-import { t } from '@/i18n';
+import { t, isEN } from '@/i18n';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const containerVariants = {
@@ -323,9 +325,39 @@ export function SupplierDetailPage() {
                 <div className="flex items-center gap-4">
                   <div className="text-center">
                     <div className="text-4xl font-bold font-mono tabular-nums">{scorePercent}%</div>
-                    <p className="label-mono mt-1">
-                      {t.suppliers.detail.overall}
-                    </p>
+                    <div className="flex items-center justify-center gap-1 mt-1">
+                      <p className="label-mono">
+                        {t.suppliers.detail.overall}
+                      </p>
+                      <TooltipProvider delayDuration={200}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              aria-label="Explain score"
+                              className="text-muted-ink-2 hover:text-ink transition-colors"
+                            >
+                              <Info className="h-3 w-3" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="right" className="max-w-[280px] text-xs">
+                            <p className="font-semibold mb-1">
+                              {isEN ? 'How is this score calculated?' : 'Jak wyliczamy tę ocenę?'}
+                            </p>
+                            <p className="leading-snug">
+                              {isEN
+                                ? 'AI analyses the supplier website (product range, certifications, company scale, industry fit) and returns a 0–10 capability score. Shown here as percent (×10).'
+                                : 'AI analizuje stronę dostawcy (asortyment, certyfikaty, skalę firmy, dopasowanie branżowe) i zwraca ocenę 0–10. Tutaj pokazana jako procent (×10).'}
+                            </p>
+                            {supplier.analysisReason && (
+                              <p className="mt-1.5 pt-1.5 border-t border-rule-2 italic">
+                                {supplier.analysisReason}
+                              </p>
+                            )}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
                   </div>
                   <div className="flex-1">
                     <div className="h-2.5 rounded-full bg-rule-2 overflow-hidden">

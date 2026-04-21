@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Status } from '@/components/ui/status';
 import { useRfqs } from '@/hooks/useRfqs';
-import { t } from '@/i18n';
+import { t, isEN } from '@/i18n';
 import { useAuthStore } from '@/stores/auth.store';
 import type { RfqRequest } from '@/types/campaign.types';
 import { motion } from 'framer-motion';
@@ -53,7 +53,7 @@ export function RfqsPage() {
 
   const formatCurrency = (price?: number, currency?: string) => {
     if (price == null) return '—';
-    return new Intl.NumberFormat('pl-PL', {
+    return new Intl.NumberFormat(isEN ? 'en-US' : 'pl-PL', {
       style: 'currency',
       currency: currency || 'PLN',
     }).format(price);
@@ -182,9 +182,9 @@ export function RfqsPage() {
                       <p className="font-medium">{rfq.offers?.length ?? 0} {t.rfqs.detail.offersReceived}</p>
                     </div>
                     <div>
-                      <p className="text-muted-ink">Utworzono</p>
+                      <p className="text-muted-ink">{isEN ? 'Created' : 'Utworzono'}</p>
                       <p className="font-medium">
-                        {new Date(rfq.createdAt).toLocaleDateString('pl-PL')}
+                        {new Date(rfq.createdAt).toLocaleDateString(isEN ? 'en-US' : 'pl-PL')}
                       </p>
                     </div>
                   </div>

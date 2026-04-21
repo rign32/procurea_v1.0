@@ -149,18 +149,16 @@ export const campaignsService = {
     return data;
   },
 
-  /** TODO: Backend endpoint not yet implemented */
   update: async (id: string, dto: UpdateCampaignDto): Promise<Campaign> => {
     const { data } = await apiClient.patch<Campaign>(`/campaigns/${id}`, dto);
     return data;
   },
 
-  /** TODO: Backend endpoint not yet implemented */
   delete: async (id: string): Promise<void> => {
     await apiClient.delete(`/campaigns/${id}`);
   },
 
-  /** TODO: Backend endpoint not yet implemented */
+  /** Backend returns an xlsx blob despite the historic `exportCSV` name. */
   exportCSV: async (id: string): Promise<Blob> => {
     const { data } = await apiClient.get(`/campaigns/${id}/export`, { responseType: 'blob' });
     return data;
