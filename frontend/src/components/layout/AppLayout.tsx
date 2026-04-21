@@ -23,6 +23,7 @@ import {
     Plus,
     Search,
     ChevronRight,
+    Calculator,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { t, isEN } from "@/i18n"
@@ -92,6 +93,7 @@ export default function AppLayout({ onLogout }: AppLayoutProps) {
         { name: t.nav.approvals, href: "/approvals", icon: ClipboardCheck, badge: pendingApprovalsCount },
         { name: t.nav.workspaces, href: "/workspaces", icon: FolderKanban },
         { name: t.nav.sequences, href: "/sequences", icon: Mail },
+        { name: isEN ? 'Landed cost' : 'Koszt landed', href: "/tools/landed-cost", icon: Calculator },
     ] : []
 
     const navFoot: NavItem[] = [

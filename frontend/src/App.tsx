@@ -31,6 +31,7 @@ const ContractsPage = lazy(() => import('./pages/ContractsPage'))
 const PurchaseOrdersPage = lazy(() => import('./pages/PurchaseOrdersPage'))
 const ApprovalsPage = lazy(() => import('./pages/ApprovalsPage'))
 const WorkspacesPage = lazy(() => import('./pages/WorkspacesPage'))
+const LandedCostCalculatorPage = lazy(() => import('./pages/LandedCostCalculatorPage'))
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -416,6 +417,7 @@ function App() {
             <Route path="/purchase-orders" element={<PlanGuard feature={((import.meta.env.VITE_LANGUAGE || 'pl') === 'en') ? 'Purchase Orders' : 'Zamówienia'}><PurchaseOrdersPage /></PlanGuard>} />
             <Route path="/approvals" element={<PlanGuard feature={((import.meta.env.VITE_LANGUAGE || 'pl') === 'en') ? 'Approvals' : 'Zatwierdzenia'}><ApprovalsPage /></PlanGuard>} />
             <Route path="/workspaces" element={<PlanGuard feature={((import.meta.env.VITE_LANGUAGE || 'pl') === 'en') ? 'Workspaces' : 'Przestrzenie robocze'}><WorkspacesPage /></PlanGuard>} />
+            <Route path="/tools/landed-cost" element={<LandedCostCalculatorPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
 
