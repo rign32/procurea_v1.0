@@ -6,6 +6,10 @@ import { t } from '@/i18n';
 
 interface SupplierScorecardProps {
   supplierId: string;
+  /** Optional: 0-10 AI analysis score. When the performance API returns
+   *  no data (fresh supplier, no RFQ sent yet) we still show this as a
+   *  standalone reference instead of rendering an empty card. */
+  analysisScore?: number | null;
 }
 
 function PercentBar({ value, label }: { value: number; label: string }) {
@@ -80,7 +84,7 @@ function ScorecardSkeleton() {
   );
 }
 
-export function SupplierScorecard({ supplierId }: SupplierScorecardProps) {
+export function SupplierScorecard({ supplierId, analysisScore }: SupplierScorecardProps) {
   const { data: perf, isLoading } = useSupplierPerformance(supplierId);
   const sc = t.suppliers.detail.scorecard;
 
@@ -88,14 +92,15 @@ export function SupplierScorecard({ supplierId }: SupplierScorecardProps) {
     return <ScorecardSkeleton />;
   }
 
-  if (!perf) {
-    return null;
-  }
-
   const hasAnyData =
-    perf.rfqsSent > 0 ||
-    perf.totalOffers > 0 ||
-    perf.dataQualityScore != null;
+    !!perf && (
+      perf.rfqsSent > 0 ||
+      perf.totalOffers > 0 ||
+      perf.dataQualityScore != null
+    );
+  const scorePercent = analysisScore != null
+    ? Math.max(0, Math.min(100, Math.round(analysisScore * 10)))
+    : null;
 
   if (!hasAnyData) {
     return (
@@ -106,9 +111,12 @@ export function SupplierScorecard({ supplierId }: SupplierScorecardProps) {
             {sc.title}
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
+          {scorePercent != null && (
+            <PercentBar value={scorePercent / 100} label={t.suppliers.detail.overall} />
+          )}
           <p className="text-sm text-muted-foreground">{sc.noData}</p>
-          <p className="text-xs text-muted-foreground mt-2">
+          <p className="text-xs text-muted-foreground">
             {sc.noDataHint}
           </p>
         </CardContent>
