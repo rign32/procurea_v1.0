@@ -58,6 +58,29 @@ expressApp.use((req, _res, next) => {
     next();
 });
 
+// Parse JSON before NestJS so we can own the error path. Body-parser errors
+// (malformed JSON, body too large) were leaking as HTTP 500 + plain text
+// because they fire before the request reaches NestJS AllExceptionsFilter.
+// Added 2026-04-21 during QA hardening pass.
+expressApp.use(express.json({ limit: '10mb' }));
+expressApp.use(express.urlencoded({ extended: true, limit: '10mb' }));
+expressApp.use((err: any, req: any, res: any, next: any) => {
+    if (res.headersSent) return next(err);
+    const isJsonParse = err?.type === 'entity.parse.failed' || err instanceof SyntaxError;
+    const isTooLarge = err?.type === 'entity.too.large';
+    if (isJsonParse || isTooLarge) {
+        const status = isTooLarge ? 413 : 400;
+        return res.status(status).json({
+            statusCode: status,
+            error: isTooLarge ? 'Payload Too Large' : 'Bad Request',
+            message: isTooLarge ? 'Request body exceeds size limit' : 'Invalid JSON body',
+            timestamp: new Date().toISOString(),
+            path: req.url,
+        });
+    }
+    return next(err);
+});
+
 const createNestServer = async () => {
     if (!app) {
         // Use Express5Adapter for Express 5.x compatibility
@@ -107,29 +130,6 @@ const createNestServer = async () => {
         });
 
         await app.init();
-
-        // Express-level error handler for malformed JSON and payload-too-large.
-        // Registered AFTER app.init() so it sits at the tail of the middleware chain
-        // and catches body-parser errors that would otherwise fall through to
-        // Express's default handler (500 + plain text "Internal Server Error").
-        // Added 2026-04-21 during QA hardening pass.
-        expressApp.use((err: any, req: any, res: any, next: any) => {
-            if (res.headersSent) return next(err);
-            const isJsonParse = err?.type === 'entity.parse.failed' || err instanceof SyntaxError;
-            const isTooLarge = err?.type === 'entity.too.large';
-            if (isJsonParse || isTooLarge) {
-                const status = isTooLarge ? 413 : 400;
-                return res.status(status).json({
-                    statusCode: status,
-                    error: isTooLarge ? 'Payload Too Large' : 'Bad Request',
-                    message: isTooLarge ? 'Request body exceeds size limit' : 'Invalid JSON body',
-                    timestamp: new Date().toISOString(),
-                    path: req.url,
-                });
-            }
-            return next(err);
-        });
-
         console.log('NestJS initialized for Cloud Functions (2nd Gen)');
     }
     return app;
