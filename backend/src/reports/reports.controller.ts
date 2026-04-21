@@ -12,6 +12,11 @@ export class ReportsController {
         return this.reportsService.getCampaignReport(id);
     }
 
+    @Get('campaign/:id/insights')
+    getCampaignInsights(@Param('id') id: string) {
+        return this.reportsService.getCampaignInsights(id);
+    }
+
     @Get('campaign/:id/ai-summary')
     getAiSummary(@Param('id') id: string, @Query('lang') lang?: string) {
         return this.reportsService.generateAiSummary(id, lang);

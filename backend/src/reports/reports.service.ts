@@ -17,6 +17,155 @@ export class ReportsService {
     ) { }
 
     /**
+     * Campaign Insights — cost breakdown, funnel conversion, quality distribution,
+     * top countries/categories. Feeds the Insights card on CampaignDetailPage.
+     */
+    async getCampaignInsights(campaignId: string) {
+        const campaign = await this.prisma.campaign.findUnique({
+            where: { id: campaignId },
+            include: {
+                metrics: true,
+                suppliers: {
+                    where: { deletedAt: null },
+                    select: {
+                        qualityScore: true,
+                        analysisScore: true,
+                        country: true,
+                        specialization: true,
+                        structuredCertificates: {
+                            where: { reviewStatus: 'APPROVED' },
+                            select: { id: true },
+                        },
+                    },
+                },
+                rfqRequest: {
+                    include: {
+                        offers: { select: { id: true, status: true } },
+                    },
+                },
+            },
+        });
+
+        if (!campaign) {
+            return null;
+        }
+
+        // Cost breakdown — aggregate ApiUsageLog by service for this campaign
+        const apiLogs = await this.prisma.apiUsageLog.groupBy({
+            by: ['service', 'status'],
+            where: { campaignId },
+            _count: { _all: true },
+            _sum: { estimatedCost: true, tokensUsed: true },
+        });
+
+        const costs = {
+            gemini: { calls: 0, tokens: 0, estimatedUsd: 0 },
+            serper: { calls: 0, tokens: 0, estimatedUsd: 0 },
+            totalUsd: 0,
+            errorRate: 0,
+        };
+        let totalCalls = 0;
+        let errorCalls = 0;
+        for (const row of apiLogs) {
+            const calls = row._count._all ?? 0;
+            const cost = row._sum.estimatedCost ?? 0;
+            const tokens = row._sum.tokensUsed ?? 0;
+            totalCalls += calls;
+            if (row.status === 'error') errorCalls += calls;
+            if (row.service === 'gemini') {
+                costs.gemini.calls += calls;
+                costs.gemini.tokens += tokens;
+                costs.gemini.estimatedUsd += cost;
+            } else if (row.service === 'serper') {
+                costs.serper.calls += calls;
+                costs.serper.estimatedUsd += cost;
+            }
+        }
+        costs.totalUsd = costs.gemini.estimatedUsd + costs.serper.estimatedUsd;
+        costs.errorRate = totalCalls > 0 ? errorCalls / totalCalls : 0;
+
+        // Funnel conversion — drawn from CampaignMetrics
+        const m = campaign.metrics;
+        const funnel = m
+            ? {
+                  urlsCollected: m.urlsCollected,
+                  urlsProcessed: m.urlsProcessed,
+                  screenerPassed: m.screenerPassed,
+                  screenerFallback: m.screenerFallback,
+                  auditorApproved: m.auditorApproved,
+                  auditorRejected: m.auditorRejected,
+                  auditorNeedsReview: m.auditorNeedsReview,
+                  // Conversion rates (0-1)
+                  screenerRate: m.urlsProcessed > 0 ? m.screenerPassed / m.urlsProcessed : 0,
+                  auditorRate:
+                      m.screenerPassed > 0 ? m.auditorApproved / m.screenerPassed : 0,
+              }
+            : null;
+
+        // Quality score distribution (3 buckets)
+        const quality = { high: 0, medium: 0, low: 0, unscored: 0 };
+        for (const s of campaign.suppliers) {
+            const score = s.qualityScore;
+            if (score == null) quality.unscored++;
+            else if (score >= 80) quality.high++;
+            else if (score >= 50) quality.medium++;
+            else quality.low++;
+        }
+
+        // Top 5 countries
+        const countryCounts = new Map<string, number>();
+        for (const s of campaign.suppliers) {
+            const c = s.country || 'Unknown';
+            countryCounts.set(c, (countryCounts.get(c) ?? 0) + 1);
+        }
+        const topCountries = Array.from(countryCounts.entries())
+            .map(([country, count]) => ({ country, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5);
+
+        // Top 5 categories (specialization)
+        const catCounts = new Map<string, number>();
+        for (const s of campaign.suppliers) {
+            if (!s.specialization) continue;
+            const c = s.specialization;
+            catCounts.set(c, (catCounts.get(c) ?? 0) + 1);
+        }
+        const topCategories = Array.from(catCounts.entries())
+            .map(([category, count]) => ({ category, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5);
+
+        // Offer outcomes (pulled via rfqRequest since Campaign has no direct offers relation)
+        const offersArr = campaign.rfqRequest?.offers ?? [];
+        const offers = {
+            total: offersArr.length,
+            submitted: offersArr.filter((o) => o.status === 'SUBMITTED').length,
+            viewed: offersArr.filter((o) => o.status === 'VIEWED').length,
+            pending: offersArr.filter((o) => o.status === 'PENDING').length,
+            accepted: offersArr.filter((o) => o.status === 'ACCEPTED').length,
+            rejected: offersArr.filter((o) => o.status === 'REJECTED').length,
+        };
+
+        // Certified suppliers (at least 1 APPROVED structured cert)
+        const certifiedCount = campaign.suppliers.filter(
+            (s) => s.structuredCertificates.length > 0,
+        ).length;
+
+        return {
+            campaignId,
+            totalSuppliers: campaign.suppliers.length,
+            certifiedCount,
+            costs,
+            funnel,
+            quality,
+            topCountries,
+            topCategories,
+            offers,
+            generatedAt: new Date().toISOString(),
+        };
+    }
+
+    /**
      * Campaign report: suppliers, sequence progress per step, country breakdown
      */
     async getCampaignReport(campaignId: string) {
