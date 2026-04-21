@@ -58,12 +58,15 @@ export async function createTestCampaign(prisma: PrismaService, overrides: any =
 }
 
 export async function createTestSupplier(prisma: PrismaService, campaignId: string, overrides: any = {}) {
+    const website = overrides.website || 'https://supplier.example.com';
     return prisma.supplier.create({
         data: {
+            // Supplier.url is required in schema — default to website when caller didn't specify
+            url: overrides.url || website,
             name: overrides.name || `Supplier ${nextId()}`,
             country: overrides.country || 'Poland',
             city: overrides.city || 'Warsaw',
-            website: overrides.website || 'https://supplier.example.com',
+            website,
             contactEmails: overrides.contactEmails || 'supplier@example.com',
             campaignId,
             ...overrides,
