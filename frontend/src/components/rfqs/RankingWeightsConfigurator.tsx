@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RotateCcw, Save } from 'lucide-react';
@@ -60,13 +60,11 @@ export function RankingWeightsConfigurator({
   showPersistOption = true,
   isSaving = false,
 }: RankingWeightsConfiguratorProps) {
+  // Caller must remount this component (e.g. via `key` prop) when
+  // `initialWeights` needs to replace internal state after async load.
   const [weights, setWeights] = useState<RankingWeights>(
     initialWeights ?? DEFAULT_RANKING_WEIGHTS,
   );
-
-  useEffect(() => {
-    if (initialWeights) setWeights(initialWeights);
-  }, [initialWeights]);
 
   const total = Object.values(weights).reduce((a, b) => a + b, 0);
   const totalPct = Math.round(total * 100);

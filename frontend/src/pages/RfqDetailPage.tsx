@@ -22,6 +22,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Status } from '@/components/ui/status';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useRfq, useOffers, useAcceptOffer, useRejectOffer, useShortlistOffer, useCompareOffers, useCounterOffer, useSuggestCounter, useRankingWeights, useSetRankingWeights } from '@/hooks/useRfqs';
 import type { RankingWeights } from '@/services/rfqs.service';
@@ -610,6 +611,7 @@ export function RfqDetailPage() {
             </DialogDescription>
           </DialogHeader>
           <RankingWeightsConfigurator
+            key={savedWeights ? `w-${savedWeights.price}-${savedWeights.leadTime}-${savedWeights.moq}-${savedWeights.quality}-${savedWeights.compliance}` : 'w-default'}
             initialWeights={savedWeights}
             onApply={handleApplyRankingWeights}
             onCancel={() => setShowRankingConfig(false)}
