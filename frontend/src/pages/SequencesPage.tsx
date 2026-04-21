@@ -212,6 +212,18 @@ export function SequencesPage() {
                 </Button>
             </motion.div>
 
+            {/* How sequences work — one-time hint above the template list */}
+            <motion.div variants={itemVariants}>
+                <div className="rounded-[8px] border border-info-border bg-info-soft p-3 text-[12.5px] text-info leading-[1.5]">
+                    <strong className="font-semibold">
+                        {isEN ? 'How email sequences work' : 'Jak działają sekwencje e-mail'}:
+                    </strong>{' '}
+                    {isEN
+                        ? 'Each step sends an email to suppliers on a specific day after the RFQ is launched (day 0 = initial invite, day 3 = reminder, etc.). Pick a sequence when creating a campaign and Procurea handles scheduling automatically. Use variables like {supplier_name} and {rfq_link} in the body — they are filled per recipient.'
+                        : 'Każdy krok wysyła e-mail do dostawcy w określonym dniu po uruchomieniu RFQ (dzień 0 = zaproszenie, dzień 3 = przypomnienie itd.). Wybierz sekwencję przy tworzeniu kampanii, a Procurea rozplanuje wysyłki automatycznie. W treści użyj zmiennych {supplier_name}, {rfq_link} — zostaną uzupełnione per odbiorca.'}
+                </div>
+            </motion.div>
+
             {/* Templates List */}
             {templates.length === 0 ? (
                 <motion.div variants={itemVariants}>

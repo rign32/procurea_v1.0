@@ -6,6 +6,7 @@ import { Loader2, Lock, Sparkles } from 'lucide-react'
 import AppLayout from './components/layout/AppLayout'
 import Login from './Login'
 import AuthCallbackPage from './pages/AuthCallbackPage'
+import { MobileGuard } from './components/mobile/MobileGuard'
 import { useAuthStore } from './stores/auth.store'
 import apiClient from './services/api.client'
 import { setUserIdentity, clearUserIdentity } from './lib/analytics'
@@ -368,7 +369,7 @@ function App() {
             path="/login"
             element={
               !isAuthenticated ? (
-                <Login onLogin={handleLogin} />
+                <MobileGuard><Login onLogin={handleLogin} /></MobileGuard>
               ) : (
                 <Navigate to="/" />
               )
@@ -378,7 +379,7 @@ function App() {
           {/* OAuth callback — public, handles token exchange */}
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
-          {/* Public Routes — Supplier Portal + Status (no auth required) */}
+          {/* Public Routes — Supplier Portal + Status (no auth required, must work on mobile) */}
           <Route path="/offers/:accessToken" element={<SupplierPortalPage />} />
           <Route path="/status" element={<StatusPage />} />
 
@@ -391,7 +392,7 @@ function App() {
             path="/campaigns/new"
             element={
               isAuthenticated
-                ? (needsOnboarding ? <Navigate to="/onboarding" /> : <RfqWizardPage />)
+                ? (needsOnboarding ? <Navigate to="/onboarding" /> : <MobileGuard><RfqWizardPage /></MobileGuard>)
                 : <Navigate to="/login" />
             }
           />
@@ -399,7 +400,7 @@ function App() {
           {/* Protected Routes */}
           <Route element={
             isAuthenticated
-              ? (needsOnboarding ? <Navigate to="/onboarding" /> : <AppLayout onLogout={handleLogout} />)
+              ? (needsOnboarding ? <Navigate to="/onboarding" /> : <MobileGuard><AppLayout onLogout={handleLogout} /></MobileGuard>)
               : <Navigate to="/login" />
           }>
             <Route path="/" element={<Dashboard />} />

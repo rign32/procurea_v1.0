@@ -125,6 +125,16 @@ export function ApprovalsPage() {
         </p>
       </div>
 
+      {/* How-it-works banner — tells first-time users how approvers are notified */}
+      <div className="rounded-[8px] border border-info-border bg-info-soft p-3 text-[12.5px] text-info leading-[1.5]">
+        <strong className="font-semibold">
+          {isEN ? 'How approvals work' : 'Jak działają zatwierdzenia'}:
+        </strong>{' '}
+        {isEN
+          ? 'When a team member requests approval on a contract or purchase order, the assigned approver receives an email and an in-app notification. Items listed here are requests routed to you — approve or reject to unblock the requester.'
+          : 'Kiedy członek zespołu prosi o zatwierdzenie kontraktu lub zamówienia, wyznaczony zatwierdzający dostaje e-mail i powiadomienie w aplikacji. Tu widzisz wnioski skierowane do Ciebie — zatwierdź lub odrzuć, żeby odblokować osobę proszącą.'}
+      </div>
+
       {/* Tab Filters */}
       <div className="flex gap-1 rounded-lg bg-muted p-1 w-fit">
         {TABS.map((tab) => (

@@ -1034,12 +1034,50 @@ export function CampaignDetailPage() {
                   statusLine = <span className="text-sm text-muted-foreground">{isEN ? 'No contact found' : 'Nie znaleziono kontaktu'}</span>;
                 }
 
+                const otherContacts = supplierContacts.filter((c: any) => c !== bestContact && c.email);
+
                 return (
                   <div key={supplier.id} className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
                     {statusIcon}
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm">{supplier.name}</p>
                       <div className="mt-1">{statusLine}</div>
+                      {otherContacts.length > 0 && (
+                        <details className="mt-2">
+                          <summary className="cursor-pointer text-[11px] text-muted-foreground hover:text-foreground select-none">
+                            {isEN
+                              ? `+${otherContacts.length} more contact${otherContacts.length > 1 ? 's' : ''}`
+                              : `+${otherContacts.length} ${otherContacts.length === 1 ? 'dodatkowy kontakt' : 'dodatkowych kontaktów'}`}
+                          </summary>
+                          <div className="mt-1.5 space-y-1 pl-2 border-l border-muted">
+                            {otherContacts.map((c: any, idx: number) => {
+                              const displayName = getDisplayName(c);
+                              const displayRole = getDisplayRole(c);
+                              const cStatus = statusConfig[c.emailStatus] || { label: c.emailStatus || '—', className: 'bg-gray-100 text-gray-600' };
+                              return (
+                                <div key={c.id || idx} className="flex items-center gap-2 flex-wrap text-xs">
+                                  <a href={`mailto:${c.email}`} className="text-blue-600 hover:underline">
+                                    {c.email}
+                                  </a>
+                                  <Badge className={`text-[10px] ${cStatus.className}`}>{cStatus.label}</Badge>
+                                  {(displayName !== '—' || displayRole !== '—') && (
+                                    <span className="text-muted-foreground">
+                                      {displayName !== '—' ? displayName : ''}
+                                      {displayName !== '—' && displayRole !== '—' ? ' · ' : ''}
+                                      {displayRole !== '—' ? displayRole : ''}
+                                    </span>
+                                  )}
+                                  {c.linkedinUrl && (
+                                    <a href={c.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700 text-[10px]">
+                                      LinkedIn
+                                    </a>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </details>
+                      )}
                     </div>
                   </div>
                 );
