@@ -20,16 +20,16 @@ const isEN = LANG === "en"
 const t = {
   hero: {
     badge: "AI Sourcing",
-    title: isEN ? "50–250 verified vendors in 20 minutes — from one sentence" : "50–250 zweryfikowanych dostawców w 20 minut — z jednego zdania",
+    title: isEN ? "50–250 AI-screened vendors in 20 minutes — from one sentence" : "50–250 wstępnie przefiltrowanych dostawców w 20 minut — z jednego zdania",
     subtitle: isEN
-      ? "Plain-language brief → 4-agent AI pipeline → scored, enriched, deduplicated shortlist. 26 languages, not just English. First 20 vendors in 3 minutes, full list in 20, Excel-ready, no manual paging through Google."
-      : "Brief w naturalnym języku → 4-agentowy pipeline AI → ocenione, wzbogacone, zdeduplikowane shortlisty. 26 języków, nie tylko angielski. Pierwsze 20 vendorów w 3 minuty, pełna lista w 20, gotowa do Excela, bez ręcznego kartkowania Google.",
+      ? "Plain-language brief → 4-agent AI pipeline → scored, enriched, deduplicated shortlist. 26 languages, not just English. First 20 vendors in 3 minutes, full list in 20, Excel-ready. Final due-diligence stays with your team."
+      : "Brief w naturalnym języku → 4-agentowy pipeline AI → ocenione, wzbogacone, zdeduplikowane shortlisty. 26 języków, nie tylko angielski. Pierwsze 20 vendorów w 3 minuty, pełna lista w 20, gotowa do Excela. Finalne due-diligence zostawiamy Twojemu zespołowi.",
     primary: isEN ? "Start free — 10 campaigns" : "Zacznij za darmo — 10 kampanii",
     secondary: isEN ? "See live pipeline" : "Zobacz pipeline na żywo",
   },
   stats: [
     { v: "26", l: isEN ? "languages natively" : "języków natywnie", d: isEN ? "EU + global directories" : "UE + globalne katalogi" },
-    { v: "120", l: isEN ? "avg vendors / campaign" : "średnio vendorów / kampania", d: isEN ? "50–250 range" : "zakres 50–250" },
+    { v: "120", l: isEN ? "avg vendors / campaign" : "średnio vendorów / kampania", d: isEN ? "AI-screened, 50–250 range" : "AI-screened, zakres 50–250" },
     { v: "10", l: isEN ? "free credits on signup" : "darmowych kredytów przy starcie", d: isEN ? "no card required" : "bez karty" },
     { v: "85%", l: isEN ? "capability-match precision" : "precyzja dopasowania", d: isEN ? "measured vs manual review" : "mierzone vs ręczny review" },
   ],
@@ -43,15 +43,15 @@ const t = {
           { icon: Brain, name: "Strategy", role: "Plans multi-market search", tone: "sky", bullets: ["Decomposes your brief into sub-categories", "Picks 5–15 most relevant countries", "Generates 20–40 queries per country in local language", "Selects directories (Kompass, Europages, Wer liefert was, national chambers)"], output: "Query budget plan" },
           { icon: Search, name: "Scanning", role: "Parallel web crawl", tone: "amber", bullets: ["20 worker threads in parallel", "Serper.dev + direct directory crawls", "National company registries", "90-day disk cache (~50% cost cut on re-runs)"], output: "Raw candidate URLs" },
           { icon: BarChart3, name: "Screener", role: "Scores every supplier", tone: "primary", bullets: ["LLM reads each website + evidence", "Capability match against brief", "Certification heuristics (ISO, IATF, FDA, CE...)", "Red-flag detection (dormant, broken contact)"], output: "Score 0–100 + reasoning" },
-          { icon: Sparkles, name: "Enrichment", role: "Fills in the gaps", tone: "emerald", bullets: ["Decision-maker contacts (email, LinkedIn)", "Certification evidence (document URLs)", "Dedup against existing Supplier Database", "Company-size and footprint data"], output: "Complete supplier profile" },
-          { icon: ShieldCheck, name: "Auditor", role: "Final validation", tone: "violet", bullets: ["Cross-checks capability claims", "Flags inconsistencies to the reviewer", "Verifies contact deliverability signals", "Writes the qualification rationale"], output: "Audit-ready shortlist" },
+          { icon: Sparkles, name: "Enrichment", role: "Fills in the gaps", tone: "emerald", bullets: ["Decision-maker contacts (email, LinkedIn)", "Cert signals + document URL when published on the supplier site", "Dedup against existing Supplier Database", "Company-size and footprint data"], output: "Complete supplier profile" },
+          { icon: ShieldCheck, name: "Auditor", role: "Final validation", tone: "violet", bullets: ["Cross-checks capability claims", "Flags inconsistencies to the reviewer", "Verifies contact deliverability signals", "Writes the qualification rationale"], output: "Reviewer-ready shortlist" },
         ]
       : [
           { icon: Brain, name: "Strategy", role: "Planuje search multi-market", tone: "sky", bullets: ["Dekomponuje brief na podkategorie", "Wybiera 5–15 najbardziej relewantnych krajów", "Generuje 20–40 zapytań per kraj w lokalnym języku", "Wybiera katalogi (Kompass, Europages, Wer liefert was, izby krajowe)"], output: "Plan budżetu zapytań" },
           { icon: Search, name: "Scanning", role: "Równoległy crawl webu", tone: "amber", bullets: ["20 worker threads równolegle", "Serper.dev + bezpośrednie crawle katalogów", "Krajowe rejestry spółek", "90-dniowy cache (~50% oszczędność przy re-runie)"], output: "Surowe URL-e kandydatów" },
           { icon: BarChart3, name: "Screener", role: "Ocenia każdego dostawcę", tone: "primary", bullets: ["LLM czyta każdą stronę + dowody", "Dopasowanie capability do briefu", "Heurystyki certyfikatów (ISO, IATF, FDA, CE...)", "Detekcja red-flagów (uśpione, zepsute kontakty)"], output: "Score 0–100 + uzasadnienie" },
-          { icon: Sparkles, name: "Enrichment", role: "Uzupełnia luki", tone: "emerald", bullets: ["Kontakty do decydentów (email, LinkedIn)", "Dowody certyfikatów (URL dokumentów)", "Dedup względem istniejącej Bazy Dostawców", "Dane wielkości i footprintu"], output: "Kompletny profil dostawcy" },
-          { icon: ShieldCheck, name: "Auditor", role: "Finalna walidacja", tone: "violet", bullets: ["Cross-check deklaracji capability", "Flaguje niespójności do reviewera", "Weryfikuje sygnały dostarczalności", "Pisze uzasadnienie kwalifikacji"], output: "Shortlista audit-ready" },
+          { icon: Sparkles, name: "Enrichment", role: "Uzupełnia luki", tone: "emerald", bullets: ["Kontakty do decydentów (email, LinkedIn)", "Sygnały certyfikatów + URL dokumentu gdy dostawca go publikuje", "Dedup względem istniejącej Bazy Dostawców", "Dane wielkości i footprintu"], output: "Kompletny profil dostawcy" },
+          { icon: ShieldCheck, name: "Auditor", role: "Finalna walidacja", tone: "violet", bullets: ["Cross-check deklaracji capability", "Flaguje niespójności do reviewera", "Weryfikuje sygnały dostarczalności", "Pisze uzasadnienie kwalifikacji"], output: "Shortlista dla reviewera" },
         ],
   },
   brief: {

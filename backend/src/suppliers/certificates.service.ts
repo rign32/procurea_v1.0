@@ -239,6 +239,32 @@ export class CertificatesService {
     });
   }
 
+  /**
+   * List all PENDING certs visible to a user's tenant — buyer-facing inbox
+   * of portal-uploaded certs awaiting approval. Returns supplier + document
+   * metadata so the UI can render the inbox row without an extra round-trip.
+   */
+  async listPendingForReviewByTenant(userId: string) {
+    const tenant = await this.tenantContext.resolve(userId);
+    return this.prisma.supplierCertificate.findMany({
+      where: {
+        reviewStatus: 'PENDING',
+        supplier: {
+          campaign: tenant.supplierCampaignFilter(),
+        },
+      },
+      include: {
+        supplier: {
+          select: { id: true, name: true, country: true },
+        },
+        document: {
+          select: { id: true, originalName: true, url: true, mimeType: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async remove(certificateId: string): Promise<void> {
     const cert = await this.prisma.supplierCertificate.findUnique({
       where: { id: certificateId },

@@ -21,6 +21,12 @@ import { ApolloEnrichmentAgent } from './agents/apollo-enrichment.agent';
 import { ConfigService } from '@nestjs/config';
 import { VatValidationService } from '../common/services/vat-validation.service';
 import { TenantContextService } from '../common/services/tenant-context.service';
+import { CertificatesService } from '../suppliers/certificates.service';
+import {
+  normalizeExtractedCertificates,
+  parseLooseDate,
+  type ExtractedCertificate,
+} from '../suppliers/certificate-types';
 import { v4 as uuidv4 } from 'uuid';
 import pLimit = require('p-limit');
 import * as XLSX from 'xlsx';
@@ -267,7 +273,56 @@ export class SourcingService {
         private readonly configService: ConfigService,
         @Optional() private readonly vatValidation: VatValidationService,
         private readonly tenantContext: TenantContextService,
+        private readonly certificatesService: CertificatesService,
     ) { }
+
+    /**
+     * Persist AI-discovered certificates to SupplierCertificate with source=PIPELINE.
+     * Runs fire-and-forget after supplier creation so a cert-write failure never
+     * breaks the sourcing pipeline.
+     */
+    private async persistPipelineCertificates(
+        supplierId: string,
+        auditorGolden: any,
+        enrichmentData: any,
+        screenerData: any,
+        sourceUrl: string,
+    ): Promise<void> {
+        try {
+            // Priority: Auditor > Enrichment > Screener (later stages have validated the data).
+            const rawStructured =
+                auditorGolden?.certificates_structured ??
+                enrichmentData?.certificates_structured ??
+                screenerData?.extracted_data?.certificates_structured ??
+                [];
+            const certs: ExtractedCertificate[] = normalizeExtractedCertificates(rawStructured);
+            if (certs.length === 0) return;
+
+            for (const cert of certs) {
+                try {
+                    const validUntilDate = parseLooseDate(cert.validUntil);
+                    const issuedAtDate = parseLooseDate(cert.issuedAt);
+                    await this.certificatesService.createInternal(supplierId, {
+                        type: cert.type || 'OTHER',
+                        code: cert.code,
+                        issuer: cert.issuer || undefined,
+                        certNumber: cert.certNumber || undefined,
+                        issuedAt: issuedAtDate ? issuedAtDate.toISOString() : null,
+                        validUntil: validUntilDate ? validUntilDate.toISOString() : null,
+                        sourceUrl: cert.documentUrl || sourceUrl || undefined,
+                        source: 'PIPELINE',
+                    });
+                } catch (certErr: any) {
+                    // Duplicate / validation errors per-cert must not break the loop.
+                    this.logger.debug(
+                        `PIPELINE cert skip for supplier ${supplierId} (${cert.code}): ${certErr.message}`,
+                    );
+                }
+            }
+        } catch (err: any) {
+            this.logger.warn(`persistPipelineCertificates failed for ${supplierId}: ${err.message}`);
+        }
+    }
 
     /**
      * CRITICAL: Normalize URL to ROOT DOMAIN only.
@@ -316,6 +371,7 @@ export class SourcingService {
     }
 
     async create(dto: CreateCampaignDto, userId?: string) {
+        const briefMeta = (dto.searchCriteria as any)?.parsedBrief;
         const campaign = await this.prisma.campaign.create({
             data: {
                 name: dto.name || 'New Campaign',
@@ -324,6 +380,10 @@ export class SourcingService {
                 stage: 'STRATEGY',
                 sequenceTemplateId: dto.sequenceTemplateId || null,
                 searchCriteria: dto.searchCriteria ? JSON.parse(JSON.stringify(dto.searchCriteria)) : undefined,
+                industry: dto.searchCriteria?.industry || null,
+                sourcingMode: dto.searchCriteria?.sourcingMode || null,
+                brief: dto.searchCriteria?.brief || null,
+                parsedBrief: briefMeta ? JSON.parse(JSON.stringify(briefMeta)) : undefined,
             }
         });
 
@@ -1215,6 +1275,12 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 targetCountries: dto.searchCriteria.targetCountries,
                 excludedCountries: dto.searchCriteria.excludedCountries,
                 requiredCertificates: dto.searchCriteria.requiredCertificates,
+                industry: dto.searchCriteria.industry || undefined,
+                sourcingMode: (dto.searchCriteria as any).sourcingMode || undefined,
+                city: (dto.searchCriteria as any).city || undefined,
+                eventDate: (dto.searchCriteria as any).eventDate || undefined,
+                headcount: (dto.searchCriteria as any).headcount || undefined,
+                brief: (dto.searchCriteria as any).brief || undefined,
             };
 
             await this.log(id, `🎯 [STRATEGY] Generating multimodal search strategy for region: ${strategyParams.region}`);
@@ -3067,6 +3133,15 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             await this.log(campaignId, `${workerTag} QUALIFIED: ${newSupplier.name} (${finalScore}%) | Emails: ${emailArray.length}`);
             this.sourcingGateway?.emitSupplierUpdate(campaignId, { url, status: 'QUALIFIED', data: newSupplier });
 
+            // Persist AI-discovered certs (fire-and-forget — never blocks pipeline).
+            this.persistPipelineCertificates(
+                newSupplier.id,
+                auditorResult?.golden_record,
+                enrichmentResult?.enriched_data,
+                screenerResult,
+                finalWebsite,
+            ).catch(() => {});
+
             // Fire-and-forget: search for local subsidiary after save (non-blocking)
             if (shouldSearchLocalSubsidiary) {
                 const companyNameForLocal = enrichmentResult?.enriched_data?.company_name || screenerResult.extracted_data?.company_name || '';
@@ -3335,6 +3410,15 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
 
             await this.log(campaignId, `${workerTag} CACHE QUALIFIED: ${newSupplier.name} (${finalScore}%)`);
             this.sourcingGateway?.emitSupplierUpdate(campaignId, { url: enrichedData.website, status: 'QUALIFIED', data: newSupplier });
+
+            // Persist AI-discovered certs from cache (fire-and-forget).
+            this.persistPipelineCertificates(
+                newSupplier.id,
+                cachedSupplier.auditorResult?.golden_record,
+                cachedSupplier.enrichmentResult?.enriched_data,
+                { extracted_data: cachedSupplier.analystResult },
+                enrichedData.website,
+            ).catch(() => {});
 
             return true;
         } catch (err: any) {

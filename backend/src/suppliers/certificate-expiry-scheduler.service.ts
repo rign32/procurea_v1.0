@@ -84,21 +84,23 @@ export class CertificateExpirySchedulerService {
     certs: Array<{
       type: string;
       code: string;
-      validUntil: Date;
+      validUntil: Date | null;
       status: string;
       supplier: { name?: string | null };
     }>,
     locale: string,
   ): { subject: string; html: string } {
     const isPL = locale === 'pl';
-    const expired = certs.filter((c) => c.status === 'EXPIRED');
-    const expiring = certs.filter((c) => c.status !== 'EXPIRED');
+    // Certs without a date never surface in expiry alerts — findExpiringForAlert filters them out,
+    // but keep a defensive filter so the renderer never sees a null validUntil.
+    const datedCerts = certs.filter((c): c is typeof c & { validUntil: Date } => !!c.validUntil);
+    const expired = datedCerts.filter((c) => c.status === 'EXPIRED');
 
     const subject = isPL
-      ? `⚠️ Wygasające certyfikaty dostawców (${certs.length})`
-      : `⚠️ Supplier certificates expiring (${certs.length})`;
+      ? `⚠️ Wygasające certyfikaty dostawców (${datedCerts.length})`
+      : `⚠️ Supplier certificates expiring (${datedCerts.length})`;
 
-    const rows = certs
+    const rows = datedCerts
       .map((c) => {
         const days = Math.ceil(
           (c.validUntil.getTime() - Date.now()) / (1000 * 60 * 60 * 24),

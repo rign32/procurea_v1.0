@@ -177,11 +177,29 @@ Zwróć JSON:
     "specialization": "Specjalizacja",
     "employee_count": "Liczba pracowników lub null",
     "certificates": ["ISO 9001"],
+    "certificates_structured": [
+      {
+        "code": "ISO 9001:2015",
+        "issuer": "TÜV SÜD",
+        "certNumber": "12 100 45678",
+        "issuedAt": "2023-01-15",
+        "validUntil": "2026-01-14",
+        "documentUrl": "https://example.com/iso9001.pdf",
+        "evidenceQuote": "Cytat ze strony dostawcy (max 120 znaków)"
+      }
+    ],
     "contact_emails": ["email@company.com"],
     "is_verified_manufacturer": true/false,
     "verified_company_type": "PRODUCENT|HANDLOWIEC|NIEJASNY"
   }
 }
+
+WAŻNE — certyfikaty_strukturalne:
+Zachowaj wpisy z etapów wcześniejszych (screener + enrichment) o ile są wiarygodne.
+Odrzuć wpisy podejrzane (np. certyfikaty bez związku z branżą firmy, ewidentnie zmyślone
+numery rejestrowe). Dla każdego pozostawionego certu: NIE WYMYŚLAJ brakujących pól
+(certNumber/issuedAt/validUntil/documentUrl) — jeśli ich nie ma w danych wejściowych,
+po prostu je pomiń.
         `;
 
         try {
@@ -235,6 +253,7 @@ Zwróć JSON:
                     specialization: websiteData?.specialization || null,
                     employee_count: websiteData?.employee_count || null,
                     certificates: websiteData?.certificates || [],
+                    certificates_structured: websiteData?.certificates_structured || [],
                     contact_emails: websiteData?.contact_emails || [],
                     is_verified_manufacturer: false,
                     verified_company_type: 'NIEJASNY'

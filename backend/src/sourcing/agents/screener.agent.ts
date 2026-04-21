@@ -1,6 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { GeminiService } from '../../common/services/gemini.service';
 import { parseAiJson } from '../../common/utils/parse-ai-json';
+import {
+  detectCertificateType,
+  type ExtractedCertificate,
+} from '../../suppliers/certificate-types';
 
 /**
  * Product context provided by the pipeline's Phase 0 analysis.
@@ -64,6 +68,7 @@ export class ScreenerAgentService {
             website?: string;
             specialization?: string;
             certificates?: string[];
+            certificates_structured?: ExtractedCertificate[];
             employee_count?: string;
         };
         mentioned_companies?: { name: string; url?: string }[];
@@ -258,7 +263,24 @@ INSTRUKCJE EKSTRAKCJI (tylko jeśli is_relevant: true):
 1. Przeanalizuj treść pod kątem dopasowania do RFQ.
 2. Wydobądź dane firmy. Jeśli nazwy firmy nie ma wprost (np. w stopce), UŻYJ NAZWY DOMENY jako nazwy firmy (np. "granulat.com" -> "Granulat"). NIE zwracaj "Unknown" ani "Należy ustalić".
 3. Lokalizacja: Jeśli brak adresu, wywnioskuj kraj z domeny (.pl -> Polska, .de -> Niemcy) lub numeru telefonu (+48 -> Polska). Wpisz miasto, jeśli znajdziesz.
-4. Certyfikaty: Szukaj słów kluczowych: ISO 9001, IATF 16949, ISO 14001, UL. Wypisz je w tablicy.
+4. Certyfikaty — WAŻNE, wymagana STRUKTURALNA ekstrakcja:
+   Znajdź każdy certyfikat wymieniony na stronie (ISO 9001, ISO 14001, IATF 16949, AS 9100,
+   ISO 13485, CE, MDR, RoHS, REACH, HACCP, BRCGS, IFS, FSC, BSCI, Organic EU, MSC, Kosher,
+   Halal, Fair Trade i in.) i dla KAŻDEGO zwróć obiekt w polu "certificates_structured":
+     - code: etykieta jak na stronie, np. "ISO 9001:2015"
+     - issuer: nazwa jednostki certyfikującej (TÜV SÜD, DEKRA, Bureau Veritas, DNV, SGS,
+       Intertek, Polskie Centrum Badań i Certyfikacji, itp.) — jeśli jest wymieniona
+     - certNumber: numer rejestracyjny certyfikatu (zwykle koło pieczęci albo pod nazwą
+       certyfikatu, np. "12 100 45678", "PL-1234-2024")
+     - issuedAt: data wydania (format ISO YYYY-MM-DD) — jeśli podana
+     - validUntil: data ważności (format ISO YYYY-MM-DD) — jeśli podana
+     - documentUrl: pełny URL do pliku PDF/obrazu certyfikatu na stronie (szukaj linków
+       typu /certyfikat.pdf, /cert/iso9001.pdf, /uploads/*.pdf)
+     - evidenceQuote: krótki fragment tekstu ze strony (max 120 znaków), gdzie cert był
+       wzmiankowany — dla audytu
+   NIE WYMYŚLAJ danych — jeśli numeru / daty / URL-a nie ma na stronie, POMIŃ te pola
+   (nie ustawiaj na puste stringi). Zachowaj też listę skrótów w "certificates" (string[])
+   dla kompatybilności wstecznej.
 5. Specjalizacja: Krótkie zdanie opisujące co robią (np. "Wtrysk tworzyw sztucznych i budowa form").
 6. Wielkość: Szukaj haseł typu "employees", "staff", "pracowników". Jeśli brak, oszacuj lub zostaw pusty string.
 
@@ -294,6 +316,17 @@ FORMAT WYJŚCIOWY (JSON Only):
     "website": "URL strony głównej",
     "specialization": "Krótki opis działalności (max 5-7 słów)",
     "certificates": ["ISO 9001", "IATF 16949"],
+    "certificates_structured": [
+      {
+        "code": "ISO 9001:2015",
+        "issuer": "TÜV SÜD",
+        "certNumber": "12 100 45678",
+        "issuedAt": "2023-01-15",
+        "validUntil": "2026-01-14",
+        "documentUrl": "https://example.com/certyfikaty/iso9001.pdf",
+        "evidenceQuote": "Posiadamy certyfikat ISO 9001:2015 wydany przez TÜV SÜD nr 12 100 45678"
+      }
+    ],
     "employee_count": "Liczba pracowników (np. '50-100' lub '500+')"
   },
   "mentioned_companies": [

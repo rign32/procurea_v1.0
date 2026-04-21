@@ -100,7 +100,7 @@ const plans: Plan[] = isEN
 
 const sharedFeatures = isEN
   ? [
-      "AI pipeline: up to 250 verified suppliers per run",
+      "AI pipeline: up to 250 AI-screened suppliers per run",
       "Worldwide research in 30+ business languages",
       "Supplier Database with AI scores & campaign history",
       "One-click Excel export of the full supplier list",
@@ -110,7 +110,7 @@ const sharedFeatures = isEN
       "3 free sourcing runs on signup — no credit card",
     ]
   : [
-      "AI pipeline: do 250 zweryfikowanych dostawców na kampanię",
+      "AI pipeline: do 250 wstępnie przefiltrowanych dostawców na kampanię",
       "Research na całym świecie — 30+ języków biznesowych",
       "Baza Dostawców z ocenami AI i historią kampanii",
       "Eksport pełnej listy dostawców do Excela jednym kliknięciem",
@@ -172,7 +172,7 @@ const creditPacks: CreditPack[] = isEN
 
 const faq = isEN
   ? [
-      { q: 'What counts as a "sourcing run"?',                     a: 'One spec / category + region combination, returning a ranked list of up to 250 verified suppliers. You can export, shortlist and (if you add AI Procurement) send RFQs from the same run without consuming extra sourcing credits.' },
+      { q: 'What counts as a "sourcing run"?',                     a: 'One spec / category + region combination, returning a ranked list of up to 250 AI-screened suppliers. You can export, shortlist and (if you add AI Procurement) send RFQs from the same run without consuming extra sourcing credits.' },
       { q: 'What is AI Procurement and when do I need it?',         a: 'AI Procurement extends any sourcing run with the full RFQ workflow — contact enrichment, localized email outreach, Supplier Portal, offer collection, side-by-side comparison, AI Insights reports. $29 per workflow, charged only on runs where you activate it.' },
       { q: 'Do I have to buy AI Procurement for every run?',         a: 'No. AI Procurement is opt-in per run. Run sourcing alone when you only need a supplier list; add the $29 workflow on the runs where you actually want RFQ outreach and offer collection.' },
       { q: 'What if I run out of sourcing runs mid-month?',          a: 'Top up with any Sourcing credit pack — they stack. Or upgrade your plan and we\'ll prorate the difference.' },
@@ -181,7 +181,7 @@ const faq = isEN
       { q: 'Is there a setup fee?',                                  a: 'No. On Growth and Scale, onboarding is included.' },
     ]
   : [
-      { q: 'Co liczy się jako „sourcing run"?',                      a: 'Jedna specyfikacja / kategoria + region, zwraca ranking do 250 zweryfikowanych dostawców. Z tego samego runu możesz eksportować, shortlistować i (po dodaniu AI Procurement) wysyłać RFQ bez zużywania dodatkowych kredytów sourcingowych.' },
+      { q: 'Co liczy się jako „sourcing run"?',                      a: 'Jedna specyfikacja / kategoria + region, zwraca ranking do 250 wstępnie przefiltrowanych dostawców. Z tego samego runu możesz eksportować, shortlistować i (po dodaniu AI Procurement) wysyłać RFQ bez zużywania dodatkowych kredytów sourcingowych.' },
       { q: 'Co to jest AI Procurement i kiedy go potrzebuję?',       a: 'AI Procurement rozszerza dowolny run sourcingowy o pełny workflow RFQ — enrichment kontaktów, zlokalizowany outreach email, Supplier Portal, zbieranie ofert, porównanie side-by-side, raporty AI Insights. 129 zł za workflow, płacone tylko przy runach, w których go aktywujesz.' },
       { q: 'Czy muszę kupić AI Procurement dla każdego runu?',       a: 'Nie. AI Procurement jest opt-in per run. Uruchom sam sourcing, kiedy potrzebujesz tylko listy dostawców; dodaj workflow 129 zł na tych runach, na których naprawdę chcesz outreach RFQ i zbieranie ofert.' },
       { q: 'Co jeśli skończą mi się runy w środku miesiąca?',        a: 'Doładuj dowolnym pakietem kredytów Sourcingowych — stakują się. Albo przejdź na wyższy plan, a przeliczymy różnicę proporcjonalnie.' },
