@@ -12,6 +12,7 @@ import {
   DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
 import { RecommendedSuppliers } from '@/components/suppliers/RecommendedSuppliers';
+import { PendingCertificatesInbox } from '@/components/suppliers/PendingCertificatesInbox';
 import { CloneCampaignDialog } from '@/components/campaigns/CloneCampaignDialog';
 import { useCampaigns } from '@/hooks/useCampaigns';
 import { useDashboardStats, useDashboardActivity } from '@/hooks/useDashboard';
@@ -219,6 +220,9 @@ export default function Dashboard() {
           />
         </div>
       </section>
+
+      {/* Pending certificates inbox — only renders when count > 0 */}
+      <PendingCertificatesInbox />
 
       {/* Main grid — campaigns + recommendations */}
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">

@@ -611,8 +611,9 @@ export function RfqDetailPage() {
         endDate: draft.endDate || '',
       });
       setShowContractModal(true);
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || (isEN ? 'Failed to generate contract' : 'Nie udało się wygenerować kontraktu');
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      const msg = e?.response?.data?.message || e?.message || (isEN ? 'Failed to generate contract' : 'Nie udało się wygenerować kontraktu');
       toast.error(isEN ? `Failed to generate contract: ${msg}` : `Nie udało się wygenerować kontraktu: ${msg}`);
     } finally {
       setGeneratingContractOfferId(null);
@@ -638,8 +639,9 @@ export function RfqDetailPage() {
       setShowContractModal(false);
       setContractDraft(null);
       setContractDraftSource(null);
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || (isEN ? 'Failed to save contract' : 'Nie udało się zapisać kontraktu');
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      const msg = e?.response?.data?.message || e?.message || (isEN ? 'Failed to save contract' : 'Nie udało się zapisać kontraktu');
       toast.error(isEN ? `Failed to save contract: ${msg}` : `Nie udało się zapisać kontraktu: ${msg}`);
     } finally {
       setSavingContract(false);
@@ -682,8 +684,10 @@ export function RfqDetailPage() {
     return formatCurrency(offer.price, offer.currency);
   };
 
-  // Display price with conversion (if available)
-  const getDisplayPriceWithConversion = (offer: any) => {
+  // Display price with conversion (if available). Offers passed from the
+  // comparison endpoint carry an extra `convertedPrice` field that isn't in
+  // the base Offer shape, so we extend the parameter type locally.
+  const getDisplayPriceWithConversion = (offer: Offer & { convertedPrice?: number | null }) => {
     const originalPrice = getDisplayPrice(offer);
 
     // If comparison data includes converted price and it's different from original
@@ -742,7 +746,7 @@ export function RfqDetailPage() {
           <div>
             <h1 className="text-[30px] leading-[1.1] tracking-[-0.03em] font-bold">{rfq.productName}</h1>
             <p className="text-muted-ink text-sm mt-1">
-              {(rfq as any).publicId || rfq.id.substring(0, 8)}
+              {rfq.publicId || rfq.id.substring(0, 8)}
             </p>
           </div>
           <Status state={rfq.status === 'DRAFT' ? 'idle' : rfq.status === 'CLOSED' ? 'done' : rfq.status === 'ARCHIVED' ? 'idle' : 'live'}>

@@ -62,7 +62,7 @@ export class CertificatesController {
   ) {
     const userId = this.getUserId(req);
     await this.certificatesService.ensureSupplierAccess(supplierId, userId);
-    return this.certificatesService.approve(certificateId, userId);
+    return this.certificatesService.approve(supplierId, certificateId, userId);
   }
 
   @Post(':certificateId/reject')
@@ -74,7 +74,12 @@ export class CertificatesController {
   ) {
     const userId = this.getUserId(req);
     await this.certificatesService.ensureSupplierAccess(supplierId, userId);
-    return this.certificatesService.reject(certificateId, userId, body?.notes);
+    return this.certificatesService.reject(
+      supplierId,
+      certificateId,
+      userId,
+      body?.notes,
+    );
   }
 
   @Delete(':certificateId')

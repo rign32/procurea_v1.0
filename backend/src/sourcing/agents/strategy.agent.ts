@@ -367,6 +367,59 @@ export class StrategyAgentService {
 
   constructor(private readonly geminiService: GeminiService) { }
 
+  private buildIndustryModeBlock(ctx: {
+    industry?: string;
+    sourcingMode?: 'product' | 'service' | 'mixed';
+    city?: string;
+    eventDate?: string;
+    headcount?: number;
+    brief?: string;
+    effectiveProductName: string;
+  }): string {
+    if (!ctx.industry && !ctx.sourcingMode && !ctx.city && !ctx.brief) {
+      return '';
+    }
+
+    const INDUSTRY_GUIDANCE: Record<string, string> = {
+      manufacturing: 'Szukamy PRODUCENTÓW surowców/komponentów/podzespołów dla B2B (nie sklepów, nie dystrybutorów gotowych wyrobów).',
+      events: 'Szukamy LOKALNYCH WYKONAWCÓW USŁUG EVENTOWYCH (catering, AV, scenografia, hostessy) w konkretnym mieście i terminie. Zapytania MUSZĄ zawierać miasto.',
+      construction: 'Szukamy PODWYKONAWCÓW BUDOWLANYCH (HVAC, elektryka, wykończenia) LUB dostawców materiałów budowlanych w konkretnym regionie/województwie.',
+      horeca: 'Szukamy DOSTAWCÓW F&B, sprzętu kuchennego, serwisu urządzeń — preferuj lokalnych producentów nabiału/mięsa/warzyw i regionalnych hurtowników.',
+      healthcare: 'Szukamy PRODUCENTÓW WYROBÓW MEDYCZNYCH z obowiązkową zgodnością (CE/MDR/FDA/ISO 13485). Odrzucaj dystrybutorów bez własnego znaku CE.',
+      retail: 'Szukamy PRODUCENTÓW PRIVATE LABEL (nearshore lub offshore) gotowych produkować pod marką klienta — nie platform B2C ani sklepów.',
+      logistics: 'Szukamy DOSTAWCÓW SPRZĘTU LOGISTYCZNEGO (regały, przenośniki, wózki) LUB operatorów 3PL z pokryciem geograficznym — nie kurierów detalicznych.',
+      mro: 'Szukamy DOSTAWCÓW CZĘŚCI MRO / SERWISÓW UTRZYMANIA RUCHU — producenci łożysk, uszczelnień, komponentów + firmy serwisowe z SLA.',
+      other: 'Brak profilu branżowego — bazuj na opisie i kontekście produktu.',
+    };
+
+    const MODE_GUIDANCE: Record<string, string> = {
+      product: 'Szukaj PRODUCENTÓW/DOSTAWCÓW towaru. Używaj terminów: "producent", "manufacturer", "supplier", "factory", "Hersteller", "fournisseur".',
+      service: 'Szukaj WYKONAWCÓW USŁUG (nie producentów towarów). Używaj terminów: "firma", "wykonawca", "usługi", "company", "contractor", "services", "Dienstleister", "entreprise".',
+      mixed: 'Szukaj zarówno DOSTAWCÓW jak i WYKONAWCÓW — dopuszczalne obie kategorie keywords.',
+    };
+
+    const industryLine = ctx.industry ? `**BRANŻA:** ${ctx.industry}\n${INDUSTRY_GUIDANCE[ctx.industry] || INDUSTRY_GUIDANCE.other}` : '';
+    const modeLine = ctx.sourcingMode ? `**TRYB SOURCINGU:** ${ctx.sourcingMode}\n${MODE_GUIDANCE[ctx.sourcingMode]}` : '';
+
+    // Location specificity for events / construction
+    const locationParts: string[] = [];
+    if (ctx.city) {
+      locationParts.push(`**MIASTO:** ${ctx.city} — zapytania MUSZĄ zawierać nazwę tego miasta (np. "catering ${ctx.city}", "AV services ${ctx.city}").`);
+    }
+    if (ctx.eventDate) locationParts.push(`**DATA WYDARZENIA:** ${ctx.eventDate}`);
+    if (ctx.headcount) locationParts.push(`**SKALA WYDARZENIA:** ${ctx.headcount} osób — preferuj wykonawców o odpowiedniej pojemności.`);
+    const locationBlock = locationParts.length ? `\n${locationParts.join('\n')}` : '';
+
+    const briefBlock = ctx.brief ? `\n**ORYGINALNY BRIEF OD UŻYTKOWNIKA:**\n"${ctx.brief.slice(0, 600)}"` : '';
+
+    return `
+=== KONTEKST BRANŻY I TRYBU SOURCINGU ===
+${industryLine}
+${modeLine}${locationBlock}${briefBlock}
+
+`;
+  }
+
   async execute(params: {
     productName: string;
     description: string;
@@ -379,6 +432,12 @@ export class StrategyAgentService {
     targetCountries?: string[];
     excludedCountries?: string[];
     requiredCertificates?: string[];
+    industry?: string;
+    sourcingMode?: 'product' | 'service' | 'mixed';
+    city?: string;
+    eventDate?: string;
+    headcount?: number;
+    brief?: string;
   }): Promise<any> {
     this.logger.log(`Executing Strategy Agent for "${params.productName}" in region: ${params.region}`);
 
@@ -483,12 +542,23 @@ ${translationsBlock || '  (brak — przetłumacz samodzielnie)'}
       ? `\n=== WYMAGANE CERTYFIKATY ===\nUżytkownik wymaga: ${requiredCerts.join(', ')}\nGeneruj DODATKOWE zapytania z certyfikatami, np.:\n"${requiredCerts[0]} ${effectiveProductName} manufacturer"\n"${effectiveProductName} supplier certified ${requiredCerts.join(' ')}"`
       : '';
 
+    // Industry + sourcing mode context (wizard v2)
+    const industryModeBlock = this.buildIndustryModeBlock({
+      industry: params.industry,
+      sourcingMode: params.sourcingMode,
+      city: params.city,
+      eventDate: params.eventDate,
+      headcount: params.headcount,
+      brief: params.brief,
+      effectiveProductName,
+    });
+
     const systemPrompt = `
 Jesteś Ekspertem Strategii Sourcingu Przemysłowego (Industrial Sourcing Strategist).
-Twoim celem jest znalezienie JAK NAJWIĘKSZEJ LICZBY REALNYCH PRODUCENTÓW dla podanego produktu/surowca.
-CHCEMY ZNALEŹĆ 200-300 PRODUCENTÓW w wybranym regionie. GENERUJ MAKSYMALNĄ LICZBĘ UNIKALNYCH ZAPYTAŃ.
-${productContextBlock}
-=== PRODUKT / SUROWIEC DO ZNALEZIENIA ===
+Twoim celem jest znalezienie JAK NAJWIĘKSZEJ LICZBY REALNYCH PRODUCENTÓW/WYKONAWCÓW dla podanego produktu lub usługi.
+CHCEMY ZNALEŹĆ 200-300 DOSTAWCÓW w wybranym regionie. GENERUJ MAKSYMALNĄ LICZBĘ UNIKALNYCH ZAPYTAŃ.
+${industryModeBlock}${productContextBlock}
+=== PRODUKT / SUROWIEC / USŁUGA DO ZNALEZIENIA ===
 **NAZWA:** "${effectiveProductName}"
 **OPIS:** "${params.description}"
 **SŁOWA KLUCZOWE:** ${keywordsStr}

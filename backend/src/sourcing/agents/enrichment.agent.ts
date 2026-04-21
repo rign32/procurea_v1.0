@@ -77,7 +77,16 @@ ZADANIA:
 1. Lokalizacja: Miasto i Kraj
 2. Wielkość Firmy: np. "50-200", "200-500"
 3. Specjalizacja: max 5 słów
-4. Certyfikaty: lista ISO/IATF/AS9100
+4. Certyfikaty — STRUKTURALNIE. Dla KAŻDEGO certyfikatu (ISO 9001, ISO 14001, IATF 16949,
+   AS 9100, ISO 13485, CE, MDR, RoHS, REACH, HACCP, BRCGS, IFS, FSC, BSCI, Organic EU,
+   Fair Trade, itp.) zwróć obiekt w "certificates_structured" z polami:
+     - code (np. "ISO 9001:2015"), issuer (TÜV/DEKRA/DNV/Bureau Veritas/SGS/Intertek),
+       certNumber (numer rejestracyjny), issuedAt (YYYY-MM-DD), validUntil (YYYY-MM-DD),
+       documentUrl (link do PDF na stronie dostawcy), evidenceQuote (cytat ≤120 znaków).
+   Jeśli któregoś pola brak na stronie — POMIŃ to pole (nie wymyślaj). Zachowaj też
+   listę skrótów w "certificates" (string[]) dla kompatybilności wstecznej.
+   Jeśli dane analizy już zawierają "certificates_structured" — zweryfikuj i dopełnij
+   (nie kasuj istniejących wpisów chyba że są oczywistymi błędami).
 
 === KONTEKST PRODUKTU ===
 PRODUKT DOCELOWY: ${productContext?.coreProduct || 'N/A'}
@@ -103,6 +112,17 @@ Zwróć JSON:
     "city": "Miasto lub null",
     "employee_count": "np. '50-200' lub null",
     "certificates": ["ISO 9001"],
+    "certificates_structured": [
+      {
+        "code": "ISO 9001:2015",
+        "issuer": "TÜV SÜD",
+        "certNumber": "12 100 45678",
+        "issuedAt": "2023-01-15",
+        "validUntil": "2026-01-14",
+        "documentUrl": "https://example.com/iso9001.pdf",
+        "evidenceQuote": "Cytat ze strony"
+      }
+    ],
     "specialization": "Krótki opis",
     "contact_emails": []
   },

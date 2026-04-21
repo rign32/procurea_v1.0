@@ -135,10 +135,38 @@ export const campaignsService = {
         desiredDeliveryDate: dto.desiredDeliveryDate,
         supplierTypes: dto.supplierTypes || ['PRODUCENT'],
         requiredCertificates: dto.requiredCertificates || [],
+        // Wizard v2: industry-aware fields
+        industry: dto.industry,
+        sourcingMode: dto.sourcingMode,
+        brief: dto.brief,
+        city: dto.city,
+        eventDate: dto.eventDate,
+        headcount: dto.headcount,
+        parsedBrief: dto.parsedBrief,
       },
     };
     const { data } = await apiClient.post<any>('/campaigns', backendDto);
     return { id: data.id, status: data.status };
+  },
+
+  /**
+   * AI parser: wizard v2 — extract structured fields from free-text brief
+   */
+  parseBrief: async (input: {
+    brief: string;
+    industry?: import('@/types/campaign.types').Industry;
+    sourcingMode?: import('@/types/campaign.types').SourcingMode;
+  }): Promise<import('@/types/campaign.types').ParsedBrief> => {
+    const { data } = await apiClient.post<import('@/types/campaign.types').ParsedBrief>(
+      '/campaigns/parse-brief',
+      {
+        brief: input.brief,
+        industry: input.industry,
+        sourcingMode: input.sourcingMode,
+        language: isEN ? 'en' : 'pl',
+      },
+    );
+    return data;
   },
 
   /**

@@ -52,9 +52,10 @@ export const CERTIFICATE_LABELS: Record<CertificateType, string> = {
   OTHER: 'Other',
 };
 
-export type CertificateStatus = 'ACTIVE' | 'EXPIRING_SOON' | 'EXPIRED';
-export type CertificateSource = 'MANUAL' | 'PORTAL';
+export type CertificateStatus = 'ACTIVE' | 'EXPIRING_SOON' | 'EXPIRED' | 'UNKNOWN';
+export type CertificateSource = 'MANUAL' | 'PORTAL' | 'PIPELINE';
 export type CertificateReviewStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+export type CertificateVerificationStatus = 'EXTRACTED' | 'EVIDENCED' | 'VERIFIED';
 
 export interface SupplierCertificate {
   id: string;
@@ -64,9 +65,11 @@ export interface SupplierCertificate {
   issuer: string | null;
   certNumber: string | null;
   issuedAt: string | null;
-  validUntil: string;
+  validUntil: string | null;
   status: CertificateStatus;
   source: CertificateSource;
+  sourceUrl: string | null;
+  verificationStatus: CertificateVerificationStatus;
   reviewStatus: CertificateReviewStatus;
   reviewedAt: string | null;
   reviewedById: string | null;
@@ -87,6 +90,7 @@ export interface CertificateSummary {
   ACTIVE: number;
   EXPIRING_SOON: number;
   EXPIRED: number;
+  UNKNOWN: number;
   pending: number;
   rejected: number;
 }
@@ -159,6 +163,18 @@ export const certificatesService = {
       `/suppliers/${supplierId}/certificates/${certificateId}/reject`,
       { notes },
     );
+    return data;
+  },
+
+  listPendingReviewInbox: async (): Promise<{
+    items: Array<
+      SupplierCertificate & {
+        supplier: { id: string; name: string | null; country: string | null };
+      }
+    >;
+    count: number;
+  }> => {
+    const { data } = await apiClient.get(`/certificates/pending-review`);
     return data;
   },
 };

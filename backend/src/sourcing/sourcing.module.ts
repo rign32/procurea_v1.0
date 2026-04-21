@@ -10,15 +10,17 @@ import { EnrichmentAgentService } from './agents/enrichment.agent';
 import { AuditorAgentService } from './agents/auditor.agent';
 import { ExpansionAgentService } from './agents/expansion.agent';
 import { ApolloEnrichmentAgent } from './agents/apollo-enrichment.agent';
+import { BriefParserAgent } from './agents/brief-parser.agent';
 import { EmailFallbackService } from './agents/email-fallback.service';
 import { ContactsController } from './contacts.controller';
 import { SourcingGateway } from './sourcing.gateway';
 import { EmailModule } from '../email/email.module';
 import { ObservabilityModule } from '../observability/observability.module';
 import { SalesOpsModule } from '../sales-ops/sales-ops.module';
+import { SuppliersModule } from '../suppliers/suppliers.module';
 
 @Module({
-  imports: [EmailModule, ObservabilityModule, forwardRef(() => SalesOpsModule)],
+  imports: [EmailModule, ObservabilityModule, forwardRef(() => SalesOpsModule), SuppliersModule],
   controllers: [SourcingController, ContactsController],
   providers: [
     SourcingService,
@@ -31,6 +33,7 @@ import { SalesOpsModule } from '../sales-ops/sales-ops.module';
     AuditorAgentService,
     ExpansionAgentService,
     ApolloEnrichmentAgent,
+    BriefParserAgent,
     EmailFallbackService,
     SourcingGateway,
   ],

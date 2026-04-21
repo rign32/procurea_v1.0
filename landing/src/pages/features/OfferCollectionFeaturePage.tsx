@@ -39,13 +39,13 @@ const t = {
       ? [
           { label: "Pricing", icon: CircleDollarSign, items: ["Unit price (per SKU, per volume tier)", "Currency (auto-converted)", "Discount schedule", "Validity period", "Payment terms (days net)"] },
           { label: "Logistics", icon: Scale, items: ["Incoterms (EXW / FOB / CIF / DDP)", "Lead time (days or weeks)", "MOQ (per SKU)", "Packaging spec", "Country of origin"] },
-          { label: "Compliance", icon: ShieldCheck, items: ["Certifications (auto-verified)", "Insurance coverage", "Declaration of conformity", "Test reports attached", "Safety data sheet"] },
+          { label: "Compliance", icon: ShieldCheck, items: ["Certifications (expiry-tracked, buyer-approved)", "Insurance coverage", "Declaration of conformity", "Test reports attached", "Safety data sheet"] },
           { label: "Evidence", icon: Paperclip, items: ["Price sheet (optional)", "Sample images", "Technical datasheet", "Reference letters", "Case studies"] },
         ]
       : [
           { label: "Cennik", icon: CircleDollarSign, items: ["Cena jednostkowa (per SKU, per tier wolumenu)", "Waluta (auto-konwersja)", "Harmonogram rabatów", "Ważność", "Płatność (dni netto)"] },
           { label: "Logistyka", icon: Scale, items: ["Incoterms (EXW / FOB / CIF / DDP)", "Lead time (dni/tyg.)", "MOQ (per SKU)", "Spec opakowania", "Kraj pochodzenia"] },
-          { label: "Compliance", icon: ShieldCheck, items: ["Certyfikaty (auto-weryfikacja)", "Zakres ubezpieczenia", "Deklaracja zgodności", "Załączone raporty", "Karta charakterystyki"] },
+          { label: "Compliance", icon: ShieldCheck, items: ["Certyfikaty (tracking ważności + akceptacja kupującego)", "Zakres ubezpieczenia", "Deklaracja zgodności", "Załączone raporty", "Karta charakterystyki"] },
           { label: "Dowody", icon: Paperclip, items: ["Cennik (opcjonalnie)", "Zdjęcia sampli", "Datasheet techniczny", "Listy referencyjne", "Case studies"] },
         ],
   },

@@ -11,6 +11,10 @@ import {
   Check,
   X,
   Eye,
+  HelpCircle,
+  Sparkles,
+  ShieldCheck,
+  ExternalLink,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -63,6 +67,35 @@ const STATUS_CONFIG: Record<
     label: 'Wygasły',
     icon: AlertTriangle,
     cls: 'bg-rose-50 text-rose-700 border-rose-200',
+  },
+  UNKNOWN: {
+    label: 'Bez daty',
+    icon: HelpCircle,
+    cls: 'bg-slate-50 text-slate-600 border-slate-200',
+  },
+};
+
+const VERIFICATION_CONFIG: Record<
+  'EXTRACTED' | 'EVIDENCED' | 'VERIFIED',
+  { label: string; tooltip: string; icon: typeof CheckCircle2; cls: string }
+> = {
+  EXTRACTED: {
+    label: 'Wykryty przez AI',
+    tooltip: 'Tekst certyfikatu znaleziony na stronie dostawcy, brak twardych dowodów (numer, data, dokument)',
+    icon: Sparkles,
+    cls: 'bg-slate-50 text-slate-600 border-slate-200',
+  },
+  EVIDENCED: {
+    label: 'Z dowodami',
+    tooltip: 'AI znalazło co najmniej jeden twardy sygnał: numer, datę, wystawcę lub link do dokumentu',
+    icon: Eye,
+    cls: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  },
+  VERIFIED: {
+    label: 'Zweryfikowany',
+    tooltip: 'Cert przeszedł ręczną weryfikację kupującego lub cross-check w zewnętrznym rejestrze',
+    icon: ShieldCheck,
+    cls: 'bg-emerald-50 text-emerald-700 border-emerald-200',
   },
 };
 
@@ -143,6 +176,11 @@ export function CertificatesSection({ supplierId }: CertificatesSectionProps) {
                     ⚠ {summary.EXPIRED} wygasłe
                   </span>
                 )}
+                {summary.UNKNOWN > 0 && (
+                  <span className="text-slate-500">
+                    ? {summary.UNKNOWN} bez daty
+                  </span>
+                )}
                 {pendingCount > 0 && (
                   <span className="text-amber-700 font-medium">
                     👁 {pendingCount} do weryfikacji
@@ -172,7 +210,9 @@ export function CertificatesSection({ supplierId }: CertificatesSectionProps) {
             {certs.map((cert) => {
               const cfg = STATUS_CONFIG[cert.status];
               const Icon = cfg.icon;
-              const days = daysUntil(cert.validUntil);
+              const verCfg = VERIFICATION_CONFIG[cert.verificationStatus];
+              const VerIcon = verCfg.icon;
+              const days = cert.validUntil ? daysUntil(cert.validUntil) : null;
               return (
                 <div
                   key={cert.id}
@@ -187,12 +227,30 @@ export function CertificatesSection({ supplierId }: CertificatesSectionProps) {
                         <Icon className="h-3 w-3 mr-1" />
                         {cfg.label}
                       </Badge>
+                      <Badge
+                        variant="outline"
+                        className={`text-[10px] ${verCfg.cls}`}
+                        title={verCfg.tooltip}
+                      >
+                        <VerIcon className="h-3 w-3 mr-1" />
+                        {verCfg.label}
+                      </Badge>
                       {cert.source === 'PORTAL' && (
                         <Badge
                           variant="outline"
                           className="text-[10px] bg-blue-50 text-blue-700 border-blue-200"
                         >
                           Od dostawcy
+                        </Badge>
+                      )}
+                      {cert.source === 'PIPELINE' && (
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] bg-violet-50 text-violet-700 border-violet-200"
+                          title="Cert znaleziony przez AI podczas skautingu — wymaga Twojej akceptacji"
+                        >
+                          <Sparkles className="h-3 w-3 mr-1" />
+                          AI Sourcing
                         </Badge>
                       )}
                       {cert.reviewStatus === 'PENDING' && (
@@ -216,19 +274,37 @@ export function CertificatesSection({ supplierId }: CertificatesSectionProps) {
                     <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
                       <div>
                         Kod: <span className="font-mono">{cert.code}</span>
+                        {cert.certNumber && <span> · Nr: <span className="font-mono">{cert.certNumber}</span></span>}
                         {cert.issuer && <span> · Wystawca: {cert.issuer}</span>}
                       </div>
-                      <div>
-                        Ważny do: <strong>{cert.validUntil.slice(0, 10)}</strong>
-                        {cert.status !== 'EXPIRED' && (
-                          <span className="ml-2">({days} dni)</span>
-                        )}
-                        {cert.status === 'EXPIRED' && (
-                          <span className="ml-2 text-rose-600">
-                            (wygasł {Math.abs(days)} dni temu)
-                          </span>
-                        )}
-                      </div>
+                      {cert.validUntil ? (
+                        <div>
+                          Ważny do: <strong>{cert.validUntil.slice(0, 10)}</strong>
+                          {cert.status !== 'EXPIRED' && days !== null && (
+                            <span className="ml-2">({days} dni)</span>
+                          )}
+                          {cert.status === 'EXPIRED' && days !== null && (
+                            <span className="ml-2 text-rose-600">
+                              (wygasł {Math.abs(days)} dni temu)
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="italic">Brak daty ważności — dodaj ręcznie, żeby włączyć alert wygaśnięcia</div>
+                      )}
+                      {cert.sourceUrl && (
+                        <div>
+                          <a
+                            href={cert.sourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-blue-600 hover:underline"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            Zobacz źródło
+                          </a>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="flex gap-1 shrink-0">

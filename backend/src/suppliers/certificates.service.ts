@@ -9,9 +9,12 @@ import { PrismaService } from '../prisma/prisma.service';
 import { TenantContextService } from '../common/services/tenant-context.service';
 import {
   computeStatus,
+  computeVerificationStatus,
   EXPIRY_ALERT_DAYS,
+  type CertificateSource,
   type CertificateStatus,
   type CertificateType,
+  type CertificateVerificationStatus,
 } from './certificate-types';
 import type { CreateCertificateDto, UpdateCertificateDto } from './dto/certificate.dto';
 
@@ -21,9 +24,11 @@ interface CertificateInput {
   issuer?: string;
   certNumber?: string;
   issuedAt?: string | Date | null;
-  validUntil: string | Date;
+  validUntil?: string | Date | null;
   documentId?: string | null;
-  source?: 'MANUAL' | 'PORTAL';
+  sourceUrl?: string | null;
+  source?: CertificateSource;
+  verificationStatus?: CertificateVerificationStatus;
 }
 
 @Injectable()
@@ -72,10 +77,21 @@ export class CertificatesService {
   }
 
   async createInternal(supplierId: string, input: CertificateInput) {
-    const validUntil = new Date(input.validUntil);
-    if (Number.isNaN(validUntil.getTime())) {
-      throw new BadRequestException('Invalid validUntil date');
+    const source = input.source ?? 'MANUAL';
+
+    // validUntil is REQUIRED for MANUAL/PORTAL (buyer/supplier-authored).
+    // PIPELINE-discovered certs may lack a date — that's expected; status = UNKNOWN.
+    let validUntil: Date | null = null;
+    if (input.validUntil) {
+      const parsed = new Date(input.validUntil);
+      if (Number.isNaN(parsed.getTime())) {
+        throw new BadRequestException('Invalid validUntil date');
+      }
+      validUntil = parsed;
+    } else if (source !== 'PIPELINE') {
+      throw new BadRequestException('validUntil is required for MANUAL/PORTAL certificates');
     }
+
     const status = computeStatus(validUntil);
 
     // Soft duplicate check — prevent overwriting with matching (type, code)
@@ -83,14 +99,31 @@ export class CertificatesService {
       where: { supplierId, type: input.type, code: input.code },
     });
     if (existing) {
+      // PIPELINE runs often — dedupe silently instead of throwing
+      if (source === 'PIPELINE') return existing;
       throw new BadRequestException(
         `Certificate ${input.type}/${input.code} already exists for this supplier`,
       );
     }
 
-    const source = input.source ?? 'MANUAL';
-    // PORTAL uploads default to PENDING; MANUAL certs are buyer-authored so trusted.
-    const reviewStatus = source === 'PORTAL' ? 'PENDING' : 'APPROVED';
+    // Review gate:
+    //   MANUAL   → APPROVED (buyer-authored, trusted)
+    //   PORTAL   → PENDING  (supplier-uploaded, needs buyer review)
+    //   PIPELINE → PENDING  (AI-discovered, needs buyer review before counted as "active")
+    const reviewStatus = source === 'MANUAL' ? 'APPROVED' : 'PENDING';
+
+    // Evidence tier: caller can override, otherwise derive from signals.
+    const verificationStatus =
+      input.verificationStatus ??
+      (source === 'MANUAL' || source === 'PORTAL'
+        ? 'VERIFIED'
+        : computeVerificationStatus({
+            certNumber: input.certNumber,
+            validUntil: input.validUntil,
+            issuedAt: input.issuedAt,
+            issuer: input.issuer,
+            documentUrl: input.sourceUrl,
+          }));
 
     return this.prisma.supplierCertificate.create({
       data: {
@@ -102,9 +135,11 @@ export class CertificatesService {
         issuedAt: input.issuedAt ? new Date(input.issuedAt) : null,
         validUntil,
         documentId: input.documentId || null,
+        sourceUrl: input.sourceUrl || null,
         status,
         source,
         reviewStatus,
+        verificationStatus,
       },
       include: {
         document: {
@@ -123,6 +158,10 @@ export class CertificatesService {
     const validUntil = dto.validUntil ? new Date(dto.validUntil) : cert.validUntil;
     const status = computeStatus(validUntil);
 
+    // Buyer-typed updates promote PIPELINE cert to VERIFIED (they've reviewed the data).
+    const shouldPromoteToVerified =
+      cert.source === 'PIPELINE' && cert.verificationStatus !== 'VERIFIED';
+
     return this.prisma.supplierCertificate.update({
       where: { id: certificateId },
       data: {
@@ -134,6 +173,7 @@ export class CertificatesService {
         validUntil,
         documentId: dto.documentId ?? cert.documentId,
         status,
+        ...(shouldPromoteToVerified ? { verificationStatus: 'VERIFIED' as const } : {}),
       },
       include: {
         document: {
@@ -143,11 +183,16 @@ export class CertificatesService {
     });
   }
 
-  async approve(certificateId: string, reviewerId: string) {
+  async approve(supplierId: string, certificateId: string, reviewerId: string) {
     const cert = await this.prisma.supplierCertificate.findUnique({
       where: { id: certificateId },
     });
-    if (!cert) throw new NotFoundException('Certificate not found');
+    // Prevents URL tampering: /suppliers/A/certificates/:id where :id
+    // actually belongs to supplier B — return NotFound for both the real
+    // not-found and the cross-supplier case (no info leak).
+    if (!cert || cert.supplierId !== supplierId) {
+      throw new NotFoundException('Certificate not found');
+    }
 
     return this.prisma.supplierCertificate.update({
       where: { id: certificateId },
@@ -165,11 +210,18 @@ export class CertificatesService {
     });
   }
 
-  async reject(certificateId: string, reviewerId: string, notes?: string) {
+  async reject(
+    supplierId: string,
+    certificateId: string,
+    reviewerId: string,
+    notes?: string,
+  ) {
     const cert = await this.prisma.supplierCertificate.findUnique({
       where: { id: certificateId },
     });
-    if (!cert) throw new NotFoundException('Certificate not found');
+    if (!cert || cert.supplierId !== supplierId) {
+      throw new NotFoundException('Certificate not found');
+    }
 
     return this.prisma.supplierCertificate.update({
       where: { id: certificateId },
@@ -184,6 +236,32 @@ export class CertificatesService {
           select: { id: true, originalName: true, url: true, mimeType: true },
         },
       },
+    });
+  }
+
+  /**
+   * List all PENDING certs visible to a user's tenant — buyer-facing inbox
+   * of portal-uploaded certs awaiting approval. Returns supplier + document
+   * metadata so the UI can render the inbox row without an extra round-trip.
+   */
+  async listPendingForReviewByTenant(userId: string) {
+    const tenant = await this.tenantContext.resolve(userId);
+    return this.prisma.supplierCertificate.findMany({
+      where: {
+        reviewStatus: 'PENDING',
+        supplier: {
+          campaign: tenant.supplierCampaignFilter(),
+        },
+      },
+      include: {
+        supplier: {
+          select: { id: true, name: true, country: true },
+        },
+        document: {
+          select: { id: true, originalName: true, url: true, mimeType: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -247,6 +325,7 @@ export class CertificatesService {
 
   /**
    * Re-compute cached status on all certs (scheduler can call nightly).
+   * Skips rows with null validUntil (PIPELINE certs without a date → status stays UNKNOWN).
    */
   async refreshAllStatuses(): Promise<{ updated: number }> {
     const all = await this.prisma.supplierCertificate.findMany({
@@ -276,10 +355,11 @@ export class CertificatesService {
     supplierId: string,
   ): Promise<Record<CertificateStatus, number> & { pending: number; rejected: number }> {
     const certs = await this.list(supplierId);
-    const summary = {
+    const summary: Record<CertificateStatus, number> & { pending: number; rejected: number } = {
       ACTIVE: 0,
       EXPIRING_SOON: 0,
       EXPIRED: 0,
+      UNKNOWN: 0,
       pending: 0,
       rejected: 0,
     };

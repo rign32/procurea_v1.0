@@ -289,10 +289,6 @@ function HeroFlagshipResource({
               <Download className="h-3.5 w-3.5" aria-hidden="true" />
               {isEN ? "Download free" : "Pobierz za darmo"}
             </span>
-            <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-slate-500">
-              {resource.fileSize}
-              {resource.pageCount ? ` · ${resource.pageCount} ${isEN ? "pages" : "stron"}` : ""}
-            </span>
           </div>
         </div>
       </div>
@@ -306,7 +302,6 @@ function UnifiedContentCard({ item }: { item: HubItem }) {
 }
 
 function ResourceGridCard({ item }: { item: HubItem }) {
-  const res = RESOURCES.find((r) => r.slug === item.slug)
   return (
     <Link
       to={item.href}
@@ -327,11 +322,7 @@ function ResourceGridCard({ item }: { item: HubItem }) {
           {item.title}
         </h3>
         <p className="text-sm text-slate-600 leading-relaxed line-clamp-3 flex-1 mb-4">{item.excerpt}</p>
-        <div className="flex items-center justify-between pt-4 border-t border-black/[0.05] text-xs">
-          <span className="font-mono text-slate-500 tracking-[0.02em]">
-            {res?.fileSize}
-            {res?.pageCount ? ` · ${res.pageCount} str` : ""}
-          </span>
+        <div className="flex items-center justify-end pt-4 border-t border-black/[0.05] text-xs">
           <span className="font-semibold text-[hsl(var(--ds-accent))] inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform">
             {isEN ? "Download" : "Pobierz"}
             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />

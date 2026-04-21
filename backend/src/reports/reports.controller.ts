@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ReportsService } from './reports.service';
 
@@ -13,8 +13,19 @@ export class ReportsController {
     }
 
     @Get('campaign/:id/insights')
-    getCampaignInsights(@Param('id') id: string) {
-        return this.reportsService.getCampaignInsights(id);
+    getCampaignInsights(@Param('id') id: string, @Req() req: any) {
+        const userId = req.user?.userId || req.user?.sub;
+        return this.reportsService.getCampaignInsights(id, userId);
+    }
+
+    @Get('campaign/:id/insights-narrative')
+    getInsightsNarrative(
+        @Param('id') id: string,
+        @Query('lang') lang: string | undefined,
+        @Req() req: any,
+    ) {
+        const userId = req.user?.userId || req.user?.sub;
+        return this.reportsService.generateInsightsNarrative(id, lang, userId);
     }
 
     @Get('campaign/:id/ai-summary')

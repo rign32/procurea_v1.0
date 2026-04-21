@@ -268,6 +268,16 @@ model Campaign {
   // Search criteria (persisted for campaign re-run and audit trail)
   searchCriteria Json?
 
+  // Industry-aware brief (v2 wizard)
+  // industry: manufacturing | events | construction | horeca | healthcare | retail | logistics | mro | other
+  industry      String?
+  // sourcingMode: product | service | mixed
+  sourcingMode  String?
+  // Raw user-written brief (free-text from new wizard step 1)
+  brief         String?
+  // Structured fields extracted from brief by Gemini parser
+  parsedBrief   Json?
+
   // AI Campaign Summary
   aiSummary            String?
   aiSummaryGeneratedAt DateTime?
@@ -409,16 +419,22 @@ model SupplierCertificate {
 
   // Dates
   issuedAt    DateTime?
-  validUntil  DateTime  // REQUIRED — drives expiry alerts
+  validUntil  DateTime? // Optional — PIPELINE-discovered certs often lack a date; drives expiry alerts when present
 
   // Document link (uploaded PDF/image) — optional
   documentId  String?
   document    Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
 
-  // Computed/cached status — ACTIVE | EXPIRING_SOON | EXPIRED
+  // URL where cert was discovered (PIPELINE only) — lets buyers verify the source
+  sourceUrl   String?
+
+  // Evidence tier — EXTRACTED (string match only) | EVIDENCED (number/date/issuer/url found) | VERIFIED (cross-checked with external registry)
+  verificationStatus String @default("EXTRACTED")
+
+  // Computed/cached status — ACTIVE | EXPIRING_SOON | EXPIRED | UNKNOWN
   status      String   @default("ACTIVE")
 
-  // Provenance: MANUAL (buyer typed in) | PORTAL (supplier uploaded via access token)
+  // Provenance: MANUAL (buyer typed in) | PORTAL (supplier uploaded via access token) | PIPELINE (AI-discovered during sourcing)
   source      String   @default("MANUAL")
 
   // Buyer review gate for PORTAL-uploaded certs
@@ -441,6 +457,7 @@ model SupplierCertificate {
   @@index([status])
   @@index([source])
   @@index([reviewStatus])
+  @@index([verificationStatus])
 }
 
 model Contact {

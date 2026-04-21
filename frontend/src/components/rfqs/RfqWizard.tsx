@@ -27,8 +27,10 @@ import { useUIStore } from '@/stores/ui.store';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { analytics, startHesitationTracker } from '@/lib/analytics';
-import type { CreateCampaignDto, OrganizationLocation, Region } from '@/types/campaign.types';
+import type { CreateCampaignDto, OrganizationLocation, Region, Industry, SourcingMode, ParsedBrief } from '@/types/campaign.types';
 import { AVAILABLE_COUNTRIES } from '@/constants/countries';
+import { campaignsService } from '@/services/campaigns.service';
+import { Sparkles } from 'lucide-react';
 
 // Country codes per predefined region (for exclusion UI)
 const REGION_COUNTRY_CODES: Record<string, string[]> = {
@@ -42,6 +44,14 @@ const optionalNumber = z.preprocess(
   (val) => (val === '' || val === undefined || val === null || Number.isNaN(val) ? undefined : Number(val)),
   z.number().optional()
 );
+
+const INDUSTRY_OPTIONS: Industry[] = ['manufacturing', 'events', 'construction', 'horeca', 'healthcare', 'retail', 'logistics', 'mro', 'other'];
+
+const briefSchema = z.object({
+  industry: z.enum(INDUSTRY_OPTIONS as [Industry, ...Industry[]], { error: t.campaigns.wizard.brief?.industryLabel || 'Select industry' }),
+  sourcingMode: z.enum(['product', 'service', 'mixed'] as [SourcingMode, ...SourcingMode[]], { error: t.campaigns.wizard.brief?.modeLabel || 'Select mode' }),
+  brief: z.string().max(4000).optional(),
+});
 
 const step1Schema = z.object({
   productName: z.string().min(2, t.campaigns.wizard.validation.min2Chars).max(200, t.campaigns.wizard.validation.max200Chars),
@@ -108,7 +118,7 @@ interface RfqWizardProps {
   onComplete?: (campaignId: string) => void;
 }
 
-const WIZARD_STORAGE_KEY = 'procurea_wizard_draft';
+const WIZARD_STORAGE_KEY = 'procurea_wizard_draft_v2';
 
 function loadWizardDraft(): { formData: Partial<CreateCampaignDto>; step: number; certificates: string[]; selectedCountries: string[]; excludedCountries: string[] } | null {
   try {
@@ -145,6 +155,8 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
   const [excludedCountries, setExcludedCountries] = useState<string[]>([]);
   const [excludeSearch, setExcludeSearch] = useState('');
   const [showExcludePanel, setShowExcludePanel] = useState(false);
+  const [aiParsing, setAiParsing] = useState(false);
+  const [parsedBrief, setParsedBrief] = useState<ParsedBrief | null>(null);
   const { user } = useAuthStore();
   const isFullPlan = user?.plan === 'full';
 
@@ -198,6 +210,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const steps = [
+    { id: 'brief', label: t.campaigns.wizard.steps.brief, schema: briefSchema },
     { id: 'product', label: t.campaigns.wizard.steps.product, schema: step1Schema },
     { id: 'search-logistics', label: t.campaigns.wizard.steps.searchLogistics, schema: step2Schema },
     ...(isFullPlan ? [{ id: 'email', label: t.sequences.emailConfig, schema: step3Schema }] : []),
@@ -240,6 +253,59 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
       form.setValue('sequenceTemplateId', sequences[0].id, { shouldValidate: true, shouldDirty: true });
     }
   }, [sequences, form]);
+
+  const handleAiFill = async () => {
+    const brief = (form.getValues('brief') as string) || '';
+    const industry = (form.getValues('industry') as Industry) || undefined;
+    const sourcingMode = (form.getValues('sourcingMode') as SourcingMode) || undefined;
+    if (!brief.trim() || brief.trim().length < 10) {
+      toast.error(isEN ? 'Please describe your need first (at least 10 characters).' : 'Opisz najpierw swoje zapotrzebowanie (min. 10 znaków).');
+      return;
+    }
+    setAiParsing(true);
+    try {
+      const parsed = await campaignsService.parseBrief({ brief, industry, sourcingMode });
+      setParsedBrief(parsed);
+
+      // Auto-fill form data for downstream steps
+      const autoFill: Partial<CreateCampaignDto> = {
+        industry: parsed.industry,
+        sourcingMode: parsed.sourcingMode,
+        brief,
+        parsedBrief: parsed,
+        productName: parsed.productName || (form.getValues('productName') as string),
+        material: parsed.material,
+        quantity: parsed.quantity,
+        unit: parsed.unit,
+        eau: parsed.eau,
+        partNumber: parsed.partNumber,
+        description: parsed.description || brief,
+        targetRegion: parsed.targetRegion,
+        targetCountries: parsed.targetCountries,
+        city: parsed.city,
+        eventDate: parsed.eventDate,
+        headcount: parsed.headcount,
+        desiredDeliveryDate: parsed.desiredDeliveryDate,
+        targetPrice: parsed.targetPrice,
+        currency: parsed.currency,
+        requiredCertificates: parsed.requiredCertificates,
+      };
+      setFormData(prev => ({ ...prev, ...autoFill }));
+      if (parsed.requiredCertificates?.length) setCertificates(parsed.requiredCertificates);
+      if (parsed.targetCountries?.length) setSelectedCountries(parsed.targetCountries);
+      if (parsed.incoterms?.length) setSelectedIncoterms(parsed.incoterms);
+      // Update the current form with parsed industry/mode so validation passes
+      form.setValue('industry', parsed.industry as Industry, { shouldValidate: true });
+      form.setValue('sourcingMode', parsed.sourcingMode as SourcingMode, { shouldValidate: true });
+      form.setValue('brief', brief);
+      toast.success(t.campaigns.wizard.brief?.aiFilled || 'Form auto-filled');
+    } catch (err) {
+      console.error('Brief parse failed:', err);
+      toast.error(t.campaigns.wizard.brief?.aiError || 'Failed to parse brief');
+    } finally {
+      setAiParsing(false);
+    }
+  };
 
   const handleNext = async (data: Record<string, unknown>) => {
     const parsed = { ...data };
@@ -376,6 +442,113 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
         </CardHeader>
         <CardContent>
           <form onSubmit={form.handleSubmit(handleNext)} autoComplete="off" className="space-y-6">
+
+            {/* ===== STEP 0: Brief + industry + sourcing mode ===== */}
+            {steps[currentStep]?.id === 'brief' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-base font-semibold mb-1">{t.campaigns.wizard.brief.title}</h3>
+                  <p className="text-sm text-muted-foreground">{t.campaigns.wizard.brief.subtitle}</p>
+                </div>
+
+                {/* Brief textarea */}
+                <div>
+                  <textarea
+                    {...form.register('brief')}
+                    maxLength={4000}
+                    placeholder={t.campaigns.wizard.brief.placeholder}
+                    rows={5}
+                    className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-y"
+                  />
+                  <div className="flex justify-end mt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAiFill}
+                      disabled={aiParsing}
+                    >
+                      {aiParsing ? (
+                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t.campaigns.wizard.brief.aiFilling}</>
+                      ) : (
+                        <><Sparkles className="h-4 w-4 mr-2" />{t.campaigns.wizard.brief.aiFillButton}</>
+                      )}
+                    </Button>
+                  </div>
+                  {parsedBrief && parsedBrief.confidence < 0.4 && parsedBrief.notes && (
+                    <Alert className="mt-3">
+                      <AlertDescription>{parsedBrief.notes}</AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+
+                {/* Industry grid */}
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">{t.campaigns.wizard.brief.industryLabel} *</label>
+                  <p className="text-xs text-muted-foreground mb-3">{t.campaigns.wizard.brief.industrySubtitle}</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {INDUSTRY_OPTIONS.map((ind) => {
+                      const selected = form.watch('industry') === ind;
+                      const labelKey = ind as keyof typeof t.campaigns.wizard.brief.industries;
+                      return (
+                        <button
+                          key={ind}
+                          type="button"
+                          onClick={() => form.setValue('industry', ind, { shouldValidate: true, shouldDirty: true })}
+                          className={cn(
+                            'flex flex-col items-start gap-0.5 p-3 rounded-lg border-2 transition-all text-left',
+                            selected
+                              ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                              : 'border-input hover:border-primary/40 hover:bg-muted/30'
+                          )}
+                        >
+                          <span className="text-sm font-medium">{t.campaigns.wizard.brief.industries[labelKey] as string}</span>
+                          <span className="text-xs text-muted-foreground">{t.campaigns.wizard.brief.industries[(labelKey + 'Desc') as keyof typeof t.campaigns.wizard.brief.industries] as string}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {form.formState.errors.industry && <p className="text-sm text-destructive mt-1">{form.formState.errors.industry.message as string}</p>}
+                </div>
+
+                {/* Sourcing mode */}
+                <div>
+                  <label className="block text-sm font-medium mb-3">{t.campaigns.wizard.brief.modeLabel} *</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {(['product', 'service', 'mixed'] as SourcingMode[]).map((mode) => {
+                      const selected = form.watch('sourcingMode') === mode;
+                      const labelMap: Record<SourcingMode, string> = {
+                        product: t.campaigns.wizard.brief.modeProduct,
+                        service: t.campaigns.wizard.brief.modeService,
+                        mixed: t.campaigns.wizard.brief.modeMixed,
+                      };
+                      const descMap: Record<SourcingMode, string> = {
+                        product: t.campaigns.wizard.brief.modeProductDesc,
+                        service: t.campaigns.wizard.brief.modeServiceDesc,
+                        mixed: t.campaigns.wizard.brief.modeMixedDesc,
+                      };
+                      return (
+                        <button
+                          key={mode}
+                          type="button"
+                          onClick={() => form.setValue('sourcingMode', mode, { shouldValidate: true, shouldDirty: true })}
+                          className={cn(
+                            'flex flex-col items-start gap-0.5 p-3 rounded-lg border-2 transition-all text-left',
+                            selected
+                              ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                              : 'border-input hover:border-primary/40 hover:bg-muted/30'
+                          )}
+                        >
+                          <span className="text-sm font-medium">{labelMap[mode]}</span>
+                          <span className="text-xs text-muted-foreground">{descMap[mode]}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {form.formState.errors.sourcingMode && <p className="text-sm text-destructive mt-1">{form.formState.errors.sourcingMode.message as string}</p>}
+                </div>
+              </div>
+            )}
 
             {/* ===== STEP 1: Produkt i specyfikacja ===== */}
             {steps[currentStep]?.id === 'product' && (

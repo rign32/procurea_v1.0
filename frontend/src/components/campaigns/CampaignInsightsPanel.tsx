@@ -60,6 +60,11 @@ interface Props {
   campaignId: string;
 }
 
+interface NarrativeResponse {
+  narrative: string | null;
+  lang: string;
+}
+
 function pct(n: number): string {
   return `${Math.round(n * 100)}%`;
 }
@@ -149,6 +154,18 @@ export function CampaignInsightsPanel({ campaignId }: Props) {
     staleTime: 60_000,
   });
 
+  const { data: narrativeData } = useQuery<NarrativeResponse | null>({
+    queryKey: ['campaign-insights-narrative', campaignId],
+    queryFn: async () => {
+      const { data } = await apiClient.get<NarrativeResponse>(
+        `/reports/campaign/${campaignId}/insights-narrative`,
+      );
+      return data;
+    },
+    enabled: !!campaignId && !!data && data.totalSuppliers > 0,
+    staleTime: 10 * 60_000, // 10 min — Gemini has its own disk cache
+  });
+
   if (isLoading) {
     return (
       <Card>
@@ -200,6 +217,17 @@ export function CampaignInsightsPanel({ campaignId }: Props) {
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* AI narrative */}
+        {narrativeData?.narrative && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm leading-relaxed text-amber-900">
+            <div className="flex items-center gap-1 text-xs font-semibold text-amber-700 mb-1">
+              <Sparkles className="h-3 w-3" />
+              Podsumowanie AI
+            </div>
+            {narrativeData.narrative}
+          </div>
+        )}
+
         {/* Funnel */}
         {funnel && (funnel.urlsCollected > 0 || funnel.screenerPassed > 0) && (
           <section>
