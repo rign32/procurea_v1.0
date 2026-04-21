@@ -7,6 +7,8 @@ import type { Supplier } from '@/types/supplier.types';
 import { t } from '@/i18n';
 import { normalizeCountry, getCountryFlag } from '@/utils/normalize-country';
 import { scoreToPercent } from '@/utils/supplier-score';
+import { getVatMetadata } from '@/utils/supplier-metadata';
+import { VatVerifiedBadge } from './VatVerifiedBadge';
 
 interface SupplierCardProps {
   supplier: Supplier;
@@ -30,6 +32,7 @@ export function SupplierCard({
   onSelect,
 }: SupplierCardProps) {
   const score = scoreToPercent(supplier.analysisScore);
+  const vat = getVatMetadata(supplier);
 
   const getScoreVariant = (score: number): 'default' | 'secondary' | 'destructive' => {
     if (score >= 80) return 'default';
@@ -76,6 +79,7 @@ export function SupplierCard({
               {score}%
             </Badge>
             <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{t.suppliers.card.match}</span>
+            {vat?.vatVerified && <VatVerifiedBadge vat={vat} compact />}
           </div>
         </div>
       </CardHeader>

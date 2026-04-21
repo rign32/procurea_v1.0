@@ -48,6 +48,8 @@ import type { Contact } from '@/types/supplier.types';
 import { CommentThread } from '@/components/collaboration/CommentThread';
 import { SupplierDocuments } from '@/components/suppliers/SupplierDocuments';
 import { CertificatesSection } from '@/components/suppliers/CertificatesSection';
+import { VatVerifiedBadge } from '@/components/suppliers/VatVerifiedBadge';
+import { getVatMetadata } from '@/utils/supplier-metadata';
 
 export function SupplierDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -185,6 +187,14 @@ export function SupplierDetailPage() {
             <h1 className="text-[30px] leading-[1.1] tracking-[-0.03em] font-bold truncate">
               {supplier.name || 'Unknown'}
             </h1>
+            {(() => {
+              const vat = getVatMetadata(supplier);
+              return vat ? (
+                <div className="mt-2">
+                  <VatVerifiedBadge vat={vat} />
+                </div>
+              ) : null;
+            })()}
             <p className="mt-1.5 font-mono text-[12.5px] text-muted-ink tabular-nums flex flex-wrap items-center gap-x-3 gap-y-1">
               {supplier.country && (
                 <span className="inline-flex items-center gap-1">
