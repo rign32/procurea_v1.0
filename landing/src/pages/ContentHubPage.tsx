@@ -106,7 +106,7 @@ export function ContentHubPage() {
       <Navbar />
 
       <main id="main-content" className="flex-1">
-        <section className="relative pt-24 sm:pt-28 pb-8 sm:pb-10 bg-gradient-to-b from-white via-[hsl(var(--ds-accent-soft))]/40 to-white overflow-hidden">
+        <section className="relative pt-20 sm:pt-24 pb-6 sm:pb-8 bg-gradient-to-b from-white via-[hsl(var(--ds-accent-soft))]/40 to-white overflow-hidden">
           <div
             className="absolute top-20 -right-40 w-[600px] h-[600px] rounded-full bg-brand-500/[0.06] blur-[120px] pointer-events-none"
             aria-hidden="true"
@@ -119,17 +119,17 @@ export function ContentHubPage() {
 
           <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <RevealOnScroll>
-              <div className="text-center mb-8 max-w-3xl mx-auto">
-                <span className="inline-flex items-center gap-2 text-[10.5px] font-bold uppercase tracking-[0.15em] text-brand-600 mb-3">
+              <div className="text-center mb-6 max-w-3xl mx-auto">
+                <span className="inline-flex items-center gap-2 text-[10.5px] font-bold uppercase tracking-[0.15em] text-brand-600 mb-2">
                   <Sparkles className="h-3 w-3" aria-hidden="true" />
                   {isEN ? "Content Hub" : "Centrum Wiedzy"}
                 </span>
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold font-display tracking-tight mb-3 text-slate-900">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-display tracking-tight mb-2 text-slate-900">
                   {isEN
                     ? "Everything procurement — in one place"
                     : "Wszystko o procurement — w jednym miejscu"}
                 </h1>
-                <p className="text-base md:text-lg text-slate-600 leading-relaxed">
+                <p className="text-sm md:text-base text-slate-600 leading-relaxed">
                   {isEN
                     ? "Articles, guides, templates, and calculators — built from 200+ real sourcing projects."
                     : "Artykuły, przewodniki, szablony i kalkulatory — zbudowane na 200+ prawdziwych projektach sourcingowych."}
@@ -264,12 +264,12 @@ function HeroFlagshipResource({
       className="group block rounded-2xl bg-white border border-black/[0.06] overflow-hidden shadow-[0_16px_48px_-20px_rgba(8,14,28,0.18)] hover:shadow-[0_24px_64px_-20px_rgba(8,14,28,0.25)] transition-shadow duration-300"
     >
       <div className="grid md:grid-cols-[minmax(0,4fr)_minmax(0,6fr)]">
-        <div className="bg-[#0b1a3d] p-5 sm:p-6 md:p-7 flex items-center justify-center">
-          <div className="w-full max-w-[220px] transition-transform duration-500 ease-out group-hover:scale-[1.02]">
+        <div className="bg-[#0b1a3d] p-4 sm:p-5 flex items-center justify-center">
+          <div className="w-full max-w-[150px] md:max-w-[170px] transition-transform duration-500 ease-out group-hover:scale-[1.02]">
             <ResourceCover slug={resource.slug} title={resource.title} size="hero" hover={false} />
           </div>
         </div>
-        <div className="p-5 sm:p-6 md:p-7 flex flex-col justify-center">
+        <div className="p-4 sm:p-5 md:p-6 flex flex-col justify-center">
           <div className="flex items-center gap-2 mb-2 flex-wrap">
             <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 font-mono text-[10px] uppercase tracking-[0.12em] font-bold">
               ★ {isEN ? "Flagship guide" : "Flagowy przewodnik"}
