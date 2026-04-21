@@ -58,6 +58,8 @@ export function useApproveCertificate(supplierId: string) {
       certificatesService.approve(supplierId, certificateId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['supplier-certificates', supplierId] });
+      // Campaign Insights uses certifiedCount which depends on APPROVED certs
+      qc.invalidateQueries({ queryKey: ['campaign-insights'] });
     },
   });
 }
@@ -74,6 +76,7 @@ export function useRejectCertificate(supplierId: string) {
     }) => certificatesService.reject(supplierId, certificateId, notes),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['supplier-certificates', supplierId] });
+      qc.invalidateQueries({ queryKey: ['campaign-insights'] });
     },
   });
 }

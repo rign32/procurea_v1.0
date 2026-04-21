@@ -9,9 +9,11 @@ import {
   ShieldCheck,
   Mail,
   Loader2,
+  Download,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import apiClient from '@/services/api.client';
 
 interface InsightsResponse {
@@ -67,6 +69,73 @@ function usd(n: number): string {
   return `$${n.toFixed(2)}`;
 }
 
+function csvCell(v: string | number | null | undefined): string {
+  const s = String(v ?? '');
+  if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+function buildInsightsCsv(data: InsightsResponse): string {
+  const rows: Array<Array<string | number>> = [];
+  rows.push(['Section', 'Metric', 'Value']);
+  rows.push(['Summary', 'Total suppliers', data.totalSuppliers]);
+  rows.push(['Summary', 'Certified', data.certifiedCount]);
+  rows.push(['Summary', 'Generated at', data.generatedAt]);
+
+  if (data.funnel) {
+    rows.push(['Funnel', 'URLs collected', data.funnel.urlsCollected]);
+    rows.push(['Funnel', 'URLs processed', data.funnel.urlsProcessed]);
+    rows.push(['Funnel', 'Screener passed', data.funnel.screenerPassed]);
+    rows.push(['Funnel', 'Screener fallback', data.funnel.screenerFallback]);
+    rows.push(['Funnel', 'Auditor approved', data.funnel.auditorApproved]);
+    rows.push(['Funnel', 'Auditor rejected', data.funnel.auditorRejected]);
+    rows.push(['Funnel', 'Auditor needs review', data.funnel.auditorNeedsReview]);
+    rows.push(['Funnel', 'Screener conversion rate', data.funnel.screenerRate.toFixed(4)]);
+    rows.push(['Funnel', 'Auditor approval rate', data.funnel.auditorRate.toFixed(4)]);
+  }
+
+  rows.push(['Costs', 'Gemini calls', data.costs.gemini.calls]);
+  rows.push(['Costs', 'Gemini tokens', data.costs.gemini.tokens]);
+  rows.push(['Costs', 'Gemini USD', data.costs.gemini.estimatedUsd.toFixed(4)]);
+  rows.push(['Costs', 'Serper calls', data.costs.serper.calls]);
+  rows.push(['Costs', 'Serper USD', data.costs.serper.estimatedUsd.toFixed(4)]);
+  rows.push(['Costs', 'Total USD', data.costs.totalUsd.toFixed(4)]);
+  rows.push(['Costs', 'Error rate', data.costs.errorRate.toFixed(4)]);
+
+  rows.push(['Quality', 'High (>=80)', data.quality.high]);
+  rows.push(['Quality', 'Medium (50-79)', data.quality.medium]);
+  rows.push(['Quality', 'Low (<50)', data.quality.low]);
+  rows.push(['Quality', 'Unscored', data.quality.unscored]);
+
+  for (const c of data.topCountries) {
+    rows.push(['Country', c.country, c.count]);
+  }
+  for (const c of data.topCategories) {
+    rows.push(['Category', c.category, c.count]);
+  }
+
+  rows.push(['Offers', 'Total', data.offers.total]);
+  rows.push(['Offers', 'Submitted', data.offers.submitted]);
+  rows.push(['Offers', 'Viewed', data.offers.viewed]);
+  rows.push(['Offers', 'Pending', data.offers.pending]);
+  rows.push(['Offers', 'Accepted', data.offers.accepted]);
+  rows.push(['Offers', 'Rejected', data.offers.rejected]);
+
+  return rows.map((r) => r.map(csvCell).join(',')).join('\n');
+}
+
+function downloadCsv(filename: string, csv: string) {
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 export function CampaignInsightsPanel({ campaignId }: Props) {
   const { data, isLoading, error } = useQuery<InsightsResponse | null>({
     queryKey: ['campaign-insights', campaignId],
@@ -106,14 +175,28 @@ export function CampaignInsightsPanel({ campaignId }: Props) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
           <CardTitle className="flex items-center gap-2 text-base">
             <Sparkles className="h-4 w-4 text-amber-500" />
             Campaign Insights
           </CardTitle>
-          <Badge variant="outline" className="text-[10px] bg-slate-50">
-            {data.totalSuppliers} dostawców
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-[10px] bg-slate-50">
+              {data.totalSuppliers} dostawców
+            </Badge>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 text-xs"
+              onClick={() => {
+                const csv = buildInsightsCsv(data);
+                downloadCsv(`procurea-insights-${campaignId}.csv`, csv);
+              }}
+            >
+              <Download className="h-3 w-3 mr-1" />
+              Eksport CSV
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
