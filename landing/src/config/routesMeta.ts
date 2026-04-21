@@ -44,7 +44,7 @@ export function metaFor(path: string): RouteMeta {
     case '/pricing':
       return {
         title: 'Pricing — Procurea',
-        description: 'AI Sourcing from $89 / 10 credits. Bundle (Sourcing + Procurement) from $399 / 10 credits. Enterprise Custom from $25k/year. Pay-as-you-go, no subscription.',
+        description: 'Starter from $69/month (10 sourcing campaigns), Growth $159/month (50), Scale $299/month (150). AI Procurement workflow add-on $29 per run. 3 free campaigns on signup — no credit card.',
         canonical,
         jsonLd: {
           '@context': 'https://schema.org',
@@ -54,8 +54,8 @@ export function metaFor(path: string): RouteMeta {
           offers: {
             '@type': 'AggregateOffer',
             priceCurrency: 'USD',
-            lowPrice: '89',
-            offerCount: '4',
+            lowPrice: '69',
+            offerCount: '3',
           },
         },
       }
@@ -291,58 +291,28 @@ export function metaFor(path: string): RouteMeta {
         canonical,
       }
 
-    // Resources hub (lead magnets index) — lives at /materialy directly
+    // Unified Content Hub — absorbed blog index + resources index + case studies index
     case '/materialy':
       return {
-        title: 'Przewodniki i szablony procurement — darmowe do pobrania | Procurea',
-        description: 'Darmowe szablony, playbooki, checklisty i kalkulatory procurement: RFQ, TCO, scoring dostawcy, nearshore. Excel, PDF, Notion.',
+        title: 'Centrum Wiedzy Procurement — artykuly, przewodniki i szablony | Procurea',
+        description: 'Wszystko o procurement w jednym miejscu: artykuly, przewodniki do pobrania, szablony, playbooki i kalkulatory. RFQ, TCO, scoring dostawcy, nearshore. Excel, PDF, Notion.',
         canonical,
         jsonLd: {
           '@context': 'https://schema.org',
           '@type': 'CollectionPage',
-          name: 'Przewodniki i szablony Procurea',
+          name: 'Centrum Wiedzy Procurea',
           url: canonical,
         },
       }
     case '/resources':
       return {
-        title: 'Procurement Guides & Templates — Free Downloads | Procurea',
-        description: 'Free procurement templates, playbooks, checklists, and calculators. RFQ comparison, TCO calculator, supplier risk checklist, nearshore playbook, vendor scoring.',
+        title: 'Procurement Content Hub — Articles, Guides & Templates | Procurea',
+        description: 'Everything procurement in one place: articles, downloadable guides, templates, playbooks, and calculators. RFQ comparison, TCO calculator, supplier risk checklist, nearshore playbook, vendor scoring.',
         canonical,
         jsonLd: {
           '@context': 'https://schema.org',
           '@type': 'CollectionPage',
-          name: 'Procurement Resources Library',
-          url: canonical,
-        },
-      }
-
-    // Unified content discovery (blog + resources + case studies) moved to /wszystko
-    case '/materialy/wszystko':
-      return {
-        title: 'Wszystkie materialy — blog, przewodniki, case studies | Procurea',
-        description: 'Pelne archiwum tresci Procurea: artykuly blogowe, lead magnets i case studies w jednym miejscu.',
-        canonical,
-      }
-    case '/resources/all':
-      return {
-        title: 'Full content library — blog, guides, case studies | Procurea',
-        description: 'The full Procurea content archive: blog posts, lead magnets, and case studies in one place.',
-        canonical,
-      }
-
-    // Blog index
-    case '/blog':
-      return {
-        title: isEN() ? 'Procurement Blog — Insights for Buyers | Procurea' : 'Blog Procurement — Wiedza dla kupcow | Procurea',
-        description: isEN()
-          ? 'Sharp analysis of sourcing, supplier management, and procurement automation — written by practitioners, for practitioners.'
-          : 'Analizy sourcingu, zarzadzania dostawcami i automatyzacji procurement. Pisane przez praktykow, dla praktykow.',
-        canonical,
-        jsonLd: {
-          '@context': 'https://schema.org',
-          '@type': 'Blog',
-          name: 'Procurea Blog',
+          name: 'Procurea Content Hub',
           url: canonical,
         },
       }
@@ -355,16 +325,6 @@ export function metaFor(path: string): RouteMeta {
         description: '',
         canonical,
         noindex: true,
-      }
-
-    // Case studies index
-    case '/case-studies':
-      return {
-        title: isEN() ? 'Case Studies — How Procurement Teams Use Procurea' : 'Case Studies — Jak zespoly zakupowe uzywaja Procurea',
-        description: isEN()
-          ? 'Real sourcing outcomes from the Procurea beta cohort: 8 automotive suppliers in 5 days, Barcelona event vendors in 72h, 14% HoReCa cost reduction.'
-          : 'Rzeczywiste wyniki sourcingowe z beta cohort Procurea: 8 dostawcow automotive w 5 dni, vendorzy eventowi w 72h, 14% redukcji kosztow HoReCa.',
-        canonical,
       }
 
     default:
@@ -414,11 +374,8 @@ export const STATIC_ROUTES_PL = [
   '/porownanie',
   // Partners
   '/partnerzy',
-  // Content Hub
+  // Content Hub (unified — absorbed blog index + case studies)
   '/materialy',
-  '/materialy/wszystko',
-  '/blog',
-  '/case-studies',
 ]
 
 export const STATIC_ROUTES_EN = [
@@ -453,9 +410,6 @@ export const STATIC_ROUTES_EN = [
   '/vs-manual-sourcing',
   // Partners
   '/partners',
-  // Content Hub
+  // Content Hub (unified — absorbed blog index + case studies)
   '/resources',
-  '/resources/all',
-  '/blog',
-  '/case-studies',
 ]

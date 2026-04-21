@@ -144,7 +144,6 @@ export default defineConfig(({ mode }) => {
             if (id.includes('/content/features.ts')) return 'content-features'
             if (id.includes('/content/industries.ts')) return 'content-industries'
             if (id.includes('/content/integrations.ts')) return 'content-integrations'
-            if (id.includes('/content/caseStudies.ts')) return 'content-case-studies'
             if (id.includes('/content/resources.ts')) return 'content-resources'
             // Content hub assets (SVG components)
             if (id.includes('/assets/content-hub/')) return 'content-hub-assets'

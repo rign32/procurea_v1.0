@@ -52,29 +52,32 @@ const SecurityPage = lazy(() => import("@/pages/SecurityPage").then(m => ({ defa
 const CompliancePage = lazy(() => import("@/pages/CompliancePage").then(m => ({ default: m.CompliancePage })))
 const ComparisonPage = lazy(() => import("@/pages/ComparisonPage").then(m => ({ default: m.ComparisonPage })))
 const PartnerPage = lazy(() => import("@/pages/PartnerPage").then(m => ({ default: m.PartnerPage })))
-const BlogIndexPage = lazy(() => import("@/pages/BlogIndexPage").then(m => ({ default: m.BlogIndexPage })))
 const BlogPostPage = lazy(() => import("@/pages/BlogPostPage").then(m => ({ default: m.BlogPostPage })))
 const ContentHubPage = lazy(() => import("@/pages/ContentHubPage").then(m => ({ default: m.ContentHubPage })))
-const ResourcesIndexPage = lazy(() => import("@/pages/ResourcesIndexPage").then(m => ({ default: m.ResourcesIndexPage })))
 const ResourcePage = lazy(() => import("@/pages/ResourcePage").then(m => ({ default: m.ResourcePage })))
-const CaseStudiesIndexPage = lazy(() => import("@/pages/CaseStudiesIndexPage").then(m => ({ default: m.CaseStudiesIndexPage })))
-const CaseStudyPage = lazy(() => import("@/pages/CaseStudyPage").then(m => ({ default: m.CaseStudyPage })))
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage").then(m => ({ default: m.NotFoundPage })))
 
 const isEN = t.meta.lang === 'en'
 const lang = isEN ? 'en' : 'pl'
 
-// Derive slugs from pathMappings (single source of truth)
 const p = (key: keyof typeof pathMappings) => pathMappings[key][lang]
 
-// Generic hub route patterns for parametric children
 const industriesHubPath = p('industriesHub')
 const featuresHubPath = p('featuresHub')
+const resourcesHubPath = p('resourcesHub')
+const blogIndexPath = p('blogIndex')
 
-// 301-style redirect for legacy /materialy/library/:slug -> /materialy/:slug
 function LegacyLibraryRedirect() {
   const { slug } = useParams<{ slug: string }>()
-  return <Navigate to={`${pathMappings.resourcesHub[lang]}/${slug ?? ''}`} replace />
+  return <Navigate to={`${resourcesHubPath}/${slug ?? ''}`} replace />
+}
+
+function BlogIndexRedirect() {
+  return <Navigate to={`${resourcesHubPath}?type=blog`} replace />
+}
+
+function ContentHubRedirect() {
+  return <Navigate to={resourcesHubPath} replace />
 }
 
 export default function App() {
@@ -85,26 +88,19 @@ export default function App() {
       <Suspense fallback={<div className="min-h-screen" />}>
       <AnimatedRoutes>
       <Routes>
-        {/* Home */}
         <Route path={p('home')} element={<HomePage />} />
 
-        {/* Meta */}
         <Route path={p('pricing')} element={<PricingPage />} />
         <Route path={p('about')} element={<AboutPage />} />
         <Route path={p('contact')} element={<ContactPage />} />
 
-        {/* Hubs */}
         <Route path={featuresHubPath} element={<FeaturesHubPage />} />
         <Route path={industriesHubPath} element={<IndustriesHubPage />} />
         <Route path={p('integrationsHub')} element={<IntegrationsHubPage />} />
 
-        {/* Parametrized: /funkcje/:slug (or /features/:slug) */}
         <Route path={`${featuresHubPath}/:slug`} element={<FeaturePage />} />
-
-        {/* Parametrized: /dla-kogo/:slug (or /industries/:slug) */}
         <Route path={`${industriesHubPath}/:slug`} element={<IndustryPage />} />
 
-        {/* Legal */}
         {isEN ? (
           <>
             <Route path={p('terms')} element={<TermsPage />} />
@@ -123,26 +119,23 @@ export default function App() {
         <Route path={p('comparison')} element={<ComparisonPage />} />
         <Route path={p('partners')} element={<PartnerPage />} />
 
-        {/* Blog */}
-        <Route path={p('blogIndex')} element={<BlogIndexPage />} />
-        <Route path={`${p('blogIndex')}/:slug`} element={<BlogPostPage />} />
+        {/* Unified Content Hub — absorbed blog index + resources index + case studies */}
+        <Route path={resourcesHubPath} element={<ContentHubPage />} />
+        <Route path={`${resourcesHubPath}/:slug`} element={<ResourcePage />} />
 
-        {/* Materials / Resources — ResourcesIndexPage is the main landing */}
-        <Route path={p('resourcesHub')} element={<ResourcesIndexPage />} />
-        <Route path={`${p('resourcesHub')}/:slug`} element={<ResourcePage />} />
+        {/* Individual blog posts still render at /blog/:slug for link compatibility + SEO */}
+        <Route path={`${blogIndexPath}/:slug`} element={<BlogPostPage />} />
 
-        {/* Legacy /library aliases — keep old blog + email links working */}
-        <Route path={`${p('resourcesHub')}/library`} element={<Navigate to={p('resourcesHub')} replace />} />
-        <Route path={`${p('resourcesHub')}/library/:slug`} element={<LegacyLibraryRedirect />} />
+        {/* Legacy redirects — the 4 content entry points consolidate into one hub */}
+        <Route path={blogIndexPath} element={<BlogIndexRedirect />} />
+        <Route path="/case-studies" element={<ContentHubRedirect />} />
+        <Route path="/case-studies/:slug" element={<ContentHubRedirect />} />
+        <Route path={`${resourcesHubPath}/${isEN ? 'all' : 'wszystko'}`} element={<ContentHubRedirect />} />
 
-        {/* Unified content discovery (blog + resources + case studies) moved to /wszystko */}
-        <Route path={`${p('resourcesHub')}/${isEN ? 'all' : 'wszystko'}`} element={<ContentHubPage />} />
+        {/* Legacy /library aliases */}
+        <Route path={`${resourcesHubPath}/library`} element={<Navigate to={resourcesHubPath} replace />} />
+        <Route path={`${resourcesHubPath}/library/:slug`} element={<LegacyLibraryRedirect />} />
 
-        {/* Case Studies */}
-        <Route path={p('caseStudiesHub')} element={<CaseStudiesIndexPage />} />
-        <Route path={`${p('caseStudiesHub')}/:slug`} element={<CaseStudyPage />} />
-
-        {/* 404 */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
       </AnimatedRoutes>

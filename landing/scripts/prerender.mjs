@@ -64,15 +64,6 @@ const RESOURCE_SLUGS = [
   'nearshore-migration-playbook',
 ]
 
-// Case study slugs (5 — mirrors landing/src/content/caseStudies.ts)
-const CASE_STUDY_SLUGS = [
-  'automotive-8-suppliers-5-days',
-  'event-agency-barcelona-72h',
-  'hvac-subcontractors-developer',
-  'restaurant-chain-12-vendors',
-  'd2c-cosmetics-nearshore-migration',
-]
-
 const ROUTES_PL = [
   '/', '/cennik', '/o-nas', '/kontakt', '/funkcje', '/dla-kogo', '/integracje',
   '/regulamin', '/polityka-prywatnosci', '/rodo', '/bezpieczenstwo', '/zgodnosc',
@@ -81,14 +72,12 @@ const ROUTES_PL = [
   '/funkcje/ai-sourcing', '/funkcje/outreach-mailowy', '/funkcje/supplier-portal', '/funkcje/porownywarka-ofert',
   '/porownanie',
   '/partnerzy',
-  // Content Hub
-  '/materialy', '/materialy/wszystko', '/blog', '/case-studies',
-  // Blog posts
+  // Unified Content Hub — absorbed blog index + case studies
+  '/materialy',
+  // Blog posts — individual pages still render for SEO
   ...BLOG_SLUGS.map(slug => `/blog/${slug}`),
-  // Resources (lead magnets) — /materialy/:slug now
+  // Resources (lead magnets)
   ...RESOURCE_SLUGS.map(slug => `/materialy/${slug}`),
-  // Case studies
-  ...CASE_STUDY_SLUGS.map(slug => `/case-studies/${slug}`),
 ]
 
 const ROUTES_EN = [
@@ -99,14 +88,12 @@ const ROUTES_EN = [
   '/features/ai-sourcing', '/features/email-outreach', '/features/supplier-portal', '/features/offer-comparison',
   '/vs-manual-sourcing',
   '/partners',
-  // Content Hub
-  '/resources', '/resources/all', '/blog', '/case-studies',
-  // Blog posts
+  // Unified Content Hub — absorbed blog index + case studies
+  '/resources',
+  // Blog posts — individual pages still render for SEO
   ...BLOG_SLUGS.map(slug => `/blog/${slug}`),
-  // Resources (lead magnets) — /resources/:slug now
+  // Resources (lead magnets)
   ...RESOURCE_SLUGS.map(slug => `/resources/${slug}`),
-  // Case studies
-  ...CASE_STUDY_SLUGS.map(slug => `/case-studies/${slug}`),
 ]
 
 const META = {
@@ -167,13 +154,9 @@ const META = {
   '/vs-manual-sourcing': { title: 'Procurea vs Manual Sourcing — Comparison', description: 'Compare AI procurement automation to traditional supplier sourcing. 30 hours vs 20 minutes.' },
   '/partnerzy': { title: 'Program partnerski — Procurea', description: 'Zostań partnerem Procurea. Współpracujemy z konsultantami ERP, agencjami procurement i partnerami technologicznymi.' },
   '/partners': { title: 'Partner Program — Procurea', description: 'Partner with Procurea. We work with ERP consultants, procurement agencies, and technology partners to bring AI sourcing to more teams.' },
-  // Content Hub index pages
-  '/materialy': { title: 'Przewodniki i szablony procurement — darmowe do pobrania | Procurea', description: 'Darmowe szablony, playbooki, checklisty i kalkulatory procurement: RFQ, TCO, scoring dostawcy, nearshore. Excel, PDF, Notion.' },
-  '/resources': { title: 'Procurement Guides & Templates — Free Downloads | Procurea', description: 'Free procurement templates, playbooks, checklists, and calculators. RFQ comparison, TCO calculator, supplier risk checklist, nearshore playbook, vendor scoring.' },
-  '/blog': { title: 'Procurement Blog — Insights for Buyers | Procurea', description: 'Sharp analysis of sourcing, supplier management, and procurement automation — written by practitioners, for practitioners.' },
-  '/materialy/wszystko': { title: 'Wszystkie materialy — blog, przewodniki, case studies | Procurea', description: 'Pelne archiwum tresci Procurea: artykuly blogowe, lead magnets i case studies w jednym miejscu.' },
-  '/resources/all': { title: 'Full content library — blog, guides, case studies | Procurea', description: 'The full Procurea content archive: blog posts, lead magnets, and case studies in one place.' },
-  '/case-studies': { title: 'Case Studies — How Procurement Teams Use Procurea', description: 'Real sourcing outcomes from the Procurea beta cohort: 8 automotive suppliers in 5 days, Barcelona event vendors in 72h, 14% HoReCa cost reduction.' },
+  // Unified Content Hub
+  '/materialy': { title: 'Centrum Wiedzy Procurement — artykuly, przewodniki i szablony | Procurea', description: 'Wszystko o procurement w jednym miejscu: artykuly, przewodniki do pobrania, szablony, playbooki i kalkulatory. RFQ, TCO, scoring dostawcy, nearshore. Excel, PDF, Notion.' },
+  '/resources': { title: 'Procurement Content Hub — Articles, Guides & Templates | Procurea', description: 'Everything procurement in one place: articles, downloadable guides, templates, playbooks, and calculators. RFQ comparison, TCO calculator, supplier risk checklist, nearshore playbook, vendor scoring.' },
 }
 
 // Blog post titles per slug — mirrors landing/src/content/blog-data/skeletons.ts
@@ -239,23 +222,7 @@ const RESOURCE_META_PL = {
   'nearshore-migration-playbook': { title: 'Playbook migracji nearshore — China+1 w praktyce | Procurea', description: 'Playbook krok po kroku dla dywersyfikacji lancucha dostaw z Chin do europejskich alternatyw.' },
 }
 
-const CASE_STUDY_META_EN = {
-  'automotive-8-suppliers-5-days': { title: 'Automotive OEM: 8 Qualified Suppliers in 5 Days | Procurea', description: 'Following termination of a critical Chinese partner, European automotive OEM used Procurea to build diversified supplier base in days.' },
-  'event-agency-barcelona-72h': { title: 'Event Agency: Complete Vendor Stack in 72 Hours | Procurea', description: 'London event agency needed catering, AV, stage, branded gifts in Barcelona — 3 days notice. Procurea delivered.' },
-  'hvac-subcontractors-developer': { title: 'Real Estate Developer: 15 HVAC Subcontractors in 2 Weeks | Procurea', description: 'Polish real estate developer qualified 15 HVAC subcontractors for major residential development in time to keep construction schedule.' },
-  'restaurant-chain-12-vendors': { title: 'Restaurant Chain: 14% Cost Reduction via 12 Vendors | Procurea', description: '40-location restaurant chain used Procurea to qualify alternative produce and meat suppliers — 14% average cost reduction.' },
-  'd2c-cosmetics-nearshore-migration': { title: 'D2C Cosmetics: China to Europe Migration in 3 Weeks | Procurea', description: 'Growing D2C cosmetics brand found 18 qualified European private-label manufacturers in 3 weeks — replacing a planned 4-month sourcing.' },
-}
-
-const CASE_STUDY_META_PL = {
-  'automotive-8-suppliers-5-days': { title: 'OEM automotive: 8 dostawcow w 5 dni | Procurea', description: 'Po zerwaniu z krytycznym partnerem chinskim, europejski OEM automotive zbudowal zdywersyfikowana baze w dni.' },
-  'event-agency-barcelona-72h': { title: 'Agencja eventowa: kompletny stack dostawcow w 72h | Procurea', description: 'Londynska agencja eventowa potrzebowala cateringu, AV, scenografii w Barcelonie — z 3-dniowym wyprzedzeniem.' },
-  'hvac-subcontractors-developer': { title: 'Deweloper: 15 podwykonawcow HVAC w 2 tygodnie | Procurea', description: 'Polski deweloper zakwalifikowal 15 podwykonawcow HVAC dla osiedla 200-lokalowego w 2 tygodnie.' },
-  'restaurant-chain-12-vendors': { title: 'Siec restauracji: 14% redukcji kosztow przez 12 vendorow | Procurea', description: 'Siec 40-lokalowa obnizyla koszty zywnosci o 14% dzieki dywersyfikacji z 3 do 12 vendorow.' },
-  'd2c-cosmetics-nearshore-migration': { title: 'Marka D2C: migracja z Chin do Europy w 3 tygodnie | Procurea', description: 'Marka D2C kosmetykow znalazla 18 zakwalifikowanych europejskich producentow private-label w 3 tygodnie.' },
-}
-
-// Merge blog/resource/case-study meta into main META based on locale
+// Merge blog/resource meta into main META based on locale
 for (const slug of BLOG_SLUGS) {
   const en = BLOG_META_EN[slug]
   const pl = BLOG_META_PL[slug]
@@ -267,12 +234,6 @@ for (const slug of RESOURCE_SLUGS) {
   const pl = RESOURCE_META_PL[slug]
   if (en) META[`/resources/${slug}`] = en
   if (pl) META[`/materialy/${slug}`] = pl
-}
-for (const slug of CASE_STUDY_SLUGS) {
-  const en = CASE_STUDY_META_EN[slug]
-  const pl = CASE_STUDY_META_PL[slug]
-  if (en) META[`/case-studies/${slug}__en`] = en
-  if (pl) META[`/case-studies/${slug}__pl`] = pl
 }
 
 // hreflang alternate mapping (PL slug ↔ EN slug)
@@ -303,17 +264,12 @@ const ALT_MAP = {
   '/funkcje/outreach-mailowy': '/features/email-outreach', '/features/email-outreach': '/funkcje/outreach-mailowy',
   '/funkcje/supplier-portal': '/features/supplier-portal', '/features/supplier-portal': '/funkcje/supplier-portal',
   '/funkcje/porownywarka-ofert': '/features/offer-comparison', '/features/offer-comparison': '/funkcje/porownywarka-ofert',
-  // Content Hub (PL ↔ EN)
+  // Unified Content Hub (PL ↔ EN)
   '/materialy': '/resources', '/resources': '/materialy',
-  '/materialy/wszystko': '/resources/all', '/resources/all': '/materialy/wszystko',
-  // /blog and /case-studies are the same URL in both languages (no alt needed — handled via canonical)
 }
 
-// Add blog + case-study self-alternates (same URL both languages)
+// Blog post pages remain the same URL in both languages (handled via canonical)
 for (const slug of BLOG_SLUGS) ALT_MAP[`/blog/${slug}`] = `/blog/${slug}`
-for (const slug of CASE_STUDY_SLUGS) ALT_MAP[`/case-studies/${slug}`] = `/case-studies/${slug}`
-ALT_MAP['/blog'] = '/blog'
-ALT_MAP['/case-studies'] = '/case-studies'
 
 // Add resource detail alt for each slug (PL /materialy/:slug ↔ EN /resources/:slug)
 for (const slug of RESOURCE_SLUGS) {

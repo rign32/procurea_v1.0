@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 import { useScrollProgress } from "@/hooks/useScrollProgress"
 import { MobileMenu } from "./MobileMenu"
 import { NavDropdown, NavDropdownGroup, type DropdownSection } from "./NavDropdown"
-import { Menu, Search, Mail, LayoutGrid, Zap, Sparkles, Building2, BookOpen, Download, TrendingUp, Newspaper } from "lucide-react"
+import { Menu, Search, Mail, LayoutGrid, Zap, Sparkles, Building2, BookOpen, Download, Newspaper } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { trackCtaClick } from "@/lib/analytics"
 import { appendUtm } from "@/lib/utm"
@@ -71,31 +71,25 @@ const resourcesSections: DropdownSection[] = [
     label: isEN ? 'Content Hub' : 'Centrum Wiedzy',
     items: [
       {
-        label: isEN ? 'All Resources' : 'Wszystkie Materialy',
+        label: isEN ? 'All content' : 'Wszystkie materialy',
         to: pathFor('resourcesHub'),
-        description: isEN ? 'Articles, guides, and case studies' : 'Artykuly, przewodniki i case studies',
+        description: isEN ? 'Articles, guides, templates — one place' : 'Artykuly, przewodniki, szablony — w jednym miejscu',
         icon: <Newspaper className="h-4 w-4" />,
       },
       {
-        label: 'Blog',
-        to: pathFor('blogIndex'),
+        label: isEN ? 'Articles' : 'Artykuly',
+        to: `${pathFor('resourcesHub')}?type=blog`,
         description: isEN ? 'Procurement insights from the field' : 'Wiedza o procurement z terenu',
         icon: <BookOpen className="h-4 w-4" />,
       },
       {
         label: isEN ? 'Guides & Templates' : 'Przewodniki i szablony',
-        to: pathFor('resourcesHub') + '/library',
+        to: `${pathFor('resourcesHub')}?type=resource`,
         description: isEN ? 'RFQ template, TCO calculator, playbooks' : 'Szablon RFQ, kalkulator TCO, playbooki',
         icon: <Download className="h-4 w-4" />,
       },
-      {
-        label: isEN ? 'Case Studies' : 'Case Studies',
-        to: pathFor('caseStudiesHub'),
-        description: isEN ? 'Real sourcing outcomes from pilot cohort' : 'Prawdziwe wyniki z beta cohort',
-        icon: <TrendingUp className="h-4 w-4" />,
-      },
     ],
-    footer: { label: isEN ? 'Browse all →' : 'Przeglądaj wszystkie →', to: pathFor('resourcesHub') },
+    footer: { label: isEN ? 'Browse content hub →' : 'Przejdź do centrum wiedzy →', to: pathFor('resourcesHub') },
   },
 ]
 

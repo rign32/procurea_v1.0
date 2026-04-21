@@ -188,30 +188,25 @@ export function Footer() {
               <FooterLinks links={t.footer.industryLinks} />
             </div>
 
-            {/* Resources */}
+            {/* Content Hub */}
             <div>
               <h3 className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-[hsl(var(--ds-muted))] mb-3.5">
-                {isEN() ? 'Resources' : 'Materialy'}
+                {isEN() ? 'Content Hub' : 'Centrum Wiedzy'}
               </h3>
               <ul className="space-y-1.5">
                 <li>
                   <Link to={isEN() ? '/resources' : '/materialy'} className="block py-1 text-[13.5px] text-[hsl(var(--ds-ink-2))] hover:text-[hsl(var(--ds-accent))] transition-colors duration-150">
-                    {isEN() ? 'All resources' : 'Wszystkie materialy'}
+                    {isEN() ? 'All content' : 'Wszystkie materialy'}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/blog" className="block py-1 text-[13.5px] text-[hsl(var(--ds-ink-2))] hover:text-[hsl(var(--ds-accent))] transition-colors duration-150">
-                    Blog
+                  <Link to={isEN() ? '/resources?type=blog' : '/materialy?type=blog'} className="block py-1 text-[13.5px] text-[hsl(var(--ds-ink-2))] hover:text-[hsl(var(--ds-accent))] transition-colors duration-150">
+                    {isEN() ? 'Articles' : 'Artykuły'}
                   </Link>
                 </li>
                 <li>
-                  <Link to={isEN() ? '/resources/library' : '/materialy/library'} className="block py-1 text-[13.5px] text-[hsl(var(--ds-ink-2))] hover:text-[hsl(var(--ds-accent))] transition-colors duration-150">
+                  <Link to={isEN() ? '/resources?type=resource' : '/materialy?type=resource'} className="block py-1 text-[13.5px] text-[hsl(var(--ds-ink-2))] hover:text-[hsl(var(--ds-accent))] transition-colors duration-150">
                     {isEN() ? 'Guides & Templates' : 'Przewodniki i szablony'}
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/case-studies" className="block py-1 text-[13.5px] text-[hsl(var(--ds-ink-2))] hover:text-[hsl(var(--ds-accent))] transition-colors duration-150">
-                    {isEN() ? 'Case Studies' : 'Case Studies'}
                   </Link>
                 </li>
               </ul>

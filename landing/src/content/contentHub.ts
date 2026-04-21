@@ -1,15 +1,14 @@
-// Unified content hub aggregator — combines blog posts, lead magnets, case studies
-// into a single filterable list (mimicking procure.ai/resources pattern)
+// Unified content hub aggregator — combines blog posts + downloadable resources
+// into a single filterable list. Case studies were retired 2026-04-21.
 
 import { BLOG_POSTS } from './blog'
 import { getAllBlogPosts } from './blog-data'
 import { RESOURCES } from './resources'
-import { CASE_STUDIES } from './caseStudies'
 import { pathMappings } from '../i18n/paths'
 
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
 
-export type ContentType = 'blog' | 'resource' | 'case-study'
+export type ContentType = 'blog' | 'resource'
 
 export type BadgeColor = 'teal' | 'amber' | 'emerald' | 'purple' | 'pink'
 
@@ -28,18 +27,14 @@ export interface HubItem {
   isFeatured: boolean
 }
 
-// Badge color per content type
 const BADGE_COLORS: Record<ContentType, BadgeColor> = {
   blog: 'teal',
   resource: 'amber',
-  'case-study': 'emerald',
 }
 
-// Type labels per language
 const TYPE_LABELS: Record<ContentType, { en: string; pl: string }> = {
   blog: { en: 'Article', pl: 'Artykuł' },
   resource: { en: 'Guide', pl: 'Przewodnik' },
-  'case-study': { en: 'Case Study', pl: 'Case Study' },
 }
 
 function blogHref(slug: string): string {
@@ -50,12 +45,7 @@ function resourceHref(slug: string): string {
   return `${pathMappings.resourcesHub[LANG]}/${slug}`
 }
 
-function caseStudyHref(slug: string): string {
-  return `${pathMappings.caseStudiesHub[LANG]}/${slug}`
-}
-
 export function getAllHubItems(): HubItem[] {
-  // Use rich BlogPost data — includes all 20 posts (skeleton + Wave 1 full)
   const richPosts = getAllBlogPosts()
   const blogItems: HubItem[] = richPosts.map((post, index) => {
     const isPl = LANG === 'pl'
@@ -77,7 +67,6 @@ export function getAllHubItems(): HubItem[] {
       isFeatured: index === 0 && post.status === 'published',
     }
   })
-  // keep legacy BLOG_POSTS import usage in case any tests reference it
   void BLOG_POSTS
 
   const resourceItems: HubItem[] = RESOURCES.filter(r => r.status !== 'draft').map(r => ({
@@ -93,20 +82,7 @@ export function getAllHubItems(): HubItem[] {
     isFeatured: false,
   }))
 
-  const caseStudyItems: HubItem[] = CASE_STUDIES.map(cs => ({
-    type: 'case-study',
-    slug: cs.slug,
-    title: cs.title,
-    excerpt: cs.excerpt,
-    category: cs.industryLabel,
-    categoryLabel: cs.industryLabel,
-    badgeColor: BADGE_COLORS['case-study'],
-    date: cs.publishedAt,
-    href: caseStudyHref(cs.slug),
-    isFeatured: false,
-  }))
-
-  const all = [...blogItems, ...resourceItems, ...caseStudyItems]
+  const all = [...blogItems, ...resourceItems]
   all.sort((a, b) => b.date.localeCompare(a.date))
   return all
 }
@@ -122,7 +98,6 @@ export function getTypeLabel(type: ContentType, lang: 'en' | 'pl' = LANG): strin
 
 export const contentTypes: Array<{ key: ContentType | 'all'; labelEn: string; labelPl: string }> = [
   { key: 'all', labelEn: 'All', labelPl: 'Wszystkie' },
-  { key: 'blog', labelEn: 'Blog', labelPl: 'Blog' },
+  { key: 'blog', labelEn: 'Articles', labelPl: 'Artykuły' },
   { key: 'resource', labelEn: 'Guides & Templates', labelPl: 'Przewodniki i szablony' },
-  { key: 'case-study', labelEn: 'Case Studies', labelPl: 'Case Studies' },
 ]

@@ -20,7 +20,6 @@ export type PathKey =
   | 'useCasesHub'
   | 'blogIndex'
   | 'resourcesHub'
-  | 'caseStudiesHub'
   // Features (MVP P0)
   | 'fAiSourcing'
   | 'fEmailOutreach'

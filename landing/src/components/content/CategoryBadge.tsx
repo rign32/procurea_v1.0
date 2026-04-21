@@ -15,13 +15,6 @@ const STYLES: Record<ContentType, { bg: string; text: string; dot: string; label
     label: 'Guide',
     labelPl: 'Przewodnik',
   },
-  'case-study': {
-    bg: 'bg-emerald-50',
-    text: 'text-emerald-800',
-    dot: 'bg-emerald-500',
-    label: 'Case Study',
-    labelPl: 'Case Study',
-  },
 }
 
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'

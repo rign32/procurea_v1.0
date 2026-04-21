@@ -255,6 +255,16 @@ export function MobileMenu({ open, onClose, appUrl }: MobileMenuProps) {
 
               <motion.div variants={itemVariants}>
                 <Link
+                  to={pathFor("resourcesHub")}
+                  onClick={onClose}
+                  className="block px-2 py-3.5 text-lg font-semibold text-foreground"
+                >
+                  {isEN ? "Content Hub" : "Centrum Wiedzy"}
+                </Link>
+              </motion.div>
+
+              <motion.div variants={itemVariants}>
+                <Link
                   to={pathFor("about")}
                   onClick={onClose}
                   className="block px-2 py-3.5 text-lg font-semibold text-foreground"

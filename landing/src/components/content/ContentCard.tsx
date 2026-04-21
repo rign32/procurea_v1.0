@@ -1,9 +1,8 @@
 import { Link } from "react-router-dom"
-import { ArrowRight, Download, BookOpen, TrendingUp } from "lucide-react"
+import { ArrowRight, Download, BookOpen } from "lucide-react"
 import type { HubItem, ContentType } from "@/content/contentHub"
 import { CategoryBadge } from "./CategoryBadge"
 import { BLOG_HEROES } from "@/assets/content-hub/BlogHeroes"
-import { CASE_STUDY_THUMBNAILS } from "@/assets/content-hub/CaseStudyThumbnails"
 
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
 const isEN = LANG === 'en'
@@ -11,13 +10,11 @@ const isEN = LANG === 'en'
 const GRADIENTS_BY_TYPE: Record<ContentType, string> = {
   'blog': 'from-brand-400 via-brand-600 to-slate-800',
   'resource': 'from-amber-400 via-orange-500 to-rose-600',
-  'case-study': 'from-emerald-400 via-teal-600 to-slate-800',
 }
 
 const ACTION_LABELS: Record<ContentType, { en: string; pl: string; Icon: typeof ArrowRight }> = {
   'blog': { en: 'Read article', pl: 'Czytaj', Icon: BookOpen },
   'resource': { en: 'Download', pl: 'Pobierz', Icon: Download },
-  'case-study': { en: 'Read story', pl: 'Zobacz case', Icon: TrendingUp },
 }
 
 function formatDate(dateString: string): string {
@@ -39,9 +36,7 @@ export function ContentCard({ item, size = 'default', className = '' }: ContentC
   const gradient = GRADIENTS_BY_TYPE[item.type]
   const isFeatured = size === 'featured'
   const action = ACTION_LABELS[item.type]
-  const BlogHero = item.type === 'blog' ? BLOG_HEROES[item.slug] : undefined
-  const CaseStudyThumb = item.type === 'case-study' ? CASE_STUDY_THUMBNAILS[item.slug] : undefined
-  const CustomThumb = BlogHero ?? CaseStudyThumb
+  const CustomThumb = item.type === 'blog' ? BLOG_HEROES[item.slug] : undefined
 
   return (
     <Link
@@ -51,7 +46,6 @@ export function ContentCard({ item, size = 'default', className = '' }: ContentC
         hover:shadow-[0_12px_40px_-8px_rgba(0,0,0,0.15)] hover:-translate-y-1 transition-all duration-300
         focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${className}`}
     >
-      {/* Thumbnail — gradient placeholder with SVG pattern */}
       <div
         className={`relative overflow-hidden bg-gradient-to-br ${gradient} ${
           isFeatured ? 'aspect-[16/9]' : 'aspect-[16/10]'
@@ -97,7 +91,6 @@ export function ContentCard({ item, size = 'default', className = '' }: ContentC
         )}
       </div>
 
-      {/* Body */}
       <div className={`flex flex-col flex-1 ${isFeatured ? 'p-7 sm:p-8' : 'p-6'}`}>
         <div className="flex items-center gap-2.5 mb-3">
           <CategoryBadge type={item.type} />
