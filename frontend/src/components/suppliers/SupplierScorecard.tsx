@@ -108,6 +108,9 @@ export function SupplierScorecard({ supplierId }: SupplierScorecardProps) {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">{sc.noData}</p>
+          <p className="text-xs text-muted-foreground mt-2">
+            {sc.noDataHint}
+          </p>
         </CardContent>
       </Card>
     );

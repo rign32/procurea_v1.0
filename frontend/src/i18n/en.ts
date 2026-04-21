@@ -773,6 +773,7 @@ export const EN: Translations = {
         avgPrice: 'Avg Price',
         hours: 'hrs',
         noData: 'No performance data available',
+        noDataHint: 'Send an RFQ to this supplier to start collecting response and win rates.',
       },
       internalNotes: {
         title: 'Internal Notes',

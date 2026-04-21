@@ -771,6 +771,7 @@ export const PL = {
         avgPrice: 'Średnia cena',
         hours: 'godz.',
         noData: 'Brak danych o wydajności',
+        noDataHint: 'Wyślij RFQ do tego dostawcy, aby zacząć zbierać wskaźniki odpowiedzi i wygranych.',
       },
       internalNotes: {
         title: 'Notatki wewnętrzne',

@@ -378,6 +378,47 @@ export function SupplierDetailPage() {
                     </p>
                   </div>
                 )}
+
+                {/* Score breakdown — why this supplier got this score */}
+                <div className="rounded-[8px] border border-rule-2 bg-surface-2 p-4">
+                  <p className="text-sm font-semibold mb-2 text-ink">
+                    {isEN ? 'Score breakdown' : 'Składowe oceny'}
+                  </p>
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <BreakdownRow
+                      label={isEN ? 'AI capability' : 'Zdolność AI'}
+                      value={scorePercent}
+                      suffix="%"
+                      tone={scorePercent >= 70 ? 'good' : scorePercent >= 40 ? 'warn' : 'bad'}
+                    />
+                    <BreakdownRow
+                      label={isEN ? 'Classification' : 'Klasyfikacja'}
+                      value={classificationLabel(supplier.companyType, isEN)}
+                      suffix={supplier.companyTypeConfidence ? ` · ${supplier.companyTypeConfidence}%` : ''}
+                      tone={supplier.companyType === 'PRODUCENT' ? 'good' : supplier.companyType === 'HANDLOWIEC' ? 'warn' : 'muted'}
+                    />
+                    <BreakdownRow
+                      label={isEN ? 'Email available' : 'Email dostępny'}
+                      value={supplier.contactEmails ? (isEN ? 'Yes' : 'Tak') : (isEN ? 'No' : 'Nie')}
+                      tone={supplier.contactEmails ? 'good' : 'muted'}
+                    />
+                    <BreakdownRow
+                      label={isEN ? 'Certificates' : 'Certyfikaty'}
+                      value={supplier.certificates ? (isEN ? 'Listed' : 'Podane') : (isEN ? 'Not found' : 'Brak')}
+                      tone={supplier.certificates ? 'good' : 'muted'}
+                    />
+                    <BreakdownRow
+                      label={isEN ? 'Team size' : 'Zespół'}
+                      value={supplier.employeeCount || (isEN ? 'Unknown' : 'Nieznany')}
+                      tone={supplier.employeeCount ? 'good' : 'muted'}
+                    />
+                    <BreakdownRow
+                      label={isEN ? 'Specialization' : 'Specjalizacja'}
+                      value={supplier.specialization ? (isEN ? 'Described' : 'Opisana') : (isEN ? 'Missing' : 'Brak')}
+                      tone={supplier.specialization ? 'good' : 'muted'}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -664,3 +705,40 @@ export function SupplierDetailPage() {
 }
 
 export default SupplierDetailPage;
+
+// ---- Score breakdown helpers --------------------------------------------
+
+function classificationLabel(
+  type: 'PRODUCENT' | 'HANDLOWIEC' | 'NIEJASNY' | undefined,
+  en: boolean,
+): string {
+  if (!type || type === 'NIEJASNY') return en ? 'Unclear' : 'Niejasny';
+  if (type === 'PRODUCENT') return en ? 'Manufacturer' : 'Producent';
+  return en ? 'Distributor' : 'Handlowiec';
+}
+
+function BreakdownRow({
+  label,
+  value,
+  suffix,
+  tone,
+}: {
+  label: string;
+  value: number | string;
+  suffix?: string;
+  tone: 'good' | 'warn' | 'bad' | 'muted';
+}) {
+  const dotClass =
+    tone === 'good' ? 'bg-good' :
+    tone === 'warn' ? 'bg-warn' :
+    tone === 'bad' ? 'bg-bad' : 'bg-rule-3';
+  return (
+    <div className="flex items-center gap-2">
+      <span className={`inline-block h-1.5 w-1.5 rounded-full ${dotClass}`} aria-hidden />
+      <span className="text-muted-ink flex-1 truncate">{label}</span>
+      <span className="font-medium tabular-nums text-ink shrink-0">
+        {value}{suffix ?? ''}
+      </span>
+    </div>
+  );
+}

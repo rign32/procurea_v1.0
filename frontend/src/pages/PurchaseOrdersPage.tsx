@@ -341,6 +341,60 @@ export function PurchaseOrdersPage() {
                 </p>
               )}
             </div>
+
+            {/* Preview the contract that will drive the PO so buyers don't commit blindly */}
+            {selectedContractId && (() => {
+              const c = eligibleContracts.find((x) => x.id === selectedContractId);
+              if (!c) return null;
+              const price = c.offer?.price;
+              const currency = c.offer?.currency || '';
+              const priceLabel = price != null
+                ? new Intl.NumberFormat(isEN ? 'en-US' : 'pl-PL', { style: 'currency', currency: currency || 'EUR' }).format(price)
+                : '—';
+              return (
+                <div className="rounded-md border border-rule bg-surface-2 p-3 text-xs space-y-1.5">
+                  <div className="font-mono uppercase tracking-[0.1em] text-[10px] text-muted-ink-2 mb-1">
+                    {isEN ? 'Preview' : 'Podgląd'}
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                    <div>
+                      <span className="text-muted-ink">{isEN ? 'Contract' : 'Kontrakt'}:</span>{' '}
+                      <span className="font-medium">{c.title}</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-ink">{isEN ? 'Status' : 'Status'}:</span>{' '}
+                      <span className="font-medium">{c.status}</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-ink">{isEN ? 'Supplier' : 'Dostawca'}:</span>{' '}
+                      <span className="font-medium">
+                        {c.offer?.supplier?.name ?? '—'}
+                        {c.offer?.supplier?.country ? ` (${c.offer.supplier.country})` : ''}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-muted-ink">{isEN ? 'Product' : 'Produkt'}:</span>{' '}
+                      <span className="font-medium">{c.offer?.rfqRequest?.productName ?? '—'}</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-ink">{isEN ? 'Unit price' : 'Cena jedn.'}:</span>{' '}
+                      <span className="font-medium">{priceLabel}</span>
+                    </div>
+                    {c.startDate && (
+                      <div>
+                        <span className="text-muted-ink">{isEN ? 'Starts' : 'Od'}:</span>{' '}
+                        <span className="font-medium">{new Date(c.startDate).toLocaleDateString(isEN ? 'en-US' : 'pl-PL')}</span>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-muted-ink-2 pt-1 border-t border-rule">
+                    {isEN
+                      ? 'Line items will be pre-filled from this contract. You can edit them on the generated PO before sending.'
+                      : 'Pozycje zostaną wypełnione z tego kontraktu. Możesz je edytować na wygenerowanym zamówieniu przed wysyłką.'}
+                  </p>
+                </div>
+              );
+            })()}
           </div>
 
           <DialogFooter>

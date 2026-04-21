@@ -196,6 +196,86 @@ function ValidityCell({ validityDate }: { validityDate: string | null | undefine
   );
 }
 
+// Minimal, safe markdown renderer for the contract-terms preview pane.
+// Covers the subset buyers actually use: headings, bold, italic, inline code,
+// unordered/ordered lists, blockquotes, horizontal rules, links. Escapes HTML
+// first so user input can never inject script tags.
+function renderContractMarkdown(src: string): string {
+  if (!src) return '<p class="text-muted-ink italic">—</p>';
+
+  const escape = (s: string) =>
+    s.replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
+  const lines = escape(src).split('\n');
+  const out: string[] = [];
+  let inUl = false;
+  let inOl = false;
+
+  const closeLists = () => {
+    if (inUl) { out.push('</ul>'); inUl = false; }
+    if (inOl) { out.push('</ol>'); inOl = false; }
+  };
+
+  const renderInline = (s: string): string => {
+    return s
+      .replace(/`([^`]+)`/g, '<code class="px-1 py-0.5 rounded bg-bg-3 text-xs font-mono">$1</code>')
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-brand underline" target="_blank" rel="noreferrer">$1</a>');
+  };
+
+  for (const raw of lines) {
+    const line = raw.trimEnd();
+
+    if (!line.trim()) { closeLists(); continue; }
+
+    // Horizontal rule
+    if (/^\s*---+\s*$/.test(line)) { closeLists(); out.push('<hr class="my-3 border-rule" />'); continue; }
+
+    // Headings
+    const h = /^(#{1,6})\s+(.*)$/.exec(line);
+    if (h) {
+      closeLists();
+      const level = h[1].length;
+      const klass = level <= 2 ? 'text-base font-bold mt-3 mb-1' : 'text-sm font-semibold mt-2 mb-1';
+      out.push(`<h${level} class="${klass}">${renderInline(h[2])}</h${level}>`);
+      continue;
+    }
+
+    // Ordered list (1. ...)
+    const ol = /^\s*\d+\.\s+(.*)$/.exec(line);
+    if (ol) {
+      if (!inOl) { closeLists(); out.push('<ol class="list-decimal pl-5 my-1 space-y-0.5">'); inOl = true; }
+      out.push(`<li>${renderInline(ol[1])}</li>`);
+      continue;
+    }
+
+    // Unordered list (- or *)
+    const ul = /^\s*[-*]\s+(.*)$/.exec(line);
+    if (ul) {
+      if (!inUl) { closeLists(); out.push('<ul class="list-disc pl-5 my-1 space-y-0.5">'); inUl = true; }
+      out.push(`<li>${renderInline(ul[1])}</li>`);
+      continue;
+    }
+
+    // Blockquote
+    if (line.startsWith('&gt; ')) {
+      closeLists();
+      out.push(`<blockquote class="border-l-2 border-rule pl-3 text-muted-ink my-2">${renderInline(line.slice(5))}</blockquote>`);
+      continue;
+    }
+
+    closeLists();
+    out.push(`<p class="my-1.5">${renderInline(line)}</p>`);
+  }
+  closeLists();
+  return out.join('');
+}
+
 // Serialize a comparison result into a CSV the buyer can share with stakeholders.
 // Uses the same shape the UI already renders (offers ranked with weighted score).
 function exportComparisonCSV(
@@ -315,6 +395,7 @@ export function RfqDetailPage() {
   const [contractDraftSource, setContractDraftSource] = useState<ContractDraftSource | null>(null);
   const [showContractModal, setShowContractModal] = useState(false);
   const [contractForm, setContractForm] = useState<{ title: string; terms: string; startDate: string; endDate: string }>({ title: '', terms: '', startDate: '', endDate: '' });
+  const [contractPreview, setContractPreview] = useState(false);
   const [savingContract, setSavingContract] = useState(false);
 
   const toggleOfferSelection = (offerId: string) => {
@@ -1574,20 +1655,49 @@ export function RfqDetailPage() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
-                {isEN ? 'Terms (markdown)' : 'Treść kontraktu (markdown)'}
-              </label>
-              <textarea
-                rows={16}
-                value={contractForm.terms}
-                onChange={(e) => setContractForm((prev) => ({ ...prev, terms: e.target.value }))}
-                maxLength={5000}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-xs leading-relaxed ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-y"
-              />
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium">
+                  {isEN ? 'Terms (markdown)' : 'Treść kontraktu (markdown)'}
+                </label>
+                <div className="inline-flex rounded-md border border-input bg-background p-0.5 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setContractPreview(false)}
+                    className={`px-2.5 py-0.5 rounded-[4px] transition-colors ${
+                      !contractPreview ? 'bg-primary text-primary-foreground' : 'text-muted-ink hover:text-ink'
+                    }`}
+                  >
+                    {isEN ? 'Edit' : 'Edycja'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setContractPreview(true)}
+                    className={`px-2.5 py-0.5 rounded-[4px] transition-colors ${
+                      contractPreview ? 'bg-primary text-primary-foreground' : 'text-muted-ink hover:text-ink'
+                    }`}
+                  >
+                    {isEN ? 'Preview' : 'Podgląd'}
+                  </button>
+                </div>
+              </div>
+              {contractPreview ? (
+                <div
+                  className="min-h-[360px] max-h-[480px] overflow-y-auto rounded-md border border-input bg-surface-2 px-4 py-3 text-sm leading-relaxed prose-contract"
+                  dangerouslySetInnerHTML={{ __html: renderContractMarkdown(contractForm.terms) }}
+                />
+              ) : (
+                <textarea
+                  rows={16}
+                  value={contractForm.terms}
+                  onChange={(e) => setContractForm((prev) => ({ ...prev, terms: e.target.value }))}
+                  maxLength={5000}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-xs leading-relaxed ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-y"
+                />
+              )}
               <p className="mt-1 text-[11px] text-muted-ink">
                 {isEN
-                  ? 'Replace [PLACEHOLDER] markers with actual values where needed.'
-                  : 'Zastąp znaczniki [PLACEHOLDER] właściwymi wartościami, gdzie to konieczne.'}
+                  ? 'Replace [PLACEHOLDER] markers with actual values where needed. Supports **bold**, *italic*, `code`, headings (#), and lists (-).'
+                  : 'Zastąp znaczniki [PLACEHOLDER] właściwymi wartościami. Obsługa: **pogrubienie**, *kursywa*, `kod`, nagłówki (#), listy (-).'}
               </p>
             </div>
           </div>
