@@ -83,9 +83,13 @@ jobs:
       - name: Generate Prisma client
         working-directory: backend
         run: npx prisma generate
-      - name: Apply migrations to e2e DB
+      - name: Push schema to e2e DB
         working-directory: backend
-        run: npx prisma migrate deploy
+        # `db push` instead of `migrate deploy` — migration history has historical
+        # drift where 20260310120000_add_trial_credits references columns not yet
+        # created by earlier migrations. For a throwaway E2E DB we only care that
+        # the final schema matches, not that every migration replays cleanly.
+        run: npx prisma db push --skip-generate --accept-data-loss
       - name: Run E2E tests
         working-directory: backend
         run: npm run test:e2e
