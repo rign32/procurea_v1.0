@@ -92,7 +92,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       group: 'suppliers',
     }));
 
-    const actionItems: PaletteItem[] = [
+    const actionsAll: PaletteItem[] = [
       {
         id: 'new-campaign',
         label: isEN ? 'New campaign' : 'Nowa kampania',
@@ -133,7 +133,8 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         },
         group: 'actions',
       },
-    ].filter((a) => !q || a.label.toLowerCase().includes(q));
+    ];
+    const actionItems = actionsAll.filter((a) => !q || a.label.toLowerCase().includes(q));
 
     return [...actionItems, ...campaignItems, ...supplierItems];
   }, [campaigns, supplierResults, query, navigate, onOpenChange]);
