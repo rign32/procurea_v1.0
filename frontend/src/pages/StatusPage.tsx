@@ -124,7 +124,7 @@ export function StatusPage() {
                 <p className="text-center text-xs text-muted-foreground mt-8">
                     {isEN ? 'Auto-refreshes every 30 seconds' : 'Odświeża się automatycznie co 30 sekund'}
                     {data?.services?.[0]?.lastChecked && (
-                        <> &middot; {isEN ? 'Last check' : 'Ostatni test'}: {new Date(data.services[0].lastChecked).toLocaleTimeString()}</>
+                        <> &middot; {isEN ? 'Last check' : 'Ostatnia kontrola'}: {new Date(data.services[0].lastChecked).toLocaleTimeString(isEN ? 'en-US' : 'pl-PL')}</>
                     )}
                 </p>
             </div>

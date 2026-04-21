@@ -26,7 +26,7 @@ export function FeedbackWidget() {
 
   const handleSubmit = async () => {
     if (!message.trim()) {
-      toast.error(isEN ? "Please enter a message" : "Wpisz wiadomosc")
+      toast.error(isEN ? "Please enter a message" : "Wpisz wiadomość")
       return
     }
 
@@ -40,7 +40,7 @@ export function FeedbackWidget() {
       toast.success(
         isEN
           ? "Thank you for your feedback!"
-          : "Dziekujemy za zgoszenie!"
+          : "Dziękujemy za zgłoszenie!"
       )
       setMessage("")
       setType("bug")
@@ -49,7 +49,7 @@ export function FeedbackWidget() {
       toast.error(
         isEN
           ? "Failed to send feedback. Please try again."
-          : "Nie udalo sie wyslac. Sprobuj ponownie."
+          : "Nie udało się wysłać. Spróbuj ponownie."
       )
     } finally {
       setSubmitting(false)
@@ -60,6 +60,7 @@ export function FeedbackWidget() {
     <>
       {/* Floating trigger button */}
       <button
+        type="button"
         onClick={() => setOpen(!open)}
         className={cn(
           "fixed bottom-5 right-5 z-50 flex h-11 w-11 items-center justify-center rounded-full shadow-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
@@ -67,9 +68,13 @@ export function FeedbackWidget() {
             ? "bg-muted text-muted-foreground"
             : "bg-primary text-primary-foreground"
         )}
-        title={isEN ? "Send feedback" : "Wyslij feedback"}
+        aria-label={open
+          ? (isEN ? "Close feedback panel" : "Zamknij panel feedbacku")
+          : (isEN ? "Send feedback" : "Wyślij feedback")}
+        aria-expanded={open}
+        title={isEN ? "Send feedback" : "Wyślij feedback"}
       >
-        {open ? <X className="h-5 w-5" /> : <MessageSquare className="h-5 w-5" />}
+        {open ? <X className="h-5 w-5" aria-hidden="true" /> : <MessageSquare className="h-5 w-5" aria-hidden="true" />}
       </button>
 
       {/* Slide-out panel */}
@@ -77,12 +82,12 @@ export function FeedbackWidget() {
         <div className="fixed bottom-20 right-5 z-50 w-80 rounded-lg border bg-background p-4 shadow-xl animate-in slide-in-from-bottom-2 fade-in-0 duration-200">
           <div className="mb-3">
             <h3 className="text-sm font-semibold">
-              {isEN ? "Send Feedback" : "Wyslij feedback"}
+              {isEN ? "Send Feedback" : "Wyślij feedback"}
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5">
               {isEN
                 ? "Report a bug or suggest a feature"
-                : "Zglos blad lub zaproponuj funkcje"}
+                : "Zgłoś błąd lub zaproponuj funkcję"}
             </p>
           </div>
 
@@ -118,7 +123,7 @@ export function FeedbackWidget() {
           {/* Message */}
           <div className="mb-3">
             <Label htmlFor="feedback-msg" className="text-xs mb-1.5 block">
-              {isEN ? "Message" : "Wiadomosc"}
+              {isEN ? "Message" : "Wiadomość"}
             </Label>
             <Textarea
               id="feedback-msg"
@@ -127,7 +132,7 @@ export function FeedbackWidget() {
               placeholder={
                 isEN
                   ? "Describe the issue or your idea..."
-                  : "Opisz problem lub swoj pomysl..."
+                  : "Opisz problem lub swój pomysł..."
               }
               className="min-h-[80px] resize-none text-sm"
               maxLength={2000}
@@ -146,8 +151,8 @@ export function FeedbackWidget() {
           >
             <Send className="h-3.5 w-3.5 mr-1.5" />
             {submitting
-              ? (isEN ? "Sending..." : "Wysylanie...")
-              : (isEN ? "Send" : "Wyslij")}
+              ? (isEN ? "Sending..." : "Wysyłanie...")
+              : (isEN ? "Send" : "Wyślij")}
           </Button>
         </div>
       )}
