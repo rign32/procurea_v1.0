@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Param, Patch, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Delete, UseGuards, Req } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { RequestsService } from './requests.service';
 import { CounterOfferAiService } from './counter-offer-ai.service';
 import { WeightedRankingService, RankingWeights } from './weighted-ranking.service';
+import { RfqLineItemsService } from './rfq-line-items.service';
+import { BulkReplaceLineItemsDto, LineItemDto } from './dto/line-item.dto';
 import { CreateRfqDto } from '../common/dto/create-rfq.dto';
 
 @UseGuards(AuthGuard('jwt'))
@@ -12,6 +14,7 @@ export class RequestsController {
         private readonly requestsService: RequestsService,
         private readonly counterOfferAiService: CounterOfferAiService,
         private readonly weightedRanking: WeightedRankingService,
+        private readonly lineItems: RfqLineItemsService,
     ) { }
 
     private getUserId(req: any): string {
@@ -162,5 +165,46 @@ export class RequestsController {
     @Post('offers/:offerId/suggest-counter')
     suggestCounterOffer(@Param('offerId') offerId: string) {
         return this.counterOfferAiService.suggestCounter(offerId);
+    }
+
+    // --- Multi-SKU line items (Sprint #4) ---
+
+    @Get(':rfqId/line-items')
+    async listLineItems(@Param('rfqId') rfqId: string, @Req() req: any) {
+        await this.requestsService.ensureRfqOwnership(rfqId, this.getUserId(req));
+        const items = await this.lineItems.list(rfqId);
+        return { items };
+    }
+
+    @Post(':rfqId/line-items/bulk-replace')
+    async bulkReplaceLineItems(
+        @Param('rfqId') rfqId: string,
+        @Body() body: BulkReplaceLineItemsDto,
+        @Req() req: any,
+    ) {
+        await this.requestsService.ensureRfqOwnership(rfqId, this.getUserId(req));
+        const items = await this.lineItems.replaceAll(rfqId, body.items);
+        return { items };
+    }
+
+    @Post(':rfqId/line-items')
+    async addLineItem(
+        @Param('rfqId') rfqId: string,
+        @Body() body: LineItemDto,
+        @Req() req: any,
+    ) {
+        await this.requestsService.ensureRfqOwnership(rfqId, this.getUserId(req));
+        return this.lineItems.addOne(rfqId, body);
+    }
+
+    @Delete(':rfqId/line-items/:lineItemId')
+    async removeLineItem(
+        @Param('rfqId') rfqId: string,
+        @Param('lineItemId') lineItemId: string,
+        @Req() req: any,
+    ) {
+        await this.requestsService.ensureRfqOwnership(rfqId, this.getUserId(req));
+        await this.lineItems.remove(lineItemId);
+        return { deleted: true };
     }
 }

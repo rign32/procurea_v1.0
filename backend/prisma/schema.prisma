@@ -663,8 +663,47 @@ model RfqRequest {
 
   offers      Offer[] // Received offers
 
+  // Multi-SKU / BOQ line items (Sprint #4) — RFQ can quote a list of positions
+  // instead of one productName. Legacy single-item RFQs stay as-is (no line items).
+  lineItems   RfqLineItem[]
+
   ownerId     String? // Internal User ID
   owner       User?   @relation(fields: [ownerId], references: [id])
+}
+
+// Individual line item within a multi-SKU RFQ / BOQ tender (Sprint #4)
+model RfqLineItem {
+  id          String   @id @default(uuid())
+
+  rfqRequest  RfqRequest @relation(fields: [rfqRequestId], references: [id], onDelete: Cascade)
+  rfqRequestId String
+
+  // Position in list (user-sortable)
+  sortOrder   Int      @default(0)
+
+  // SKU / code (from BOQ line number or internal part number)
+  sku         String?
+
+  // Description visible to supplier
+  name        String
+
+  // Detailed spec (material, size, grade…)
+  description String?
+  material    String?
+
+  // Commercial
+  quantity    Float
+  unit        String   @default("pcs")
+  targetPrice Float?  // Optional per-item target
+
+  // Certifications/compliance flags expected on this line
+  requiredCerts Json?  // Array of certificate type codes (e.g. ["CE", "ISO_9001"])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([rfqRequestId])
+  @@index([rfqRequestId, sortOrder])
 }
 
 // 2. Offer - The "Bid" (Response from Supplier)

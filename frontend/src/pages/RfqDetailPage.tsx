@@ -26,6 +26,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { useRfq, useOffers, useAcceptOffer, useRejectOffer, useShortlistOffer, useCompareOffers, useCounterOffer, useSuggestCounter, useRankingWeights, useSetRankingWeights } from '@/hooks/useRfqs';
 import type { RankingWeights } from '@/services/rfqs.service';
 import { RankingWeightsConfigurator } from '@/components/rfqs/RankingWeightsConfigurator';
+import { LineItemsSection } from '@/components/rfqs/LineItemsSection';
 import { offersService } from '@/services/rfqs.service';
 import { contractsService, type ContractDraft, type ContractDraftSource } from '@/services/contracts.service';
 import { t, isEN } from '@/i18n';
@@ -1181,6 +1182,9 @@ export function RfqDetailPage() {
         </div>
       )
       }
+
+      {/* Line Items (Sprint #4) */}
+      {id && <LineItemsSection rfqId={id} />}
 
       {/* Comments Section */}
       {id && (
