@@ -25,8 +25,8 @@ export async function createTestUser(prisma: PrismaService, overrides: any = {})
         data: {
             email: overrides.email || `user-${nextId()}@test.com`,
             name: overrides.name || 'Test User',
-            provider: overrides.provider || 'email',
-            providerId: overrides.providerId || nextId(),
+            ssoProvider: overrides.ssoProvider || 'email',
+            ssoId: overrides.ssoId || nextId(),
             plan: overrides.plan || 'full',
             role: overrides.role || 'user',
             ...(orgId ? { organizationId: orgId } : {}),
