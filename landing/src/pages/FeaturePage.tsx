@@ -6,6 +6,7 @@ import { AnimatedGrid } from "@/components/ui/AnimatedGrid"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
+import { BreadcrumbScript } from "@/components/seo/BreadcrumbScript"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { AccordionItem } from "@/components/ui/AccordionItem"
 import { PagePlaceholder } from "@/components/layout/PagePlaceholder"
@@ -94,18 +95,38 @@ export function FeaturePage() {
   const { slug = '' } = useParams<{ slug: string }>()
   const resolvedSlug = resolveFeatureSlug(slug)
 
+  const featureForCrumb = getFeature(resolvedSlug)
+  const featureLabel = featureForCrumb?.heroTitle?.split(' — ')[0] || slug
+  const crumbs = [
+    { name: isEN ? 'Home' : 'Strona główna', path: '/' },
+    { name: isEN ? 'Features' : 'Funkcje', path: pathFor('featuresHub') },
+    { name: featureLabel, path: `${pathFor('featuresHub')}/${slug}` },
+  ]
+
   // Dispatch to bespoke feature pages (unique layout, infographics, content)
-  switch (resolvedSlug) {
-    case 'ai-sourcing': return <AiSourcingFeaturePage />
-    case 'company-registry': return <SupplierDatabaseFeaturePage />
-    case 'outreach-mailowy': return <EmailOutreachFeaturePage />
-    case 'supplier-portal': return <SupplierPortalFeaturePage />
-    case 'porownywarka-ofert': return <OfferComparisonFeaturePage />
-    case 'wielojezyczny-outreach': return <MultilingualOutreachFeaturePage />
-    case 'auto-follow-up': return <AutoFollowUpFeaturePage />
-    case 'enrichment-kontaktow': return <ContactEnrichmentFeaturePage />
-    case 'zbieranie-ofert': return <OfferCollectionFeaturePage />
-    case 'ai-insights': return <AiInsightsFeaturePage />
+  const bespoke = (() => {
+    switch (resolvedSlug) {
+      case 'ai-sourcing': return <AiSourcingFeaturePage />
+      case 'company-registry': return <SupplierDatabaseFeaturePage />
+      case 'outreach-mailowy': return <EmailOutreachFeaturePage />
+      case 'supplier-portal': return <SupplierPortalFeaturePage />
+      case 'porownywarka-ofert': return <OfferComparisonFeaturePage />
+      case 'wielojezyczny-outreach': return <MultilingualOutreachFeaturePage />
+      case 'auto-follow-up': return <AutoFollowUpFeaturePage />
+      case 'enrichment-kontaktow': return <ContactEnrichmentFeaturePage />
+      case 'zbieranie-ofert': return <OfferCollectionFeaturePage />
+      case 'ai-insights': return <AiInsightsFeaturePage />
+      default: return null
+    }
+  })()
+
+  if (bespoke) {
+    return (
+      <>
+        <BreadcrumbScript crumbs={crumbs} />
+        {bespoke}
+      </>
+    )
   }
 
   const feature = getFeature(resolvedSlug)
@@ -125,6 +146,7 @@ export function FeaturePage() {
   return (
     <div className="min-h-screen">
       <RouteMeta />
+      <BreadcrumbScript crumbs={crumbs} />
       <Navbar />
 
       <main id="main-content">

@@ -47,7 +47,15 @@ export class ScreenerAgentService {
         pt: 'português', fi: 'suomi', ja: '日本語', ko: '한국어', zh: '中文',
     };
 
-    async execute(url: string, content: string, rfqData: any, productContext?: ProductContext, userLanguage: string = 'pl', requiredCertificates?: string[]): Promise<{
+    async execute(
+        url: string,
+        content: string,
+        rfqData: any,
+        productContext?: ProductContext,
+        userLanguage: string = 'pl',
+        requiredCertificates?: string[],
+        sourcingContext?: { industry?: string; sourcingMode?: 'product' | 'service' | 'mixed'; city?: string },
+    ): Promise<{
         company_type: 'PRODUCENT' | 'HANDLOWIEC' | 'NIEJASNY';
         company_type_confidence: number;
         company_type_evidence: string;
@@ -150,6 +158,22 @@ Kluczowa różnica: firma musi WYTWARZAĆ lub SPRZEDAWAĆ dokładnie TEN produkt
             ? `PRODUKT: ${productContext.coreProduct}\nKATEGORIA: ${productContext.productCategory}`
             : `DANE RFQ:\n${JSON.stringify(rfqData)}`;
 
+        const isServiceMode = sourcingContext?.sourcingMode === 'service' || sourcingContext?.sourcingMode === 'mixed';
+        const serviceOverrideBlock = isServiceMode ? `
+=== TRYB SERVICE SOURCING (${sourcingContext?.sourcingMode?.toUpperCase()}) — NADRZĘDNE REGUŁY ===
+Klient szuka WYKONAWCÓW USŁUG (branża: ${sourcingContext?.industry || 'general'}${sourcingContext?.city ? `, lokalizacja: ${sourcingContext.city}` : ''}).
+
+UWAGA — te reguły NADPISUJĄ standardową logikę PRODUCENT/HANDLOWIEC:
+1. PRODUCENT w trybie SERVICE = firma świadcząca daną usługę.
+   Sygnały pozytywne: "świadczymy usługi", "wykonujemy", "oferujemy", "we offer services",
+   "contractors", "we specialize in", "firma cateringowa", "event agency", "HVAC contractor",
+   portfolio realizacji, case studies, licencje/uprawnienia zawodowe, cennik usług.
+2. HANDLOWIEC w trybie SERVICE = agencja pośrednicząca / platforma rezerwacji.
+3. REGUŁY 1-4 Z KONTEKSTU PRODUKTU (PRODUCES-vs-USES, surowiec-vs-wyrób) NIE OBOWIĄZUJĄ.
+4. Odrzucaj TYLKO e-commerce towarów, portale/katalogi, firmy bez oferty usługowej.
+5. Dla events: firma MUSI obsługiwać lokalnie w podanym mieście/regionie.
+` : '';
+
         const systemPrompt = `
 Jesteś Autonomicznym Skautem i Analitykiem Przemysłowym (Industrial Screener & Analyst).
 JĘZYK: Odpowiadaj WYŁĄCZNIE w języku ${ScreenerAgentService.LANGUAGE_NAMES[userLanguage] || userLanguage}. Wszystkie pola tekstowe MUSZĄ być w języku ${ScreenerAgentService.LANGUAGE_NAMES[userLanguage] || userLanguage}.
@@ -208,7 +232,7 @@ Jeśli strona to PORTAL BRANŻOWY / KATALOG FIRM (np. Plastech, tworzywa.pl, Eur
 === ZADANIE 3 — ANALIZA ===
 Jeśli strona jest relevantna (is_relevant: true), wydobądź TWARDE DANE o dostawcy.
 Jeśli is_relevant: false, zwróć puste extracted_data i capability_match_score: 0.
-${productContextBlock}
+${serviceOverrideBlock}${productContextBlock}
 DANE WEJŚCIOWE:
 ${rfqBlock}
 

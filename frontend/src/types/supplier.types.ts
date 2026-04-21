@@ -48,6 +48,9 @@ export interface Supplier {
   originCountry?: string;
   sourceAgent?: string;
 
+  // Flexible blob (JSON string on wire). Currently: { vat: VatMetadata }.
+  metadata?: string | null;
+
   // Timestamps
   createdAt: string;
   updatedAt: string;

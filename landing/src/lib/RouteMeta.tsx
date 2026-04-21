@@ -3,6 +3,8 @@ import { metaFor, type RouteMeta as RouteMetaType } from "@/config/routesMeta"
 
 interface Props {
   override?: Partial<RouteMetaType>
+  /** Additional JSON-LD blocks to render alongside the base route meta. */
+  extraJsonLd?: Array<Record<string, unknown> | null | undefined>
 }
 
 /**
@@ -13,10 +15,12 @@ interface Props {
  * For client-side navigation (SPA), React updates head automatically.
  * For initial page load / social crawlers, see scripts/prerender.mjs.
  */
-export function RouteMeta({ override }: Props = {}) {
+export function RouteMeta({ override, extraJsonLd = [] }: Props = {}) {
   const { pathname } = useLocation()
   const base = metaFor(pathname)
   const meta = { ...base, ...override }
+
+  const jsonLdBlocks = [meta.jsonLd, ...extraJsonLd].filter(Boolean) as Array<Record<string, unknown>>
 
   return (
     <>
@@ -41,12 +45,13 @@ export function RouteMeta({ override }: Props = {}) {
         <meta name="robots" content="noindex, nofollow" />
       )}
 
-      {meta.jsonLd && (
+      {jsonLdBlocks.map((block, i) => (
         <script
+          key={i}
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(meta.jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(block) }}
         />
-      )}
+      ))}
     </>
   )
 }

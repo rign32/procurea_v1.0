@@ -1,3 +1,7 @@
 User-agent: *
 Allow: /
+
+Disallow: /api/
+Disallow: /*?utm_
+
 Sitemap: https://procurea.pl/sitemap.xml

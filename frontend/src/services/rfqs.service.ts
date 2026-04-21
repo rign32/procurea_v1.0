@@ -19,6 +19,53 @@ export interface RankingBreakdown {
   finalScore: number;
 }
 
+/** Offer as returned by the /offers/compare endpoint — base Offer + fields
+ *  the backend adds at comparison time (price conversion, risk flags,
+ *  weighted ranking breakdown). Kept as one type so the detail page can
+ *  stop using `any` on every map/find. */
+export interface ComparisonOffer extends Offer {
+  /** Price converted to the comparison baseCurrency. Server-side currency
+   *  conversion; may be null when the FX provider was unreachable. */
+  convertedPrice?: number | null;
+  conversionFailed?: boolean;
+  /** Supplier.qualityScore denormalised onto the offer (0-100). */
+  qualityScore?: number | null;
+  riskFlags?: {
+    isNewSupplier: boolean;
+    leadTimeRisk: boolean;
+    priceOutlier: boolean;
+  };
+  compliance?: {
+    specsConfirmed: boolean;
+    incotermsConfirmed: boolean;
+  };
+  weightedRanking?: RankingBreakdown | null;
+}
+
+export interface ComparisonResult {
+  offers: ComparisonOffer[];
+  baseCurrency: string;
+  comparison: {
+    lowestPrice: { offerId: string; supplierId: string } | null;
+    fastestDelivery: { offerId: string; supplierId: string } | null;
+    bestValue: { offerId: string; supplierId: string } | null;
+    topRanked: { offerId: string; supplierId: string; score: number } | null;
+  };
+  ranking: {
+    weights: RankingWeights;
+    weightsSource: 'override' | 'rfq-configured' | 'default';
+  };
+  aiRecommendation?: {
+    recommendedOfferId: string;
+    reasoning: string;
+    scores?: Array<{
+      offerId: string;
+      score: number;
+      breakdown: { price: number; delivery: number; quality: number; compliance: number };
+    }>;
+  } | null;
+}
+
 export const DEFAULT_RANKING_WEIGHTS: RankingWeights = {
   price: 0.25,
   leadTime: 0.2,
@@ -189,24 +236,7 @@ export const offersService = {
   compare: async (
     offerIds: string[],
     rankingWeights?: Partial<RankingWeights>,
-  ): Promise<{
-    offers: (Offer & { weightedRanking?: RankingBreakdown | null })[];
-    baseCurrency: string;
-    comparison: {
-      lowestPrice: { offerId: string; supplierId: string } | null;
-      fastestDelivery: { offerId: string; supplierId: string } | null;
-      bestValue: { offerId: string; supplierId: string } | null;
-      topRanked: { offerId: string; supplierId: string; score: number } | null;
-    };
-    ranking: {
-      weights: RankingWeights;
-      weightsSource: 'override' | 'rfq-configured' | 'default';
-    };
-    aiRecommendation?: {
-      recommendedOfferId: string;
-      reasoning: string;
-    } | null;
-  }> => {
+  ): Promise<ComparisonResult> => {
     const { data } = await apiClient.post('/requests/offers/compare', {
       offerIds,
       rankingWeights,

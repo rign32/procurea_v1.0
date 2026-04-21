@@ -3,12 +3,30 @@ import { BrowserRouter, Routes, Route, useLocation, Navigate, useParams } from "
 import { pathMappings } from "@/i18n/paths"
 import { t } from "@/i18n"
 import { BackToTop } from "@/components/ui/BackToTop"
+import { trackPageView, initOutboundTracking } from "@/lib/analytics"
 
 function ScrollToTop() {
   const { pathname } = useLocation()
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [pathname])
+  return null
+}
+
+function RouteChangeTracker() {
+  const { pathname, search } = useLocation()
+  useEffect(() => {
+    // Delay one frame so React has updated document.title via RouteMeta hoisting.
+    const id = requestAnimationFrame(() => trackPageView(pathname, search))
+    return () => cancelAnimationFrame(id)
+  }, [pathname, search])
+  return null
+}
+
+function AnalyticsBootstrap() {
+  useEffect(() => {
+    initOutboundTracking()
+  }, [])
   return null
 }
 
@@ -66,6 +84,8 @@ export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <RouteChangeTracker />
+      <AnalyticsBootstrap />
       <BackToTop />
       <Suspense fallback={<div className="min-h-screen" />}>
       <Routes>

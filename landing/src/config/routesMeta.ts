@@ -31,12 +31,48 @@ export function metaFor(path: string): RouteMeta {
         canonical,
         jsonLd: {
           '@context': 'https://schema.org',
-          '@type': 'Organization',
-          name: 'Procurea',
-          url: S,
-          description: 'AI-powered procurement automation platform',
-          foundingDate: '2025',
-          founder: { '@type': 'Person', name: 'Rafał Reiwer' },
+          '@graph': [
+            {
+              '@type': 'Organization',
+              '@id': `${S}/#organization`,
+              name: 'Procurea',
+              url: S,
+              logo: `${S}/logo-procurea.png`,
+              description: 'AI-powered procurement automation platform',
+              foundingDate: '2025',
+              founder: { '@type': 'Person', name: 'Rafał Reiwer' },
+              sameAs: ['https://www.linkedin.com/company/procurea'],
+            },
+            {
+              '@type': 'WebSite',
+              '@id': `${S}/#website`,
+              url: S,
+              name: 'Procurea',
+              inLanguage: isEN() ? 'en' : 'pl',
+              publisher: { '@id': `${S}/#organization` },
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: {
+                  '@type': 'EntryPoint',
+                  urlTemplate: `${S}${isEN() ? '/resources' : '/materialy'}?q={search_term_string}`,
+                },
+                'query-input': 'required name=search_term_string',
+              },
+            },
+            {
+              '@type': 'SoftwareApplication',
+              name: 'Procurea',
+              applicationCategory: 'BusinessApplication',
+              operatingSystem: 'Web',
+              url: S,
+              offers: {
+                '@type': 'AggregateOffer',
+                priceCurrency: 'USD',
+                lowPrice: '69',
+                offerCount: '3',
+              },
+            },
+          ],
         },
       }
 

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
@@ -26,7 +25,7 @@ import { Badge } from '@/components/ui/badge';
 import { Status } from '@/components/ui/status';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useRfq, useOffers, useAcceptOffer, useRejectOffer, useShortlistOffer, useCompareOffers, useCounterOffer, useSuggestCounter, useRankingWeights, useSetRankingWeights } from '@/hooks/useRfqs';
-import type { RankingWeights } from '@/services/rfqs.service';
+import type { RankingWeights, ComparisonResult } from '@/services/rfqs.service';
 import { RankingWeightsConfigurator } from '@/components/rfqs/RankingWeightsConfigurator';
 import { LineItemsSection } from '@/components/rfqs/LineItemsSection';
 import { LineByLineComparison } from '@/components/rfqs/LineByLineComparison';
@@ -281,15 +280,13 @@ function renderContractMarkdown(src: string): string {
 // Serialize a comparison result into a CSV the buyer can share with stakeholders.
 // Uses the same shape the UI already renders (offers ranked with weighted score).
 function exportComparisonCSV(
-  comparison: any,
+  comparison: ComparisonResult,
   rfqQty: number,
   productName?: string,
 ) {
-  const offers = (comparison?.offers as any[] | undefined) ?? [];
+  const offers = comparison?.offers ?? [];
   if (offers.length === 0) return;
-  const weights = comparison?.ranking?.weights as
-    | { price: number; leadTime: number; moq: number; quality: number; compliance: number }
-    | undefined;
+  const weights = comparison?.ranking?.weights;
 
   const headers = [
     'Supplier', 'Country',
@@ -301,13 +298,13 @@ function exportComparisonCSV(
   const rows = offers.map((o) => [
     o.supplier?.name ?? '',
     o.supplier?.country ?? '',
-    o.effectivePrice ?? o.price ?? '',
+    o.convertedPrice ?? o.price ?? '',
     comparison?.baseCurrency ?? o.currency ?? '',
     o.moq ?? '',
     o.leadTime ?? '',
     o.qualityScore ?? '',
     o.weightedRanking?.finalScore ?? '',
-    o.supplier?.analysisScore ?? '',
+    (o.supplier as { analysisScore?: number | null } | undefined)?.analysisScore ?? '',
     o.status ?? '',
   ]);
 
@@ -388,7 +385,7 @@ export function RfqDetailPage() {
   const [rejectDialogId, setRejectDialogId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [acceptDialogId, setAcceptDialogId] = useState<string | null>(null);
-  const [comparisonResult, setComparisonResult] = useState<any>(null);
+  const [comparisonResult, setComparisonResult] = useState<ComparisonResult | null>(null);
   const [counterDialogId, setCounterDialogId] = useState<string | null>(null);
   const [counterForm, setCounterForm] = useState<{ price: string; moq: string; leadTime: string; comments: string }>({ price: '', moq: '', leadTime: '', comments: '' });
 
@@ -891,7 +888,7 @@ export function RfqDetailPage() {
                   <div>
                     <p className="font-semibold text-sm text-blue-900">
                       {t.rfqs.detail.aiRecommendation}:{' '}
-                      {comparisonResult.offers.find((o: any) => o.id === comparisonResult.aiRecommendation.recommendedOfferId)?.supplier?.name || '—'}
+                      {comparisonResult.offers.find((o) => o.id === comparisonResult.aiRecommendation?.recommendedOfferId)?.supplier?.name || '—'}
                     </p>
                     <p className="text-sm text-blue-800 mt-1">{comparisonResult.aiRecommendation.reasoning}</p>
                   </div>
@@ -964,12 +961,12 @@ export function RfqDetailPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {comparisonResult.offers.map((offer: any) => {
+                    {comparisonResult.offers.map((offer) => {
                       const isLowest = comparisonResult.comparison.lowestPrice?.offerId === offer.id;
                       const isFastest = comparisonResult.comparison.fastestDelivery?.offerId === offer.id;
                       const isRecommended = comparisonResult.aiRecommendation?.recommendedOfferId === offer.id;
-                      const aiScore = comparisonResult.aiRecommendation?.scores?.find((s: any) => s.offerId === offer.id);
-                      const risks = offer.riskFlags || {};
+                      const aiScore = comparisonResult.aiRecommendation?.scores?.find((s) => s.offerId === offer.id);
+                      const risks = offer.riskFlags
 
                       // Use tier price for comparison if available
                       let displayPrice: string;
@@ -995,13 +992,13 @@ export function RfqDetailPage() {
                               </Link>
                             </div>
                             <div className="flex gap-1 mt-0.5 flex-wrap">
-                              {risks.isNewSupplier && (
+                              {risks?.isNewSupplier && (
                                 <span className="text-xs bg-amber-100 text-amber-800 px-1 rounded" title={t.rfqs.detail.newSupplier}>⚠️ {t.rfqs.detail.newSupplier}</span>
                               )}
-                              {risks.leadTimeRisk && (
+                              {risks?.leadTimeRisk && (
                                 <span className="text-xs bg-orange-100 text-orange-800 px-1 rounded" title={t.rfqs.detail.deliveryRisk}>🕐 {t.rfqs.detail.deliveryRisk}</span>
                               )}
-                              {risks.priceOutlier && (
+                              {risks?.priceOutlier && (
                                 <span className="text-xs bg-red-100 text-red-800 px-1 rounded" title={t.rfqs.detail.priceOutlier}>💲 {t.rfqs.detail.priceOutlier}</span>
                               )}
                               {offer.compliance?.specsConfirmed && (
@@ -1082,10 +1079,10 @@ export function RfqDetailPage() {
                 {(() => {
                   const topId =
                     comparisonResult.aiRecommendation?.recommendedOfferId ||
-                    comparisonResult.ranking?.rankings?.[0]?.offerId ||
+                    comparisonResult.comparison?.topRanked?.offerId ||
                     comparisonResult.offers?.[0]?.id;
                   if (!topId) return null;
-                  const topOffer = comparisonResult.offers.find((o: any) => o.id === topId);
+                  const topOffer = comparisonResult.offers.find((o) => o.id === topId);
                   if (!topOffer || topOffer.status === 'ACCEPTED') return null;
                   const topSupplierName = topOffer.supplier?.name || '#1';
                   return (
@@ -1254,9 +1251,17 @@ export function RfqDetailPage() {
 
                       {/* AI Counter-Offer Suggestion (from negotiation history or on-demand) */}
                       {(() => {
-                        // Check negotiation history for an existing AI suggestion
-                        const historyEntries = (offer as any).negotiationHistory as any[] | undefined;
-                        const historySuggestion = historyEntries?.filter((h: any) => h.action === 'ai_counter_suggestion').pop();
+                        // Check negotiation history for an existing AI suggestion.
+                        // negotiationHistory isn't on the base Offer type — it's a JSON column
+                        // backfilled by the counter-offer flow. Local shape only for this lookup.
+                        type NegotiationEntry = {
+                          action: string;
+                          suggestedTerms?: { price?: number; moq?: number; leadTime?: number; comments?: string };
+                          reasoning?: string;
+                          savingsEstimate?: { percentage: number; absoluteAmount: number; currency: string };
+                        };
+                        const historyEntries = (offer as Offer & { negotiationHistory?: NegotiationEntry[] }).negotiationHistory;
+                        const historySuggestion = historyEntries?.filter((h) => h.action === 'ai_counter_suggestion').pop();
                         const activeSuggestion = aiSuggestion[offer.id] || historySuggestion;
 
                         if (!activeSuggestion) return null;
@@ -1473,7 +1478,7 @@ export function RfqDetailPage() {
         <LineByLineComparison
           rfqId={id}
           rfqLineItems={rfqLineItemsData.items}
-          offers={offers.filter((o: any) => ['SUBMITTED', 'SHORTLISTED', 'ACCEPTED'].includes(o.status)).map((o: any) => ({ id: o.id, supplier: o.supplier, currency: o.currency }))}
+          offers={(offers as Offer[]).filter((o) => ['SUBMITTED', 'SHORTLISTED', 'ACCEPTED'].includes(o.status)).map((o) => ({ id: o.id, supplier: o.supplier, currency: o.currency }))}
         />
       )}
 

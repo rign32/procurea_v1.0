@@ -3,12 +3,14 @@ import { useParams, Link } from "react-router-dom"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
+import { BreadcrumbScript } from "@/components/seo/BreadcrumbScript"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { ResourceCover } from "@/components/content/ResourceCover"
 import { TcoCalculatorWidget } from "@/components/content/TcoCalculatorWidget"
 import { RiskChecklistWidget } from "@/components/content/RiskChecklistWidget"
 import { getResource } from "@/content/resources"
 import { pathMappings } from "@/i18n/paths"
+import { trackFormStart, trackLeadSubmit, trackLeadMagnetDownload } from "@/lib/analytics"
 import { Download, CheckCircle2, ArrowLeft, Shield } from "lucide-react"
 
 const LANG = (import.meta.env.VITE_LANGUAGE || "pl") as "pl" | "en"
@@ -21,6 +23,14 @@ export function ResourcePage() {
   const [state, setState] = useState<"form" | "loading" | "success" | "error">("form")
   const [formData, setFormData] = useState({ name: "", email: "", company: "" })
   const [error, setError] = useState<string | null>(null)
+  const [formStarted, setFormStarted] = useState(false)
+
+  const handleFieldFocus = () => {
+    if (!formStarted && resource) {
+      setFormStarted(true)
+      trackFormStart(`resource_gate:${resource.slug}`)
+    }
+  }
 
   if (!resource) {
     return (
@@ -68,6 +78,15 @@ export function ResourcePage() {
 
       setState("success")
 
+      trackLeadSubmit("resource-gate", {
+        resource_slug: resource.slug,
+        resource_format: resource.formatLabel,
+      })
+      trackLeadMagnetDownload(resource.slug, {
+        resource_format: resource.formatLabel,
+        resource_title: resource.title,
+      })
+
       if (resource.gatedDownloadUrl) {
         window.open(resource.gatedDownloadUrl, "_blank", "noopener,noreferrer")
       }
@@ -84,6 +103,13 @@ export function ResourcePage() {
           title: `${resource.title} | Procurea`,
           description: resource.excerpt,
         }}
+      />
+      <BreadcrumbScript
+        crumbs={[
+          { name: isEN ? 'Home' : 'Strona główna', path: '/' },
+          { name: isEN ? 'Content Hub' : 'Centrum Wiedzy', path: resourcesBase },
+          { name: resource.title, path: `${resourcesBase}/${resource.slug}` },
+        ]}
       />
       <Navbar />
 
@@ -191,7 +217,7 @@ export function ResourcePage() {
                             : "Bez karty. Prosto na skrzynkę."}
                         </p>
 
-                        <form onSubmit={handleSubmit} className="space-y-3" noValidate>
+                        <form onSubmit={handleSubmit} onFocus={handleFieldFocus} className="space-y-3" noValidate>
                           <FormField
                             id="resource-name"
                             label={isEN ? "Your name" : "Imię"}

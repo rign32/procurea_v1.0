@@ -162,8 +162,8 @@ Response language for description/notes: ${hints?.language || 'en'}.`;
       unit: parsed.unit || undefined,
       eau: typeof parsed.eau === 'number' ? parsed.eau : undefined,
       partNumber: parsed.partNumber || undefined,
-      targetRegion: (parsed.targetRegion as any) || undefined,
-      targetCountries: Array.isArray(parsed.targetCountries) ? parsed.targetCountries : undefined,
+      targetRegion: this.normalizeRegion(parsed.targetRegion),
+      targetCountries: this.normalizeCountries(parsed.targetCountries),
       city: parsed.city || undefined,
       eventDate: parsed.eventDate || undefined,
       headcount: typeof parsed.headcount === 'number' ? parsed.headcount : undefined,
@@ -191,6 +191,27 @@ Response language for description/notes: ${hints?.language || 'en'}.`;
     if (value && valid.includes(value as SourcingMode)) return value as SourcingMode;
     if (hint && valid.includes(hint)) return hint;
     return 'product';
+  }
+
+  private normalizeRegion(value: any): ParsedBrief['targetRegion'] {
+    const valid = ['PL', 'EU', 'GLOBAL', 'GLOBAL_NO_CN', 'CUSTOM'];
+    if (typeof value === 'string' && valid.includes(value.toUpperCase())) {
+      return value.toUpperCase() as ParsedBrief['targetRegion'];
+    }
+    return undefined;
+  }
+
+  /**
+   * ISO-3166-1 alpha-2 guardrail — drops AI-emitted garbage like ["Berlin"] or ["Germany"]
+   * so the pipeline never sees invalid country codes.
+   */
+  private normalizeCountries(value: any): string[] | undefined {
+    if (!Array.isArray(value)) return undefined;
+    const isoPattern = /^[A-Z]{2}$/;
+    const cleaned = value
+      .map(v => (typeof v === 'string' ? v.trim().toUpperCase() : ''))
+      .filter(code => isoPattern.test(code));
+    return cleaned.length ? Array.from(new Set(cleaned)) : undefined;
   }
 
   private fallback(brief: string, hints?: { industry?: Industry; sourcingMode?: SourcingMode }): ParsedBrief {

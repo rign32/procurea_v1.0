@@ -1635,6 +1635,9 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                         discoveredDirectories: [],
                         region: expRegion,
                         allowedCountries: expAllowedCountries,
+                        industry: dto.searchCriteria?.industry,
+                        sourcingMode: (dto.searchCriteria as any)?.sourcingMode,
+                        city: (dto.searchCriteria as any)?.city,
                     });
 
                     await this.log(id, `[EXPANSION] Generated ${expansionResult.expansion_queries.length} expansion queries`);
@@ -2494,7 +2497,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             if (isPortalDomain(domain)) {
                 await this.log(campaignId, `${workerTag} [PORTAL] ${domain} — forcing directory mining`);
                 const content = await this.scrapingService.fetchContent(url);
-                const screenerResult = await this.screenerAgent.execute(url, content, dto, productContext, userLanguage, dto.searchCriteria?.requiredCertificates);
+                const screenerResult = await this.screenerAgent.execute(url, content, dto, productContext, userLanguage, dto.searchCriteria?.requiredCertificates, { industry: dto.searchCriteria?.industry, sourcingMode: (dto.searchCriteria as any)?.sourcingMode, city: (dto.searchCriteria as any)?.city });
                 const mentionedCompanies = screenerResult.mentioned_companies || [];
                 if (depth === 0 && mentionedCompanies.length > 0) {
                     await this.log(campaignId, `${workerTag} [PORTAL] ${domain} → ${mentionedCompanies.length} companies to mine`);
@@ -2555,7 +2558,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 } catch { /* keep error content */ }
             }
 
-            const screenerResult = await this.screenerAgent.execute(effectiveUrl, content, dto, productContext, userLanguage, dto.searchCriteria?.requiredCertificates);
+            const screenerResult = await this.screenerAgent.execute(effectiveUrl, content, dto, productContext, userLanguage, dto.searchCriteria?.requiredCertificates, { industry: dto.searchCriteria?.industry, sourcingMode: (dto.searchCriteria as any)?.sourcingMode, city: (dto.searchCriteria as any)?.city });
 
             if (!screenerResult.is_relevant) {
                 // DIRECTORY MINING: extract leads from industry portals
@@ -2705,7 +2708,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 }
 
                 if (pagesChecked > 0) {
-                    const deepResult = await this.screenerAgent.execute(url, combinedContent, dto, productContext, userLanguage, dto.searchCriteria?.requiredCertificates);
+                    const deepResult = await this.screenerAgent.execute(url, combinedContent, dto, productContext, userLanguage, dto.searchCriteria?.requiredCertificates, { industry: dto.searchCriteria?.industry, sourcingMode: (dto.searchCriteria as any)?.sourcingMode, city: (dto.searchCriteria as any)?.city });
                     if (deepResult.company_type !== 'NIEJASNY' ||
                         (deepResult.company_type_confidence || 0) > (screenerResult.company_type_confidence || 0)) {
                         Object.assign(screenerResult, deepResult);
@@ -2829,7 +2832,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 supplyChainPosition: productContext.supplyChainPosition,
                 disambiguationNote: productContext.disambiguationNote,
                 productCategory: productContext.productCategory,
-            } : undefined);
+            } : undefined, { industry: dto.searchCriteria?.industry, sourcingMode: (dto.searchCriteria as any)?.sourcingMode, city: (dto.searchCriteria as any)?.city });
 
             // CRITICAL: Filter out rejected records
             if (auditorResult.validation_result === 'REJECTED' || auditorResult.is_valid === false) {
@@ -3021,6 +3024,14 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             // national VAT registry, it's a strong enough proof-of-existence to mark cert claims verified.
             const extractedVat = screenerResult.extracted_data?.vat_id;
             let vatVerified = false;
+            let vatMetadata: {
+                vatVerified: boolean;
+                vatCountry: string;
+                vatNumber: string;
+                registeredName?: string;
+                registeredAddress?: string;
+                checkedAt: string;
+            } | null = null;
             if (this.vatValidation && extractedVat && extractedVat.length >= 8) {
                 const vatParsed = this.vatValidation.extractVatFromContent(extractedVat);
                 if (vatParsed) {
@@ -3029,6 +3040,14 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                     if (vatResult) {
                         const vatBonus = vatResult.valid ? 15 : -20;
                         finalScore = Math.max(10, Math.min(100, finalScore + vatBonus));
+                        vatMetadata = {
+                            vatVerified: vatResult.valid,
+                            vatCountry: vatParsed.countryCode,
+                            vatNumber: vatParsed.vatNumber,
+                            registeredName: vatResult.name,
+                            registeredAddress: vatResult.address,
+                            checkedAt: new Date().toISOString(),
+                        };
                         if (vatResult.valid) {
                             vatVerified = true;
                             await this.log(campaignId, `${workerTag} VAT VERIFIED: ${enrichedData.company_name} (+15 trust)${vatResult.name ? ` — "${vatResult.name}"` : ''}`);
@@ -3122,6 +3141,8 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                     enrichmentResult: JSON.stringify(enrichmentResult),
                     auditorResult: JSON.stringify(auditorResult),
                     analysisScore: finalScore / 10,
+                    // Flexible blob — currently: VIES VAT check result (used by UI badge).
+                    metadata: vatMetadata ? JSON.stringify({ vat: vatMetadata }) : null,
 
                     analysisReason: enrichmentResult.verification?.verification_notes || screenerResult.match_reason,
                     originLanguage: originLanguage,
@@ -3360,7 +3381,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                     supplyChainPosition: productContext.supplyChainPosition,
                     disambiguationNote: productContext.disambiguationNote,
                     productCategory: productContext.productCategory,
-                });
+                }, { industry: dto.searchCriteria?.industry, sourcingMode: (dto.searchCriteria as any)?.sourcingMode, city: (dto.searchCriteria as any)?.city });
                 if (auditorResult.validation_result === 'REJECTED' || auditorResult.is_valid === false) {
                     await this.log(campaignId, `${workerTag} CACHE PRODUCT MISMATCH: "${enrichedData.company_name}" (${enrichedData.specialization}) — ${auditorResult.rejection_reason || 'not matching product'}`);
                     return false;
