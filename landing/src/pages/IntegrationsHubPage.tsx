@@ -190,9 +190,8 @@ export function IntegrationsHubPage() {
       <Navbar />
 
       <main id="main-content" className="pb-24">
-        {/* ═══════ HERO — cinematic constellation, full width ═══════ */}
-        <section className="relative pt-24 sm:pt-28 pb-8 overflow-hidden">
-          {/* Subtle dotted background */}
+        {/* ═══════ HERO — left text, right constellation ═══════ */}
+        <section className="relative pt-28 sm:pt-32 pb-16 overflow-hidden">
           <div
             className="absolute inset-0 pointer-events-none opacity-[0.5]"
             style={{
@@ -201,61 +200,61 @@ export function IntegrationsHubPage() {
               backgroundSize: "24px 24px",
             }}
           />
+          <div className="absolute top-20 -right-40 w-[640px] h-[640px] rounded-full bg-primary/[0.05] blur-[120px] pointer-events-none" aria-hidden="true" />
 
-          {/* Text block — centered above the visual */}
-          <div className="relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center mb-10 sm:mb-14">
-            <motion.span
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 text-[11px] font-mono font-bold uppercase tracking-[0.18em] text-primary mb-5"
-            >
-              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-              {integrationsCopy.heroEyebrow}
-            </motion.span>
-            <motion.h1
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.08, ease: [0.2, 0.8, 0.2, 1] }}
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-[64px] font-bold font-display tracking-tight mb-5 text-slate-900 leading-[1.05]"
-            >
-              {integrationsCopy.heroTitle}
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.18 }}
-              className="text-lg sm:text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto"
-            >
-              {integrationsCopy.heroSubtitle}
-            </motion.p>
-          </div>
+          <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <div className="grid lg:grid-cols-[1.05fr_1fr] gap-10 lg:gap-12 items-center">
+              <div>
+                <motion.span
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="inline-flex items-center gap-2 text-[11px] font-mono font-bold uppercase tracking-[0.18em] text-primary mb-5"
+                >
+                  <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                  {integrationsCopy.heroEyebrow}
+                </motion.span>
+                <motion.h1
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.55, delay: 0.05, ease: [0.2, 0.8, 0.2, 1] }}
+                  className="text-4xl sm:text-5xl md:text-[52px] font-bold font-display tracking-tight mb-5 text-slate-900 leading-[1.05]"
+                >
+                  {integrationsCopy.heroTitle}
+                </motion.h1>
+                <motion.p
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.12 }}
+                  className="text-lg text-slate-600 leading-relaxed mb-8 max-w-xl"
+                >
+                  {integrationsCopy.heroSubtitle}
+                </motion.p>
 
-          {/* Constellation — full-width cinematic visual */}
-          <div className="relative mx-auto max-w-[1600px] px-2 sm:px-4">
-            <IntegrationConstellation />
-          </div>
-
-          {/* Stats strip under the visual */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.9 }}
-            className="relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 mt-6 sm:mt-2"
-          >
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {integrationsCopy.heroStats.map((s) => (
-                <div key={s.label} className="rounded-xl border border-black/[0.08] bg-white/90 backdrop-blur-sm p-4 text-center">
-                  <div className="text-2xl sm:text-3xl font-extrabold font-display tracking-tight text-slate-900 tabular-nums">
-                    {s.value}
-                  </div>
-                  <div className="text-[10.5px] font-mono uppercase tracking-[0.12em] text-slate-500 mt-1 font-bold">
-                    {s.label}
-                  </div>
+                <div className="grid grid-cols-2 gap-3 max-w-md">
+                  {integrationsCopy.heroStats.map((s) => (
+                    <div key={s.label} className="rounded-xl border border-black/[0.08] bg-white p-4">
+                      <div className="text-2xl sm:text-[26px] font-extrabold font-display tracking-tight text-slate-900 tabular-nums">
+                        {s.value}
+                      </div>
+                      <div className="text-[10.5px] font-mono uppercase tracking-[0.12em] text-slate-500 mt-1 font-bold">
+                        {s.label}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.7, delay: 0.15, ease: [0.2, 0.8, 0.2, 1] }}
+                className="relative"
+              >
+                <IntegrationConstellation />
+              </motion.div>
             </div>
-          </motion.div>
+          </div>
         </section>
 
         {/* ═══════ LOGOS STRIP ═══════ */}

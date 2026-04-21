@@ -233,22 +233,22 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
                             <div className="flex items-center gap-2 mb-4">
                                 <Palette className="h-5 w-5 text-primary" />
                                 <div>
-                                    <h3 className="text-lg font-medium">{(t.settings.organization as any).branding?.title || 'Branding'}</h3>
-                                    <p className="text-sm text-muted-foreground">{(t.settings.organization as any).branding?.subtitle || 'Customize the look of your app and supplier portal'}</p>
+                                    <h3 className="text-lg font-medium">{t.settings.organization.branding.title}</h3>
+                                    <p className="text-sm text-muted-foreground">{t.settings.organization.branding.subtitle}</p>
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* Logo URL */}
                                 <div className="space-y-2 md:col-span-2">
-                                    <Label htmlFor="logoUrl">{(t.settings.organization as any).branding?.logoUrl || 'Logo URL'}</Label>
+                                    <Label htmlFor="logoUrl">{t.settings.organization.branding.logoUrl}</Label>
                                     <Input
                                         id="logoUrl"
                                         {...register('logoUrl')}
-                                        placeholder={(t.settings.organization as any).branding?.logoUrlPlaceholder || 'https://example.com/logo.png'}
+                                        placeholder={t.settings.organization.branding.logoUrlPlaceholder}
                                     />
                                     <p className="text-xs text-muted-foreground">
-                                        {(t.settings.organization as any).branding?.logoUrlHint || 'Provide a URL to your organization logo (PNG, SVG).'}
+                                        {t.settings.organization.branding.logoUrlHint}
                                     </p>
                                     {watchedValues.logoUrl && (
                                         <div className="mt-2 p-3 border rounded-md bg-muted/50 inline-flex items-center gap-3">
@@ -265,7 +265,7 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
 
                                 {/* Primary Color */}
                                 <div className="space-y-2">
-                                    <Label htmlFor="primaryColor">{(t.settings.organization as any).branding?.primaryColor || 'Primary color'}</Label>
+                                    <Label htmlFor="primaryColor">{t.settings.organization.branding.primaryColor}</Label>
                                     <div className="flex items-center gap-2">
                                         <Input
                                             id="primaryColor"
@@ -281,13 +281,13 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
                                         )}
                                     </div>
                                     <p className="text-xs text-muted-foreground">
-                                        {(t.settings.organization as any).branding?.primaryColorHint || 'Color for buttons and UI elements (hex)'}
+                                        {t.settings.organization.branding.primaryColorHint}
                                     </p>
                                 </div>
 
                                 {/* Accent Color */}
                                 <div className="space-y-2">
-                                    <Label htmlFor="accentColor">{(t.settings.organization as any).branding?.accentColor || 'Accent color'}</Label>
+                                    <Label htmlFor="accentColor">{t.settings.organization.branding.accentColor}</Label>
                                     <div className="flex items-center gap-2">
                                         <Input
                                             id="accentColor"
@@ -303,7 +303,7 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
                                         )}
                                     </div>
                                     <p className="text-xs text-muted-foreground">
-                                        {(t.settings.organization as any).branding?.accentColorHint || 'Color for highlights and active elements (hex)'}
+                                        {t.settings.organization.branding.accentColorHint}
                                     </p>
                                 </div>
 
@@ -319,7 +319,7 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
                                         }}
                                     >
                                         <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-                                        {(t.settings.organization as any).branding?.resetColors || 'Reset to default'}
+                                        {t.settings.organization.branding.resetColors}
                                     </Button>
                                 </div>
 
@@ -328,7 +328,7 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
                                     <div className="md:col-span-2 space-y-2">
                                         <Label className="flex items-center gap-2">
                                             <Eye className="h-4 w-4" />
-                                            {(t.settings.organization as any).branding?.preview || 'Color preview'}
+                                            {t.settings.organization.branding.preview}
                                         </Label>
                                         <div className="border rounded-md p-4 bg-white dark:bg-zinc-900 flex items-center gap-4">
                                             {watchedValues.primaryColor && /^#[0-9A-Fa-f]{6}$/.test(watchedValues.primaryColor) && (
@@ -353,16 +353,16 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
 
                                 {/* Portal Welcome Text */}
                                 <div className="space-y-2 md:col-span-2">
-                                    <Label htmlFor="portalWelcomeText">{(t.settings.organization as any).branding?.portalWelcomeText || 'Portal welcome text'}</Label>
+                                    <Label htmlFor="portalWelcomeText">{t.settings.organization.branding.portalWelcomeText}</Label>
                                     <textarea
                                         id="portalWelcomeText"
                                         {...register('portalWelcomeText')}
-                                        placeholder={(t.settings.organization as any).branding?.portalWelcomeTextPlaceholder || 'Welcome to our supplier portal...'}
+                                        placeholder={t.settings.organization.branding.portalWelcomeTextPlaceholder}
                                         rows={3}
                                         className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                     />
                                     <p className="text-xs text-muted-foreground">
-                                        {(t.settings.organization as any).branding?.portalWelcomeTextHint || 'Displayed to suppliers at the top of the offer portal'}
+                                        {t.settings.organization.branding.portalWelcomeTextHint}
                                     </p>
                                 </div>
                             </div>

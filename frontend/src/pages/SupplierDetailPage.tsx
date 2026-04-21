@@ -424,7 +424,7 @@ export function SupplierDetailPage() {
 
           {/* Performance Scorecard */}
           <motion.div variants={itemVariants}>
-            <SupplierScorecard supplierId={id!} />
+            <SupplierScorecard supplierId={id!} analysisScore={supplier.analysisScore} />
           </motion.div>
 
           {/* Contacts Card — only visible for full plan */}
