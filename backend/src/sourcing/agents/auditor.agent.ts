@@ -32,14 +32,20 @@ export class AuditorAgentService {
         pt: 'português', fi: 'suomi', ja: '日本語', ko: '한국어', zh: '中文',
     };
 
-    async execute(websiteData: any, registryData: any, userLanguage: string = 'pl', productContext?: {
-        coreProduct: string;
-        positiveSignals: string[];
-        negativeSignals: string[];
-        supplyChainPosition?: string;
-        disambiguationNote?: string;
-        productCategory?: string;
-    }): Promise<any> {
+    async execute(
+        websiteData: any,
+        registryData: any,
+        userLanguage: string = 'pl',
+        productContext?: {
+            coreProduct: string;
+            positiveSignals: string[];
+            negativeSignals: string[];
+            supplyChainPosition?: string;
+            disambiguationNote?: string;
+            productCategory?: string;
+        },
+        sourcingContext?: { industry?: string; sourcingMode?: 'product' | 'service' | 'mixed'; city?: string },
+    ): Promise<any> {
         this.logger.log('Executing Auditor Agent - STRICT VALIDATION MODE...');
 
         // Pre-validation checks
@@ -107,6 +113,14 @@ validation_result: Przy odrzuceniu z powodu SPÓJNOŚCI DANYCH → daj szansę (
 Ale przy odrzuceniu z powodu ZŁEGO PRODUKTU → odrzuć zdecydowanie (REJECTED).
 Walidacja produktowa jest WAŻNIEJSZA niż walidacja spójności danych.
 
+${sourcingContext?.sourcingMode === 'service' || sourcingContext?.sourcingMode === 'mixed' ? `
+=== TRYB SERVICE SOURCING (${sourcingContext?.sourcingMode.toUpperCase()}) — NADRZĘDNE REGUŁY ===
+Klient szuka WYKONAWCÓW USŁUG (branża: ${sourcingContext?.industry || 'general'}${sourcingContext?.city ? `, miasto: ${sourcingContext.city}` : ''}).
+
+AKCEPTUJ firmy świadczące usługi z portfolio realizacji, licencjami zawodowymi, obsługą wymaganej lokalizacji.
+ODRZUĆ TYLKO: e-commerce bez usług, blogi/portale/katalogi, firmy z innych branż, firmy poza regionem bez oddziału lokalnego.
+UWAGA: Reguły "PRODUCES-vs-USES" i "surowiec-vs-wyrób gotowy" NIE OBOWIĄZUJĄ w trybie service.
+` : ''}
 === KONTEKST PRODUKTU (KRYTYCZNY) ===
 PRODUKT DOCELOWY: ${productContext?.coreProduct || 'N/A'}
 KATEGORIA: ${productContext?.productCategory || 'N/A'}

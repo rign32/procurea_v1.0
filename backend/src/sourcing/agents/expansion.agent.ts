@@ -9,6 +9,9 @@ export interface ExpansionInput {
     discoveredDirectories: { url: string; companiesFound: number }[];
     region: string;
     allowedCountries?: string[];
+    industry?: string;
+    sourcingMode?: 'product' | 'service' | 'mixed';
+    city?: string;
 }
 
 export interface ExpansionQuery {
@@ -55,11 +58,21 @@ export class ExpansionAgentService {
             ? pc.majorTradeShows.map(t => `- ${t}`).join('\n')
             : '(brak danych)';
 
+        const isServiceMode = input.sourcingMode === 'service' || input.sourcingMode === 'mixed';
+        const serviceNote = isServiceMode ? `
+=== TRYB SERVICE SOURCING (${input.sourcingMode?.toUpperCase()}) ===
+Szukamy WYKONAWCÓW USŁUG, nie producentów towarów.
+Branża: ${input.industry || 'N/A'}${input.city ? `, miasto: ${input.city}` : ''}.
+Używaj terminów: "firma", "services", "contractor", "wykonawca", "agency", "Dienstleister".
+Dla events+city: każde zapytanie MUSI zawierać nazwę miasta.
+Źródła: stowarzyszenia zawodowe, Izby Gospodarcze, lokalne katalogi firm usługowych.
+` : '';
+
         const prompt = `
 Jesteś Ekspertem od Intelligence Sourcingowego przeprowadzającym DRUGI PRZEBIEG wyszukiwania dostawców.
 Pierwszy przebieg już znalazł część dostawców. Twoim zadaniem jest znaleźć TYCH, KTÓRYCH BRAKUJE.
-
-=== PRODUKT ===
+${serviceNote}
+=== PRODUKT / USŁUGA ===
 "${productName}"
 Kategoria: ${pc?.productCategory || 'N/A'}
 Pozycja w łańcuchu: ${pc?.supplyChainPosition || 'N/A'}

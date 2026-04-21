@@ -1,5 +1,6 @@
 import { Controller, Post, Body, Get, Param, Patch, Delete, Query, Res, Header, UseGuards, Req, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { Throttle } from '@nestjs/throttler';
 import { SourcingService } from './sourcing.service';
 import { CreateCampaignDto } from '../common/dto/create-campaign.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -30,6 +31,7 @@ export class SourcingController {
     }
 
     @Post('parse-brief')
+    @Throttle({ default: { ttl: 60000, limit: 10 } }) // 10 parses/min/user — Gemini cost guard
     async parseBrief(
         @Body() body: { brief: string; industry?: Industry; sourcingMode?: SourcingMode; language?: string },
     ) {
