@@ -390,8 +390,8 @@ Ta lista pokrywa AP. Nie pokrywa sourcingu. Jeśli twój zespół zakupowy pyta 
       },
     },
     {
-      heading: 'Six procurement gaps in native NetSuite',
-      headingPl: 'Sześć luk procurement w natywnym NetSuite',
+      heading: 'Six workflows worth extending with sourcing-layer tools',
+      headingPl: 'Sześć workflow wartych rozszerzenia o warstwę sourcingową',
       body: `Every NetSuite customer who tries to run procurement in native screens hits the same six walls.
 
 <strong>1. Supplier discovery.</strong> NetSuite has no mechanism for finding new suppliers. The Vendor record assumes you already know them. If you need to enter a new category (new geography, new tier, new certification requirement), discovery happens entirely outside NetSuite — usually in Google, trade directories, and consultant networks.
@@ -717,7 +717,9 @@ SAP Ariba's total cost of ownership for a mid-market implementation lands in the
 
 Total year-one cost for a mid-market implementation: usually north of <strong>€400k</strong>, occasionally over €1M for multi-subsidiary rollouts. Year two onward: €120k-€250k/year ongoing.
 
-That is not a criticism of Ariba. That is Ariba working as designed — a platform priced for the category of customer it was built for. The mismatch is what happens when companies with €20M-€200M revenue try to deploy it. The economics do not work and the implementation rarely finishes.`,
+That is not a criticism of Ariba. That is Ariba priced and scoped for enterprise S2P — the category of customer it was built for. The mismatch surfaces when companies with €20M-€200M revenue try to deploy it: the economics rarely pencil out, and the implementation often drags past budget.
+
+<em>A note on bias: this comparison includes Procurea. Treat the matrix as Procurea's perspective on the trade-off space, not as neutral analyst research. For a third-party view, see Gartner's Source-to-Pay Magic Quadrant.</em>`,
       bodyPl: `Zanim uczciwe porównanie: nie będziemy udawać, że Procurea to SAP Ariba. Nie jest. Ariba jest budowane od 25 lat pod procurement Fortune 500 z wydatkiem dziewięciocyfrowym, globalnymi spółkami i dedykowanymi zespołami IT procurement. Jeśli jesteś taką organizacją, Ariba to prawdopodobnie właściwa odpowiedź i my nie jesteśmy twoim vendorem. Ten post jest dla pozostałych 95% firm.
 
 Total cost of ownership SAP Ariba dla wdrożenia mid-market mieści się w <strong>€250k-€900k w pierwszym roku</strong>, według publicznych case studies i benchmarków Gartnera. Rozbicie:
@@ -730,7 +732,9 @@ Total cost of ownership SAP Ariba dla wdrożenia mid-market mieści się w <stro
 
 Łączny koszt pierwszego roku wdrożenia mid-market: zwykle powyżej <strong>€400k</strong>, czasem powyżej €1M przy rollout wielospółkowym. Rok drugi i dalej: €120k-€250k/rok.
 
-To nie krytyka Ariby. To Ariba działająca zgodnie z projektem — platforma wyceniona pod kategorię klienta, dla której była budowana. Mismatch pojawia się, gdy firmy o przychodach €20M-€200M próbują ją wdrożyć. Ekonomia nie gra i wdrożenie rzadko się kończy.`,
+To nie krytyka Ariby. To Ariba wyceniona i zaprojektowana pod enterprise S2P — kategorię klienta, dla której była budowana. Mismatch pojawia się, gdy firmy o przychodach €20M-€200M próbują ją wdrożyć: ekonomia rzadko się domyka, a wdrożenie ciągnie się ponad budżet.
+
+<em>Nota o stronniczości: to porównanie zawiera Procureę. Traktuj matrycę jako perspektywę Procurea na przestrzeń trade-offów, nie jako niezależny raport analityczny. Po neutralny obraz sięgnij po Gartner Source-to-Pay Magic Quadrant.</em>`,
       statBlock: {
         columns: 4,
         stats: [
@@ -785,7 +789,7 @@ To nie krytyka Ariby. To Ariba działająca zgodnie z projektem — platforma wy
 - SAP Jaeger integration for supplier risk telemetry
 - Category management modules with spend analytics that compete with dedicated BI
 
-The gap between "what Ariba sells" and "what mid-market buys" is where half of Ariba implementations fail. Not because the software is bad — because the customer never needed 80% of what they were buying. The remaining 20% could have been bought for 10% of the price.
+The gap between "what Ariba sells" and "what mid-market buys" is where many under-sized Ariba implementations stall. Not because the software is bad — because the customer never needed 80% of what they were buying. The remaining 20% could have been bought for 10% of the price.
 
 That is the gap Procurea fills. We do the 20% — discovery, RFQ, multilingual outreach, verification, structured comparison — well, and we do not pretend to be a full source-to-pay suite.`,
       bodyPl: `Firma 150-osobowa z €40M adresowalnego wydatku nie ma tych samych problemów co firma 50 000-osobowa z €8B. Traktowanie ich jako tego samego problemu w skali to sposób, w jaki mid-market kończy z enterprise'ową półką.
@@ -806,7 +810,7 @@ That is the gap Procurea fills. We do the 20% — discovery, RFQ, multilingual o
 - Integracji SAP Jaeger dla telemetrii ryzyka
 - Modułów category management ze spend analytics konkurującym z dedykowanym BI
 
-Luka między „co Ariba sprzedaje" a „co mid-market kupuje" to miejsce, gdzie rozbija się połowa wdrożeń Ariby. Nie dlatego, że software jest zły — dlatego, że klient nigdy nie potrzebował 80% tego, co kupił. Pozostałe 20% dało się kupić za 10% ceny.
+Luka między „co Ariba sprzedaje" a „co mid-market kupuje" to miejsce, gdzie utykają zbyt małe wdrożenia Ariby. Nie dlatego, że software jest zły — dlatego, że klient nigdy nie potrzebował 80% tego, co kupił. Pozostałe 20% dało się kupić za 10% ceny.
 
 Tę lukę wypełnia Procurea. Robimy te 20% — discovery, RFQ, wielojęzyczny outreach, weryfikację, ustrukturyzowane porównanie — dobrze, i nie udajemy pełnego source-to-pay.`,
     },
@@ -906,7 +910,7 @@ Dla większości mid-marketowych klientów SAP ścieżka CSV albo pilot Merge.de
 
 <strong>The outgrow path is honest.</strong> If you are a €80M revenue company today growing to €400M in five years, Procurea will get you from today to about year three at a fraction of Ariba's cost. Somewhere between €300M-€500M of spend, your complexity will pass what we cover. At that point, migrating to Ariba is the right call. We will not try to talk you out of it — a €200k/year Ariba bill is cheap for a €500M spend company.
 
-The mistake is buying Ariba at €40M spend because it is "SAP's procurement." You will not use 70% of it, the implementation will drag, and three years later you will still not have run a real multilingual sourcing campaign.`,
+The common misstep is buying Ariba at €40M spend because it is "SAP's procurement." You will not use 70% of it, the implementation will drag, and three years later you will still not have run a real multilingual sourcing campaign.`,
       bodyPl: `Wolimy powiedzieć ci, żebyś kupił Aribę, niż sprzedać coś, co nie pasuje. Użyj tego jako frame decyzyjny.
 
 <strong>Kupuj Aribę, gdy:</strong>
@@ -929,7 +933,7 @@ The mistake is buying Ariba at €40M spend because it is "SAP's procurement." Y
 
 <strong>Ścieżka „wyrośnięcia" jest uczciwa.</strong> Jeśli dziś jesteś firmą €80M rosnącą do €400M w pięć lat, Procurea zawiezie cię od dziś do mniej więcej trzeciego roku za ułamek kosztu Ariby. Gdzieś między €300M-€500M wydatku twoja złożoność przekroczy to, co pokrywamy. W tym punkcie migracja do Ariby jest właściwą decyzją. Nie będziemy cię odwodzić — €200k/rok za Aribę jest tani dla firmy €500M.
 
-Błędem jest kupno Ariby przy €40M wydatku, bo „to procurement od SAP-a". Nie użyjesz 70% funkcjonalności, wdrożenie się rozciągnie, a trzy lata później nadal nie zrobisz realnej wielojęzycznej kampanii sourcingowej.`,
+Częstym błędem jest kupno Ariby przy €40M wydatku, bo „to procurement od SAP-a". Nie użyjesz 70% funkcjonalności, wdrożenie się rozciągnie, a trzy lata później nadal nie zrobisz realnej wielojęzycznej kampanii sourcingowej.`,
       pullQuote: {
         text: 'If you are already €500M+ spend with SAP-centric IT, buy Ariba. We would rather tell you that than sell you a tool that will not fit.',
         textPl: 'Jeśli masz już €500M+ wydatku i SAP-centryczne IT, kup Aribę. Wolimy ci to powiedzieć, niż sprzedać ci narzędzie, które nie zadziała.',
@@ -1938,8 +1942,8 @@ We wszystkich trzech przypadkach fit u podstawy: <em>zespół nie robi dużo zew
       },
     },
     {
-      heading: 'Four places Salesforce-for-procurement breaks',
-      headingPl: 'Cztery miejsca, gdzie Salesforce-dla-procurement pęka',
+      heading: 'Where the Account object stops being the right primitive',
+      headingPl: 'Gdzie obiekt Account przestaje być właściwym prymitywem',
       body: `<strong>1. Multi-supplier structured RFQ comparison.</strong> Salesforce has Opportunity (for sales quotes), not RFQ. You can build a custom object called "RFQ" with child records for each supplier response, but side-by-side comparison across tiered pricing, MOQ, Incoterms, and payment terms requires a custom Lightning page or an external tool. Most teams give up after building version one and go back to Excel for the comparison, which defeats the "single system" rationale.
 
 <strong>2. External supplier discovery.</strong> Salesforce is a system of record, not a search engine. You can buy Account lists from Data.com (or its successors) but that gives you directory-grade data, not verified manufacturing capability. Multi-language, multi-country discovery is not in Salesforce's model. Buyers either do it outside Salesforce and re-key results in, or they do not discover new suppliers at all — which means they source from the same narrow pool indefinitely.
@@ -1960,10 +1964,10 @@ The <strong>Account-as-Vendor anti-pattern</strong> is what happens when a compa
 <strong>Anty-wzorzec Account-jako-Vendor</strong> to co się dzieje, gdy firma próbuje wcisnąć wszystkie cztery powyższe do Salesforce. Kończysz z: duplikatami Account, gdy ta sama firma jest jednocześnie klientem i vendorem (wymaga reguł data quality i logiki record-type), proliferacją custom objects (RFQ, Bid, Vendor Scorecard, Certyfikat), złożonością Flow, której nie pilnuje nikt po odejściu konsultanta, i rosnącymi kosztami licencji, bo użytkownicy procurement potrzebują pełnych licencji Sales Cloud (€150+/user/mies.) do dostępu do danych.`,
       warning: {
         tone: 'warning',
-        title: 'Account-as-Supplier breaks for manufacturing PO workflows',
-        titlePl: 'Account-as-Supplier pęka przy manufacturingowych workflowach PO',
-        text: 'If you are issuing 100+ POs/month across manufacturing categories with tiered pricing, MOQ variance, and multilingual outreach, you have outgrown this pattern. The sunk cost of "we have Salesforce already" does not justify the custom-object sprawl and license uplift — by month 9, procurement is back in Excel.',
-        textPl: 'Jeśli wystawiasz 100+ PO/miesiąc w manufacturingowych kategoriach z tierowaną ceną, wariancją MOQ i wielojęzycznym outreachem, wyrosłeś z tego wzorca. Koszt zapadły „mamy już Salesforce" nie usprawiedliwia rozrostu custom objects i wzrostu licencji — do miesiąca 9 procurement wraca do Excela.',
+        title: 'Account-as-Supplier stops scaling at ~100 POs/month in manufacturing',
+        titlePl: 'Account-as-Supplier przestaje skalować się ok. 100 PO/miesiąc w manufacturingu',
+        text: 'If you are issuing 100+ POs/month across manufacturing categories with tiered pricing, MOQ variance, and multilingual outreach, the pattern has reached its useful limit. The sunk cost of "we have Salesforce already" no longer offsets the custom-object sprawl and license uplift — by month 9, procurement tends to drift back to Excel.',
+        textPl: 'Jeśli wystawiasz 100+ PO/miesiąc w manufacturingowych kategoriach z tierowaną ceną, wariancją MOQ i wielojęzycznym outreachem, wzorzec osiągnął swój użyteczny limit. Koszt zapadły „mamy już Salesforce" nie równoważy już rozrostu custom objects i wzrostu licencji — do miesiąca 9 procurement zazwyczaj wraca do Excela.',
       },
     },
     {
