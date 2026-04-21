@@ -82,9 +82,24 @@ export function getAllHubItems(): HubItem[] {
     isFeatured: false,
   }))
 
-  const all = [...blogItems, ...resourceItems]
-  all.sort((a, b) => b.date.localeCompare(a.date))
-  return all
+  // Sort each group by date desc, then interleave (1 resource every ~2 items)
+  // so lead magnets don't bunch together when they share a publish date.
+  blogItems.sort((a, b) => b.date.localeCompare(a.date))
+  resourceItems.sort((a, b) => b.date.localeCompare(a.date))
+  return interleave(resourceItems, blogItems)
+}
+
+function interleave(resources: HubItem[], blogs: HubItem[]): HubItem[] {
+  const result: HubItem[] = []
+  let ri = 0
+  let bi = 0
+  // Pattern: R B B R B B R B B ... — one resource every 3 slots while resources remain.
+  while (ri < resources.length || bi < blogs.length) {
+    if (ri < resources.length) result.push(resources[ri++])
+    if (bi < blogs.length) result.push(blogs[bi++])
+    if (bi < blogs.length) result.push(blogs[bi++])
+  }
+  return result
 }
 
 export function filterHubItems(items: HubItem[], type: ContentType | 'all'): HubItem[] {

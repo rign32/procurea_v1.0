@@ -3,18 +3,11 @@ import { ArrowRight, BookOpen } from "lucide-react"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { getAllBlogPosts } from "@/content/blog-data"
 import { pathMappings } from "@/i18n/paths"
+import { BLOG_HEROES } from "@/assets/content-hub/BlogHeroes"
+import { getBlogPostImages } from "@/assets/content-hub/BlogHeroImages"
 
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
 const isEN = LANG === 'en'
-
-const PILLAR_COLORS: Record<string, string> = {
-  'ai-sourcing-automation': 'from-brand-500 via-brand-700 to-[hsl(var(--ds-ink))]',
-  'erp-crm-integration':    'from-brand-400 via-brand-600 to-[hsl(var(--ds-ink-2))]',
-  'multilingual-outreach':  'from-brand-500 via-brand-700 to-[hsl(var(--ds-ink))]',
-  'supplier-intelligence':  'from-[hsl(var(--ds-cta))] via-brand-500 to-[hsl(var(--ds-ink))]',
-  'offer-comparison':       'from-brand-400 via-brand-600 to-[hsl(var(--ds-ink))]',
-  'supply-chain-strategy':  'from-[hsl(var(--ds-ink-3))] via-[hsl(var(--ds-ink-2))] to-[hsl(var(--ds-ink))]',
-}
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString(isEN ? 'en-US' : 'pl-PL', {
@@ -65,23 +58,22 @@ export function LatestContentSection() {
             const excerpt = isEN ? post.excerpt : post.excerptPl || post.excerpt
             const readTime = isEN ? post.readTime : post.readTimePl || post.readTime
             const category = isEN ? post.category : post.categoryPl || post.category
-            const gradient = PILLAR_COLORS[post.pillar] || PILLAR_COLORS['supply-chain-strategy']
+            const Hero = BLOG_HEROES[post.slug]
+            const postImages = getBlogPostImages(post.slug)
             return (
               <RevealOnScroll key={post.slug}>
                 <Link
                   to={`${blogBase}/${post.slug}`}
                   className="group flex flex-col rounded-[14px] border border-[hsl(var(--ds-rule))] bg-[hsl(var(--ds-surface))] overflow-hidden h-full hover:shadow-[0_8px_28px_-4px_rgba(14,22,20,0.10)] hover:-translate-y-1 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ds-accent))] focus-visible:ring-offset-2"
                 >
-                  <div className={`relative aspect-[16/10] bg-gradient-to-br ${gradient} overflow-hidden`}>
-                    <svg className="absolute inset-0 w-full h-full opacity-20 mix-blend-overlay" aria-hidden="true">
-                      <defs>
-                        <pattern id={`home-pat-${post.slug}`} x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-                          <circle cx="20" cy="20" r="1.5" fill="white" />
-                        </pattern>
-                      </defs>
-                      <rect width="100%" height="100%" fill={`url(#home-pat-${post.slug})`} />
-                    </svg>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" aria-hidden="true" />
+                  <div className="relative aspect-[16/10] bg-gradient-to-br from-brand-400 via-brand-600 to-slate-800 overflow-hidden">
+                    {postImages?.hero ? (
+                      <img src={postImages.hero} alt={title} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out" loading="lazy" />
+                    ) : Hero ? (
+                      <Hero className="w-full h-full" />
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" aria-hidden="true" />
+                    )}
                   </div>
                   <div className="flex flex-col flex-1 p-6">
                     <div className="flex items-center gap-2 mb-3">
