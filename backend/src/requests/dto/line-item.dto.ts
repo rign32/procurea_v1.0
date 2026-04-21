@@ -59,3 +59,51 @@ export class BulkReplaceLineItemsDto {
   @Type(() => LineItemDto)
   items!: LineItemDto[];
 }
+
+// Faza 2B — per-line supplier quote
+export class OfferLineItemDto {
+  @IsString()
+  rfqLineItemId!: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  unitPrice?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(3)
+  currency?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  moq?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  leadTime?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  altDescription?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  altMaterial?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  notes?: string;
+}
+
+export class BulkReplaceOfferLineItemsDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => OfferLineItemDto)
+  items!: OfferLineItemDto[];
+}

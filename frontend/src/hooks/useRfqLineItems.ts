@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   rfqLineItemsService,
+  offerLineItemsService,
   type LineItemInput,
+  type OfferLineInput,
 } from '@/services/rfq-line-items.service';
 
 export function useRfqLineItems(rfqId: string | undefined) {
@@ -35,5 +37,25 @@ export function useBulkReplaceLineItems(rfqId: string) {
     mutationFn: (items: LineItemInput[]) =>
       rfqLineItemsService.bulkReplace(rfqId, items),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['rfq-line-items', rfqId] }),
+  });
+}
+
+// --- Faza 2B: per-line offer quotes ---
+
+export function useOfferLineItems(offerId: string | undefined) {
+  return useQuery({
+    queryKey: ['offer-line-items', offerId],
+    queryFn: () => offerLineItemsService.list(offerId!),
+    enabled: !!offerId,
+    staleTime: 30_000,
+  });
+}
+
+export function useSaveOfferLineItems(offerId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (items: OfferLineInput[]) =>
+      offerLineItemsService.saveAll(offerId, items),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['offer-line-items', offerId] }),
   });
 }

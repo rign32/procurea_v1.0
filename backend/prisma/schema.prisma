@@ -699,11 +699,46 @@ model RfqLineItem {
   // Certifications/compliance flags expected on this line
   requiredCerts Json?  // Array of certificate type codes (e.g. ["CE", "ISO_9001"])
 
+  // Reverse relation — per-line quotes from suppliers (Faza 2B)
+  offerLineItems OfferLineItem[]
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([rfqRequestId])
   @@index([rfqRequestId, sortOrder])
+}
+
+// Per-line-item quote from a supplier (Faza 2B — completes multi-SKU loop).
+// Allows bidders to price each RFQ position separately so the buyer can
+// compare line-by-line, award per-line, or split across suppliers.
+model OfferLineItem {
+  id              String   @id @default(uuid())
+
+  offerId         String
+  offer           Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  rfqLineItemId   String
+  rfqLineItem     RfqLineItem @relation(fields: [rfqLineItemId], references: [id], onDelete: Cascade)
+
+  // Supplier's quote for this line
+  unitPrice       Float?
+  currency        String?  @default("EUR")
+  moq             Int?
+  leadTime        Int?     // weeks
+
+  // Supplier can flag alternatives/substitutes at line level
+  altDescription  String?
+  altMaterial     String?
+
+  notes           String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([offerId, rfqLineItemId])
+  @@index([offerId])
+  @@index([rfqLineItemId])
 }
 
 // 2. Offer - The "Bid" (Response from Supplier)
@@ -776,6 +811,9 @@ model Offer {
   // Inbound email replies (Sprint 1) + Purchase Orders (Sprint 4)
   replies         OfferReply[]
   purchaseOrders  PurchaseOrder[]
+
+  // Per-line quotes for multi-SKU / BOQ RFQs (Faza 2B)
+  lineItems       OfferLineItem[]
 
   // Weighted Ranking (computed when offers are compared)
   // Final score 0-100 (weighted sum of per-criterion scores)

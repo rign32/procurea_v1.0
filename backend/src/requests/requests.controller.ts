@@ -4,7 +4,7 @@ import { RequestsService } from './requests.service';
 import { CounterOfferAiService } from './counter-offer-ai.service';
 import { WeightedRankingService, RankingWeights } from './weighted-ranking.service';
 import { RfqLineItemsService } from './rfq-line-items.service';
-import { BulkReplaceLineItemsDto, LineItemDto } from './dto/line-item.dto';
+import { BulkReplaceLineItemsDto, BulkReplaceOfferLineItemsDto, LineItemDto } from './dto/line-item.dto';
 import { CreateRfqDto } from '../common/dto/create-rfq.dto';
 
 @UseGuards(AuthGuard('jwt'))
@@ -206,5 +206,26 @@ export class RequestsController {
         await this.requestsService.ensureRfqOwnership(rfqId, this.getUserId(req));
         await this.lineItems.remove(lineItemId);
         return { deleted: true };
+    }
+
+    // --- Faza 2B: Per-line offer quotes ---
+
+    @Get('offers/:offerId/line-items')
+    async listOfferLines(@Param('offerId') offerId: string, @Req() req: any) {
+        // Ownership: owner of RFQ the offer belongs to
+        const offer = await this.requestsService.findOfferById(offerId, this.getUserId(req));
+        const lines = await this.lineItems.listOfferLines(offer.id);
+        return { lines };
+    }
+
+    @Post('offers/:offerId/line-items/bulk-replace')
+    async saveOfferLines(
+        @Param('offerId') offerId: string,
+        @Body() body: BulkReplaceOfferLineItemsDto,
+        @Req() req: any,
+    ) {
+        const offer = await this.requestsService.findOfferById(offerId, this.getUserId(req));
+        const saved = await this.lineItems.saveOfferLines(offer.id, body.items);
+        return { items: saved };
     }
 }

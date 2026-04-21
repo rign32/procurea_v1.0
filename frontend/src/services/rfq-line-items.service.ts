@@ -54,3 +54,58 @@ export const rfqLineItemsService = {
     await apiClient.delete(`/requests/${rfqId}/line-items/${lineItemId}`);
   },
 };
+
+// --- Faza 2B: per-line offer quotes ---
+
+export interface OfferLineItem {
+  id: string;
+  offerId: string;
+  rfqLineItemId: string;
+  unitPrice: number | null;
+  currency: string | null;
+  moq: number | null;
+  leadTime: number | null;
+  altDescription: string | null;
+  altMaterial: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OfferLineInput {
+  rfqLineItemId: string;
+  unitPrice?: number;
+  currency?: string;
+  moq?: number;
+  leadTime?: number;
+  altDescription?: string;
+  altMaterial?: string;
+  notes?: string;
+}
+
+export interface OfferLinesResponse {
+  lines: Array<{
+    rfqLine: RfqLineItem;
+    offerLine: OfferLineItem | null;
+  }>;
+}
+
+export const offerLineItemsService = {
+  list: async (offerId: string): Promise<OfferLinesResponse> => {
+    const { data } = await apiClient.get(
+      `/requests/offers/${offerId}/line-items`,
+    );
+    return data;
+  },
+
+  saveAll: async (
+    offerId: string,
+    items: OfferLineInput[],
+  ): Promise<{ items: OfferLineItem[] }> => {
+    const { data } = await apiClient.post(
+      `/requests/offers/${offerId}/line-items/bulk-replace`,
+      { items },
+    );
+    return data;
+  },
+};

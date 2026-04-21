@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import type { LineItemDto } from './dto/line-item.dto';
+import type { LineItemDto, OfferLineItemDto } from './dto/line-item.dto';
 
 @Injectable()
 export class RfqLineItemsService {
@@ -92,5 +92,82 @@ export class RfqLineItemsService {
     });
     if (!item) throw new NotFoundException('Line item not found');
     await this.prisma.rfqLineItem.delete({ where: { id: lineItemId } });
+  }
+
+  // --- Faza 2B: Per-line offer quotes ---
+
+  /**
+   * Read the supplier's per-line quotes for a given offer, including
+   * the RFQ line definitions so the portal can render a grid.
+   */
+  async listOfferLines(offerId: string) {
+    const offer = await this.prisma.offer.findUnique({
+      where: { id: offerId },
+      select: { id: true, rfqRequestId: true },
+    });
+    if (!offer) throw new NotFoundException('Offer not found');
+
+    // Return all RFQ line items with supplier's quote (if any) — left-join style
+    const rfqLines = await this.prisma.rfqLineItem.findMany({
+      where: { rfqRequestId: offer.rfqRequestId },
+      orderBy: { sortOrder: 'asc' },
+    });
+    const offerLines = await this.prisma.offerLineItem.findMany({
+      where: { offerId },
+    });
+    const byRfqLineId = new Map(offerLines.map((ol) => [ol.rfqLineItemId, ol]));
+    return rfqLines.map((rfqLine) => ({
+      rfqLine,
+      offerLine: byRfqLineId.get(rfqLine.id) ?? null,
+    }));
+  }
+
+  /**
+   * Atomic bulk-replace for per-line quotes. Deletes existing offer line
+   * items for this offer and creates the provided set. Each item must
+   * reference a valid RfqLineItem belonging to this offer's RFQ.
+   */
+  async saveOfferLines(offerId: string, items: OfferLineItemDto[]) {
+    const offer = await this.prisma.offer.findUnique({
+      where: { id: offerId },
+      select: { id: true, rfqRequestId: true },
+    });
+    if (!offer) throw new NotFoundException('Offer not found');
+
+    if (items.length > 0) {
+      const rfqLineIds = items.map((i) => i.rfqLineItemId);
+      const validLines = await this.prisma.rfqLineItem.findMany({
+        where: { id: { in: rfqLineIds }, rfqRequestId: offer.rfqRequestId },
+        select: { id: true },
+      });
+      const validIds = new Set(validLines.map((l) => l.id));
+      const invalid = rfqLineIds.filter((id) => !validIds.has(id));
+      if (invalid.length > 0) {
+        throw new BadRequestException(
+          `Line IDs don't belong to this offer's RFQ: ${invalid.join(', ')}`,
+        );
+      }
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      await tx.offerLineItem.deleteMany({ where: { offerId } });
+      if (items.length === 0) return [];
+
+      await tx.offerLineItem.createMany({
+        data: items.map((i) => ({
+          offerId,
+          rfqLineItemId: i.rfqLineItemId,
+          unitPrice: i.unitPrice ?? null,
+          currency: i.currency ?? 'EUR',
+          moq: i.moq ?? null,
+          leadTime: i.leadTime ?? null,
+          altDescription: i.altDescription ?? null,
+          altMaterial: i.altMaterial ?? null,
+          notes: i.notes ?? null,
+        })),
+      });
+
+      return tx.offerLineItem.findMany({ where: { offerId } });
+    });
   }
 }
