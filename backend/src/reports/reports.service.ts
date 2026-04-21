@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { GeminiService } from '../common/services/gemini.service';
+import { TenantContextService } from '../common/services/tenant-context.service';
 import { normalizeCountry, normalizeCountryForLang } from '../common/normalize-country';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const PDFDocument = require('pdfkit');
@@ -14,13 +15,33 @@ export class ReportsService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly geminiService: GeminiService,
+        private readonly tenantContext: TenantContextService,
     ) { }
+
+    /**
+     * Verify the given user can see this campaign (via RfqRequest.ownerId).
+     * Throws ForbiddenException otherwise. Returns nothing on success.
+     */
+    private async ensureCampaignAccess(campaignId: string, userId: string): Promise<void> {
+        const tenant = await this.tenantContext.resolve(userId);
+        const campaign = await this.prisma.campaign.findFirst({
+            where: {
+                id: campaignId,
+                rfqRequest: tenant.campaignOwnerFilter(),
+            },
+            select: { id: true },
+        });
+        if (!campaign) throw new ForbiddenException('Not authorized to access this campaign');
+    }
 
     /**
      * Campaign Insights — cost breakdown, funnel conversion, quality distribution,
      * top countries/categories. Feeds the Insights card on CampaignDetailPage.
      */
-    async getCampaignInsights(campaignId: string) {
+    async getCampaignInsights(campaignId: string, userId?: string) {
+        if (userId) {
+            await this.ensureCampaignAccess(campaignId, userId);
+        }
         const campaign = await this.prisma.campaign.findUnique({
             where: { id: campaignId },
             include: {
@@ -163,6 +184,72 @@ export class ReportsService {
             offers,
             generatedAt: new Date().toISOString(),
         };
+    }
+
+    /**
+     * Short AI-written narrative (2-3 sentences) summarizing Insights data.
+     * Cached per campaign on the `Campaign.aiInsightsNarrative` field when added;
+     * for now returns fresh each call — Gemini has its own disk cache so repeated
+     * identical prompts are nearly free.
+     */
+    async generateInsightsNarrative(
+        campaignId: string,
+        lang: string = 'pl',
+        userId?: string,
+    ): Promise<{ narrative: string | null; lang: string }> {
+        const insights = await this.getCampaignInsights(campaignId, userId);
+        if (!insights || insights.totalSuppliers === 0) {
+            return { narrative: null, lang };
+        }
+
+        const langLabel = lang === 'en' ? 'English' : lang === 'de' ? 'German' : 'Polish';
+        const topCountry = insights.topCountries[0];
+        const secondCountry = insights.topCountries[1];
+        const funnelLine = insights.funnel
+            ? `Funnel: ${insights.funnel.urlsProcessed} URLs processed, ${insights.funnel.screenerPassed} passed screening (${Math.round(insights.funnel.screenerRate * 100)}%), ${insights.funnel.auditorApproved} approved by auditor (${Math.round(insights.funnel.auditorRate * 100)}%).`
+            : '';
+        const costLine = insights.costs.totalUsd > 0
+            ? `Cost: ~$${insights.costs.totalUsd.toFixed(2)} (${insights.costs.gemini.calls} Gemini calls, ${insights.costs.serper.calls} Serper queries).`
+            : '';
+        const countryLine = topCountry
+            ? `Top country: ${topCountry.country} (${topCountry.count})${secondCountry ? `, then ${secondCountry.country} (${secondCountry.count})` : ''}.`
+            : '';
+        const qualityLine = `Quality: ${insights.quality.high} high, ${insights.quality.medium} medium, ${insights.quality.low} low.`;
+        const offerLine = insights.offers.total > 0
+            ? `Offers: ${insights.offers.submitted} submitted, ${insights.offers.accepted} accepted.`
+            : '';
+        const certLine = insights.certifiedCount > 0
+            ? `Certified: ${insights.certifiedCount} of ${insights.totalSuppliers} suppliers.`
+            : '';
+
+        const facts = [funnelLine, costLine, countryLine, qualityLine, offerLine, certLine]
+            .filter(Boolean)
+            .join(' ');
+
+        const prompt = `You are a procurement analyst writing a brief executive summary in ${langLabel}.
+
+Campaign facts:
+- Total suppliers: ${insights.totalSuppliers}
+- ${facts}
+
+Write 3 short sentences (no more than 80 words total) summarizing:
+1. Scale + dominant geography
+2. Funnel efficiency + cost
+3. Outcome quality (offers, certifications)
+
+Be specific with numbers. Do NOT use bullet points or headings — plain prose. Do NOT invent facts beyond what's provided. Output only the summary text, no preamble.`;
+
+        try {
+            const narrative = await this.geminiService.generateContent(
+                prompt,
+                undefined,
+                `insights-narrative:${campaignId}:${lang}`,
+            );
+            return { narrative: narrative.trim(), lang };
+        } catch (err) {
+            this.logger.warn(`Insights narrative failed: ${(err as Error).message}`);
+            return { narrative: null, lang };
+        }
     }
 
     /**
@@ -721,6 +808,9 @@ ZASADY:
         const data = await this.getReportData(campaignId);
         if (!data) throw new Error('Campaign not found');
 
+        // Prefetch insights — can't await inside the PDFKit Promise executor
+        const insights = await this.getCampaignInsights(campaignId);
+
         const BRAND_COLOR = '#2563eb';
         const GRAY = '#6b7280';
         const DARK = '#111827';
@@ -805,6 +895,88 @@ ZASADY:
                         y += 14;
                     }
                     y += 6;
+                }
+            }
+
+            // --- CAMPAIGN INSIGHTS (funnel, costs, quality) ---
+            if (insights) {
+                y = this.pdfCheckPage(doc, y, 30);
+                doc.fontSize(12).fillColor(BRAND_COLOR).text('Metryki kampanii', 50, y);
+                y += 20;
+
+                // Funnel with conversion rates
+                if (insights.funnel && (insights.funnel.urlsCollected > 0 || insights.funnel.screenerPassed > 0)) {
+                    y = this.pdfCheckPage(doc, y, 70);
+                    doc.fontSize(10).fillColor(DARK).text('Lejek konwersji', 50, y);
+                    y += 14;
+                    const f = insights.funnel;
+                    const screenerPct = f.urlsProcessed > 0 ? Math.round(f.screenerRate * 100) : 0;
+                    const auditorPct = f.screenerPassed > 0 ? Math.round(f.auditorRate * 100) : 0;
+                    doc.fontSize(9).fillColor(DARK);
+                    doc.text(`URL zebrane: ${f.urlsCollected}   •   zbadane: ${f.urlsProcessed}`, 55, y);
+                    y += 13;
+                    doc.text(`Screener przeszło: ${f.screenerPassed} (${screenerPct}%)   •   Audytor zatwierdził: ${f.auditorApproved} (${auditorPct}%)`, 55, y);
+                    y += 13;
+                    doc.text(`Audytor odrzucił: ${f.auditorRejected}   •   do weryfikacji: ${f.auditorNeedsReview}`, 55, y);
+                    y += 16;
+                }
+
+                // Costs
+                if (insights.costs.gemini.calls > 0 || insights.costs.serper.calls > 0) {
+                    y = this.pdfCheckPage(doc, y, 55);
+                    doc.fontSize(10).fillColor(DARK).text('Koszty AI + search', 50, y);
+                    y += 14;
+                    doc.fontSize(9).fillColor(DARK);
+                    doc.text(`Gemini: ${insights.costs.gemini.calls} wywołań  |  Serper: ${insights.costs.serper.calls} zapytań`, 55, y);
+                    y += 13;
+                    const total = insights.costs.totalUsd;
+                    const totalStr = total < 0.01 ? '< $0.01' : `$${total.toFixed(2)}`;
+                    doc.text(`Razem: ${totalStr}`, 55, y);
+                    if (insights.costs.errorRate > 0) {
+                        doc.fillColor('#dc2626').text(`   błędy: ${Math.round(insights.costs.errorRate * 100)}%`, { continued: false });
+                    }
+                    doc.fillColor(DARK);
+                    y += 16;
+                }
+
+                // Quality distribution
+                if (insights.totalSuppliers > 0) {
+                    y = this.pdfCheckPage(doc, y, 55);
+                    doc.fontSize(10).fillColor(DARK).text('Dystrybucja quality score', 50, y);
+                    y += 14;
+                    doc.fontSize(9).fillColor(DARK);
+                    const q = insights.quality;
+                    const parts = [
+                        `High (≥80): ${q.high}`,
+                        `Medium (50-79): ${q.medium}`,
+                        `Low (<50): ${q.low}`,
+                    ];
+                    if (q.unscored > 0) parts.push(`bez oceny: ${q.unscored}`);
+                    doc.text(parts.join('  |  '), 55, y);
+                    y += 13;
+                    doc.fillColor(GRAY).text(
+                        `${insights.certifiedCount} z ${insights.totalSuppliers} dostawców ma zatwierdzony certyfikat  •  ${insights.offers.submitted} ofert złożonych  •  ${insights.offers.accepted} zaakceptowanych`,
+                        55, y,
+                        { width: 495 },
+                    );
+                    doc.fillColor(DARK);
+                    y += 20;
+                }
+
+                // Top specializations (countries already rendered below in existing block)
+                if (insights.topCategories.length > 0) {
+                    y = this.pdfCheckPage(doc, y, 30 + insights.topCategories.length * 13);
+                    doc.fontSize(10).fillColor(DARK).text('Top specjalizacje', 50, y);
+                    y += 14;
+                    for (const c of insights.topCategories) {
+                        doc.fontSize(9).fillColor(DARK).text(
+                            `${c.category}: ${c.count}`,
+                            55, y,
+                            { width: 490 },
+                        );
+                        y += 13;
+                    }
+                    y += 8;
                 }
             }
 
