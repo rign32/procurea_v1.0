@@ -42,17 +42,17 @@ const t = {
     secondary: isEN ? "Book a demo" : "Umów demo",
   },
   stats: [
-    { value: "−40%", label: isEN ? "spare-parts lead time" : "skrócony lead time części", detail: isEN ? "cross-border sourcing network" : "sieć cross-border" },
-    { value: "−12%", label: isEN ? "on brake & suspension spend" : "na wydatkach hamulce & zawieszenie", detail: isEN ? "Via competitive RFQ" : "Przez konkurencyjne RFQ" },
-    { value: "800+", label: isEN ? "fleet supported in scenarios" : "pojazdów w scenariuszach", detail: isEN ? "across 5 countries" : "w 5 krajach" },
-    { value: "4h", label: isEN ? "emergency parts shortlist" : "shortlista awaryjna części", detail: isEN ? "from brief to vendor calls" : "od briefu do kontaktów z vendorem" },
+    { value: "26", label: isEN ? "languages searched" : "języków wyszukiwania", detail: isEN ? "cross-border parts distributors" : "dystrybutorzy części cross-border" },
+    { value: "Hours", label: isEN ? "to qualified shortlist" : "do zakwalifikowanej shortlisty", detail: isEN ? "vs. days of manual calls" : "vs. dni ręcznych telefonów" },
+    { value: "10+", label: isEN ? "bidders on a 3PL RFQ" : "bidderów na RFQ 3PL", detail: isEN ? "vs. 2–3 from the incumbent list" : "vs. 2–3 z listy incumbent" },
+    { value: "Magic-link", label: isEN ? "portal for vendor replies" : "portal na odpowiedzi vendorów", detail: isEN ? "no login, structured offers" : "bez logowania, strukturalne oferty" },
   ],
   // Emergency parts radar
   radar: {
-    title: isEN ? "Emergency fleet parts — radar, not a phone marathon" : "Awaryjne części do floty — radar, nie maraton telefonów",
+    title: isEN ? "Fast parts sourcing — AI finds distributors, bidders confirm stock" : "Szybki sourcing części — AI znajduje dystrybutorów, bidderzy potwierdzają stan",
     subtitle: isEN
-      ? "A truck is down in Lyon at 16:00. You need a compatible brake calliper by 09:00 tomorrow. Procurea runs a cross-border scan and hands you vendors with stock, distance and delivery window."
-      : "Ciężarówka stoi w Lyonie o 16:00. Potrzebujesz kompatybilnego zacisku hamulcowego na 09:00 jutro. Procurea uruchamia scan cross-border i podaje vendorów z towarem, odległością i oknem dostawy.",
+      ? "A truck is down in Lyon at 16:00. You need a compatible brake calliper. Procurea runs an AI sourcing scan across distributors in the region, sends a magic-link RFQ with the part number and urgency flag — and collects responses with stock and delivery window as bidders reply. (Real-time stock feeds from distributor systems are not part of today's product — bidders provide that data in their portal response.)"
+      : "Ciężarówka stoi w Lyonie o 16:00. Potrzebujesz kompatybilnego zacisku hamulcowego. Procurea odpala AI sourcing scan po dystrybutorach w regionie, wysyła magic-link RFQ z numerem części i flagą pilności — i zbiera odpowiedzi ze stanem magazynu i oknem dostawy jak bidderzy odpowiadają. (Realtime feedy stocków z systemów dystrybutorów nie są częścią dzisiejszego produktu — te dane bidder podaje w portalu w odpowiedzi.)",
     hits: isEN
       ? [
           { vendor: "TruckParts EU GmbH", city: "Lyon, FR", flag: "🇫🇷", km: "14 km", stock: "12 in stock", eta: "Today 19:00", tone: "emerald" },
@@ -70,29 +70,29 @@ const t = {
   },
   // Emergency flow timeline (hour-by-hour)
   timeline: {
-    title: isEN ? "The first 4 hours of an emergency part sourcing" : "Pierwsze 4 godziny awaryjnego sourcingu części",
+    title: isEN ? "How a fast parts RFQ plays out — illustrative 4-hour timeline" : "Jak wygląda szybki RFQ na części — ilustracyjny timeline 4-godzinny",
     steps: isEN
       ? [
-          { time: "00:00", title: "Issue reported", body: "Fleet ops drops part number and urgency into Procurea.", tone: "rose" },
-          { time: "00:15", title: "Cross-border scan", body: "AI pings parts distributors in a 300 km radius, filtered by stock availability flags.", tone: "amber" },
-          { time: "01:00", title: "Offers arriving", body: "Price, stock, delivery window. Portal collects responses as they come in.", tone: "sky" },
-          { time: "02:30", title: "Shortlist ready", body: "3–5 viable vendors ranked by ETA vs. SLA requirement.", tone: "primary" },
-          { time: "04:00", title: "PO issued", body: "Winning vendor accepts PO through portal. Tracking link shared with fleet ops.", tone: "emerald" },
+          { time: "00:00", title: "Brief submitted", body: "Fleet ops describes the part (OEM number + urgency) in Procurea.", tone: "rose" },
+          { time: "00:15", title: "AI sourcing scan", body: "AI pipeline runs searches for parts distributors in the region across multiple languages.", tone: "amber" },
+          { time: "01:00", title: "Offers arriving", body: "Bidders reply via magic-link portal with price, stock and delivery window. Auto follow-up nudges non-responders.", tone: "sky" },
+          { time: "02:30", title: "Shortlist ready", body: "3–5 viable vendors compared side-by-side — you pick based on ETA vs. your SLA.", tone: "primary" },
+          { time: "04:00", title: "Award + PO", body: "Selected vendor is awarded. PO confirmation handled via the portal; you share details with fleet ops.", tone: "emerald" },
         ]
       : [
-          { time: "00:00", title: "Zgłoszenie problemu", body: "Fleet ops wrzuca numer części i pilność do Procurea.", tone: "rose" },
-          { time: "00:15", title: "Scan cross-border", body: "AI pinguje dystrybutorów części w promieniu 300 km, filtrowane po flagach dostępności.", tone: "amber" },
-          { time: "01:00", title: "Oferty przychodzą", body: "Cena, stan magazynu, okno dostawy. Portal zbiera odpowiedzi napływające.", tone: "sky" },
-          { time: "02:30", title: "Shortlista gotowa", body: "3–5 vendorów rankowanych po ETA vs. wymaganie SLA.", tone: "primary" },
-          { time: "04:00", title: "PO wysłane", body: "Zwycięski vendor akceptuje PO przez portal. Link tracking dla fleet ops.", tone: "emerald" },
+          { time: "00:00", title: "Brief zgłoszony", body: "Fleet ops opisuje część (numer OEM + pilność) w Procurea.", tone: "rose" },
+          { time: "00:15", title: "Scan AI sourcing", body: "Pipeline AI odpala wyszukiwania dystrybutorów części w regionie w wielu językach.", tone: "amber" },
+          { time: "01:00", title: "Oferty przychodzą", body: "Bidderzy odpowiadają przez magic-link portal z ceną, stanem i oknem dostawy. Auto follow-up dla nierespondentów.", tone: "sky" },
+          { time: "02:30", title: "Shortlista gotowa", body: "3–5 vendorów porównanych side-by-side — wybierasz po ETA vs. Twoje SLA.", tone: "primary" },
+          { time: "04:00", title: "Award + PO", body: "Wybrany vendor dostaje award. Potwierdzenie PO przez portal; przekazujesz detale fleet ops.", tone: "emerald" },
         ],
   },
   // 3PL scorecard
   scorecard: {
-    title: isEN ? "3PL RFQ scorecard — ranked on what actually matters" : "Scorecard RFQ 3PL — ranking po tym co faktycznie ma znaczenie",
+    title: isEN ? "3PL RFQ — structured comparison (illustrative)" : "RFQ 3PL — strukturalne porównanie (ilustracyjne)",
     subtitle: isEN
-      ? "Stop comparing 3PL providers on hourly rate alone. Procurea's structured RFQ pulls SLA, tech stack, locations and pricing into one weighted table."
-      : "Przestań porównywać dostawców 3PL tylko po stawce godzinowej. Ustrukturyzowane RFQ Procurea wyciąga SLA, stack technologiczny, lokalizacje i ceny do jednej ważonej tabeli.",
+      ? "Stop comparing 3PL providers on hourly rate alone. Procurea's structured RFQ captures SLA, tech stack, locations and pricing into a side-by-side comparison view. (Configurable weighted scoring — the Score column below — is on our 2026 roadmap; today you compare side-by-side and make the judgment call yourself.)"
+      : "Przestań porównywać dostawców 3PL tylko po stawce godzinowej. Ustrukturyzowane RFQ Procurea zbiera SLA, stack technologiczny, lokalizacje i ceny do widoku side-by-side. (Konfigurowalny scoring ważony — kolumna Score poniżej — jest na roadmapie 2026; dziś porównujesz side-by-side i sam podejmujesz decyzję.)",
     header: isEN ? ["Provider", "SLA", "Locations", "Tech", "€/pallet", "Score"] : ["Dostawca", "SLA", "Lokalizacje", "Tech", "€/paleta", "Score"],
     rows: [
       { name: "Alpha Logistics 3PL", sla: "98.5%", locs: "14", tech: "SAP + TMS", price: "€8.40", score: 91, highlight: true },
@@ -165,16 +165,16 @@ const t = {
     title: isEN ? "Questions from logistics procurement" : "Pytania od procurement logistycznego",
     items: isEN
       ? [
-          { q: "Can you actually find compatible OEM and aftermarket parts?", a: "Yes — part number, OEM equivalence and aftermarket cross-reference are inputs to the search. Bidders confirm compatibility in their offer; you see the match alongside price and stock." },
-          { q: "What about customs and duty for cross-border emergency parts?", a: "Intra-EU is duty-free; for CH / UK / non-EU we flag likely duty implications at screening. Bidders quote DDP or EXW so you can see total landed." },
-          { q: "Does Procurea integrate with our TMS or fleet system?", a: "Via API — qualified suppliers can push into your TMS as approved vendor records. Some customers prefer keeping Procurea as the sourcing layer and using it manually for one-off RFQs." },
+          { q: "Can you actually find compatible OEM and aftermarket parts?", a: "Yes — you describe what you need in plain language (OEM number, model, acceptable aftermarket equivalents). The AI sourcing pipeline surfaces both authorized distributors and aftermarket suppliers matching that brief. Bidders confirm exact compatibility in their portal response; you see the match alongside price and declared stock." },
+          { q: "What about customs and duty for cross-border emergency parts?", a: "Intra-EU is duty-free; for CH / UK / non-EU, the pipeline flags country of origin so you can assess likely duty before award. Bidders quote DDP or EXW in the offer so the landed-cost view is explicit. A built-in landed-cost calculator is on our 2026 roadmap." },
+          { q: "Does Procurea integrate with our TMS or fleet system?", a: "For systems covered by Merge.dev (50+ ERP/accounting/CRM platforms — NetSuite, Dynamics 365, QuickBooks, Xero, Sage and more), qualified suppliers can sync as approved supplier records. Niche or on-prem TMS (SAP TM, Oracle TMS, bespoke fleet systems) — Enterprise Custom builds the adapter in the SOW. Many customers also keep Procurea as the sourcing layer and re-key awarded suppliers manually into their TMS." },
           { q: "How do you handle warehouse equipment CAPEX with long lead times?", a: "Same structured RFQ — we add install, commissioning, training and warranty scope as comparison fields. Lead time is a first-class column, not a footnote." },
           { q: "Do you cover reverse logistics and returns?", a: "Yes — 3PL providers with returns handling, reverse flow processing and restocking services all run through the platform as one service category." },
         ]
       : [
-          { q: "Czy faktycznie znajdujecie kompatybilne części OEM i aftermarket?", a: "Tak — numer części, ekwiwalencja OEM i cross-reference aftermarket to inputy do searchu. Bidderzy potwierdzają kompatybilność w ofercie; widzisz match obok ceny i stanu." },
-          { q: "A cło i podatki dla awaryjnych części cross-border?", a: "Wewnątrz UE bez cła; dla CH / UK / poza-UE flagujemy prawdopodobne implikacje celne na screeningu. Bidderzy kwotują DDP lub EXW żebyś widział landed total." },
-          { q: "Czy Procurea integruje się z naszym TMS lub systemem floty?", a: "Przez API — zakwalifikowani dostawcy pushują do TMS jako approved vendor records. Niektórzy klienci wolą trzymać Procurea jako warstwę sourcingu i używać manualnie dla one-off RFQ." },
+          { q: "Czy faktycznie znajdujecie kompatybilne części OEM i aftermarket?", a: "Tak — opisujesz czego potrzebujesz językiem naturalnym (numer OEM, model, akceptowalne odpowiedniki aftermarket). Pipeline AI sourcing wyciąga zarówno autoryzowanych dystrybutorów jak i dostawców aftermarket pasujących do briefu. Bidderzy potwierdzają dokładną kompatybilność w odpowiedzi portalowej; widzisz match obok ceny i deklarowanego stanu." },
+          { q: "A cło i podatki dla awaryjnych części cross-border?", a: "Wewnątrz UE bez cła; dla CH / UK / poza-UE pipeline flaguje kraj pochodzenia, żebyś mógł ocenić prawdopodobne cło przed awardem. Bidderzy kwotują DDP lub EXW w ofercie, więc widok landed-cost jest wprost. Wbudowany kalkulator landed-cost jest na roadmapie 2026." },
+          { q: "Czy Procurea integruje się z naszym TMS lub systemem floty?", a: "Dla systemów pokrywanych przez Merge.dev (50+ platform ERP/księgowych/CRM — NetSuite, Dynamics 365, QuickBooks, Xero, Sage i więcej) zakwalifikowani dostawcy mogą synchronizować się jako approved supplier records. Niszowe lub on-prem TMS (SAP TM, Oracle TMS, dedykowane systemy floty) — Enterprise Custom buduje adapter w SOW. Wielu klientów trzyma też Procurea jako warstwę sourcingu i ręcznie przepisuje awardowanych dostawców do swojego TMS." },
           { q: "Jak obsługujecie CAPEX sprzętu magazynowego z długim lead time?", a: "Ten sam ustrukturyzowany RFQ — dodajemy instalację, commissioning, szkolenia i gwarancje jako pola porównania. Lead time to first-class kolumna, nie przypis." },
           { q: "Obsługujecie reverse logistics i zwroty?", a: "Tak — dostawcy 3PL z obsługą zwrotów, reverse flow processing i restockingiem przechodzą przez platformę jako jedna kategoria usługi." },
         ],
