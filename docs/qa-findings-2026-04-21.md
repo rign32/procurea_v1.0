@@ -35,7 +35,16 @@ Bez tych secretów cron uruchamia się normalnie, tylko pomija krok Slack.
 
 ### Known limitations fixów
 
-- **Malformed JSON body**: mój fix rejestruje body parser + error handler w expressApp przed `NestFactory.create()`. Działa lokalnie w backend tests ale nie na Firebase Functions 2nd gen. Hipoteza: `Express5Adapter` overwrite'a expressApp middleware, lub Cloud Run layer parsuje body wcześniej. Trzeba: albo (a) złapać `SyntaxError` w `AllExceptionsFilter` (może nie zadziała bo error wychodzi przed Nest pipeline), albo (b) dodać `middleware-body-parser` konfigurację NestJS wprost przez `app.use(express.json(...))` przed enableCors. Ticket: 1h diagnostyki.
+- **Malformed JSON body → 400**: próbowane **trzy podejścia**, żadne nie działa na deploy:
+  1. Express error middleware PO `app.init()` (na outer expressApp) — ignorowany bo `Express5Adapter.registerParserMiddleware` instaluje swój własny `express.json()` wewnątrz Nest stack.
+  2. Własny `express.json()` + error handler PRZED `app.init()` — zjadany przez Express5Adapter który i tak re-instaluje parser.
+  3. `SyntaxError` + `entity.parse.failed` catch w `AllExceptionsFilter` — body-parser error nie dociera do Nest exception pipeline bo Express ends request przed reaching Nest router.
+  
+  **Prawdziwy fix** wymaga patchu `Express5Adapter`: override `registerParserMiddleware` żeby użyć `express.json()` z `verify` callback albo `strict: false`, ALBO rzucał HttpException zamiast bare SyntaxError. Estymacja: 2-4h pracy z testami regresji. Ticket: "Patch Express5Adapter to emit HttpException on body-parser errors".
+
+- **E2E w CI (non-blocking)**: job `e2e-tests` dodany do [deploy-staging.yml](../.github/workflows/deploy-staging.yml) z PostgreSQL service container + `continue-on-error: true`. Czyta `test/*.e2e-spec.ts` (1067 LOC). Dzisiaj uruchomił się pierwszy raz — widać schema drift (field names nieaktualne w factories). Pierwsza naprawa już w commit `bd5d50d` od parallel session. Do flipu `needs: [quick-check, e2e-tests]` potrzebujemy: (a) factories zgodne z obecną schema.prisma, (b) migrate deploy kompletne (bez drift) — lub dalej `db push` dla E2E.
+
+- **npm audit**: frontend 12→2 (vite 5→8 wymagane, breaking), landing 3→0, backend 41→41 (4 critical + xlsx bez fixa — osobny sprint).
 
 
 ---
