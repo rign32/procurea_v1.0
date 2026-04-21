@@ -155,6 +155,14 @@ export function CertificatesSection({ supplierId }: CertificatesSectionProps) {
                         <Icon className="h-3 w-3 mr-1" />
                         {cfg.label}
                       </Badge>
+                      {cert.source === 'PORTAL' && (
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] bg-blue-50 text-blue-700 border-blue-200"
+                        >
+                          Od dostawcy
+                        </Badge>
+                      )}
                     </div>
                     <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
                       <div>

@@ -415,6 +415,9 @@ model SupplierCertificate {
   // Computed/cached status — ACTIVE | EXPIRING_SOON | EXPIRED
   status      String   @default("ACTIVE")
 
+  // Provenance: MANUAL (buyer typed in) | PORTAL (supplier uploaded via access token)
+  source      String   @default("MANUAL")
+
   // Alerting state — prevents duplicate email alerts
   lastAlertedAt DateTime?
 
@@ -425,6 +428,7 @@ model SupplierCertificate {
   @@index([supplierId])
   @@index([validUntil])
   @@index([status])
+  @@index([source])
 }
 
 model Contact {

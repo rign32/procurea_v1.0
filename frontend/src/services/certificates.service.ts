@@ -53,6 +53,7 @@ export const CERTIFICATE_LABELS: Record<CertificateType, string> = {
 };
 
 export type CertificateStatus = 'ACTIVE' | 'EXPIRING_SOON' | 'EXPIRED';
+export type CertificateSource = 'MANUAL' | 'PORTAL';
 
 export interface SupplierCertificate {
   id: string;
@@ -64,6 +65,7 @@ export interface SupplierCertificate {
   issuedAt: string | null;
   validUntil: string;
   status: CertificateStatus;
+  source: CertificateSource;
   documentId: string | null;
   document: {
     id: string;
