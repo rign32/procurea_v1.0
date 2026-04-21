@@ -22,7 +22,6 @@ import {
     ShoppingCart,
     Plus,
     Search,
-    Bell,
     ChevronRight,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
