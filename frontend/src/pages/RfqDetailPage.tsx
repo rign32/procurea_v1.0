@@ -29,6 +29,8 @@ import { useRfq, useOffers, useAcceptOffer, useRejectOffer, useShortlistOffer, u
 import type { RankingWeights } from '@/services/rfqs.service';
 import { RankingWeightsConfigurator } from '@/components/rfqs/RankingWeightsConfigurator';
 import { LineItemsSection } from '@/components/rfqs/LineItemsSection';
+import { LineByLineComparison } from '@/components/rfqs/LineByLineComparison';
+import { useRfqLineItems } from '@/hooks/useRfqLineItems';
 import { offersService } from '@/services/rfqs.service';
 import { contractsService, type ContractDraft, type ContractDraftSource } from '@/services/contracts.service';
 import { t, isEN } from '@/i18n';
@@ -378,6 +380,7 @@ export function RfqDetailPage() {
   const suggestCounterMutation = useSuggestCounter();
   const { data: savedWeights } = useRankingWeights(id);
   const setWeightsMutation = useSetRankingWeights(id || '');
+  const { data: rfqLineItemsData } = useRfqLineItems(id);
 
   const [selectedOffers, setSelectedOffers] = useState<Set<string>>(new Set());
   const [showRankingConfig, setShowRankingConfig] = useState(false);
@@ -1460,6 +1463,16 @@ export function RfqDetailPage() {
 
       {/* Line Items (Sprint #4) */}
       {id && <LineItemsSection rfqId={id} />}
+
+      {/* Faza 2B: per-line supplier comparison */}
+      {id && rfqLineItemsData?.items && rfqLineItemsData.items.length > 0 && offers && offers.length >= 2 && (
+        <LineByLineComparison
+          rfqId={id}
+          rfqLineItems={rfqLineItemsData.items}
+          offers={offers.filter((o: any) => ['SUBMITTED', 'SHORTLISTED', 'ACCEPTED'].includes(o.status)).map((o: any) => ({ id: o.id, supplier: o.supplier, currency: o.currency }))}
+        />
+      )}
+
 
       {/* Comments Section */}
       {id && (
