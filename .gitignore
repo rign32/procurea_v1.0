@@ -52,3 +52,10 @@ dist-en/
 
 # Node.js binaries (should never be in repo)
 node-v*/
+
+# Claude Code local session state (per-user, not repo-wide)
+.claude/
+.claudeignore
+
+# User-local docs / brand assets (not part of app build)
+Dokumenty/

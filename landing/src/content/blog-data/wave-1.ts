@@ -56,6 +56,9 @@ const post1: RichBlogPost = {
     {
       heading: 'The 30-hour problem of manual supplier sourcing',
       headingPl: 'Problem 30 godzin — ręczny sourcing dostawców',
+      infographicKey: 'verification-stack-funnel',
+      infographicCaption: 'From 12M Google results to 100 verified suppliers — where the funnel narrows.',
+      infographicCaptionPl: 'Z 12M wyników Google do 100 zweryfikowanych dostawców — gdzie lejek się zwęża.',
       body: `Your boss asks for "5-10 options by Friday" for a new component category. You open Google. Seven hours later, you have a browser with 34 tabs, a messy spreadsheet with six suppliers, and four inboxes to check for responses.
 
 That is not bad luck. That is the baseline. Industry benchmarks put manual sourcing for a single category at <strong>25-35 hours</strong>, split across research, contact discovery, outreach, follow-up, and comparison. A typical Google search for "plastic injection manufacturers" returns roughly 12 million results. A trained purchasing manager realistically clicks through about 50 of them before giving up and going with the first three that replied.
@@ -750,6 +753,9 @@ const post3: RichBlogPost = {
     {
       heading: 'Why European nearshoring is accelerating in 2026',
       headingPl: 'Dlaczego nearshoring europejski przyspiesza w 2026',
+      infographicKey: 'europe-country-matrix',
+      infographicCaption: 'Six European nearshore candidates — labor index, lead time, and category strengths.',
+      infographicCaptionPl: 'Sześć europejskich kandydatów nearshore — indeks pracy, lead time, mocne strony kategorii.',
       body: `Nearshoring stopped being a debate in 2024. The debate now is which categories move first, which country absorbs them, and how fast the supplier base in each European hub can scale to match the demand.
 
 Three forces are compounding in 2026:

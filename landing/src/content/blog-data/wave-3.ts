@@ -702,6 +702,9 @@ const post3: RichBlogPost = {
     {
       heading: 'What SAP Ariba actually costs — and why that matters for mid-market',
       headingPl: 'Ile naprawdę kosztuje SAP Ariba — i dlaczego to ma znaczenie dla mid-market',
+      infographicKey: 'ariba-fit-matrix',
+      infographicCaption: 'SAP Ariba vs mid-market sourcing tools — six fit dimensions, no "better overall."',
+      infographicCaptionPl: 'SAP Ariba vs narzędzia mid-market — sześć wymiarów dopasowania, bez "lepszy ogólnie."',
       body: `Before the honest comparison: we are not going to pretend Procurea is SAP Ariba. It is not. Ariba has been built for 25 years for Fortune 500 procurement with nine-figure spend, global subsidiaries, and dedicated procurement IT teams. If you are one of those organizations, Ariba is probably the right answer and we are not your vendor. This post is written for the other 95% of companies.
 
 SAP Ariba's total cost of ownership for a mid-market implementation lands in the <strong>€250k-€900k range in year one</strong>, according to public implementation case studies and Gartner SaaS TCO benchmarks. The breakdown:
@@ -1834,6 +1837,9 @@ const post6: RichBlogPost = {
     {
       heading: 'Why leadership keeps asking "can we just use Salesforce?"',
       headingPl: 'Dlaczego zarząd ciągle pyta „czy nie możemy po prostu użyć Salesforce?"',
+      infographicKey: 'salesforce-entity-gap',
+      infographicCaption: 'How Salesforce entities map (or do not map) to procurement primitives.',
+      infographicCaptionPl: 'Jak encje Salesforce mapują się (albo nie) na prymitywy procurement.',
       body: `If your company runs Salesforce as the CRM of record, this question comes up in almost every quarterly review: "can the procurement team use Salesforce instead of adding another tool?" The question is reasonable. The answer is: sometimes, and usually no.
 
 Salesforce is flexible. The Account object can hold any company — customer, partner, supplier, subsidiary. The Contact object can hold any person. You can add custom fields, custom objects, Flows, approval processes. Technically, you can model procurement in Salesforce. Some small teams do it successfully.

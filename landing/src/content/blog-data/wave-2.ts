@@ -1323,6 +1323,9 @@ const post5: RichBlogPost = {
     {
       heading: 'What belongs in an RFQ comparison template (most templates miss half of it)',
       headingPl: 'Co powinno być w szablonie porównania RFQ (większość szablonów pomija połowę)',
+      infographicKey: 'rfq-scoring-matrix',
+      infographicCaption: 'Example 3-supplier weighted scoring matrix — five criteria, one winner.',
+      infographicCaptionPl: 'Przykładowa ważona matryca scoringu dla 3 dostawców — pięć kryteriów, jeden zwycięzca.',
       body: `Most "RFQ templates" you find online are empty grids with a header row. They look fine until you try to compare five quotes from four countries in three currencies with different MOQs. Then the grid either breaks or quietly misleads — and you pick the wrong supplier.
 
 A template that survives real use has three layers, not one.
