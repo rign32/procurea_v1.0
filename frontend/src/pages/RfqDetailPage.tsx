@@ -966,8 +966,7 @@ export function RfqDetailPage() {
                       const isFastest = comparisonResult.comparison.fastestDelivery?.offerId === offer.id;
                       const isRecommended = comparisonResult.aiRecommendation?.recommendedOfferId === offer.id;
                       const aiScore = comparisonResult.aiRecommendation?.scores?.find((s) => s.offerId === offer.id);
-                      const risks: { isNewSupplier?: boolean; leadTimeRisk?: boolean; priceOutlier?: boolean } =
-                        offer.riskFlags ?? {};
+                      const risks = offer.riskFlags
 
                       // Use tier price for comparison if available
                       let displayPrice: string;
@@ -993,13 +992,13 @@ export function RfqDetailPage() {
                               </Link>
                             </div>
                             <div className="flex gap-1 mt-0.5 flex-wrap">
-                              {risks.isNewSupplier && (
+                              {risks?.isNewSupplier && (
                                 <span className="text-xs bg-amber-100 text-amber-800 px-1 rounded" title={t.rfqs.detail.newSupplier}>⚠️ {t.rfqs.detail.newSupplier}</span>
                               )}
-                              {risks.leadTimeRisk && (
+                              {risks?.leadTimeRisk && (
                                 <span className="text-xs bg-orange-100 text-orange-800 px-1 rounded" title={t.rfqs.detail.deliveryRisk}>🕐 {t.rfqs.detail.deliveryRisk}</span>
                               )}
-                              {risks.priceOutlier && (
+                              {risks?.priceOutlier && (
                                 <span className="text-xs bg-red-100 text-red-800 px-1 rounded" title={t.rfqs.detail.priceOutlier}>💲 {t.rfqs.detail.priceOutlier}</span>
                               )}
                               {offer.compliance?.specsConfirmed && (
