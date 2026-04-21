@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { formatRelative } from '@/lib/utils';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, Loader2, AlertTriangle, Trash2, BarChart3, CheckCircle2, Mail, Clock, Send, FileDown, StopCircle, Monitor, Circle, X, Search, Copy } from 'lucide-react';
+import { ArrowLeft, Download, Loader2, AlertTriangle, Trash2, BarChart3, CheckCircle2, Mail, Clock, Send, FileDown, StopCircle, Monitor, Circle, X, Search, Copy, RefreshCw } from 'lucide-react';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -156,9 +157,20 @@ export function CampaignDetailPage() {
   };
 
   const [report, setReport] = useState<any>(null);
+  const [reportFetchedAt, setReportFetchedAt] = useState<number | null>(null);
+  const [reportReloading, setReportReloading] = useState(false);
   const [aiSummary, setAiSummary] = useState<any>(null);
   const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
   const [downloadingPptx, setDownloadingPptx] = useState(false);
+
+  const refetchReport = useCallback(() => {
+    if (!id) return;
+    setReportReloading(true);
+    apiClient.get(`/reports/campaign/${id}`)
+      .then(({ data }) => { setReport(data); setReportFetchedAt(Date.now()); })
+      .catch(() => { })
+      .finally(() => setReportReloading(false));
+  }, [id]);
 
   const downloadBlob = (blob: Blob, filename: string) => {
     const url = window.URL.createObjectURL(blob);
@@ -185,7 +197,7 @@ export function CampaignDetailPage() {
   // Fetch report for completed/accepted/sending campaigns
   useEffect(() => {
     if (id && campaign && ['COMPLETED', 'ACCEPTED', 'SENDING', 'DONE'].includes(campaign.status)) {
-      apiClient.get(`/reports/campaign/${id}`).then(({ data }) => setReport(data)).catch(() => { });
+      apiClient.get(`/reports/campaign/${id}`).then(({ data }) => { setReport(data); setReportFetchedAt(Date.now()); }).catch(() => { });
       // Fetch AI summary
       setAiSummaryLoading(true);
       apiClient.get(`/reports/campaign/${id}/ai-summary?lang=${isEN ? 'en' : 'pl'}`)
@@ -210,7 +222,7 @@ export function CampaignDetailPage() {
       toast.success(t.campaigns.detail.acceptedResult.replace('{qualified}', String(result.data.qualified)).replace('{sent}', String(result.data.offersSent)));
       refetchCampaign();
       // Refresh report
-      apiClient.get(`/reports/campaign/${id}`).then(({ data }) => setReport(data)).catch(() => { });
+      apiClient.get(`/reports/campaign/${id}`).then(({ data }) => { setReport(data); setReportFetchedAt(Date.now()); }).catch(() => { });
     } catch (err: any) {
       toast.error(`${t.campaigns.detail.acceptError}: ${err.response?.data?.message || err.message}`);
     } finally {
@@ -566,10 +578,30 @@ export function CampaignDetailPage() {
           <motion.div variants={tabItemVariants} initial="hidden" animate="show">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  {t.campaigns.detail.campaignReport}
-                </CardTitle>
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    {t.campaigns.detail.campaignReport}
+                  </CardTitle>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono">
+                    {reportFetchedAt && (
+                      <span title={new Date(reportFetchedAt).toLocaleString(isEN ? 'en-US' : 'pl-PL')}>
+                        {isEN ? 'Updated' : 'Zaktualizowano'}: {formatRelative(new Date(reportFetchedAt))}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={refetchReport}
+                      disabled={reportReloading}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] border hover:bg-muted/40 disabled:opacity-50 transition-colors"
+                    >
+                      {reportReloading
+                        ? <Loader2 className="h-3 w-3 animate-spin" />
+                        : <RefreshCw className="h-3 w-3" />}
+                      {isEN ? 'Refresh' : 'Odśwież'}
+                    </button>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className={`grid grid-cols-1 ${isFullPlan ? 'md:grid-cols-2' : ''} gap-6`}>

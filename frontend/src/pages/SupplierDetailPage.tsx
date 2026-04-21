@@ -31,6 +31,7 @@ import { BlacklistDialog } from '@/components/suppliers/BlacklistDialog';
 import { SupplierScorecard } from '@/components/suppliers/SupplierScorecard';
 import { useSupplier } from '@/hooks/useSuppliers';
 import { useAuthStore } from '@/stores/auth.store';
+import { scoreToPercent } from '@/utils/supplier-score';
 import { t, isEN } from '@/i18n';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -101,9 +102,7 @@ export function SupplierDetailPage() {
     }
   });
 
-  const scorePercent = supplier?.analysisScore
-    ? Math.round(supplier.analysisScore * 10)
-    : 0;
+  const scorePercent = scoreToPercent(supplier?.analysisScore);
 
   const getScoreVariant = (
     score: number

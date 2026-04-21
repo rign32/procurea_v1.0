@@ -6,6 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import type { Supplier } from '@/types/supplier.types';
 import { t } from '@/i18n';
 import { normalizeCountry, getCountryFlag } from '@/utils/normalize-country';
+import { scoreToPercent } from '@/utils/supplier-score';
 
 interface SupplierCardProps {
   supplier: Supplier;
@@ -28,7 +29,7 @@ export function SupplierCard({
   selected,
   onSelect,
 }: SupplierCardProps) {
-  const score = supplier.analysisScore ? Math.round(supplier.analysisScore * 10) : 0;
+  const score = scoreToPercent(supplier.analysisScore);
 
   const getScoreVariant = (score: number): 'default' | 'secondary' | 'destructive' => {
     if (score >= 80) return 'default';

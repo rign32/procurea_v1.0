@@ -317,15 +317,24 @@ export function SuppliersPage() {
       const blob = await suppliersService.exportCSV({
         country: selectedCountries.length === 1 ? selectedCountries[0] : undefined,
         search: searchQuery || undefined,
+        // UI exposes 0-100 percent; backend expects 0-10 analysisScore.
+        minScore: minScore > 0 ? minScore / 10 : undefined,
       });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
+      const stamp = new Date().toISOString().slice(0, 10);
       a.href = url;
-      a.download = 'suppliers.csv';
+      a.download = `suppliers-${stamp}.csv`;
       a.click();
       window.URL.revokeObjectURL(url);
+      if (selectedCampaigns.length > 0) {
+        // Backend export doesn't yet take campaignIds — be honest about it.
+        toast.info(isEN
+          ? 'Export currently ignores the campaign filter. CSV contains all suppliers matching country + score + search.'
+          : 'Eksport nie obsługuje jeszcze filtru kampanii. CSV zawiera wszystkich dostawców pasujących do kraju + oceny + wyszukiwania.');
+      }
     } catch {
-      // ignore
+      toast.error(isEN ? 'Export failed' : 'Eksport nie powiódł się');
     }
   };
 
