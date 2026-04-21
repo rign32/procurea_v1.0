@@ -35,12 +35,15 @@ Bez tych secretów cron uruchamia się normalnie, tylko pomija krok Slack.
 
 ### Known limitations fixów
 
-- **Malformed JSON body → 400**: próbowane **trzy podejścia**, żadne nie działa na deploy:
+- **Malformed JSON body → 400**: próbowane **cztery podejścia**, żadne nie działa na deploy Firebase Functions 2nd gen + Express 5 + Nest 11:
   1. Express error middleware PO `app.init()` (na outer expressApp) — ignorowany bo `Express5Adapter.registerParserMiddleware` instaluje swój własny `express.json()` wewnątrz Nest stack.
   2. Własny `express.json()` + error handler PRZED `app.init()` — zjadany przez Express5Adapter który i tak re-instaluje parser.
   3. `SyntaxError` + `entity.parse.failed` catch w `AllExceptionsFilter` — body-parser error nie dociera do Nest exception pipeline bo Express ends request przed reaching Nest router.
-  
-  **Prawdziwy fix** wymaga patchu `Express5Adapter`: override `registerParserMiddleware` żeby użyć `express.json()` z `verify` callback albo `strict: false`, ALBO rzucał HttpException zamiast bare SyntaxError. Estymacja: 2-4h pracy z testami regresji. Ticket: "Patch Express5Adapter to emit HttpException on body-parser errors".
+  4. Override `registerParserMiddleware` w `Express5Adapter` żeby samemu zainstalować wrapped parsery (`app.use(safeParse(...))`) i zasupresować default Nest registration — deployed ale **response nadal HTTP 500 plain "Internal Server Error"**; oznacza że ani mój wrapper ani default ani AllExceptionsFilter go nie łapią. Request dociera do aplikacji (trace ID obecny) ale błąd wychodzi poza obsługę.
+
+  **Hipoteza**: Firebase Functions 2nd gen runtime lub Cloud Run proxy parsuje body przed przekazaniem do expressApp, i przy malformed payload wywala 500 zanim nasz kod w ogóle zobaczy request. **Diagnoza wymaga Cloud Run logs** (GCP access, których QA session nie ma).
+
+  Express5Adapter wrócił do oryginalnej formy (tylko `isMiddlewareApplied` patch), żeby nie zostawać dead code. Ticket dla deweloperów: "Diagnose malformed-JSON 500 plain-text response — requires Cloud Run logs".
 
 - **E2E w CI (non-blocking)**: job `e2e-tests` dodany do [deploy-staging.yml](../.github/workflows/deploy-staging.yml) z PostgreSQL service container + `continue-on-error: true`. Czyta `test/*.e2e-spec.ts` (1067 LOC). Dzisiaj uruchomił się pierwszy raz — widać schema drift (field names nieaktualne w factories). Pierwsza naprawa już w commit `bd5d50d` od parallel session. Do flipu `needs: [quick-check, e2e-tests]` potrzebujemy: (a) factories zgodne z obecną schema.prisma, (b) migrate deploy kompletne (bez drift) — lub dalej `db push` dla E2E.
 
