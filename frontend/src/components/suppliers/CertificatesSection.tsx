@@ -8,6 +8,9 @@ import {
   Clock,
   CheckCircle2,
   Loader2,
+  Check,
+  X,
+  Eye,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,6 +30,8 @@ import {
   useSupplierCertificates,
   useCreateCertificate,
   useDeleteCertificate,
+  useApproveCertificate,
+  useRejectCertificate,
 } from '@/hooks/useCertificates';
 import {
   CERTIFICATE_TYPES,
@@ -70,10 +75,13 @@ export function CertificatesSection({ supplierId }: CertificatesSectionProps) {
   const { data, isLoading } = useSupplierCertificates(supplierId);
   const createMutation = useCreateCertificate(supplierId);
   const deleteMutation = useDeleteCertificate(supplierId);
+  const approveMutation = useApproveCertificate(supplierId);
+  const rejectMutation = useRejectCertificate(supplierId);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const certs = data?.items ?? [];
   const summary = data?.summary;
+  const pendingCount = summary?.pending ?? certs.filter((c) => c.reviewStatus === 'PENDING').length;
 
   const handleDelete = async (cert: SupplierCertificate) => {
     if (!confirm(`Usunąć certyfikat ${CERTIFICATE_LABELS[cert.type]} (${cert.code})?`)) return;
@@ -82,6 +90,25 @@ export function CertificatesSection({ supplierId }: CertificatesSectionProps) {
       toast.success('Certyfikat usunięty');
     } catch {
       toast.error('Nie udało się usunąć');
+    }
+  };
+
+  const handleApprove = async (cert: SupplierCertificate) => {
+    try {
+      await approveMutation.mutateAsync(cert.id);
+      toast.success('Certyfikat zatwierdzony');
+    } catch {
+      toast.error('Nie udało się zatwierdzić');
+    }
+  };
+
+  const handleReject = async (cert: SupplierCertificate) => {
+    const notes = prompt('Powód odrzucenia (opcjonalnie):') ?? undefined;
+    try {
+      await rejectMutation.mutateAsync({ certificateId: cert.id, notes: notes || undefined });
+      toast.success('Certyfikat odrzucony');
+    } catch {
+      toast.error('Nie udało się odrzucić');
     }
   };
 
@@ -100,7 +127,7 @@ export function CertificatesSection({ supplierId }: CertificatesSectionProps) {
               )}
             </CardTitle>
             {summary && (
-              <div className="flex gap-3 mt-2 text-xs">
+              <div className="flex gap-3 mt-2 text-xs flex-wrap">
                 {summary.ACTIVE > 0 && (
                   <span className="text-emerald-600">
                     ✓ {summary.ACTIVE} aktywne
@@ -114,6 +141,11 @@ export function CertificatesSection({ supplierId }: CertificatesSectionProps) {
                 {summary.EXPIRED > 0 && (
                   <span className="text-rose-600">
                     ⚠ {summary.EXPIRED} wygasłe
+                  </span>
+                )}
+                {pendingCount > 0 && (
+                  <span className="text-amber-700 font-medium">
+                    👁 {pendingCount} do weryfikacji
                   </span>
                 )}
               </div>
@@ -163,6 +195,23 @@ export function CertificatesSection({ supplierId }: CertificatesSectionProps) {
                           Od dostawcy
                         </Badge>
                       )}
+                      {cert.reviewStatus === 'PENDING' && (
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] bg-amber-50 text-amber-700 border-amber-200"
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          Do weryfikacji
+                        </Badge>
+                      )}
+                      {cert.reviewStatus === 'REJECTED' && (
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] bg-rose-50 text-rose-700 border-rose-200"
+                        >
+                          Odrzucony
+                        </Badge>
+                      )}
                     </div>
                     <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
                       <div>
@@ -193,6 +242,30 @@ export function CertificatesSection({ supplierId }: CertificatesSectionProps) {
                       >
                         <Download className="h-3.5 w-3.5" />
                       </Button>
+                    )}
+                    {cert.reviewStatus === 'PENDING' && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                          onClick={() => handleApprove(cert)}
+                          disabled={approveMutation.isPending}
+                          title="Zatwierdź"
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                          onClick={() => handleReject(cert)}
+                          disabled={rejectMutation.isPending}
+                          title="Odrzuć"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </>
                     )}
                     <Button
                       size="sm"

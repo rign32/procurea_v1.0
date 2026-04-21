@@ -7,6 +7,7 @@ import AppLayout from './components/layout/AppLayout'
 import Login from './Login'
 import AuthCallbackPage from './pages/AuthCallbackPage'
 import { MobileGuard } from './components/mobile/MobileGuard'
+import { ErrorBoundary } from './components/error/ErrorBoundary'
 import { useAuthStore } from './stores/auth.store'
 import apiClient from './services/api.client'
 import { setUserIdentity, clearUserIdentity } from './lib/analytics'
@@ -363,6 +364,7 @@ function App() {
         }}
       />
       <Router>
+        <ErrorBoundary>
         <Suspense fallback={<div className="flex h-screen items-center justify-center bg-background"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
         <Routes>
           <Route
@@ -426,6 +428,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
         </Suspense>
+        </ErrorBoundary>
       </Router>
     </QueryClientProvider>
   )

@@ -120,6 +120,11 @@ export default function Dashboard() {
         </section>
       )}
 
+      {/* First-run guide — visible only for brand-new users so the dashboard isn't empty. */}
+      {!statsLoading && stats && stats.campaigns.total === 0 && (
+        <OnboardingGuide onStart={handleCreateCampaign} isFullPlan={isFullPlan} />
+      )}
+
       {/* KPI row — real data only */}
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         {statsLoading && !stats ? (
@@ -353,6 +358,87 @@ export default function Dashboard() {
         campaigns={campaigns ?? []}
       />
     </div>
+  );
+}
+
+/* ──────────── Onboarding (first-run) ──────────── */
+
+function OnboardingGuide({ onStart, isFullPlan }: { onStart: () => void; isFullPlan: boolean }) {
+  const steps: Array<{ index: number; title: string; body: string }> = [
+    {
+      index: 1,
+      title: isEN ? 'Describe what you source' : 'Opisz czego szukasz',
+      body: isEN
+        ? 'Open the wizard, drop a PDF spec or type a product description. AI drafts the sourcing criteria and picks target markets.'
+        : 'Uruchom wizarda, wgraj PDF lub opisz produkt. AI rozpisze kryteria sourcingu i wskaże rynki.',
+    },
+    {
+      index: 2,
+      title: isEN ? 'AI ranks suppliers' : 'AI oceni dostawców',
+      body: isEN
+        ? 'The pipeline scrapes ~500 candidates, screens them with Gemini, and returns 20–50 scored matches in ~2 minutes.'
+        : 'Pipeline przeskanuje ~500 kandydatów, przesieje przez Gemini i zwróci 20–50 ocenionych dostawców w ~2 minuty.',
+    },
+    isFullPlan
+      ? {
+          index: 3,
+          title: isEN ? 'Send RFQs & compare offers' : 'Wyślij RFQ i porównaj oferty',
+          body: isEN
+            ? 'One click sends RFQs; the supplier portal collects structured offers you can weigh and convert to a contract.'
+            : 'Jeden klik wysyła RFQ; portal dostawcy zbiera ustrukturyzowane oferty, które możesz zważyć i zamienić w kontrakt.',
+        }
+      : {
+          index: 3,
+          title: isEN ? 'Review and export' : 'Przejrzyj i wyeksportuj',
+          body: isEN
+            ? 'Shortlist the winners and export to CSV. Upgrade to Full plan later to send RFQs and compare offers in-app.'
+            : 'Wybierz finalistów i wyeksportuj do CSV. Plan Full odblokowuje wysyłkę RFQ i porównywarkę ofert w aplikacji.',
+        },
+  ];
+
+  return (
+    <section className="bg-gradient-to-br from-brand to-brand-2 text-white rounded-[12px] p-6 overflow-hidden relative">
+      <span
+        aria-hidden
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: 'radial-gradient(circle at 100% 0%, rgba(244,200,66,0.3), transparent 55%)' }}
+      />
+      <div className="relative">
+        <div className="label-mono text-white/70 mb-2">
+          {isEN ? 'Welcome to Procurea' : 'Witaj w Procurea'}
+        </div>
+        <h2 className="text-[22px] font-bold tracking-[-0.02em] leading-[1.2] mb-1">
+          {isEN ? 'Run your first sourcing campaign in 3 steps' : 'Uruchom pierwszą kampanię sourcingu w 3 krokach'}
+        </h2>
+        <p className="text-[13.5px] text-white/75 leading-[1.5] mb-5 max-w-2xl">
+          {isEN
+            ? 'The AI does the heavy lifting — you stay in the driver\'s seat. Start with a description, review what comes back, send RFQs when you\'re happy.'
+            : 'AI robi żmudną robotę, Ty trzymasz kierownicę. Zacznij od opisu, przejrzyj wyniki, wyślij RFQ gdy będziesz gotowy.'}
+        </p>
+
+        <div className="grid gap-4 md:grid-cols-3 mb-5">
+          {steps.map((step) => (
+            <div
+              key={step.index}
+              className="rounded-[10px] bg-white/10 border border-white/20 backdrop-blur-sm p-4"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-cta text-cta-ink font-mono text-[12px] font-bold">
+                  {step.index}
+                </span>
+                <div className="font-semibold text-[13.5px] text-white">{step.title}</div>
+              </div>
+              <p className="text-[12.5px] leading-[1.5] text-white/75">{step.body}</p>
+            </div>
+          ))}
+        </div>
+
+        <Button variant="cta" size="ds" onClick={onStart}>
+          <Plus className="h-3.5 w-3.5" strokeWidth={2} />
+          {isEN ? 'Start my first campaign' : 'Uruchom pierwszą kampanię'}
+        </Button>
+      </div>
+    </section>
   );
 }
 

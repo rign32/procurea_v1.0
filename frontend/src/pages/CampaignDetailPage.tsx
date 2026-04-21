@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Status } from '@/components/ui/status';
 import { AgentAnimation } from '@/components/campaigns/AgentAnimation';
 import { LiveSupplierFeed } from '@/components/campaigns/LiveSupplierFeed';
+import { CampaignInsightsPanel } from '@/components/campaigns/CampaignInsightsPanel';
 import { useCampaign, useExportCampaign } from '@/hooks/useCampaigns';
 import { useRealTimeMonitor } from '@/hooks/useRealTimeMonitor';
 import useCampaignsStore from '@/stores/campaigns.store';
@@ -444,6 +445,15 @@ export function CampaignDetailPage() {
               </CardHeader>
               <CardContent><p className="text-3xl font-bold">{avgScore}%</p></CardContent>
             </Card>
+          </motion.div>
+        )
+      }
+
+      {/* CAMPAIGN INSIGHTS (cost breakdown, funnel, quality dist, top countries/categories) */}
+      {
+        (isCompleted || isAccepted) && activeTab === 'overview' && id && (
+          <motion.div variants={tabItemVariants} initial="hidden" animate="show">
+            <CampaignInsightsPanel campaignId={id} />
           </motion.div>
         )
       }

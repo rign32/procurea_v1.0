@@ -50,3 +50,30 @@ export function useDeleteCertificate(supplierId: string) {
     },
   });
 }
+
+export function useApproveCertificate(supplierId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (certificateId: string) =>
+      certificatesService.approve(supplierId, certificateId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['supplier-certificates', supplierId] });
+    },
+  });
+}
+
+export function useRejectCertificate(supplierId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      certificateId,
+      notes,
+    }: {
+      certificateId: string;
+      notes?: string;
+    }) => certificatesService.reject(supplierId, certificateId, notes),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['supplier-certificates', supplierId] });
+    },
+  });
+}

@@ -54,6 +54,7 @@ export const CERTIFICATE_LABELS: Record<CertificateType, string> = {
 
 export type CertificateStatus = 'ACTIVE' | 'EXPIRING_SOON' | 'EXPIRED';
 export type CertificateSource = 'MANUAL' | 'PORTAL';
+export type CertificateReviewStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
 export interface SupplierCertificate {
   id: string;
@@ -66,6 +67,10 @@ export interface SupplierCertificate {
   validUntil: string;
   status: CertificateStatus;
   source: CertificateSource;
+  reviewStatus: CertificateReviewStatus;
+  reviewedAt: string | null;
+  reviewedById: string | null;
+  reviewNotes: string | null;
   documentId: string | null;
   document: {
     id: string;
@@ -82,6 +87,8 @@ export interface CertificateSummary {
   ACTIVE: number;
   EXPIRING_SOON: number;
   EXPIRED: number;
+  pending: number;
+  rejected: number;
 }
 
 export interface CreateCertificateInput {
@@ -131,5 +138,27 @@ export const certificatesService = {
     await apiClient.delete(
       `/suppliers/${supplierId}/certificates/${certificateId}`,
     );
+  },
+
+  approve: async (
+    supplierId: string,
+    certificateId: string,
+  ): Promise<SupplierCertificate> => {
+    const { data } = await apiClient.post(
+      `/suppliers/${supplierId}/certificates/${certificateId}/approve`,
+    );
+    return data;
+  },
+
+  reject: async (
+    supplierId: string,
+    certificateId: string,
+    notes?: string,
+  ): Promise<SupplierCertificate> => {
+    const { data } = await apiClient.post(
+      `/suppliers/${supplierId}/certificates/${certificateId}/reject`,
+      { notes },
+    );
+    return data;
   },
 };
