@@ -1,0 +1,59 @@
+#!/usr/bin/env sh
+# Detect misleading commit messages — title claims one thing, staged files
+# touch something else. Exact pattern seen 2026-04-21 when a session's
+# "ci(staging): add --force to firebase deploy" commit actually contained
+# a full CI workflow rewrite + unrelated files from another session.
+
+MSG_FILE="$1"
+TITLE=$(head -1 "$MSG_FILE" | tr '[:upper:]' '[:lower:]')
+
+# --- Guard 1: reject vague one-word titles --------------------------------
+WORDS=$(echo "$TITLE" | grep -o -E '[a-z]+' | wc -l | tr -d ' ')
+if [ "$WORDS" -lt "3" ] && ! echo "$TITLE" | grep -qE "^(wip|tmp|fixup|merge|revert|amend)"; then
+  echo "❌ Commit title too vague: '$(head -1 "$MSG_FILE")'"
+  echo ""
+  echo "   Use 'type(scope): what changed and why' — 3+ words minimum."
+  echo "   Examples:"
+  echo "     feat(rfq): add multi-SKU line items"
+  echo "     fix(auth): refresh token expiry race"
+  echo ""
+  echo "   Bypass: git commit --no-verify"
+  exit 1
+fi
+
+# --- Guard 2: misleading-scope detector -----------------------------------
+# If title says "ci(...)" / "ci:" check that at least one .github/ or .husky/
+# or workflow file is staged. Similarly for other common scopes.
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=AMR)
+
+check_scope() {
+  local keyword="$1"
+  local expected_path_re="$2"
+  local scope_present="$3"  # "yes" if scope keyword in title
+
+  if [ "$scope_present" = "yes" ]; then
+    if ! echo "$STAGED_FILES" | grep -qE "$expected_path_re"; then
+      echo "⚠️  Title mentions '$keyword' but no $expected_path_re files are staged."
+      echo "   Staged files (first 10):"
+      echo "$STAGED_FILES" | head -10 | sed 's/^/     /'
+      echo ""
+      echo "   This looks like the 'misleading commit' pattern (2026-04-21 incident)"
+      echo "   where a session's title didn't match its actual content."
+      echo "   Review: git diff --cached --stat"
+      echo "   Bypass: git commit --no-verify"
+      return 1
+    fi
+  fi
+  return 0
+}
+
+# Check common scope tags in title
+FAIL=0
+echo "$TITLE" | grep -qE "^ci[:(]"          && { check_scope "ci"       "^(\.github/|\.husky/|scripts/)"    "yes" || FAIL=1; }
+echo "$TITLE" | grep -qE "^landing[:(]"     && { check_scope "landing"  "^landing/"                          "yes" || FAIL=1; }
+echo "$TITLE" | grep -qE "^backend[:(]"     && { check_scope "backend"  "^backend/"                          "yes" || FAIL=1; }
+echo "$TITLE" | grep -qE "^frontend[:(]"    && { check_scope "frontend" "^frontend/"                         "yes" || FAIL=1; }
+echo "$TITLE" | grep -qE "^admin[:(]"       && { check_scope "admin"    "^admin-frontend/"                   "yes" || FAIL=1; }
+echo "$TITLE" | grep -qE "docs?[:(]|^docs " && { check_scope "docs"     "\.md$|^docs/"                       "yes" || FAIL=1; }
+
+exit $FAIL
