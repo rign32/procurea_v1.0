@@ -182,16 +182,20 @@ export const api = onRequest(
 
 // Staging Cloud Function — separate Cloud Run service with its own database.
 // 2026-04-20: staging sized smaller than prod (1GiB vs 2GiB) — no prod load here.
-// 2026-04-21: minInstances 0→1 to eliminate cold-start 500s (first request after
-// hibernation was crashing, likely Prisma lazy-connect during NestJS bootstrap).
-// ~$5/mo extra but gives consistent UX for demos, CI smoke tests, and on-call debug.
+// 2026-04-21: cold-start 500s on first request after hibernation are caused by
+// minInstances: 0. Bumping to 1 costs ~$5/mo and fixes the UX issue, BUT Firebase
+// CLI refuses to deploy the increase without an initial manual approval — see
+// docs/qa-findings-2026-04-21.md §P1. To enable: run once locally from repo root:
+//   npx firebase deploy --only functions:apiStaging --project project-c64b9be9-1d92-4bc6-be7 --force
+// with minInstances: 1 set here, then subsequent CI deploys will work.
+// Kept at 0 for now so CI passes.
 export const apiStaging = onRequest(
     {
         region: 'europe-west1',
         memory: '1GiB',
         timeoutSeconds: 1800,
         concurrency: 80,
-        minInstances: 1,
+        minInstances: 0,
         maxInstances: 2,
         secrets: [
             'DATABASE_URL_STAGING',
