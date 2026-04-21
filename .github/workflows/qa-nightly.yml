@@ -1,0 +1,167 @@
+name: QA Nightly
+
+# Auto-QA routine:
+# - Runs every day at 06:00 UTC (08:00 PL winter / 09:00 PL summer)
+# - Smoke test against staging + production
+# - Backend unit tests
+# - Slack notification on any failure (when SLACK_WEBHOOK_URL secret is set)
+#
+# Manual trigger: gh workflow run qa-nightly.yml
+# To enable Slack alerts: add SLACK_WEBHOOK_URL repo secret (Incoming Webhook).
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: qa-nightly
+  cancel-in-progress: false
+
+jobs:
+  smoke-staging:
+    name: Smoke — staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run smoke test
+        run: BASE_URL=https://procurea-app-staging.web.app node backend/scripts/smoke-staging.cjs
+
+  smoke-production:
+    name: Smoke — production
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run smoke test
+        run: BASE_URL=https://app.procurea.pl node backend/scripts/smoke-staging.cjs
+
+  unit-tests:
+    name: Backend unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+      - name: Generate Prisma client
+        working-directory: backend
+        run: npx prisma generate
+      - name: Run unit tests
+        working-directory: backend
+        run: npm test -- --passWithNoTests
+
+  notify:
+    name: Slack notification
+    needs: [smoke-staging, smoke-production, unit-tests]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Compute status
+        id: status
+        run: |
+          STAGING='${{ needs.smoke-staging.result }}'
+          PROD='${{ needs.smoke-production.result }}'
+          UNIT='${{ needs.unit-tests.result }}'
+          echo "staging=$STAGING" >> "$GITHUB_OUTPUT"
+          echo "production=$PROD" >> "$GITHUB_OUTPUT"
+          echo "unit=$UNIT" >> "$GITHUB_OUTPUT"
+          if [ "$STAGING" = "success" ] && [ "$PROD" = "success" ] && [ "$UNIT" = "success" ]; then
+            echo "overall=success" >> "$GITHUB_OUTPUT"
+          else
+            echo "overall=failure" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Notify Slack on failure
+        if: steps.status.outputs.overall == 'failure'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          STAGING: ${{ steps.status.outputs.staging }}
+          PRODUCTION: ${{ steps.status.outputs.production }}
+          UNIT: ${{ steps.status.outputs.unit }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo "::warning::SLACK_WEBHOOK_URL not set — skipping Slack notification"
+            echo "To enable, add repo secret SLACK_WEBHOOK_URL (Incoming Webhook URL)"
+            exit 0
+          fi
+
+          icon() { if [ "$1" = "success" ]; then echo "✅"; elif [ "$1" = "failure" ]; then echo "❌"; else echo "⚠️"; fi; }
+
+          PAYLOAD=$(cat <<JSON
+          {
+            "text": "Procurea QA Nightly — regresja wykryta",
+            "blocks": [
+              {
+                "type": "header",
+                "text": { "type": "plain_text", "text": "🚨 Procurea — QA Nightly FAILED" }
+              },
+              {
+                "type": "section",
+                "fields": [
+                  { "type": "mrkdwn", "text": "*Staging smoke:*\n$(icon $STAGING) $STAGING" },
+                  { "type": "mrkdwn", "text": "*Production smoke:*\n$(icon $PRODUCTION) $PRODUCTION" },
+                  { "type": "mrkdwn", "text": "*Backend tests:*\n$(icon $UNIT) $UNIT" },
+                  { "type": "mrkdwn", "text": "*Czas:*\n$(date -u '+%Y-%m-%d %H:%M UTC')" }
+                ]
+              },
+              {
+                "type": "actions",
+                "elements": [
+                  {
+                    "type": "button",
+                    "text": { "type": "plain_text", "text": "Zobacz logi →" },
+                    "url": "$RUN_URL",
+                    "style": "primary"
+                  }
+                ]
+              }
+            ]
+          }
+          JSON
+          )
+
+          curl -sS -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$SLACK_WEBHOOK_URL"
+          echo "Slack notification sent"
+
+      - name: Daily success summary (optional)
+        if: steps.status.outputs.overall == 'success'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_SUMMARY_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          # Optional: separate webhook for success summaries.
+          # If SLACK_WEBHOOK_SUMMARY_URL not set, nothing is sent.
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo "No summary webhook configured — staying silent on success"
+            exit 0
+          fi
+
+          PAYLOAD=$(cat <<JSON
+          {
+            "text": "✅ Procurea QA Nightly — all green ($(date -u '+%Y-%m-%d %H:%M UTC'))",
+            "blocks": [
+              {
+                "type": "section",
+                "text": { "type": "mrkdwn", "text": "✅ *Procurea QA Nightly — wszystko OK*\nSmoke staging + production + backend tests → pass. <$RUN_URL|Logi>" }
+              }
+            ]
+          }
+          JSON
+          )
+
+          curl -sS -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$SLACK_WEBHOOK_URL"

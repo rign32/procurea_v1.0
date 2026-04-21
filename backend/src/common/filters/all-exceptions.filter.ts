@@ -8,6 +8,27 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
+// Map HTTP status → default error-field string. Built-in Nest exceptions
+// (UnauthorizedException etc.) return getResponse() without an `error` field,
+// so every 401/403/404 was leaking "Internal Server Error" in the payload.
+function defaultErrorForStatus(status: number): string {
+    switch (status) {
+        case 400: return 'Bad Request';
+        case 401: return 'Unauthorized';
+        case 403: return 'Forbidden';
+        case 404: return 'Not Found';
+        case 405: return 'Method Not Allowed';
+        case 409: return 'Conflict';
+        case 413: return 'Payload Too Large';
+        case 422: return 'Unprocessable Entity';
+        case 429: return 'Too Many Requests';
+        case 502: return 'Bad Gateway';
+        case 503: return 'Service Unavailable';
+        case 504: return 'Gateway Timeout';
+        default:  return 'Internal Server Error';
+    }
+}
+
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
     private readonly logger = new Logger(AllExceptionsFilter.name);
@@ -27,9 +48,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
             const res = exception.getResponse();
             if (typeof res === 'string') {
                 message = res;
+                error = defaultErrorForStatus(status);
             } else if (typeof res === 'object' && res !== null) {
                 message = (res as any).message || message;
-                error = (res as any).error || error;
+                error = (res as any).error || defaultErrorForStatus(status);
+            } else {
+                error = defaultErrorForStatus(status);
             }
         }
         // Prisma known request errors

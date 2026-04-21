@@ -1181,7 +1181,10 @@ export class AuthController {
      * Rate-limited to prevent abuse.
      */
     @Post('demo/create')
-    @Throttle({ default: { ttl: 60000, limit: 5 } })
+    // Each demo session creates ~20 DB rows (org + user + campaign + 7 suppliers + RFQ + 4 offers + logs).
+    // Previous 5/min = 7200 sessions/day per IP = ~144k inserts/day worst case.
+    // Tightened to 3/hour after 2026-04-21 QA review.
+    @Throttle({ default: { ttl: 3600000, limit: 3 } })
     async createDemoSession(@Res({ passthrough: true }) res: Response, @Req() req) {
         const user = await this.authService.createDemoSession();
 

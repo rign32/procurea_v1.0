@@ -18,6 +18,25 @@ if (process.env.DATABASE_URL_STAGING && !process.env.DATABASE_URL) {
 const expressApp = express();
 let app: NestExpressApplication;
 
+// Security headers applied at Express layer so every response (including ones from
+// Express error middleware that bypasses NestJS filters) carries them. Added
+// 2026-04-21 during QA hardening pass.
+expressApp.use((req, res, next) => {
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader(
+        'Permissions-Policy',
+        'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+    );
+    // CSP tuned for a JSON API. Swagger UI needs a looser policy so skip /api/docs.
+    if (!req.url.startsWith('/api/docs') && !req.url.startsWith('/docs')) {
+        res.setHeader(
+            'Content-Security-Policy',
+            "default-src 'none'; frame-ancestors 'none'; base-uri 'none'",
+        );
+    }
+    next();
+});
+
 // Capture raw body for Stripe + Resend Inbound webhook signature verification
 // Must be BEFORE prefix stripping AND before NestJS body parsing
 const webhookRawParser = express.raw({ type: 'application/json' });
@@ -88,6 +107,29 @@ const createNestServer = async () => {
         });
 
         await app.init();
+
+        // Express-level error handler for malformed JSON and payload-too-large.
+        // Registered AFTER app.init() so it sits at the tail of the middleware chain
+        // and catches body-parser errors that would otherwise fall through to
+        // Express's default handler (500 + plain text "Internal Server Error").
+        // Added 2026-04-21 during QA hardening pass.
+        expressApp.use((err: any, req: any, res: any, next: any) => {
+            if (res.headersSent) return next(err);
+            const isJsonParse = err?.type === 'entity.parse.failed' || err instanceof SyntaxError;
+            const isTooLarge = err?.type === 'entity.too.large';
+            if (isJsonParse || isTooLarge) {
+                const status = isTooLarge ? 413 : 400;
+                return res.status(status).json({
+                    statusCode: status,
+                    error: isTooLarge ? 'Payload Too Large' : 'Bad Request',
+                    message: isTooLarge ? 'Request body exceeds size limit' : 'Invalid JSON body',
+                    timestamp: new Date().toISOString(),
+                    path: req.url,
+                });
+            }
+            return next(err);
+        });
+
         console.log('NestJS initialized for Cloud Functions (2nd Gen)');
     }
     return app;
@@ -140,13 +182,16 @@ export const api = onRequest(
 
 // Staging Cloud Function — separate Cloud Run service with its own database.
 // 2026-04-20: staging sized smaller than prod (1GiB vs 2GiB) — no prod load here.
+// 2026-04-21: minInstances 0→1 to eliminate cold-start 500s (first request after
+// hibernation was crashing, likely Prisma lazy-connect during NestJS bootstrap).
+// ~$5/mo extra but gives consistent UX for demos, CI smoke tests, and on-call debug.
 export const apiStaging = onRequest(
     {
         region: 'europe-west1',
         memory: '1GiB',
         timeoutSeconds: 1800,
         concurrency: 80,
-        minInstances: 0,
+        minInstances: 1,
         maxInstances: 2,
         secrets: [
             'DATABASE_URL_STAGING',
