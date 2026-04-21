@@ -73,6 +73,31 @@ To nie pech. To punkt wyjścia. Branżowe benchmarki mówią, że ręczny sourci
 Matematyka jest bezlitosna. Trzydzieści godzin razy koszt €50-60/h oznacza, że jedna kampania sourcingowa kosztuje firmę po cichu <strong>€1,500-€1,800</strong> w czasie wewnętrznym — zanim dostaniesz choć jedną ofertę. Pomnóż to razy 15-25 kampanii rocznie na kupca i masz <strong>€30k-€45k na osobę</strong> wydane na research, który daje shortlistę 5 dostawców.
 
 Ten artykuł prowadzi przez 4-krokowy lejek, który z jednego zapytania wyszukiwania doprowadza do shortlisty 100+ zweryfikowanych dostawców z mailami i certyfikatami — w mniej niż godzinę, nie w mniej niż miesiąc.`,
+      statBlock: {
+        columns: 4,
+        stats: [
+          {
+            value: '25-35h',
+            label: 'Manual sourcing baseline per category',
+            labelPl: 'Ręczny sourcing jednej kategorii',
+          },
+          {
+            value: '€50-60/h',
+            label: 'Loaded buyer rate',
+            labelPl: 'Koszt kupca (pełny)',
+          },
+          {
+            value: '€1,500-1,800',
+            label: 'Internal cost per campaign',
+            labelPl: 'Koszt wewnętrzny na kampanię',
+          },
+          {
+            value: '15-25',
+            label: 'Campaigns per buyer / year',
+            labelPl: 'Kampanii rocznie na kupca',
+          },
+        ],
+      },
       subSections: [
         {
           heading: 'The hidden tasks nobody budgets for',
@@ -301,6 +326,24 @@ None of this is new to experienced buyers. All of it still happens to experience
 <strong>Wybór „tego, który odpisał pierwszy".</strong> Szybka odpowiedź często koreluje z desperacją sprzedaży, która często koreluje z problemami mocowymi. Zakład, któremu zajmuje cztery dni odpisanie i który zadaje trzy celne pytania, zazwyczaj jest lepszym partnerem.
 
 Nic z tego nie jest nowe dla doświadczonych kupców. Wszystko to nadal przytrafia się doświadczonym kupcom, kiedy są w biegu i niedoinwestowani. Poszerzenie lejka w kroku 1 — z 20 do 200 kandydatów — to najtańszy sposób, żeby kupić sobie przestrzeń do unikania tych błędów.`,
+      keyTakeaway: {
+        title: '5 mistakes that kill sourcing outcomes',
+        titlePl: '5 błędów, które rujnują sourcing',
+        items: [
+          'Relying only on paid directory listings — premium placement correlates with marketing spend, not operational quality.',
+          'Ignoring language barriers — an English RFQ to a Turkish or Polish manufacturer cuts response rate by ~60%.',
+          'Over-weighting price on the first pass — a 15% lower quote from an unverified supplier routinely becomes a 40% overrun.',
+          'Skipping the sample order — a €500-€2,000 sample run pays for itself the first time it catches a quality-system gap.',
+          'Picking "the one that replied fast" — speed often correlates with desperate sales, which often means capacity issues.',
+        ],
+        itemsPl: [
+          'Oparcie się tylko na płatnych wpisach w katalogach — premium placement koreluje z budżetem marketingowym, nie jakością operacyjną.',
+          'Ignorowanie bariery językowej — anglojęzyczny RFQ do tureckiego lub polskiego producenta obniża response rate o ~60%.',
+          'Przeważanie ceny w pierwszym przejściu — oferta o 15% niższa od niezweryfikowanego dostawcy kończy się 40% przekroczeniem.',
+          'Pominięcie zamówienia próbnego — sample run za €500-€2 000 zwraca się, kiedy pierwszy raz łapie lukę jakościową.',
+          'Wybór „tego, który odpisał pierwszy" — szybka odpowiedź często koreluje z desperacją sprzedaży, co znaczy problemy mocowe.',
+        ],
+      },
     },
     {
       heading: 'Worked example: 500 Google results → 100 verified matches',
@@ -1355,6 +1398,27 @@ Response rate uplift is worth noting: properly-sequenced RFQs (automated day 4, 
 Czas cyklu po workflow (typowe RFQ od wysłania do decyzji): Excel+Outlook 14 dni, Google Forms 10 dni, Airtable+Zapier 7 dni, mid-market e-RFQ 3-5 dni, enterprise S2P 5-8 dni (więcej dni z powodu wewnętrznych aprobat, nie z powodu narzędzia).
 
 Uplift w response rate wart odnotowania: właściwie zsekwencjonowane RFQ (zautomatyzowane przypomnienia w dniu 4, 8, 14) uzyskują około <strong>2,4x wyższy response rate</strong> niż jednostrzałowe maile — zgodne w badaniach sales cadence. Wzorzec ten działa dla outreachu RFQ.`,
+      comparisonTable: {
+        headers: ['Team size', 'Tool stack', 'Monthly cost', 'Scale limit'],
+        headersPl: ['Wielkość zespołu', 'Stack narzędziowy', 'Koszt miesięczny', 'Limit skali'],
+        rows: [
+          ['Solo buyer', 'Excel + Outlook mail-merge', 'Free', '~15 RFQs/month'],
+          ['Team of 3', 'Google Forms + Drive + Sheets', 'Free / near-free', '~25 RFQs/month'],
+          ['Team of 5', 'Airtable + Zapier + mail automation', '€200-€500', '25-60 RFQs/month'],
+          ['Mid-market', 'e-RFQ platform (Procurea-style)', '€250-€2,000', '30-200 RFQs/month'],
+          ['Enterprise', 'Source-to-pay (Coupa, Ariba, Jaggaer)', '$6,700-$41,700', '200+ RFQs/month'],
+        ],
+        rowsPl: [
+          ['Solo', 'Excel + Outlook mail-merge', 'Darmowe', '~15 RFQ/mies.'],
+          ['Zespół 3 osób', 'Google Forms + Drive + Sheets', 'Darmowe / prawie', '~25 RFQ/mies.'],
+          ['Zespół 5 osób', 'Airtable + Zapier + mail automation', '€200-€500', '25-60 RFQ/mies.'],
+          ['Mid-market', 'Platforma e-RFQ (typu Procurea)', '€250-€2 000', '30-200 RFQ/mies.'],
+          ['Enterprise', 'Source-to-pay (Coupa, Ariba, Jaggaer)', '$6 700-$41 700', '200+ RFQ/mies.'],
+        ],
+        highlighted: 3,
+        caption: 'Five RFQ automation workflows mapped to team size and volume.',
+        captionPl: 'Pięć workflow automatyzacji RFQ zmapowanych do wielkości zespołu i wolumenu.',
+      },
       inlineCta: {
         text: 'Download the free RFQ comparison template — Excel + Notion versions, used by 200+ procurement teams.',
         textPl: 'Pobierz darmowy szablon porównania RFQ — wersje Excel + Notion, używane przez 200+ zespołów procurement.',
@@ -1417,6 +1481,16 @@ The response-rate uplift matters more than the time savings for most teams. When
 Osiem razy mniej godzin. Dwa i pół razy szybciej. Prawie dwa razy wyższy response rate. To nie teoretyczne — to typowy wynik, kiedy cztery punkty psucia (format, follow-up, język, doprecyzowania) są obsługiwane przez narzędzie zamiast przez ręce kupca.
 
 Uplift w response rate ma większe znaczenie niż oszczędność czasu dla większości zespołów. Kiedy masz 23 oferty do porównania zamiast 12, statystyczna szansa znalezienia naprawdę konkurencyjnej ceny rośnie nieproporcjonalnie — i stąd faktycznie biorą się oszczędności kosztowe z automatyzacji RFQ.`,
+      beforeAfter: {
+        beforeLabel: 'Manual (Excel + Outlook)',
+        beforeLabelPl: 'Ręcznie (Excel + Outlook)',
+        afterLabel: 'Automated (mid-market e-RFQ)',
+        afterLabelPl: 'Zautomatyzowane (e-RFQ mid-market)',
+        before: '12h buyer time · 18-day cycle · ~48% response rate on 25-supplier RFQ',
+        beforePl: '12h pracy kupca · cykl 18 dni · ~48% response rate przy 25 dostawcach',
+        after: '1.5h buyer time · 7-day cycle · ~92% response rate on the same RFQ',
+        afterPl: '1,5h pracy kupca · cykl 7 dni · ~92% response rate przy tym samym RFQ',
+      },
     },
     {
       heading: '7 signs your RFQ process needs automation',
@@ -1443,6 +1517,28 @@ None of these is catastrophic alone. Three of them together means a buyer is los
 7. Dostawcy skarżą się na formatowanie odpowiedzi (złe kolumny, niejasna waluta, niespójne jednostki).
 
 Żaden samotny nie jest katastrofą. Trzy razem oznaczają, że kupiec traci 15-20 godzin na kampanię w overhead koordynacji, który software obsługuje za €30-€60/h kosztu.`,
+      keyTakeaway: {
+        title: '7 signs you have outgrown manual RFQ',
+        titlePl: '7 sygnałów, że przerosłeś ręczny RFQ',
+        items: [
+          'More than 10 RFQs per month per buyer.',
+          'Sourcing campaigns routinely involve more than 20 suppliers.',
+          'You source across 3+ languages regularly.',
+          'Audit trail required (regulated industry, ISO 9001:2015, CSDDD).',
+          'Response tracking is done by scrolling through the sent-items folder.',
+          'Comparison sheets take more than 4 hours per campaign.',
+          'Suppliers complain about response formatting (wrong columns, unclear currency, mismatched units).',
+        ],
+        itemsPl: [
+          'Ponad 10 RFQ miesięcznie na kupca.',
+          'Kampanie sourcingowe rutynowo angażują ponad 20 dostawców.',
+          'Sourcujesz w 3+ językach regularnie.',
+          'Wymagany audit trail (branża regulowana, ISO 9001:2015, CSDDD).',
+          'Śledzenie odpowiedzi robi się przez scroll po folderze „wysłane".',
+          'Arkusze porównawcze zajmują ponad 4 godziny na kampanię.',
+          'Dostawcy skarżą się na formatowanie odpowiedzi (złe kolumny, niejasna waluta, niespójne jednostki).',
+        ],
+      },
     },
     {
       heading: 'How to choose an RFQ tool without getting locked in',

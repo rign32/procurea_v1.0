@@ -348,6 +348,13 @@ Co faktycznie zmieniło się między 2022 a 2026: LLM-y stały się wystarczają
 Uczciwa rama: AI procurement w 2026 to mocny analityk researchowy, nie mocny negocjator. Poszerza lejek 10x, skraca cykl 5x, wyłapuje sygnały fraudowe, które dawniej umykały. Nie zastępuje 20% pracy, która jest faktycznie procurementem — scope, relacja, osąd, negocjacja. Każdy vendor mówiący inaczej sprzedaje ci półkownika.
 
 Siedem funkcji poniżej to te, które w beta cohorcie realnie zmieniają wyniki. Trzy „marketingowe" na końcu to te, które pojawiają się na pitch deckach i nie robią nic w praktyce.`,
+      pullQuote: {
+        text: 'AI procurement in 2026 is a strong research analyst, not a strong negotiator.',
+        textPl: 'AI procurement w 2026 to mocny analityk researchowy, nie mocny negocjator.',
+        author: 'Rafał Ignaczak',
+        role: 'Founder, Procurea',
+        rolePl: 'Założyciel Procurea',
+      },
       infographicKey: 'ai-features-matrix',
       infographicCaption: 'Seven AI procurement features that move the needle — the rest is pitch-deck noise.',
       infographicCaptionPl: 'Siedem funkcji AI procurement, które realnie zmieniają wyniki — reszta to szum pitch-decków.',
@@ -2411,6 +2418,13 @@ Czego certyfikat nie robi: nie gwarantuje jakości, nie gwarantuje wypłacalnoś
 Praktyczna zasada: certyfikaty są konieczne, ale nie wystarczające. Certyfikowany dostawca jest w grze; niecertyfikowany zwykle poza dla kategorii regulowanych. Realna due diligence to weryfikacja, że certyfikat jest aktualny, wydany przez akredytowaną jednostkę i nie został wycofany — oraz że twoje konkretne oczekiwania jakościowe są spełnione przez realną pracę dostawcy, czego żaden certyfikat nie zagwarantuje.
 
 Kiedy certyfikaty to teatr: długa lista na stronie dostawcy bez weryfikowalnych numerów, bez dat wygaśnięcia, bez linków do jednostki wydającej. Traktuj to jak CV z tytułem doktora bez nazwy uczelni. Brak weryfikowalnych konkretów <em>jest</em> czerwoną flagą.`,
+      warning: {
+        tone: 'danger',
+        title: 'Red flags that scream fake or lapsed certificate',
+        titlePl: 'Czerwone flagi fałszywego lub wygasłego certyfikatu',
+        text: 'A PDF without a registry lookup is not verification. Watch for: (1) a long list of certifications on a supplier website with no numbers, no expiration dates, no issuing-body links — a résumé claiming a PhD without naming the university; (2) certifying bodies that are not listed in the IAF signatory database — the cert looks official but carries no weight with sophisticated buyers; (3) an ISO 9001 certificate with no surveillance-audit date in the last 12 months — technically in violation and withdrawable by the certifying body.',
+        textPl: 'PDF bez sprawdzenia w rejestrze to nie weryfikacja. Uważaj na: (1) długą listę certyfikatów na stronie dostawcy bez numerów, dat wygaśnięcia i linków do jednostki wydającej — to jak CV z doktoratem bez nazwy uczelni; (2) jednostki certyfikujące spoza bazy sygnatariuszy IAF — certyfikat wygląda oficjalnie, ale nie ma wagi u wyrafinowanych kupców; (3) certyfikat ISO 9001 bez daty audytu nadzoru w ostatnich 12 miesiącach — technicznie w naruszeniu, może być wycofany.',
+      },
       infographicKey: 'compliance-shield',
       infographicCaption: 'Five certifications that matter most for B2B buyers in 2026.',
       infographicCaptionPl: 'Pięć certyfikatów, które liczą się najbardziej dla B2B w 2026.',
@@ -2520,6 +2534,42 @@ For non-ISO certifications (FDA, CE notified body, IATF, HACCP schemes), the sou
 Łączny czas z wprawą: 90 sekund na certyfikat. Dla shortlisty 5 strategicznych dostawców z 3 certyfikatami każdy — poniżej 25 minut. Odrzuć tych z lukami.
 
 Dla certyfikatów nie-ISO (FDA, jednostka notyfikująca CE, IATF, schematy HACCP) źródła są różne, ale logika identyczna: znajdź oficjalny rejestr, sprawdź numer, potwierdź, że status aktualny, dopasuj tożsamość do dostawcy.`,
+      stepByStep: {
+        steps: [
+          {
+            title: 'Get the three data points',
+            titlePl: 'Zbierz trzy dane',
+            description:
+              'Ask the supplier for the certificate number, the full legal name of the certifying body, and the expiration date. A supplier who cannot provide all three has either lost track or is bluffing.',
+            descriptionPl:
+              'Poproś dostawcę o numer certyfikatu, pełną nazwę prawną jednostki certyfikującej i datę wygaśnięcia. Dostawca niemogący dać wszystkich trzech albo zgubił trop, albo blefuje.',
+          },
+          {
+            title: 'Check the issuer in IAF CertSearch',
+            titlePl: 'Sprawdź jednostkę w IAF CertSearch',
+            description:
+              'iafcertsearch.org lists every accredited certifying body. If the named body is not on the list, the cert is not IAF-accredited and carries limited weight — the fastest fake-filter available.',
+            descriptionPl:
+              'iafcertsearch.org listuje każdą akredytowaną jednostkę. Jeśli nazwanej jednostki tam nie ma, certyfikat nie jest akredytowany IAF i ma ograniczoną wagę — najszybszy filtr na fałszywki.',
+          },
+          {
+            title: 'Match name and scope in the issuer register',
+            titlePl: 'Dopasuj nazwę i zakres w rejestrze',
+            description:
+              'Every IAF-accredited body maintains a public register. Enter the number; the record must show the supplier\'s legal name, the claimed scope, and an active status. "Withdrawn" is conclusive — the supplier is not certified even if the PDF still exists.',
+            descriptionPl:
+              'Każda akredytowana jednostka ma publiczny rejestr. Wpisz numer; rekord musi pokazać nazwę prawną dostawcy, deklarowany zakres i status aktywny. „Wycofany" jest rozstrzygający — dostawca nie jest certyfikowany, nawet jeśli PDF istnieje.',
+          },
+          {
+            title: 'Confirm expiration and last surveillance audit',
+            titlePl: 'Potwierdź wygaśnięcie i ostatni audyt nadzoru',
+            description:
+              'ISO certificates are 3-year cycles with annual surveillance. Ask for the date of the most recent surveillance audit. A certificate valid to 2027 but with surveillance 18 months stale is technically in violation.',
+            descriptionPl:
+              'Certyfikaty ISO to cykl 3-letni z rocznym audytem nadzoru. Poproś o datę ostatniego nadzoru. Certyfikat ważny do 2027 z nadzorem sprzed 18 miesięcy jest technicznie w naruszeniu.',
+          },
+        ],
+      },
     },
     {
       heading: 'By-industry cheat sheet — mandatory vs recommended',
@@ -2562,6 +2612,64 @@ Use the cheat sheet to set your RFQ certification requirements. Every mandatory 
 <strong>Materiały budowlane.</strong> Obowiązkowe: oznaczenie CE dla wyrobów budowlanych (rozporządzenie UE 305/2011). Mocno rekomendowane: ISO 9001, ISO 14001. Nice-to-have: EPD (Environmental Product Declarations) dla kupców komercyjnych świadomych ESG.
 
 Używaj cheat sheetu do ustawiania wymogów certyfikacji w RFQ. Każdy obowiązkowy wchodzi jako bramka hard-fail. Mocno rekomendowany jako kryterium scoringu z wyższą wagą. Nice-to-have jako mała waga lub tiebreaker. Pomijaj certyfikaty nieistotne dla twojej kategorii — długie listy rozmywają sygnał.`,
+      comparisonTable: {
+        headers: ['Industry', 'Must-have', 'Nice-to-have', 'Common red flag'],
+        headersPl: ['Branża', 'Obowiązkowe', 'Nice-to-have', 'Typowa czerwona flaga'],
+        rows: [
+          [
+            'Medical devices',
+            'ISO 13485 + CE (EU) or FDA 510(k)/PMA (US)',
+            'ISO 14971, MDSAP',
+            'Self-declared CE on a Class IIb/III device (requires notified body)',
+          ],
+          [
+            'Food & beverage',
+            'HACCP-based system',
+            'FSSC 22000 / BRC / SQF, organic scheme',
+            'HACCP plan claimed but no certifying-body audit on file',
+          ],
+          [
+            'Automotive (Tier 1/2)',
+            'IATF 16949',
+            'ISO 14001, ISO 45001, ISO 50001',
+            'IATF number not found on iatfglobaloversight.org',
+          ],
+          [
+            'General manufacturing',
+            'ISO 9001 (IAF-accredited issuer)',
+            'ISO 14001, ISO 45001, ISO 27001',
+            'Certifying body missing from the IAF signatory database',
+          ],
+        ],
+        rowsPl: [
+          [
+            'Urządzenia medyczne',
+            'ISO 13485 + CE (UE) lub FDA 510(k)/PMA (USA)',
+            'ISO 14971, MDSAP',
+            'Samodeklaracja CE dla klasy IIb/III (wymagana jednostka notyfikująca)',
+          ],
+          [
+            'Żywność i napoje',
+            'System oparty na HACCP',
+            'FSSC 22000 / BRC / SQF, schemat organic',
+            'Deklarowany plan HACCP bez audytu jednostki w dokumentacji',
+          ],
+          [
+            'Automotive (Tier 1/2)',
+            'IATF 16949',
+            'ISO 14001, ISO 45001, ISO 50001',
+            'Numer IATF nie do znalezienia na iatfglobaloversight.org',
+          ],
+          [
+            'Ogólna produkcja',
+            'ISO 9001 (wydawca akredytowany IAF)',
+            'ISO 14001, ISO 45001, ISO 27001',
+            'Jednostka certyfikująca spoza bazy sygnatariuszy IAF',
+          ],
+        ],
+        caption: 'Industry-by-industry cheat sheet for mandatory vs nice-to-have certifications and common fraud patterns.',
+        captionPl: 'Cheat sheet per branża: obowiązkowe vs nice-to-have certyfikaty i typowe wzorce fraudu.',
+      },
     },
   ],
   faq: [
