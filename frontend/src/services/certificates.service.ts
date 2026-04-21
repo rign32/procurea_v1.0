@@ -87,6 +87,8 @@ export interface CertificateSummary {
   ACTIVE: number;
   EXPIRING_SOON: number;
   EXPIRED: number;
+  pending: number;
+  rejected: number;
 }
 
 export interface CreateCertificateInput {

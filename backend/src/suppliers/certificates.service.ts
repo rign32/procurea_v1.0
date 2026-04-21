@@ -269,17 +269,29 @@ export class CertificatesService {
 
   /**
    * Aggregate counts by status for a supplier — used on Supplier detail page.
+   * Only APPROVED certs are counted so a PENDING portal-upload doesn't
+   * silently boost the "aktywne" tally until the buyer reviews it.
    */
   async summaryForSupplier(
     supplierId: string,
-  ): Promise<Record<CertificateStatus, number>> {
+  ): Promise<Record<CertificateStatus, number> & { pending: number; rejected: number }> {
     const certs = await this.list(supplierId);
-    const summary: Record<CertificateStatus, number> = {
+    const summary = {
       ACTIVE: 0,
       EXPIRING_SOON: 0,
       EXPIRED: 0,
+      pending: 0,
+      rejected: 0,
     };
     for (const c of certs) {
+      if (c.reviewStatus === 'PENDING') {
+        summary.pending++;
+        continue;
+      }
+      if (c.reviewStatus === 'REJECTED') {
+        summary.rejected++;
+        continue;
+      }
       summary[c.status as CertificateStatus]++;
     }
     return summary;

@@ -81,7 +81,7 @@ export function CertificatesSection({ supplierId }: CertificatesSectionProps) {
 
   const certs = data?.items ?? [];
   const summary = data?.summary;
-  const pendingCount = certs.filter((c) => c.reviewStatus === 'PENDING').length;
+  const pendingCount = summary?.pending ?? certs.filter((c) => c.reviewStatus === 'PENDING').length;
 
   const handleDelete = async (cert: SupplierCertificate) => {
     if (!confirm(`Usunąć certyfikat ${CERTIFICATE_LABELS[cert.type]} (${cert.code})?`)) return;
