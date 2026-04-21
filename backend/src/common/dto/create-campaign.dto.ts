@@ -11,6 +11,27 @@ class SearchCriteriaDto {
 
     @IsOptional()
     @IsString()
+    sourcingMode?: string;
+
+    @IsOptional()
+    @IsString()
+    brief?: string;
+
+    @IsOptional()
+    @IsString()
+    city?: string;
+
+    @IsOptional()
+    @IsString()
+    eventDate?: string;
+
+    @IsOptional()
+    @IsNumber()
+    @Min(1)
+    headcount?: number;
+
+    @IsOptional()
+    @IsString()
     category?: string;
 
     @IsOptional()

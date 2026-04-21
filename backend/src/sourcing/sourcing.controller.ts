@@ -1,8 +1,9 @@
-import { Controller, Post, Body, Get, Param, Patch, Delete, Query, Res, Header, UseGuards, Req, ForbiddenException } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Patch, Delete, Query, Res, Header, UseGuards, Req, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { SourcingService } from './sourcing.service';
 import { CreateCampaignDto } from '../common/dto/create-campaign.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { BriefParserAgent, Industry, SourcingMode } from './agents/brief-parser.agent';
 
 export { CreateCampaignDto };
 
@@ -12,6 +13,7 @@ export class SourcingController {
     constructor(
         private readonly sourcingService: SourcingService,
         private readonly prisma: PrismaService,
+        private readonly briefParser: BriefParserAgent,
     ) { }
 
     @Post()
@@ -25,6 +27,25 @@ export class SourcingController {
             throw new ForbiddenException('Brak uprawnień do tworzenia kampanii');
         }
         return this.sourcingService.create(createCampaignDto, userId);
+    }
+
+    @Post('parse-brief')
+    async parseBrief(
+        @Body() body: { brief: string; industry?: Industry; sourcingMode?: SourcingMode; language?: string },
+    ) {
+        const brief = (body?.brief || '').trim();
+        if (!brief || brief.length < 3) {
+            throw new BadRequestException('Brief is required (minimum 3 characters).');
+        }
+        if (brief.length > 4000) {
+            throw new BadRequestException('Brief too long (max 4000 characters).');
+        }
+        const result = await this.briefParser.parse(brief, {
+            industry: body?.industry,
+            sourcingMode: body?.sourcingMode,
+            language: body?.language,
+        });
+        return result;
     }
 
     @Get()

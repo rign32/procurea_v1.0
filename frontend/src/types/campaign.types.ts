@@ -17,6 +17,46 @@ export type CampaignStage =
 
 export type Region = 'PL' | 'US' | 'GB' | 'CA' | 'AU' | 'CN' | 'EU' | 'GLOBAL' | 'GLOBAL_NO_CN' | 'CUSTOM';
 
+// Wizard v2: industry + sourcing mode taxonomy
+export type Industry =
+  | 'manufacturing'
+  | 'events'
+  | 'construction'
+  | 'horeca'
+  | 'healthcare'
+  | 'retail'
+  | 'logistics'
+  | 'mro'
+  | 'other';
+
+export type SourcingMode = 'product' | 'service' | 'mixed';
+
+export interface ParsedBrief {
+  productName: string;
+  industry: Industry;
+  sourcingMode: SourcingMode;
+  description?: string;
+  material?: string;
+  quantity?: number;
+  unit?: string;
+  eau?: number;
+  partNumber?: string;
+  targetRegion?: Region;
+  targetCountries?: string[];
+  city?: string;
+  eventDate?: string;
+  headcount?: number;
+  specialRequirements?: string;
+  requiredCertificates?: string[];
+  suggestedCertificates?: string[];
+  incoterms?: string[];
+  desiredDeliveryDate?: string;
+  targetPrice?: number;
+  currency?: string;
+  confidence: number;
+  notes?: string;
+}
+
 export interface Campaign {
   id: string;
   name: string;
@@ -222,6 +262,17 @@ export interface TeamMember {
 export interface CreateCampaignDto {
   name: string;
   sequenceTemplateId?: string;
+
+  // Wizard v2: industry-aware brief
+  industry?: Industry;
+  sourcingMode?: SourcingMode;
+  brief?: string;
+  parsedBrief?: ParsedBrief;
+
+  // Industry-specific
+  city?: string;
+  eventDate?: string;
+  headcount?: number;
 
   // RFQ Data
   productName: string;

@@ -165,4 +165,16 @@ export const certificatesService = {
     );
     return data;
   },
+
+  listPendingReviewInbox: async (): Promise<{
+    items: Array<
+      SupplierCertificate & {
+        supplier: { id: string; name: string | null; country: string | null };
+      }
+    >;
+    count: number;
+  }> => {
+    const { data } = await apiClient.get(`/certificates/pending-review`);
+    return data;
+  },
 };
