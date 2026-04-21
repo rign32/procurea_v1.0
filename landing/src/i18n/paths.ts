@@ -71,7 +71,6 @@ export const pathMappings: Record<PathKey, { pl: string; en: string }> = {
   useCasesHub: { pl: '/zastosowania', en: '/use-cases' },
   blogIndex: { pl: '/blog', en: '/blog' },
   resourcesHub: { pl: '/materialy', en: '/resources' },
-  caseStudiesHub: { pl: '/case-studies', en: '/case-studies' },
 
   // Features — MVP P0
   fAiSourcing: { pl: '/funkcje/ai-sourcing', en: '/features/ai-sourcing' },

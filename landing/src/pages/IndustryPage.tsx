@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom"
 import { ArrowRight, AlertTriangle, Sparkles, ChevronRight } from "lucide-react"
+import { IndustryRelatedResources } from "@/components/industries/IndustryRelatedResources"
 import { motion } from "framer-motion"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
@@ -219,28 +220,8 @@ export function IndustryPage() {
           </div>
         </section>
 
-        {/* Case study */}
-        {industry.caseStudy && (
-          <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 mb-20">
-            <RevealOnScroll>
-              <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-white border border-emerald-100 p-8 md:p-10">
-                <div className="flex flex-col md:flex-row gap-8 items-start">
-                  <div className="shrink-0 text-center md:text-left">
-                    <div className="text-4xl md:text-5xl font-extrabold text-emerald-600">{industry.caseStudy.stat}</div>
-                    <div className="text-sm text-muted-foreground mt-1">{industry.caseStudy.statLabel}</div>
-                  </div>
-                  <div>
-                    <span className="inline-block text-[10px] font-bold uppercase tracking-[0.15em] text-emerald-600/70 mb-1">
-                      {isEN ? 'Projected scenario' : 'Scenariusz modelowy'}
-                    </span>
-                    <h3 className="text-lg font-bold mb-2">{industry.caseStudy.headline}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{industry.caseStudy.body}</p>
-                  </div>
-                </div>
-              </div>
-            </RevealOnScroll>
-          </section>
-        )}
+        {/* Related reading — articles + guides tuned to this industry */}
+        <IndustryRelatedResources industrySlug={resolvedSlug} />
 
         {/* Cross-links: features + related industries */}
         <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 border-t border-black/[0.06]">

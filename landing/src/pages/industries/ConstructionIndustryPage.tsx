@@ -25,6 +25,7 @@ import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { AnimatedGrid } from "@/components/ui/AnimatedGrid"
+import { IndustryRelatedResources } from "@/components/industries/IndustryRelatedResources"
 import { appendUtm } from "@/lib/utm"
 import { trackCtaClick } from "@/lib/analytics"
 import { pathFor } from "@/i18n/paths"
@@ -936,51 +937,8 @@ export function ConstructionIndustryPage() {
           </div>
         </section>
 
-        {/* CASE STUDY WITH BREAKDOWN */}
-        <section className="py-20 bg-slate-50/60 border-y border-slate-100">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-            <RevealOnScroll>
-              <div className="rounded-3xl bg-gradient-to-br from-slate-900 to-slate-800 text-white p-8 md:p-12 relative overflow-hidden">
-                <div className="absolute -top-20 -right-32 w-[400px] h-[400px] rounded-full opacity-[0.08] blur-[100px] bg-amber-400 pointer-events-none" />
-                <div className="absolute -bottom-10 -left-20 w-[300px] h-[300px] rounded-full opacity-[0.05] blur-[80px] bg-primary pointer-events-none" />
-
-                <div className="relative">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 border border-white/20 text-[10px] font-bold text-white/80 uppercase tracking-[0.15em] mb-4">
-                    <Wallet className="h-3 w-3" />
-                    {t.caseStudy.badge}
-                  </span>
-                  <h2 className="text-2xl md:text-3xl font-bold mb-4 leading-tight">{t.caseStudy.title}</h2>
-                  <p className="text-white/75 leading-relaxed max-w-2xl mb-8">{t.caseStudy.body}</p>
-
-                  <div className="space-y-3 max-w-2xl">
-                    {t.caseStudy.breakdown.map((b, i) => (
-                      <motion.div
-                        key={b.label}
-                        initial={{ opacity: 0, width: 0 }}
-                        whileInView={{ opacity: 1, width: "100%" }}
-                        viewport={{ once: true }}
-                        transition={{ delay: i * 0.12, duration: 0.7, ease: "easeOut" }}
-                        className="flex items-center gap-3"
-                      >
-                        <div className="w-36 shrink-0 text-sm text-white/90 font-medium">{b.label}</div>
-                        <div className="flex-1 h-8 rounded-lg bg-white/10 relative overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            whileInView={{ width: `${b.pct}%` }}
-                            viewport={{ once: true }}
-                            transition={{ delay: 0.2 + i * 0.12, duration: 0.9, ease: "easeOut" }}
-                            className="h-full bg-gradient-to-r from-primary to-emerald-400 rounded-lg"
-                          />
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-white tabular-nums drop-shadow">{b.value}</span>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </RevealOnScroll>
-          </div>
-        </section>
+        {/* RELATED CONTENT (replaces retired case study) */}
+        <IndustryRelatedResources industrySlug="budownictwo" tone="amber" />
 
         {/* FAQ */}
         <section className="py-20">

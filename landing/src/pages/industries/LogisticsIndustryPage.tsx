@@ -23,6 +23,7 @@ import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { AnimatedGrid } from "@/components/ui/AnimatedGrid"
+import { IndustryRelatedResources } from "@/components/industries/IndustryRelatedResources"
 import { appendUtm } from "@/lib/utm"
 import { trackCtaClick } from "@/lib/analytics"
 import { pathFor } from "@/i18n/paths"
@@ -475,32 +476,8 @@ export function LogisticsIndustryPage() {
           </div>
         </section>
 
-        {/* CASE STUDY */}
-        <section className="py-16">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-            <RevealOnScroll>
-              <div className="rounded-3xl bg-gradient-to-br from-indigo-800 to-slate-900 text-white p-8 md:p-12 relative overflow-hidden">
-                <div className="absolute -top-20 -right-32 w-[400px] h-[400px] rounded-full opacity-[0.15] blur-[100px] bg-amber-300 pointer-events-none" />
-                <div className="relative">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/15 border border-white/25 text-[10px] font-bold text-white uppercase tracking-[0.15em] mb-4">
-                    <Sparkles className="h-3 w-3" />
-                    {t.caseStudy.badge}
-                  </span>
-                  <h2 className="text-2xl md:text-3xl font-bold mb-4 leading-tight">{t.caseStudy.title}</h2>
-                  <p className="text-white/85 leading-relaxed max-w-2xl mb-6">{t.caseStudy.body}</p>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t border-white/15">
-                    {t.caseStudy.highlights.map((x) => (
-                      <div key={x.l}>
-                        <div className="text-2xl font-extrabold tabular-nums">{x.v}</div>
-                        <div className="text-xs text-white/70 mt-0.5">{x.l}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </RevealOnScroll>
-          </div>
-        </section>
+        {/* RELATED CONTENT (replaces retired case study) */}
+        <IndustryRelatedResources industrySlug="logistyka" tone="indigo" />
 
         {/* FAQ */}
         <section className="py-20">

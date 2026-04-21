@@ -24,6 +24,7 @@ import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { AnimatedGrid } from "@/components/ui/AnimatedGrid"
+import { IndustryRelatedResources } from "@/components/industries/IndustryRelatedResources"
 import { appendUtm } from "@/lib/utm"
 import { trackCtaClick } from "@/lib/analytics"
 import { pathFor } from "@/i18n/paths"
@@ -565,36 +566,8 @@ export function ManufacturingIndustryPage() {
           </div>
         </section>
 
-        {/* CASE STUDY */}
-        <section className="py-16">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-            <RevealOnScroll>
-              <div className="rounded-3xl bg-gradient-to-br from-slate-900 to-sky-900 text-white p-8 md:p-12 relative overflow-hidden">
-                <div className="absolute -top-20 -right-32 w-[400px] h-[400px] rounded-full opacity-[0.1] blur-[100px] bg-sky-400 pointer-events-none" />
-                <div className="relative">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 border border-white/20 text-[10px] font-bold text-white/80 uppercase tracking-[0.15em] mb-4">
-                    <Sparkles className="h-3 w-3" />
-                    {t.caseStudy.badge}
-                  </span>
-                  <h2 className="text-2xl md:text-3xl font-bold mb-4 leading-tight">{t.caseStudy.title}</h2>
-                  <p className="text-white/75 leading-relaxed max-w-2xl">{t.caseStudy.body}</p>
-                  <div className="mt-6 flex items-center gap-6 pt-6 border-t border-white/10">
-                    {[
-                      { v: "312→84", l: isEN ? "After cert filter" : "Po filtrze certów" },
-                      { v: "84→41", l: isEN ? "After capacity" : "Po mocach" },
-                      { v: "41→20", l: isEN ? "Shortlist" : "Shortlista" },
-                    ].map((x) => (
-                      <div key={x.l}>
-                        <div className="text-xl font-extrabold text-emerald-300 tabular-nums">{x.v}</div>
-                        <div className="text-[11px] text-white/60 mt-0.5">{x.l}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </RevealOnScroll>
-          </div>
-        </section>
+        {/* RELATED CONTENT (replaces retired case study) */}
+        <IndustryRelatedResources industrySlug="produkcja" tone="sky" />
 
         {/* FAQ */}
         <section className="py-20">
