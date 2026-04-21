@@ -382,10 +382,49 @@ model Supplier {
   // Supplier quality score 0-100 (Sprint 3) — computed from response rate, offer completeness, CompanyRegistry signals
   qualityScore   Float?
 
+  // Structured certificates (Sprint #2 — replaces legacy `certificates` string incrementally)
+  structuredCertificates SupplierCertificate[]
+
   // Soft Delete
   deletedAt DateTime?
 
   @@index([qualityScore])
+}
+
+// Structured supplier certificate with expiry tracking + optional document link (Sprint #2)
+model SupplierCertificate {
+  id          String   @id @default(uuid())
+
+  supplierId  String
+  supplier    Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  // Certificate identity
+  type        String   // Enum: see certificate-types.ts
+  code        String
+  issuer      String?
+  certNumber  String?
+
+  // Dates
+  issuedAt    DateTime?
+  validUntil  DateTime  // REQUIRED — drives expiry alerts
+
+  // Document link (uploaded PDF/image) — optional
+  documentId  String?
+  document    Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+
+  // Computed/cached status — ACTIVE | EXPIRING_SOON | EXPIRED
+  status      String   @default("ACTIVE")
+
+  // Alerting state — prevents duplicate email alerts
+  lastAlertedAt DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([supplierId, type, code])
+  @@index([supplierId])
+  @@index([validUntil])
+  @@index([status])
 }
 
 model Contact {
@@ -1032,6 +1071,9 @@ model Document {
   parent         Document? @relation("DocumentVersions", fields: [parentId], references: [id])
   versions       Document[] @relation("DocumentVersions")
   isLatest       Boolean   @default(true)
+
+  // Back-ref from structured supplier certificates (Sprint #2)
+  supplierCertificates SupplierCertificate[]
 
   createdAt      DateTime  @default(now())
 
