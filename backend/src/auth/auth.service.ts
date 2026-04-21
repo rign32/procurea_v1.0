@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, ConflictException, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, BadRequestException, ConflictException, Inject, forwardRef, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { SmsService } from './sms.service';
@@ -11,6 +11,7 @@ import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
+    private readonly logger = new Logger(AuthService.name);
     // In-memory fallback for exchange tokens (when Redis unavailable)
     // Maps exchangeToken -> { userId, expiresAt }
     private exchangeTokens = new Map<string, { userId: string; expiresAt: number }>();
@@ -37,11 +38,11 @@ export class AuthService {
         // Try Redis first, fallback to in-memory
         if (this.redisService.isAvailable()) {
             await this.redisService.setExchangeToken(exchangeToken, userId, ttlSeconds);
-            console.log(`[EXCHANGE TOKEN] Generated (Redis) for user ${userId}, expires in ${ttlSeconds}s`);
+            this.logger.log(`[EXCHANGE TOKEN] Generated (Redis) for user ${userId}, expires in ${ttlSeconds}s`);
         } else {
             const expiresAt = Date.now() + (ttlSeconds * 1000);
             this.exchangeTokens.set(exchangeToken, { userId, expiresAt });
-            console.log(`[EXCHANGE TOKEN] Generated (in-memory) for user ${userId}, expires in ${ttlSeconds}s`);
+            this.logger.log(`[EXCHANGE TOKEN] Generated (in-memory) for user ${userId}, expires in ${ttlSeconds}s`);
         }
 
         return exchangeToken;
@@ -53,10 +54,10 @@ export class AuthService {
         if (this.redisService.isAvailable()) {
             const userId = await this.redisService.getAndDeleteExchangeToken(exchangeToken);
             if (userId) {
-                console.log(`[EXCHANGE TOKEN] Token consumed (Redis) for user ${userId}`);
+                this.logger.log(`[EXCHANGE TOKEN] Token consumed (Redis) for user ${userId}`);
                 return userId;
             }
-            console.log(`[EXCHANGE TOKEN] Token not found or expired (Redis): ${exchangeToken.substring(0, 10)}...`);
+            this.logger.log(`[EXCHANGE TOKEN] Token not found or expired (Redis): ${exchangeToken.substring(0, 10)}...`);
             return null;
         }
 
@@ -64,19 +65,19 @@ export class AuthService {
         const data = this.exchangeTokens.get(exchangeToken);
 
         if (!data) {
-            console.log(`[EXCHANGE TOKEN] Token not found (in-memory): ${exchangeToken.substring(0, 10)}...`);
+            this.logger.log(`[EXCHANGE TOKEN] Token not found (in-memory): ${exchangeToken.substring(0, 10)}...`);
             return null;
         }
 
         if (Date.now() > data.expiresAt) {
-            console.log(`[EXCHANGE TOKEN] Token expired (in-memory): ${exchangeToken.substring(0, 10)}...`);
+            this.logger.log(`[EXCHANGE TOKEN] Token expired (in-memory): ${exchangeToken.substring(0, 10)}...`);
             this.exchangeTokens.delete(exchangeToken);
             return null;
         }
 
         // Token is valid - consume it (delete to make it single-use)
         this.exchangeTokens.delete(exchangeToken);
-        console.log(`[EXCHANGE TOKEN] Token consumed (in-memory) for user ${data.userId}`);
+        this.logger.log(`[EXCHANGE TOKEN] Token consumed (in-memory) for user ${data.userId}`);
 
         return data.userId;
     }
@@ -94,13 +95,13 @@ export class AuthService {
         }
 
         if (cleanedCount > 0) {
-            console.log(`[EXCHANGE TOKEN] Cleaned up ${cleanedCount} expired in-memory tokens`);
+            this.logger.log(`[EXCHANGE TOKEN] Cleaned up ${cleanedCount} expired in-memory tokens`);
         }
     }
 
     // --- MOCK EMAILS (for now) ---
     private async mockSendEmail(email: string, subject: string, body: string) {
-        console.log(`[MOCK EMAIL] To: ${email} | Subject: ${subject} | Body: ${body}`);
+        this.logger.log(`[MOCK EMAIL] To: ${email} | Subject: ${subject} | Body: ${body}`);
         return true;
     }
 
@@ -134,7 +135,7 @@ export class AuthService {
                     data: { language },
                 });
                 user = { ...user, language };
-                console.log(`[AUTH] Updated language for ${email}: ${user.language} → ${language}`);
+                this.logger.log(`[AUTH] Updated language for ${email}: ${user.language} → ${language}`);
             }
         }
         if (!user) {
@@ -188,7 +189,7 @@ export class AuthService {
                             },
                         });
                     });
-                    console.log(`[AUTH] +3 bonus credits for paid org ${existingOrg.name}`);
+                    this.logger.log(`[AUTH] +3 bonus credits for paid org ${existingOrg.name}`);
                 }
 
                 // Create sharing preferences (disabled) for every existing member <-> new user
@@ -201,7 +202,7 @@ export class AuthService {
                     await this.prisma.userSharingPreference.createMany({ data: sharingPrefs });
                 }
 
-                console.log(`[AUTH] Auto-discovered org ${existingOrg.name} for ${email} (plan: ${existingOrg.plan})`);
+                this.logger.log(`[AUTH] Auto-discovered org ${existingOrg.name} for ${email} (plan: ${existingOrg.plan})`);
             } else if (isPublicDomain) {
                 // Public email (gmail, etc.) — no org, personal credits only
                 user = await this.prisma.user.create({
@@ -226,7 +227,7 @@ export class AuthService {
                     },
                 });
 
-                console.log(`[AUTH] Public email ${email} — personal credits, no org`);
+                this.logger.log(`[AUTH] Public email ${email} — personal credits, no org`);
             } else {
                 // First user from corporate domain — auto-create org
                 user = await this.prisma.user.create({
@@ -249,7 +250,7 @@ export class AuthService {
                 let orgId: string;
                 if (existingDomainOrg) {
                     orgId = existingDomainOrg.id;
-                    console.log(`[AUTH] User ${email} joining existing org ${existingDomainOrg.name} (race condition)`);
+                    this.logger.log(`[AUTH] User ${email} joining existing org ${existingDomainOrg.name} (race condition)`);
                 } else {
                     const org = await this.prisma.organization.create({
                         data: {
@@ -259,7 +260,7 @@ export class AuthService {
                         },
                     });
                     orgId = org.id;
-                    console.log(`[AUTH] Auto-created org "${domain}" for ${email}`);
+                    this.logger.log(`[AUTH] Auto-created org "${domain}" for ${email}`);
                 }
 
                 // Connect user to org + transfer trial credits to org pool
@@ -329,7 +330,7 @@ export class AuthService {
                     language: user!.language,
                 });
             } catch (e) {
-                console.warn(`[AUTH] Sales ops registration notification failed: ${e.message}`);
+                this.logger.warn(`[AUTH] Sales ops registration notification failed: ${e.message}`);
             }
         }
 
@@ -349,7 +350,7 @@ export class AuthService {
         await this.emailService.sendMagicLink(email, magicCode, locale);
 
         // For development convenience, still log it
-        console.log(`[DEV MAGIC CODE] To: ${email} | Code: ${magicCode}`);
+        this.logger.log(`[DEV MAGIC CODE] To: ${email} | Code: ${magicCode}`);
 
         return { message: 'Magic link sent to your email', userId: user.id };
     }
@@ -522,7 +523,7 @@ export class AuthService {
                 },
             },
         });
-        console.log('[AUTH] Default sequence template created');
+        this.logger.log('[AUTH] Default sequence template created');
     }
 
     // DEPRECATED: beta — onboarding skipped at registration. Kept for backward compat.
@@ -543,11 +544,11 @@ export class AuthService {
         if (orgId) {
             // User already has an org (auto-discovered by domain) — shortened onboarding
             // Skip org creation, just update user profile
-            console.log(`[ONBOARDING] User ${user.email} already in org ${orgId}, shortened flow`);
+            this.logger.log(`[ONBOARDING] User ${user.email} already in org ${orgId}, shortened flow`);
         } else if (isBlockedEmailDomain(user.email)) {
             // Public/free email domain (gmail.com, etc.) — NO org creation
             // Credits stay on user.searchCredits (personal wallet)
-            console.log(`[ONBOARDING] Public email ${user.email} — skipping org creation, credits stay personal`);
+            this.logger.log(`[ONBOARDING] Public email ${user.email} — skipping org creation, credits stay personal`);
         } else {
             const domain = user.email.split('@')[1];
 
@@ -560,7 +561,7 @@ export class AuthService {
             if (existingDomainOrg) {
                 // Org already exists — join it instead of creating duplicate
                 orgId = existingDomainOrg.id;
-                console.log(`[ONBOARDING] User ${user.email} joining existing org ${existingDomainOrg.name} (domain: ${domain})`);
+                this.logger.log(`[ONBOARDING] User ${user.email} joining existing org ${existingDomainOrg.name} (domain: ${domain})`);
             } else {
                 // First user from this domain — create org with locations
                 const locationsToCreate = (data.locations || []).map((loc, i) => ({
@@ -603,7 +604,7 @@ export class AuthService {
                     });
                 });
 
-                console.log(`[ONBOARDING] Created org ${org.name} (domain: ${domain}) for ${user.email}`);
+                this.logger.log(`[ONBOARDING] Created org ${org.name} (domain: ${domain}) for ${user.email}`);
             }
         }
 
@@ -685,7 +686,7 @@ export class AuthService {
             where: { id: userId }
         });
 
-        console.log(`[AUTH] Registration cancelled for user ${userId} (${user.email})`);
+        this.logger.log(`[AUTH] Registration cancelled for user ${userId} (${user.email})`);
 
         return { success: true, message: 'Registration cancelled successfully' };
     }
@@ -775,7 +776,7 @@ export class AuthService {
 
             // Ensure staging user has an organization
             if (!existing.organizationId) {
-                console.log(`[STAGING] Staging user (${language}) missing org, creating...`);
+                this.logger.log(`[STAGING] Staging user (${language}) missing org, creating...`);
                 const org = await this.prisma.organization.create({
                     data: {
                         name: orgName,
@@ -796,7 +797,7 @@ export class AuthService {
                     where: { id: existing.id },
                     data: { organizationId: org.id },
                 });
-                console.log(`[STAGING] Linked org ${org.id} to staging user (${language})`);
+                this.logger.log(`[STAGING] Linked org ${org.id} to staging user (${language})`);
             }
 
             return this.prisma.user.findUnique({
@@ -841,7 +842,7 @@ export class AuthService {
             }
         });
 
-        console.log(`[STAGING] Created staging user (${language}): ${stagingEmail}`);
+        this.logger.log(`[STAGING] Created staging user (${language}): ${stagingEmail}`);
 
         return this.prisma.user.findUnique({
             where: { id: created.id },
@@ -957,7 +958,7 @@ export class AuthService {
             }
         });
 
-        console.log(`[DEV] Created dev user: ${devEmail}`);
+        this.logger.log(`[DEV] Created dev user: ${devEmail}`);
 
         return this.prisma.user.findUnique({
             where: { id: created.id },
@@ -1222,7 +1223,7 @@ export class AuthService {
             })),
         });
 
-        console.log(`[DEMO] Created demo session: ${demoEmail}, org: ${org.id}, campaign: ${campaign.id}`);
+        this.logger.log(`[DEMO] Created demo session: ${demoEmail}, org: ${org.id}, campaign: ${campaign.id}`);
 
         // Return full user object with includes
         return this.prisma.user.findUnique({
@@ -1296,18 +1297,18 @@ export class AuthService {
             }
         });
 
-        console.log(`[DEMO] Cleanup: deleted ${demoUsers.length} demo users, ${orgIds.length} orgs`);
+        this.logger.log(`[DEMO] Cleanup: deleted ${demoUsers.length} demo users, ${orgIds.length} orgs`);
         return { deletedUsers: demoUsers.length, deletedOrgs: orgIds.length };
     }
 
     // --- ADMIN: DELETE ALL USERS ---
     async deleteAllUsers() {
         try {
-            console.log('[Auth] Deleting all users...');
+            this.logger.log('[Auth] Deleting all users...');
 
             // First, count how many users exist
             const count = await this.prisma.user.count();
-            console.log(`[Auth] Found ${count} users to delete`);
+            this.logger.log(`[Auth] Found ${count} users to delete`);
 
             if (count === 0) {
                 return { success: true, count: 0, message: 'No users to delete' };
@@ -1316,11 +1317,11 @@ export class AuthService {
             // Delete all users from database
             const result = await this.prisma.user.deleteMany({});
 
-            console.log(`[Auth] Deleted ${result.count} users`);
+            this.logger.log(`[Auth] Deleted ${result.count} users`);
             return { success: true, count: result.count, message: `Deleted ${result.count} users` };
         } catch (error) {
-            console.error('[Auth] Error deleting users:', error);
-            console.error('[Auth] Error details:', JSON.stringify(error, null, 2));
+            this.logger.error('[Auth] Error deleting users:', error);
+            this.logger.error('[Auth] Error details:', JSON.stringify(error, null, 2));
             throw new BadRequestException(`Failed to delete users: ${error.message}`);
         }
     }

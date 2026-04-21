@@ -1,4 +1,4 @@
-import { Controller, Post, Body, BadRequestException, ConflictException, ForbiddenException, Get, Req, Res, UseGuards, UnauthorizedException, Patch } from '@nestjs/common';
+import { Controller, Post, Body, BadRequestException, ConflictException, ForbiddenException, Get, Req, Res, UseGuards, UnauthorizedException, Patch, Logger } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Throttle } from '@nestjs/throttler';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
@@ -9,6 +9,8 @@ import { AuthLogsService } from '../common/logger/auth-logs.service';
 import { TokensService } from './tokens.service';
 import { getPermissionsForLegacyRole } from '../common/permissions';
 import type { Response, CookieOptions } from 'express';
+
+const logger = new Logger('AuthController');
 
 // Cookie configuration for cross-domain auth
 // Detect production: Always use production settings in Cloud Functions
@@ -22,12 +24,12 @@ const isProductionEnvironment = () => {
 
     const isProduction = functionTarget || kService || frontendUrl.includes('procurea.pl') || frontendUrl.includes('procurea.io') || nodeEnv === 'production';
 
-    console.log('[isProductionEnvironment] Diagnostics:');
-    console.log('  - FUNCTION_TARGET:', functionTarget, `(${process.env.FUNCTION_TARGET || 'undefined'})`);
-    console.log('  - K_SERVICE:', kService, `(${process.env.K_SERVICE || 'undefined'})`);
-    console.log('  - FRONTEND_URL:', frontendUrl);
-    console.log('  - NODE_ENV:', nodeEnv || 'undefined');
-    console.log('  - Result:', isProduction ? '✅ PRODUCTION' : '❌ DEVELOPMENT');
+    logger.log('[isProductionEnvironment] Diagnostics:');
+    logger.log('  - FUNCTION_TARGET:', functionTarget, `(${process.env.FUNCTION_TARGET || 'undefined'})`);
+    logger.log('  - K_SERVICE:', kService, `(${process.env.K_SERVICE || 'undefined'})`);
+    logger.log('  - FRONTEND_URL:', frontendUrl);
+    logger.log('  - NODE_ENV:', nodeEnv || 'undefined');
+    logger.log('  - Result:', isProduction ? '✅ PRODUCTION' : '❌ DEVELOPMENT');
 
     return isProduction;
 };
@@ -152,7 +154,7 @@ export class AuthController {
         const authMode = req.cookies?.procurea_auth_mode || 'login';
         const origin = req.query?.state || req.cookies?.procurea_auth_origin || 'app';
         const utmData = this.parseUtmCookie(req);
-        console.log('[BACKEND] Google callback - authMode from cookie:', authMode, 'origin:', origin, 'utm:', utmData ? JSON.stringify(utmData) : 'none');
+        logger.log('[BACKEND] Google callback - authMode from cookie:', authMode, 'origin:', origin, 'utm:', utmData ? JSON.stringify(utmData) : 'none');
 
         // Clear the authMode, origin and UTM cookies as they're no longer needed
         const isProd = isProductionEnvironment();
@@ -287,10 +289,10 @@ export class AuthController {
                 }
             });
 
-            console.log('[BACKEND] OAuth callback redirect URL (secure, no JWT in URL):', redirectUrl);
-            console.log('[BACKEND] User data:', { id: user.id, email: user.email, onboardingCompleted: user.onboardingCompleted, isPhoneVerified: user.isPhoneVerified });
-            console.log('[BACKEND] Exchange token set in httpOnly cookie (frontend will exchange for access token)');
-            console.log('[BACKEND] Request ID:', requestId);
+            logger.log('[BACKEND] OAuth callback redirect URL (secure, no JWT in URL):', redirectUrl);
+            logger.log('[BACKEND] User data:', { id: user.id, email: user.email, onboardingCompleted: user.onboardingCompleted, isPhoneVerified: user.isPhoneVerified });
+            logger.log('[BACKEND] Exchange token set in httpOnly cookie (frontend will exchange for access token)');
+            logger.log('[BACKEND] Request ID:', requestId);
 
             return res.redirect(redirectUrl);
         } catch (error) {
@@ -438,7 +440,7 @@ export class AuthController {
             }
         });
 
-        console.log('[BACKEND] Exchange: Access and refresh tokens set in cookies');
+        logger.log('[BACKEND] Exchange: Access and refresh tokens set in cookies');
 
         // Return tokens in response body as well (for localStorage fallback when cookies don't work cross-domain)
         return {
@@ -463,7 +465,7 @@ export class AuthController {
             const authHeader = req.headers.authorization;
             if (authHeader?.startsWith('Bearer ')) {
                 refreshToken = authHeader.substring(7);
-                console.log('[BACKEND] Refresh: Using token from Authorization header');
+                logger.log('[BACKEND] Refresh: Using token from Authorization header');
             }
         }
 
@@ -564,7 +566,7 @@ export class AuthController {
                 success: true
             });
 
-            console.log('[BACKEND] Refresh: New access and refresh tokens set');
+            logger.log('[BACKEND] Refresh: New access and refresh tokens set');
 
             // Return tokens in response body as well (for localStorage fallback)
             return {
@@ -718,7 +720,7 @@ export class AuthController {
         const authMode = req.cookies?.procurea_auth_mode || 'login';
         const msOrigin = req.query?.state || req.cookies?.procurea_auth_origin || 'app';
         const utmData = this.parseUtmCookie(req);
-        console.log('[BACKEND] Microsoft callback - authMode from cookie:', authMode, 'origin:', msOrigin, 'utm:', utmData ? JSON.stringify(utmData) : 'none');
+        logger.log('[BACKEND] Microsoft callback - authMode from cookie:', authMode, 'origin:', msOrigin, 'utm:', utmData ? JSON.stringify(utmData) : 'none');
 
         // Clear the authMode and UTM cookies as they're no longer needed
         const isProd = isProductionEnvironment();
@@ -844,10 +846,10 @@ export class AuthController {
                 }
             });
 
-            console.log('[BACKEND] Microsoft OAuth callback redirect URL (secure, no JWT in URL):', redirectUrl);
-            console.log('[BACKEND] User data:', { id: user.id, email: user.email, onboardingCompleted: user.onboardingCompleted, isPhoneVerified: user.isPhoneVerified });
-            console.log('[BACKEND] Exchange token set in httpOnly cookie (frontend will exchange for access token)');
-            console.log('[BACKEND] Request ID:', requestId);
+            logger.log('[BACKEND] Microsoft OAuth callback redirect URL (secure, no JWT in URL):', redirectUrl);
+            logger.log('[BACKEND] User data:', { id: user.id, email: user.email, onboardingCompleted: user.onboardingCompleted, isPhoneVerified: user.isPhoneVerified });
+            logger.log('[BACKEND] Exchange token set in httpOnly cookie (frontend will exchange for access token)');
+            logger.log('[BACKEND] Request ID:', requestId);
 
             return res.redirect(redirectUrl);
         } catch (error) {
@@ -872,7 +874,7 @@ export class AuthController {
 
         // Revoke all refresh tokens for this user
         const revokedCount = await this.tokensService.revokeAllRefreshTokens(userId);
-        console.log(`[BACKEND] Logout: Revoked ${revokedCount} refresh tokens for user ${userId}`);
+        logger.log(`[BACKEND] Logout: Revoked ${revokedCount} refresh tokens for user ${userId}`);
 
         // Clear authentication cookies
         const isProduction = isProductionEnvironment();
@@ -967,7 +969,7 @@ export class AuthController {
             sameSite: 'lax',
         });
 
-        console.log(`[AUTH] Email login successful for ${body.email}`);
+        logger.log(`[AUTH] Email login successful for ${body.email}`);
 
         return {
             success: true,
@@ -1140,7 +1142,7 @@ export class AuthController {
         const accessToken = this.tokensService.generateAccessToken(user.id, user.email, user.role);
         const refreshToken = await this.tokensService.generateRefreshToken(user.id);
 
-        console.log(`[STAGING] Auto-login successful for ${user.email}`);
+        logger.log(`[STAGING] Auto-login successful for ${user.email}`);
 
         return {
             success: true,
@@ -1163,7 +1165,7 @@ export class AuthController {
         const accessToken = this.tokensService.generateAccessToken(user.id, user.email, user.role);
         const refreshToken = await this.tokensService.generateRefreshToken(user.id);
 
-        console.log(`[DEV] Auto-login successful for ${user.email}`);
+        logger.log(`[DEV] Auto-login successful for ${user.email}`);
 
         return {
             success: true,
@@ -1211,7 +1213,7 @@ export class AuthController {
             sameSite: 'lax',
         });
 
-        console.log(`[DEMO] Demo session created for ${user.email}`);
+        logger.log(`[DEMO] Demo session created for ${user.email}`);
 
         return {
             success: true,
@@ -1240,7 +1242,7 @@ export class AuthController {
 
         const result = await this.authService.cleanupDemoSessions();
 
-        console.log(`[DEMO] Cleanup completed: ${result.deletedUsers} users, ${result.deletedOrgs} orgs deleted`);
+        logger.log(`[DEMO] Cleanup completed: ${result.deletedUsers} users, ${result.deletedOrgs} orgs deleted`);
 
         return {
             success: true,

@@ -76,14 +76,15 @@ Screener = połączony Explorer + Analyst (1 wywołanie Gemini zamiast 2).
 
 Kluczowe pliki:
 - `backend/src/sourcing/sourcing.service.ts` — główna orkiestracja pipeline
+- `backend/src/sourcing/agents/strategy.agent.ts` — generowanie strategii wyszukiwania
 - `backend/src/sourcing/agents/screener.agent.ts` — screening + analiza (1 Gemini call)
 - `backend/src/sourcing/agents/enrichment.agent.ts` — email discovery + enrichment
+- `backend/src/sourcing/agents/apollo-enrichment.agent.ts` — Apollo.io enrichment (decision-makers)
+- `backend/src/sourcing/agents/expansion.agent.ts` — expansion pass przy niskim yield
 - `backend/src/sourcing/agents/auditor.agent.ts` — walidacja danych
-- `backend/src/sourcing/agents/strategy.agent.ts` — generowanie strategii wyszukiwania
+- `backend/src/sourcing/agents/email-fallback.service.ts` — fallback gdy brak emaila
 - `backend/src/common/services/gemini.service.ts` — klient Gemini z cache na dysku
 - `backend/src/common/services/google-search.service.ts` — search z rate limiting i budżetem
-
-Stare pliki `explorer.agent.ts` i `analyst.agent.ts` nie są używane — można usunąć.
 
 ---
 
