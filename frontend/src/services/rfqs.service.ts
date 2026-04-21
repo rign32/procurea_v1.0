@@ -2,6 +2,31 @@ import apiClient from './api.client';
 import type { RfqRequest, Offer, CreateRfqDto, UpdateRfqDto } from '../types/campaign.types';
 import type { GetRfqsResponse, GetRfqDetailResponse } from '../types/api.types';
 
+export interface RankingWeights {
+  price: number;
+  leadTime: number;
+  moq: number;
+  quality: number;
+  compliance: number;
+}
+
+export interface RankingBreakdown {
+  priceScore: number;
+  leadTimeScore: number;
+  moqScore: number;
+  qualityScore: number;
+  complianceScore: number;
+  finalScore: number;
+}
+
+export const DEFAULT_RANKING_WEIGHTS: RankingWeights = {
+  price: 0.25,
+  leadTime: 0.2,
+  moq: 0.15,
+  quality: 0.25,
+  compliance: 0.15,
+};
+
 /**
  * RFQs Service - API calls dla Request for Quotation
  */
@@ -159,20 +184,58 @@ export const offersService = {
   },
 
   /**
-   * Porównaj oferty
+   * Porównaj oferty (z opcjonalnymi wagami rankingowymi)
    */
-  compare: async (offerIds: string[]): Promise<{
-    offers: Offer[];
+  compare: async (
+    offerIds: string[],
+    rankingWeights?: Partial<RankingWeights>,
+  ): Promise<{
+    offers: (Offer & { weightedRanking?: RankingBreakdown | null })[];
+    baseCurrency: string;
     comparison: {
-      lowestPrice: Offer;
-      fastestDelivery: Offer;
-      bestValue: Offer;
+      lowestPrice: { offerId: string; supplierId: string } | null;
+      fastestDelivery: { offerId: string; supplierId: string } | null;
+      bestValue: { offerId: string; supplierId: string } | null;
+      topRanked: { offerId: string; supplierId: string; score: number } | null;
     };
+    ranking: {
+      weights: RankingWeights;
+      weightsSource: 'override' | 'rfq-configured' | 'default';
+    };
+    aiRecommendation?: {
+      recommendedOfferId: string;
+      reasoning: string;
+    } | null;
   }> => {
     const { data } = await apiClient.post('/requests/offers/compare', {
       offerIds,
+      rankingWeights,
     });
     return data;
+  },
+
+  /**
+   * Pobierz wagi rankingowe dla RFQ (z fallback do defaults)
+   */
+  getRankingWeights: async (rfqId: string): Promise<RankingWeights> => {
+    const { data } = await apiClient.get<{ weights: RankingWeights }>(
+      `/requests/${rfqId}/ranking-weights`,
+    );
+    return data.weights;
+  },
+
+  /**
+   * Zapisz wagi rankingowe na RFQ (persystencja dla kolejnych porównań)
+   */
+  setRankingWeights: async (
+    rfqId: string,
+    weights: Partial<RankingWeights>,
+  ): Promise<RankingWeights> => {
+    const { data } = await apiClient.post<{ weights: RankingWeights }>(
+      `/requests/${rfqId}/ranking-weights`,
+      { weights },
+    );
+    return data.weights;
   },
 
   /**

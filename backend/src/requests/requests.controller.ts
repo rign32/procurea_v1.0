@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Param, Patch, UseGuards, Req } from '@nest
 import { AuthGuard } from '@nestjs/passport';
 import { RequestsService } from './requests.service';
 import { CounterOfferAiService } from './counter-offer-ai.service';
+import { WeightedRankingService, RankingWeights } from './weighted-ranking.service';
 import { CreateRfqDto } from '../common/dto/create-rfq.dto';
 
 @UseGuards(AuthGuard('jwt'))
@@ -10,6 +11,7 @@ export class RequestsController {
     constructor(
         private readonly requestsService: RequestsService,
         private readonly counterOfferAiService: CounterOfferAiService,
+        private readonly weightedRanking: WeightedRankingService,
     ) { }
 
     private getUserId(req: any): string {
@@ -82,8 +84,38 @@ export class RequestsController {
     }
 
     @Post('offers/compare')
-    compareOffers(@Body() body: { offerIds: string[]; includeAiRecommendation?: boolean }, @Req() req: any) {
-        return this.requestsService.compareOffers(body.offerIds, this.getUserId(req), body.includeAiRecommendation);
+    compareOffers(
+        @Body() body: {
+            offerIds: string[];
+            includeAiRecommendation?: boolean;
+            rankingWeights?: Partial<RankingWeights>;
+        },
+        @Req() req: any,
+    ) {
+        return this.requestsService.compareOffers(
+            body.offerIds,
+            this.getUserId(req),
+            body.includeAiRecommendation,
+            body.rankingWeights,
+        );
+    }
+
+    @Get(':rfqId/ranking-weights')
+    async getRankingWeights(@Param('rfqId') rfqId: string, @Req() req: any) {
+        await this.requestsService.ensureRfqOwnership(rfqId, this.getUserId(req));
+        const weights = await this.weightedRanking.getWeightsForRfq(rfqId);
+        return { weights };
+    }
+
+    @Post(':rfqId/ranking-weights')
+    async setRankingWeights(
+        @Param('rfqId') rfqId: string,
+        @Body() body: { weights: Partial<RankingWeights> },
+        @Req() req: any,
+    ) {
+        await this.requestsService.ensureRfqOwnership(rfqId, this.getUserId(req));
+        const weights = await this.weightedRanking.setWeightsForRfq(rfqId, body.weights);
+        return { weights };
     }
 
     @Post('offers/:offerId/accept')

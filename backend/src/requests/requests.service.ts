@@ -7,6 +7,7 @@ import { CurrencyService } from '../common/services/currency.service';
 import { GeminiService } from '../common/services/gemini.service';
 import { getLanguageForCountry } from '../common/normalize-country';
 import { TenantContextService } from '../common/services/tenant-context.service';
+import { WeightedRankingService, RankingWeights } from './weighted-ranking.service';
 import * as crypto from 'crypto';
 
 // Valid RFQ status transitions
@@ -37,6 +38,7 @@ export class RequestsService {
         private readonly currencyService: CurrencyService,
         private readonly tenantContext: TenantContextService,
         private readonly geminiService: GeminiService,
+        private readonly weightedRanking: WeightedRankingService,
     ) { }
 
     // --- Email personalization helpers ---
@@ -136,6 +138,11 @@ export class RequestsService {
         if (!rfq) throw new NotFoundException('RFQ not found');
         if (rfq.ownerId !== userId) throw new ForbiddenException('Not authorized to access this RFQ');
         return rfq;
+    }
+
+    // Public wrapper for controllers that need ownership guard without full fetch semantics.
+    async ensureRfqOwnership(rfqId: string, userId: string): Promise<void> {
+        await this.verifyRfqOwnership(rfqId, userId);
     }
 
     private async verifyOfferOwnership(offerId: string, userId: string) {
@@ -665,7 +672,12 @@ export class RequestsService {
         return { success: true, message: 'Email sent successfully' };
     }
 
-    async compareOffers(offerIds: string[], userId?: string, includeAiRecommendation = true) {
+    async compareOffers(
+        offerIds: string[],
+        userId?: string,
+        includeAiRecommendation = true,
+        rankingWeightsOverride?: Partial<RankingWeights>,
+    ) {
         if (!offerIds || offerIds.length < 2) {
             throw new BadRequestException('At least 2 offers required for comparison');
         }
@@ -797,6 +809,34 @@ export class RequestsService {
             };
         });
 
+        // --- Weighted Ranking (deterministic, configurable) ---
+        const effectiveWeights = rankingWeightsOverride
+            ?? (rfq?.rankingWeights as Partial<RankingWeights> | null | undefined)
+            ?? undefined;
+
+        const scoreMap = this.weightedRanking.computeScores(offersEnriched, effectiveWeights ?? {});
+        const resolvedWeights = this.weightedRanking.validateWeights(effectiveWeights ?? {});
+
+        const offersWithRanking = offersEnriched.map(offer => ({
+            ...offer,
+            weightedRanking: scoreMap.get(offer.id) ?? null,
+        }));
+
+        // Persist scores (best-effort; don't block comparison on write failure)
+        this.weightedRanking.saveScores(scoreMap).catch((err) => {
+            this.logger.warn(`Failed to persist weighted ranking scores: ${err}`);
+        });
+
+        // Sort by weighted score descending (highest first), ties broken by price
+        const sortedOffers = [...offersWithRanking].sort((a, b) => {
+            const scoreA = a.weightedRanking?.finalScore ?? 0;
+            const scoreB = b.weightedRanking?.finalScore ?? 0;
+            if (scoreA !== scoreB) return scoreB - scoreA;
+            return (a.convertedPrice ?? 0) - (b.convertedPrice ?? 0);
+        });
+
+        const topRanked = sortedOffers[0];
+
         // --- AI Recommendation (optional, graceful degradation) ---
         let aiRecommendation: {
             recommendedOfferId: string;
@@ -813,12 +853,17 @@ export class RequestsService {
         }
 
         return {
-            offers: offersEnriched,
+            offers: sortedOffers,
             baseCurrency, // Include for frontend display
             comparison: {
                 lowestPrice: lowestPrice ? { offerId: lowestPrice.id, supplierId: lowestPrice.supplierId } : null,
                 fastestDelivery: fastestDelivery ? { offerId: fastestDelivery.id, supplierId: fastestDelivery.supplierId } : null,
                 bestValue: bestValue ? { offerId: bestValue.id, supplierId: bestValue.supplierId } : null,
+                topRanked: topRanked ? { offerId: topRanked.id, supplierId: topRanked.supplierId, score: topRanked.weightedRanking?.finalScore ?? 0 } : null,
+            },
+            ranking: {
+                weights: resolvedWeights,
+                weightsSource: rankingWeightsOverride ? 'override' : (rfq?.rankingWeights ? 'rfq-configured' : 'default'),
             },
             aiRecommendation,
         };

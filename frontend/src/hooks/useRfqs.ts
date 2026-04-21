@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import rfqsService, { offersService } from '../services/rfqs.service';
+import type { RankingWeights } from '../services/rfqs.service';
 import type { CreateRfqDto, UpdateRfqDto, RfqRequest } from '../types/campaign.types';
 
 /**
@@ -219,10 +220,42 @@ export function useSuggestCounter() {
 }
 
 /**
- * React Query hook - Porównaj oferty
+ * React Query hook - Porównaj oferty (z opcjonalnymi wagami rankingu)
  */
 export function useCompareOffers() {
   return useMutation({
-    mutationFn: (offerIds: string[]) => offersService.compare(offerIds),
+    mutationFn: ({
+      offerIds,
+      rankingWeights,
+    }: {
+      offerIds: string[];
+      rankingWeights?: Partial<RankingWeights>;
+    }) => offersService.compare(offerIds, rankingWeights),
+  });
+}
+
+/**
+ * React Query hook - Pobierz zapisane wagi rankingowe dla RFQ
+ */
+export function useRankingWeights(rfqId: string | undefined) {
+  return useQuery({
+    queryKey: ['ranking-weights', rfqId],
+    queryFn: () => offersService.getRankingWeights(rfqId!),
+    enabled: !!rfqId,
+    staleTime: 60000,
+  });
+}
+
+/**
+ * React Query hook - Zapisz wagi rankingowe na RFQ
+ */
+export function useSetRankingWeights(rfqId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (weights: Partial<RankingWeights>) =>
+      offersService.setRankingWeights(rfqId, weights),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['ranking-weights', rfqId] });
+    },
   });
 }

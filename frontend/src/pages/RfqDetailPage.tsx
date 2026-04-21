@@ -23,7 +23,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { useRfq, useOffers, useAcceptOffer, useRejectOffer, useShortlistOffer, useCompareOffers, useCounterOffer, useSuggestCounter } from '@/hooks/useRfqs';
+import { useRfq, useOffers, useAcceptOffer, useRejectOffer, useShortlistOffer, useCompareOffers, useCounterOffer, useSuggestCounter, useRankingWeights, useSetRankingWeights } from '@/hooks/useRfqs';
+import type { RankingWeights } from '@/services/rfqs.service';
+import { RankingWeightsConfigurator } from '@/components/rfqs/RankingWeightsConfigurator';
 import { offersService } from '@/services/rfqs.service';
 import { contractsService, type ContractDraft, type ContractDraftSource } from '@/services/contracts.service';
 import { t, isEN } from '@/i18n';
@@ -154,8 +156,11 @@ export function RfqDetailPage() {
   const compareMutation = useCompareOffers();
   const counterOfferMutation = useCounterOffer();
   const suggestCounterMutation = useSuggestCounter();
+  const { data: savedWeights } = useRankingWeights(id);
+  const setWeightsMutation = useSetRankingWeights(id || '');
 
   const [selectedOffers, setSelectedOffers] = useState<Set<string>>(new Set());
+  const [showRankingConfig, setShowRankingConfig] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<Record<string, { suggestedTerms: { price?: number; leadTime?: number; moq?: number; comments?: string }; reasoning: string; savingsEstimate?: { percentage: number; absoluteAmount: number; currency: string } } | null>>({});
   const [rejectDialogId, setRejectDialogId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
@@ -232,9 +237,21 @@ export function RfqDetailPage() {
 
   const handleCompare = async () => {
     if (selectedOffers.size < 2) return;
+    // Open ranking weights configurator first
+    setShowRankingConfig(true);
+  };
+
+  const handleApplyRankingWeights = async (weights: RankingWeights, persist: boolean) => {
     try {
-      const result = await compareMutation.mutateAsync(Array.from(selectedOffers));
+      if (persist && id) {
+        await setWeightsMutation.mutateAsync(weights);
+      }
+      const result = await compareMutation.mutateAsync({
+        offerIds: Array.from(selectedOffers),
+        rankingWeights: weights,
+      });
       setComparisonResult(result);
+      setShowRankingConfig(false);
     } catch {
       // error handled by React Query
     }
@@ -527,6 +544,24 @@ export function RfqDetailPage() {
         </div>
       </motion.div>
 
+      {/* Ranking Weights Configurator Dialog */}
+      <Dialog open={showRankingConfig} onOpenChange={(open) => !open && setShowRankingConfig(false)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Porównanie ofert — ustaw wagi</DialogTitle>
+            <DialogDescription>
+              Wagi decydują jak ranking waży poszczególne kryteria. Możesz zapisać je na RFQ lub użyć jednorazowo.
+            </DialogDescription>
+          </DialogHeader>
+          <RankingWeightsConfigurator
+            initialWeights={savedWeights}
+            onApply={handleApplyRankingWeights}
+            onCancel={() => setShowRankingConfig(false)}
+            isSaving={compareMutation.isPending || setWeightsMutation.isPending}
+          />
+        </DialogContent>
+      </Dialog>
+
       {/* Comparison Result */}
       {comparisonResult && (
         <motion.div variants={itemVariants}>
@@ -549,12 +584,39 @@ export function RfqDetailPage() {
           )}
           <Card className="border-[#C5E0E2] bg-[#EDF4F4]/50">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">{t.rfqs.detail.comparison}</CardTitle>
-              {comparisonResult.baseCurrency && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  {t.rfqs.detail.comparisonCurrency.replace('{currency}', comparisonResult.baseCurrency)}
-                </p>
-              )}
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <CardTitle className="text-base">{t.rfqs.detail.comparison}</CardTitle>
+                  {comparisonResult.baseCurrency && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {t.rfqs.detail.comparisonCurrency.replace('{currency}', comparisonResult.baseCurrency)}
+                    </p>
+                  )}
+                  {comparisonResult.ranking?.weights && (
+                    <p className="text-[11px] text-muted-foreground mt-1">
+                      Wagi: cena {Math.round(comparisonResult.ranking.weights.price * 100)}% ·
+                      {' '}lead {Math.round(comparisonResult.ranking.weights.leadTime * 100)}% ·
+                      {' '}MOQ {Math.round(comparisonResult.ranking.weights.moq * 100)}% ·
+                      {' '}jakość {Math.round(comparisonResult.ranking.weights.quality * 100)}% ·
+                      {' '}compliance {Math.round(comparisonResult.ranking.weights.compliance * 100)}%
+                      {comparisonResult.ranking.weightsSource === 'default' && (
+                        <span className="ml-1 italic">(domyślne)</span>
+                      )}
+                      {comparisonResult.ranking.weightsSource === 'rfq-configured' && (
+                        <span className="ml-1 italic">(zapisane na RFQ)</span>
+                      )}
+                    </p>
+                  )}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowRankingConfig(true)}
+                  className="shrink-0"
+                >
+                  Zmień wagi
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
@@ -570,6 +632,7 @@ export function RfqDetailPage() {
                       <th className="text-right py-2 px-4">{t.rfqs.offer.moq}</th>
                       <th className="text-right py-2 px-4">{t.rfqs.offer.leadTime}</th>
                       <th className="text-center py-2 px-4">{t.rfqs.detail.qualityScore}</th>
+                      <th className="text-center py-2 px-4">Wynik ważony</th>
                       <th className="text-center py-2 px-4">{t.rfqs.detail.aiScore}</th>
                       <th className="text-right py-2 pl-4">{t.rfqs.offer.status}</th>
                     </tr>
@@ -641,6 +704,27 @@ export function RfqDetailPage() {
                               }`}>
                                 {Math.round(offer.qualityScore)}/100
                               </span>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">—</span>
+                            )}
+                          </td>
+                          <td className="py-2 px-4 text-center">
+                            {offer.weightedRanking ? (
+                              <div className="flex flex-col items-center gap-0.5">
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${
+                                  offer.weightedRanking.finalScore >= 80 ? 'bg-emerald-100 text-emerald-800' :
+                                  offer.weightedRanking.finalScore >= 60 ? 'bg-amber-100 text-amber-800' :
+                                  'bg-red-100 text-red-800'
+                                }`}>
+                                  {offer.weightedRanking.finalScore}/100
+                                </span>
+                                <span
+                                  className="text-[10px] text-muted-foreground tabular-nums"
+                                  title={`Cena: ${offer.weightedRanking.priceScore} · Lead: ${offer.weightedRanking.leadTimeScore} · MOQ: ${offer.weightedRanking.moqScore} · Jakość: ${offer.weightedRanking.qualityScore} · Compliance: ${offer.weightedRanking.complianceScore}`}
+                                >
+                                  {offer.weightedRanking.priceScore}·{offer.weightedRanking.leadTimeScore}·{offer.weightedRanking.moqScore}·{offer.weightedRanking.qualityScore}·{offer.weightedRanking.complianceScore}
+                                </span>
+                              </div>
                             ) : (
                               <span className="text-muted-foreground text-xs">—</span>
                             )}

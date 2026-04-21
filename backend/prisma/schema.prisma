@@ -612,13 +612,17 @@ model RfqRequest {
   
   // Attachments (S3/Local paths)
   attachments     String? // JSON array
-  
+
+  // Weighted Ranking Configuration (per RFQ override; falls back to defaults)
+  // JSON: { price: 0.25, leadTime: 0.20, moq: 0.15, quality: 0.25, compliance: 0.15 }
+  rankingWeights  Json?
+
   // Relations
   campaign    Campaign? @relation(fields: [campaignId], references: [id])
   campaignId  String?   @unique // Link to Sourcing Campaign (optional)
-  
+
   offers      Offer[] // Received offers
-  
+
   ownerId     String? // Internal User ID
   owner       User?   @relation(fields: [ownerId], references: [id])
 }
@@ -693,6 +697,14 @@ model Offer {
   // Inbound email replies (Sprint 1) + Purchase Orders (Sprint 4)
   replies         OfferReply[]
   purchaseOrders  PurchaseOrder[]
+
+  // Weighted Ranking (computed when offers are compared)
+  // Final score 0-100 (weighted sum of per-criterion scores)
+  weightedRankingScore     Float?
+  // Per-criterion breakdown: { priceScore, leadTimeScore, moqScore, qualityScore, complianceScore, finalScore }
+  weightedRankingBreakdown Json?
+
+  @@index([weightedRankingScore])
 }
 
 // Price tier for quantity-based pricing
