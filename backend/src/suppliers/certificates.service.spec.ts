@@ -203,6 +203,166 @@ describe('CertificatesService', () => {
         });
     });
 
+    describe('createInternal — PIPELINE source (AI-discovered certs)', () => {
+        it('accepts null validUntil when source=PIPELINE', async () => {
+            prisma.supplierCertificate.findFirst.mockResolvedValue(null);
+            prisma.supplierCertificate.create.mockResolvedValue({ id: 'c1' });
+
+            await service.createInternal('sup-1', {
+                type: 'ISO_9001',
+                code: 'ISO 9001',
+                source: 'PIPELINE',
+                validUntil: null,
+            });
+
+            expect(prisma.supplierCertificate.create).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({
+                        source: 'PIPELINE',
+                        reviewStatus: 'PENDING',
+                        validUntil: null,
+                        status: 'UNKNOWN',
+                        verificationStatus: 'EXTRACTED',
+                    }),
+                }),
+            );
+        });
+
+        it('upgrades EXTRACTED → EVIDENCED when pipeline finds cert number', async () => {
+            prisma.supplierCertificate.findFirst.mockResolvedValue(null);
+            prisma.supplierCertificate.create.mockResolvedValue({ id: 'c1' });
+
+            await service.createInternal('sup-1', {
+                type: 'ISO_9001',
+                code: 'ISO 9001:2015',
+                source: 'PIPELINE',
+                certNumber: '12 100 45678',
+                validUntil: null,
+            });
+
+            expect(prisma.supplierCertificate.create).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({
+                        verificationStatus: 'EVIDENCED',
+                    }),
+                }),
+            );
+        });
+
+        it('upgrades to EVIDENCED when pipeline captures validUntil date', async () => {
+            prisma.supplierCertificate.findFirst.mockResolvedValue(null);
+            prisma.supplierCertificate.create.mockResolvedValue({ id: 'c1' });
+
+            await service.createInternal('sup-1', {
+                type: 'ISO_9001',
+                code: 'ISO 9001',
+                source: 'PIPELINE',
+                validUntil: '2027-06-01',
+            });
+
+            expect(prisma.supplierCertificate.create).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({
+                        verificationStatus: 'EVIDENCED',
+                        status: 'ACTIVE',
+                    }),
+                }),
+            );
+        });
+
+        it('dedupes silently (returns existing) for PIPELINE — never throws on re-scan', async () => {
+            const existing = { id: 'existing', code: 'ISO 9001' };
+            prisma.supplierCertificate.findFirst.mockResolvedValue(existing);
+
+            const result = await service.createInternal('sup-1', {
+                type: 'ISO_9001',
+                code: 'ISO 9001',
+                source: 'PIPELINE',
+                validUntil: null,
+            });
+
+            expect(result).toBe(existing);
+            expect(prisma.supplierCertificate.create).not.toHaveBeenCalled();
+        });
+
+        it('MANUAL source with missing validUntil still throws', async () => {
+            prisma.supplierCertificate.findFirst.mockResolvedValue(null);
+
+            await expect(
+                service.createInternal('sup-1', {
+                    type: 'ISO_9001',
+                    code: 'ISO 9001',
+                    validUntil: null,
+                }),
+            ).rejects.toBeInstanceOf(BadRequestException);
+        });
+
+        it('caller can override verificationStatus (e.g. VIES-confirmed supplier → VERIFIED)', async () => {
+            prisma.supplierCertificate.findFirst.mockResolvedValue(null);
+            prisma.supplierCertificate.create.mockResolvedValue({ id: 'c1' });
+
+            await service.createInternal('sup-1', {
+                type: 'ISO_9001',
+                code: 'ISO 9001',
+                source: 'PIPELINE',
+                validUntil: null,
+                verificationStatus: 'VERIFIED',
+            });
+
+            expect(prisma.supplierCertificate.create).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({
+                        source: 'PIPELINE',
+                        verificationStatus: 'VERIFIED',
+                    }),
+                }),
+            );
+        });
+    });
+
+    describe('update — promotes PIPELINE cert to VERIFIED when buyer edits', () => {
+        it('promotes PIPELINE/EXTRACTED cert to VERIFIED on buyer update', async () => {
+            prisma.supplierCertificate.findUnique.mockResolvedValue({
+                id: 'c1',
+                supplierId: 'sup-1',
+                source: 'PIPELINE',
+                verificationStatus: 'EXTRACTED',
+                validUntil: null,
+                type: 'ISO_9001',
+                code: 'ISO 9001',
+            });
+            prisma.supplierCertificate.update.mockResolvedValue({ id: 'c1' });
+
+            await service.update('c1', { validUntil: '2027-06-01' });
+
+            expect(prisma.supplierCertificate.update).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({
+                        verificationStatus: 'VERIFIED',
+                    }),
+                }),
+            );
+        });
+
+        it('does not touch verificationStatus when cert already VERIFIED', async () => {
+            prisma.supplierCertificate.findUnique.mockResolvedValue({
+                id: 'c1',
+                supplierId: 'sup-1',
+                source: 'MANUAL',
+                verificationStatus: 'VERIFIED',
+                validUntil: new Date('2027-06-01'),
+                type: 'ISO_9001',
+                code: 'ISO 9001',
+            });
+            prisma.supplierCertificate.update.mockResolvedValue({ id: 'c1' });
+
+            await service.update('c1', { issuer: 'TÜV' });
+
+            const call = prisma.supplierCertificate.update.mock.calls[0][0];
+            expect(call.data.verificationStatus).toBeUndefined();
+        });
+    });
+
     describe('summaryForSupplier — respects review status', () => {
         beforeEach(() => {
             prisma.supplierCertificate.findMany.mockResolvedValue([

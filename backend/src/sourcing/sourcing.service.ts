@@ -287,6 +287,7 @@ export class SourcingService {
         enrichmentData: any,
         screenerData: any,
         sourceUrl: string,
+        opts: { vatVerified?: boolean } = {},
     ): Promise<void> {
         try {
             // Priority: Auditor > Enrichment > Screener (later stages have validated the data).
@@ -302,6 +303,10 @@ export class SourcingService {
                 try {
                     const validUntilDate = parseLooseDate(cert.validUntil);
                     const issuedAtDate = parseLooseDate(cert.issuedAt);
+                    // VIES-confirmed suppliers: promote cert to VERIFIED (company proven to exist in
+                    // the national VAT registry — strong enough proof-of-existence to trust the claim).
+                    // Otherwise let createInternal derive EVIDENCED/EXTRACTED from hard signals.
+                    const verificationStatus = opts.vatVerified ? 'VERIFIED' as const : undefined;
                     await this.certificatesService.createInternal(supplierId, {
                         type: cert.type || 'OTHER',
                         code: cert.code,
@@ -311,6 +316,7 @@ export class SourcingService {
                         validUntil: validUntilDate ? validUntilDate.toISOString() : null,
                         sourceUrl: cert.documentUrl || sourceUrl || undefined,
                         source: 'PIPELINE',
+                        verificationStatus,
                     });
                 } catch (certErr: any) {
                     // Duplicate / validation errors per-cert must not break the loop.
@@ -3011,7 +3017,10 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             }
 
             // VIES VAT Validation — bonus/penalty for EU suppliers (if VAT number was extracted by Screener)
+            // Also propagates VERIFIED tier to any PIPELINE-discovered certs: if the company exists in the
+            // national VAT registry, it's a strong enough proof-of-existence to mark cert claims verified.
             const extractedVat = screenerResult.extracted_data?.vat_id;
+            let vatVerified = false;
             if (this.vatValidation && extractedVat && extractedVat.length >= 8) {
                 const vatParsed = this.vatValidation.extractVatFromContent(extractedVat);
                 if (vatParsed) {
@@ -3021,6 +3030,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                         const vatBonus = vatResult.valid ? 15 : -20;
                         finalScore = Math.max(10, Math.min(100, finalScore + vatBonus));
                         if (vatResult.valid) {
+                            vatVerified = true;
                             await this.log(campaignId, `${workerTag} VAT VERIFIED: ${enrichedData.company_name} (+15 trust)${vatResult.name ? ` — "${vatResult.name}"` : ''}`);
                         } else {
                             await this.log(campaignId, `${workerTag} VAT INVALID: ${enrichedData.company_name} (-20 trust)`);
@@ -3134,12 +3144,14 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             this.sourcingGateway?.emitSupplierUpdate(campaignId, { url, status: 'QUALIFIED', data: newSupplier });
 
             // Persist AI-discovered certs (fire-and-forget — never blocks pipeline).
+            // VIES-confirmed suppliers get all their PIPELINE certs promoted to VERIFIED.
             this.persistPipelineCertificates(
                 newSupplier.id,
                 auditorResult?.golden_record,
                 enrichmentResult?.enriched_data,
                 screenerResult,
                 finalWebsite,
+                { vatVerified },
             ).catch(() => {});
 
             // Fire-and-forget: search for local subsidiary after save (non-blocking)
