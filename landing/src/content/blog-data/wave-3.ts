@@ -44,11 +44,11 @@ const post1: RichBlogPost = {
   searchVolume: 250,
   jsonLdType: 'Article',
   metaTitle: 'Supplier Master Data: Why 40% Decays Yearly — Procurea',
-  metaTitlePl: 'Master data dostawców: dlaczego 40% starzeje się rocznie — Procurea',
+  metaTitlePl: 'Master data dostawców: 40% starzeje się rocznie — Procurea',
   metaDescription:
-    'Supplier master data decays ~40% per year. Five decay vectors, a 4-hour weekend triage for your top 100 suppliers, and an ongoing-hygiene model that actually sticks.',
+    'Supplier master data decays ~40% yearly. Five decay vectors, a 4-hour weekend triage for top 100 suppliers, and an ongoing-hygiene model that sticks.',
   metaDescriptionPl:
-    'Master data dostawców starzeje się ~40% rocznie. Pięć wektorów rozpadu, 4-godzinny weekendowy triage top 100 dostawców i model ciągłej higieny, który naprawdę się trzyma.',
+    'Master data dostawców starzeje się ~40% rocznie. Pięć wektorów rozpadu, 4-godzinny triage top 100 i model higieny, który naprawdę się trzyma.',
   author: { name: 'Procurea Research Team', role: 'Data', avatarKey: 'research' },
   outline:
     'The 40% number — where it comes from. Five decay vectors (M&A, deregistration, email rotation, cert expiry, contact churn). Why this costs you money. 4-hour weekend triage (VAT, email, dedupe, certs). Pareto: top 100 by spend. Decision framework: delete/archive/re-enrich. Ongoing hygiene model. Common mistakes.',
@@ -340,12 +340,12 @@ const post2: RichBlogPost = {
   ],
   searchVolume: 250,
   jsonLdType: 'Article',
-  metaTitle: 'NetSuite Supplier Management: What Procurement Needs — Procurea',
-  metaTitlePl: 'NetSuite zarządzanie dostawcami: co potrzebuje procurement — Procurea',
+  metaTitle: "NetSuite Supplier Management: What's Missing — Procurea",
+  metaTitlePl: 'NetSuite: co brakuje w zarządzaniu dostawcami — Procurea',
   metaDescription:
-    'NetSuite Vendor records are built for accounting, not sourcing. Six gaps procurement teams hit, three integration approaches (CSV, Merge.dev, SuiteScript), and honest pilot status.',
+    'NetSuite Vendor records are built for accounting, not sourcing. Six procurement gaps, three integration approaches (CSV, Merge.dev, SuiteScript).',
   metaDescriptionPl:
-    'Rekordy Vendor w NetSuite są pod księgowość, nie sourcing. Sześć luk zespołów procurement, trzy podejścia do integracji (CSV, Merge.dev, SuiteScript) i szczery status pilotażu.',
+    'Rekordy Vendor w NetSuite są pod księgowość, nie sourcing. Sześć luk procurement, trzy podejścia (CSV, Merge.dev, SuiteScript) i mapowanie pól.',
   author: { name: 'Procurea Research Team', role: 'Integrations', avatarKey: 'research' },
   outline:
     'Honest positioning: Procurea complements NetSuite. What NetSuite Vendor does well (1099, multi-currency, payments). Six gaps (discovery, RFQ, multilingual, certs, risk, structured comparison). Three integration approaches. Field mapping table. Decision tree: NetSuite Procurement vs SuiteApp vs best-of-breed. Pilot status honesty.',
@@ -692,9 +692,9 @@ const post3: RichBlogPost = {
   metaTitle: 'SAP Ariba Alternative for Mid-Market — Procurea',
   metaTitlePl: 'Alternatywa dla SAP Ariba dla mid-market — Procurea',
   metaDescription:
-    'SAP Ariba is built for the Fortune 500. Honest mid-market alternative: what you get, what you lose, SAP integration pilot status, and when you should actually go Ariba.',
+    'SAP Ariba is built for the Fortune 500. Honest mid-market alternative: what you get, what you lose, SAP pilot status, and when to actually pick Ariba.',
   metaDescriptionPl:
-    'SAP Ariba jest zbudowane dla Fortune 500. Uczciwa alternatywa dla mid-market: co dostajesz, co tracisz, status pilot integracji SAP i kiedy faktycznie warto iść w Ariba.',
+    'SAP Ariba jest zbudowane pod Fortune 500. Uczciwa alternatywa dla mid-market: co dostajesz, co tracisz, status pilotu SAP i kiedy wybrać Aribę.',
   author: { name: 'Procurea Research Team', role: 'Integrations', avatarKey: 'research' },
   outline:
     'Honest upfront: Procurea is not Ariba, does not pretend to have production S/4HANA sync. SAP Ariba cost + complexity reality. What mid-market actually needs. Procurea as sourcing LAYER over existing SAP. S/4HANA sync status = Pilot. When you should go Ariba (not us). When Procurea is the right fit.',
@@ -1027,11 +1027,11 @@ const post4: RichBlogPost = {
   searchVolume: 600,
   jsonLdType: 'Article',
   metaTitle: 'TCO Procurement: Beat the Lowest-Price Trap — Procurea',
-  metaTitlePl: 'TCO w procurement: pokonaj pułapkę najniższej ceny — Procurea',
+  metaTitlePl: 'TCO procurement: pokonaj pułapkę niskiej ceny — Procurea',
   metaDescription:
     'The 7 hidden cost categories that turn a 3% unit-price win into a 12% TCO loss. Worked example, CFO-ready math, and a 2-hour analysis shortcut that keeps rigor.',
   metaDescriptionPl:
-    'Siedem ukrytych kategorii kosztów zamieniających 3% wygraną ceny jednostkowej w 12% stratę TCO. Działający przykład, matematyka pod CFO i 2-godzinny skrót z zachowaniem rygoru.',
+    'Siedem ukrytych kosztów zamieniających 3% wygraną ceny w 12% stratę TCO. Działający przykład, matematyka pod CFO i 2-godzinny skrót scoringu.',
   author: { name: 'Procurea Research Team', role: 'Analytics', avatarKey: 'research' },
   outline:
     'Why unit price ≠ value. 7 hidden cost categories. TCO vs TLC. Worked example: A (€9.80 China) vs B (€11.20 Poland), B wins. Where TCO matters most vs commodity. 2-hour analysis shortcut. Negotiation lever: showing a supplier their TCO vs competitor. Common mistakes.',
@@ -1466,12 +1466,12 @@ const post5: RichBlogPost = {
   ],
   searchVolume: 400,
   jsonLdType: 'Article',
-  metaTitle: 'Sourcing Funnel Explained: 500 Results to 120 Suppliers — Procurea',
-  metaTitlePl: 'Lejek sourcingowy: od 500 wyników do 120 dostawców — Procurea',
+  metaTitle: 'Sourcing Funnel: 500 Results → 120 Suppliers — Procurea',
+  metaTitlePl: 'Lejek sourcingowy: 500 wyników → 120 dostawców — Procurea',
   metaDescription:
-    'How one brief becomes 120 verified suppliers. Stage-by-stage funnel with honest conversion rates (85% precision, 70% recall) and where the pipeline still misses.',
+    'How one brief becomes 120 verified suppliers. Stage-by-stage funnel, honest conversion (85% precision, 70% recall), and where it still misses.',
   metaDescriptionPl:
-    'Jak jeden brief zamienia się w 120 zweryfikowanych dostawców. Lejek stage-by-stage z uczciwymi konwersjami (85% precision, 70% recall) i miejscami, gdzie pipeline nadal się myli.',
+    'Jak jeden brief staje się 120 zweryfikowanymi dostawcami. Lejek etap po etapie z uczciwymi konwersjami (85% precision, 70% recall) i mapą braków.',
   author: { name: 'Rafał Ignaczak', role: 'Founder, Procurea', avatarKey: 'rafal' },
   outline:
     'Lift the hood: 4 stages (Strategy → Screener → Enrichment → Auditor). Stage-by-stage conversion: 500 URLs → 280 relevant → 180 enriched → 120 verified. Precision 85-92%, recall ~70% — honest. Where we still miss. Manual vs assisted comparison. Why it matters to the buyer (reproducibility, audit trail, language coverage).',
@@ -1824,7 +1824,7 @@ const post6: RichBlogPost = {
   metaTitle: 'Salesforce for Procurement: When It Works — Procurea',
   metaTitlePl: 'Salesforce dla procurement: kiedy działa — Procurea',
   metaDescription:
-    'Salesforce Accounts can hold suppliers — but the pattern breaks at the first RFQ. Three scenarios where it works, four where it breaks, plus a clean integration pattern.',
+    "Salesforce Accounts can hold suppliers — but the pattern breaks at the first RFQ. Three scenarios where it works, four where it doesn't, one clean fix.",
   metaDescriptionPl:
     'Salesforce Accounts mogą trzymać dostawców — ale wzorzec pęka przy pierwszym RFQ. Trzy scenariusze działające, cztery łamiące się i czysty wzorzec integracji.',
   author: { name: 'Procurea Research Team', role: 'Integrations', avatarKey: 'research' },
@@ -2098,9 +2098,9 @@ const post7: RichBlogPost = {
   metaTitle: "AI Sourcing Tool: 12 Buyer's Guide Questions — Procurea",
   metaTitlePl: "AI sourcing: 12 pytań kupującego — Procurea",
   metaDescription:
-    '12 questions that separate real AI sourcing capability from cosmetic polish — data sources, LLM transparency, integration depth, commercials. With the disqualifying answers.',
+    '12 questions separating real AI sourcing from cosmetic polish: data sources, LLM transparency, integration depth, commercials. With disqualifying answers.',
   metaDescriptionPl:
-    '12 pytań oddzielających realną funkcjonalność AI sourcing od kosmetycznego połysku — źródła danych, transparentność LLM, głębokość integracji, commercials. Z odpowiedziami dyskwalifikującymi.',
+    '12 pytań oddzielających realne AI sourcing od kosmetyki: źródła danych, transparentność LLM, głębokość integracji, commercials — z dyskwalifikatorami.',
   author: { name: 'Rafał Ignaczak', role: 'Founder, Procurea', avatarKey: 'rafal' },
   outline:
     '12 questions in 4 themes: Data sources, AI + transparency, Integration + workflow, Commercials + proof. Good answer / yellow flag / walk-away for each. Honesty test: what is the product NOT good at? 3-customer reference protocol. Scorecard 36 max, <24 = no, 36 = suspicious. Procurea\'s own answers.',

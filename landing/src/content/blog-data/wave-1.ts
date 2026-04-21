@@ -43,8 +43,8 @@ const post1: RichBlogPost = {
   ],
   searchVolume: 1200,
   jsonLdType: 'HowTo',
-  metaTitle: 'How to Find 100+ Verified Suppliers in Under an Hour — Procurea',
-  metaTitlePl: 'Jak znaleźć 100+ zweryfikowanych dostawców w godzinę — Procurea',
+  metaTitle: 'Find 100+ Verified Suppliers in an Hour — Procurea',
+  metaTitlePl: '100+ zweryfikowanych dostawców w godzinę — Procurea',
   metaDescription:
     'The 4-step funnel buyers use to turn a Google search into a shortlist of 100+ verified suppliers with emails, VAT, and certifications — in under an hour.',
   metaDescriptionPl:
@@ -423,8 +423,8 @@ const post2: RichBlogPost = {
   ],
   searchVolume: 600,
   jsonLdType: 'Article',
-  metaTitle: 'The 30-Hour Problem: Why Manual Sourcing Kills Margin — Procurea',
-  metaTitlePl: 'Problem 30 godzin: dlaczego ręczny sourcing zjada marżę — Procurea',
+  metaTitle: 'The 30-Hour Problem: Manual Sourcing Kills Margin — Procurea',
+  metaTitlePl: 'Problem 30 godzin: ręczny sourcing zjada marżę — Procurea',
   metaDescription:
     'The 7-task breakdown of a single sourcing campaign, the hidden hourly cost math, and an honest view of where automation saves time — and where it does not.',
   metaDescriptionPl:
@@ -737,12 +737,12 @@ const post3: RichBlogPost = {
   ],
   searchVolume: 1800,
   jsonLdType: 'Article',
-  metaTitle: "European Nearshoring in 2026: A Procurement Manager's Guide — Procurea",
-  metaTitlePl: 'Nearshoring w Europie 2026: przewodnik dla procurement — Procurea',
+  metaTitle: "European Nearshoring 2026: Buyer's Country Guide — Procurea",
+  metaTitlePl: 'Nearshoring Europa 2026: przewodnik kupca — Procurea',
   metaDescription:
-    'Country-by-country European nearshoring guide: Poland, Czechia, Portugal, Turkey, Romania, Spain, Bulgaria — with cost tables, lead-time math, and a 6-week migration playbook.',
+    'Country-by-country European nearshoring guide: Poland, Czechia, Portugal, Turkey, Romania, Spain — cost tables, lead-time math, 6-week playbook.',
   metaDescriptionPl:
-    'Przewodnik po nearshoringu w Europie kraj po kraju: Polska, Czechy, Portugalia, Turcja, Rumunia, Hiszpania, Bułgaria — z tabelami kosztów i 6-tygodniowym playbookiem migracji.',
+    'Nearshoring w Europie kraj po kraju: Polska, Czechy, Portugalia, Turcja, Rumunia, Hiszpania — tabele kosztów i 6-tygodniowy playbook migracji.',
   author: { name: 'Procurea Research Team', role: 'Strategic Sourcing', avatarKey: 'research' },
   outline:
     'Why nearshoring is accelerating in 2026 (CBAM, CSDDD, tariff volatility). Definitions. 7 best EU countries category by category (PL, CZ, PT, TR, RO, ES, BG). Landed-cost tables vs China. 6-week migration playbook. Common mistakes.',
@@ -1225,12 +1225,12 @@ const post4: RichBlogPost = {
   ],
   searchVolume: 700,
   jsonLdType: 'Article',
-  metaTitle: 'RFQ Automation: 5 Workflows That Actually Work in 2026 — Procurea',
+  metaTitle: 'RFQ Automation: 5 Workflows That Work in 2026 — Procurea',
   metaTitlePl: 'Automatyzacja RFQ: 5 działających workflow 2026 — Procurea',
   metaDescription:
-    'Three automation layers, five workflows for teams of 1 to 10+, honest trade-offs, and a free RFQ comparison template. No "revolutionize your procurement" nonsense.',
+    'Three automation layers, five workflows for teams of 1 to 10+, honest trade-offs, and a free RFQ comparison template — no hype, clear scaling limits.',
   metaDescriptionPl:
-    'Trzy warstwy automatyzacji, pięć workflow dla zespołów 1-10+, uczciwe trade-offy i darmowy szablon porównania RFQ. Bez banałów.',
+    'Automatyzacja RFQ w 3 warstwach: e-mail, arkusze, platformy e-RFQ. Pięć działających workflow dla zespołów 1-10+, trade-offy i darmowy szablon.',
   author: { name: 'Rafał Ignaczak', role: 'Founder, Procurea', avatarKey: 'rafal' },
   outline:
     '40-word definition. Anatomy of a manual RFQ and its 4 break points. RFQ vs RFP. 5 concrete workflows by team size. 7 signs you need automation. How to choose a tool without lock-in.',
@@ -1556,8 +1556,8 @@ const post5: RichBlogPost = {
   ],
   searchVolume: 400,
   jsonLdType: 'Article',
-  metaTitle: 'Turkey vs Poland vs Portugal for Textile Sourcing 2026 — Procurea',
-  metaTitlePl: 'Turcja vs Polska vs Portugalia — sourcing tekstyliów 2026 — Procurea',
+  metaTitle: 'Turkey vs Poland vs Portugal: Textile Sourcing — Procurea',
+  metaTitlePl: 'Turcja vs Polska vs Portugalia: tekstylia 2026 — Procurea',
   metaDescription:
     'Side-by-side textile sourcing comparison: MOQ, lead time, labor cost, OEKO-TEX/GOTS coverage across Turkey, Poland, Portugal. Category-level recommendations.',
   metaDescriptionPl:

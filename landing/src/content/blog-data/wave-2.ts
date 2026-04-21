@@ -44,11 +44,11 @@ const post1: RichBlogPost = {
   searchVolume: 800,
   jsonLdType: 'HowTo',
   metaTitle: 'VAT VIES Check: 3-Minute Supplier Verification — Procurea',
-  metaTitlePl: 'Weryfikacja VAT VIES: 3-minutowa kontrola dostawcy — Procurea',
+  metaTitlePl: 'VAT VIES: 3-minutowa weryfikacja dostawcy — Procurea',
   metaDescription:
     'A VAT VIES check takes 3 minutes and can save €50k in supplier fraud. See the step-by-step process, country quirks, and how to automate for scale.',
   metaDescriptionPl:
-    'Kontrola VAT VIES zajmuje 3 minuty i ratuje €50k przed oszustwem. Kroki, różnice krajowe, automatyzacja na skalę.',
+    'Weryfikacja VAT VIES zajmuje 3 minuty i chroni przed €50k oszustwa. Krok po kroku, różnice krajowe (DE/PL/IT/FR) i automatyzacja na skali 500+.',
   author: { name: 'Procurea Research Team', role: 'Compliance', avatarKey: 'research' },
   outline:
     'What VIES is and what it actually confirms. Manual 4-step check. Country-specific VAT quirks (DE, PL, IT, FR). What "invalid" means. An anonymized €47k fraud case. How to automate at scale.',
@@ -326,7 +326,7 @@ const post2: RichBlogPost = {
   metaDescription:
     'AI procurement software is crowded with marketing fluff. Here are the 7 features that actually deliver ROI — and 3 that are buzzword theater.',
   metaDescriptionPl:
-    'Rynek AI procurement jest pełen marketingu. Oto 7 funkcji, które realnie dają ROI — i 3, które są teatrem buzzwordów.',
+    'Rynek AI procurement pełen marketingu. 7 funkcji realnie dających ROI w mid-market — i 3, które są teatrem buzzwordów. Lista ewaluacyjna dla buyera.',
   author: { name: 'Rafał Ignaczak', role: 'Founder, Procurea', avatarKey: 'rafal' },
   outline:
     'State of AI procurement in 2026. 7 features worth paying for: discovery, generative RFx, risk scoring, spend classification, contract extraction, multilingual outreach, automated scoring. 3 fluff features. Evaluation checklist.',
@@ -644,7 +644,7 @@ const post3: RichBlogPost = {
   metaDescription:
     'The 2026 supplier risk management checklist, CSDDD-ready. 4 risk categories, a 20-point audit, and tooling recommendations — download included.',
   metaDescriptionPl:
-    'Checklista ryzyka dostawców 2026, zgodna z CSDDD. 4 kategorie, 20 kontroli, rekomendacje narzędziowe — do pobrania.',
+    'Checklista ryzyka dostawców 2026 zgodna z CSDDD: 4 kategorie (finanse, operacje, geopolityka, ESG), 20 kontroli, rekomendacje narzędziowe do pobrania.',
   author: { name: 'Procurea Research Team', role: 'Compliance', avatarKey: 'research' },
   outline:
     'Definition + why 2026 changes the rules. 4 categories (financial, operational, compliance, ESG). Decision tree. Supplier risk scorecard. CSDDD impact. 20-point checklist. Tooling. Case: one missed flag, 3-month delay.',
@@ -1014,7 +1014,7 @@ const post4: RichBlogPost = {
   metaDescription:
     'Sourcing from German manufacturers beyond wlw.de. Read Handelsregister extracts, negotiate with Mittelstand firms, and verify suppliers correctly.',
   metaDescriptionPl:
-    'Sourcing niemieckich producentów poza wlw.de. Czytanie wypisów Handelsregister, negocjacje z Mittelstandem, weryfikacja dostawców.',
+    'Sourcing niemieckich producentów poza wlw.de: czytanie Handelsregister, negocjacje z Mittelstandem, weryfikacja VAT i IHK — co naprawdę działa.',
   author: { name: 'Procurea Research Team', role: 'Strategic Sourcing', avatarKey: 'research' },
   outline:
     'Why German suppliers are worth the effort. Where to find them (wlw.de, Handelsregister, regional directories). Reading a Handelsregister extract. GmbH/AG/UG/GbR decoded. RFQ template for Mittelstand. Certifications expected.',
@@ -1315,7 +1315,7 @@ const post5: RichBlogPost = {
   metaDescription:
     'Download the RFQ comparison template buyers actually use. Weighted scoring, currency normalization, MOQ tiers, and a 2-minute walkthrough video.',
   metaDescriptionPl:
-    'Pobierz szablon porównania RFQ, którego kupcy naprawdę używają. Ważony scoring, normalizacja walut, MOQ tiers, 2-minutowy walkthrough.',
+    'Pobierz szablon porównania RFQ, którego kupcy naprawdę używają. Ważony scoring, normalizacja walut, MOQ tiers, Excel + Notion, 2-min walkthrough.',
   author: { name: 'Rafał Ignaczak', role: 'Founder, Procurea', avatarKey: 'rafal' },
   outline:
     'What belongs in a real comparison template. Tabs: raw data, normalized scoring, summary. 10 criteria. Weighting logic. Handling non-comparable quotes (MOQ, currency, Incoterms). When Excel breaks.',
@@ -1638,9 +1638,9 @@ const post6: RichBlogPost = {
   metaTitle: 'China+1 Strategy: 6-Week Sourcing Playbook — Procurea',
   metaTitlePl: 'Strategia China+1: 6-tygodniowy playbook — Procurea',
   metaDescription:
-    'China+1 sourcing done right: 5 country options compared, a 6-week migration playbook, and the 3 pitfalls that sink most transitions.',
+    'China+1 sourcing done right: 5 alternatives compared (Vietnam, India, Mexico, Turkey, Poland), a 6-week migration playbook, 3 common pitfalls.',
   metaDescriptionPl:
-    'China+1 zrobione dobrze: 5 krajów porównanych, 6-tygodniowy playbook migracji, 3 pułapki zatapiające większość transitions.',
+    'China+1 zrobione dobrze: 5 alternatyw (Wietnam, Indie, Meksyk, Turcja, Polska), 6-tygodniowy playbook migracji i 3 pułapki, które topią większość.',
   author: { name: 'Procurea Research Team', role: 'Strategic Sourcing', avatarKey: 'research' },
   outline:
     'What China+1 is and is not. Why 2026 makes it urgent. 5 country options: Vietnam, India, Mexico, Poland, Turkey. Cost comparison. 6-week playbook. 3 pitfalls.',
@@ -2001,9 +2001,9 @@ const post7: RichBlogPost = {
   metaTitle: 'Vendor Scoring: 10-Criteria Framework — Procurea',
   metaTitlePl: 'Scoring dostawców: framework 10 kryteriów — Procurea',
   metaDescription:
-    'Vendor scoring done right: 10 criteria, 3 weighting templates (cost-first, quality-first, risk-first), and a free scorecard download.',
+    'Vendor scoring done right: 10 criteria, 3 weighting templates (cost-first, quality-first, risk-first), an audit-ready trail, and free scorecard.',
   metaDescriptionPl:
-    'Scoring dostawców zrobiony dobrze: 10 kryteriów, 3 szablony wag (cost-first, quality-first, risk-first), darmowy scorecard.',
+    'Scoring dostawców zrobiony dobrze: 10 kryteriów, 3 szablony wag (cost-first, quality-first, risk-first), trail audytowy i darmowy scorecard.',
   author: { name: 'Rafał Ignaczak', role: 'Founder, Procurea', avatarKey: 'rafal' },
   outline:
     'Why most vendor scoring fails audit. The 10 criteria that matter. Three weighting templates. Setting thresholds. Sharing with suppliers — pros and cons. Scoring vs ranking. From scorecard to ongoing KPIs.',
@@ -2362,11 +2362,11 @@ const post8: RichBlogPost = {
   searchVolume: 300,
   jsonLdType: 'Article',
   metaTitle: 'ISO 9001 vs IATF 16949 vs FDA: Supplier Certs — Procurea',
-  metaTitlePl: 'ISO 9001 vs IATF 16949 vs FDA: certyfikaty dostawców — Procurea',
+  metaTitlePl: 'Certyfikaty dostawców: ISO 9001, IATF, FDA — Procurea',
   metaDescription:
-    'The supplier certifications guide for B2B buyers: ISO 9001, IATF 16949, FDA, CE, HACCP — what each means, and how to verify they are real.',
+    "The supplier certifications guide for B2B buyers: ISO 9001, IATF 16949, FDA, CE, HACCP — what each one means and how to verify it's actually real.",
   metaDescriptionPl:
-    'Przewodnik po certyfikatach dostawców: ISO 9001, IATF 16949, FDA, CE, HACCP — co znaczy każdy i jak zweryfikować, że jest prawdziwy.',
+    'Przewodnik po certyfikatach dostawców dla B2B: ISO 9001, IATF 16949, FDA, CE, HACCP — co znaczy każdy i jak zweryfikować, że jest prawdziwy.',
   author: { name: 'Procurea Research Team', role: 'Compliance', avatarKey: 'research' },
   outline:
     'Why certs matter (and when they do not). ISO 9001 deep dive. IATF 16949. ISO 13485. FDA registration. CE marking. HACCP. How to verify. Industry cheat sheet.',
