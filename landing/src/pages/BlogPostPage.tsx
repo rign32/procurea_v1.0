@@ -31,6 +31,21 @@ import { getBlogPostImages } from "@/assets/content-hub/BlogHeroImages"
 const LANG = (import.meta.env.VITE_LANGUAGE || 'pl') as 'pl' | 'en'
 const isEN = LANG === 'en'
 
+// Blog CTAs hard-code EN-shaped URLs (e.g. "/resources/library/<slug>", "/vs-manual-sourcing").
+// On the PL deploy those routes don't exist — /materialy/library/<slug> and /porownanie do.
+// Translate internal hrefs to the active language before passing them to <Link>.
+function resolveCtaHref(href: string): string {
+  if (isEN) return href
+  if (!href.startsWith('/')) return href // external or anchor
+  for (const key of Object.keys(pathMappings) as PathKey[]) {
+    const { en, pl } = pathMappings[key]
+    if (en === '/') continue
+    if (href === en) return pl
+    if (href.startsWith(en + '/')) return pl + href.slice(en.length)
+  }
+  return href
+}
+
 const PILLAR_BADGE: Record<string, string> = {
   'ai-sourcing-automation': 'bg-brand-50 text-brand-700 border-brand-200',
   'erp-crm-integration': 'bg-purple-50 text-purple-700 border-purple-200',
@@ -281,7 +296,7 @@ function InlineCtaBlock({ text, href, variant }: { text: string; href: string; v
   return (
     <div className="my-10">
       <Link
-        to={href}
+        to={resolveCtaHref(href)}
         className={`group relative block rounded-2xl bg-gradient-to-br ${gradient} p-6 sm:p-8 text-white shadow-[0_12px_40px_-8px_rgba(0,0,0,0.2)] hover:shadow-[0_20px_60px_-12px_rgba(0,0,0,0.3)] hover:-translate-y-0.5 transition-all duration-300`}
       >
         <div className="flex items-center justify-between gap-4">
@@ -614,7 +629,7 @@ export function BlogPostPage() {
                 : 'Znajdź, zweryfikuj i skontaktuj się ze 100+ dostawcami w godzinę. Za darmo — 10 kredytów, bez karty.'}
             </p>
             <Link
-              to={post.primaryCta.href}
+              to={resolveCtaHref(post.primaryCta.href)}
               onClick={() => trackCtaClick(`blog_${post.slug}_primary`)}
               className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 text-base font-semibold text-slate-900 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all"
             >

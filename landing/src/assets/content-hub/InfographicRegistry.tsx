@@ -1,20 +1,25 @@
 import type { ComponentType } from "react"
 import {
   AiFeaturesMatrix,
+  AribaFitMatrix,
   BuyersGuideQuestions,
   ComplianceShield,
   ContentPillarsDiagram,
   DatabaseDecayChart,
   ErpComparisonGrid,
+  EuropeCountryMatrix,
   GermanSourcingMap,
   NearshoreCountryComparison,
   RfqAutomationFlow,
+  RfqScoringMatrix,
+  SalesforceEntityGap,
   SourcingFunnel,
   SupplierRiskRadar,
   TcoIceberg,
   ThirtyHourBreakdown,
   VatViesVerificationSteps,
   VendorScoringScorecard,
+  VerificationStackFunnel,
 } from "./Infographics"
 
 /**
@@ -50,6 +55,13 @@ export const INFOGRAPHIC_REGISTRY: Record<string, InfographicComponent> = {
   "erp-comparison-grid": ErpComparisonGrid,
   "buyers-guide-questions": BuyersGuideQuestions,
   "german-sourcing-map": GermanSourcingMap,
+
+  // New 5 — coverage for previously uncovered posts
+  "verification-stack-funnel": VerificationStackFunnel,
+  "europe-country-matrix": EuropeCountryMatrix,
+  "ariba-fit-matrix": AribaFitMatrix,
+  "rfq-scoring-matrix": RfqScoringMatrix,
+  "salesforce-entity-gap": SalesforceEntityGap,
 }
 
 export type InfographicKey = keyof typeof INFOGRAPHIC_REGISTRY

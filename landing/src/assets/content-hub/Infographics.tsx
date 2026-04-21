@@ -1730,6 +1730,356 @@ export function GermanSourcingMap({
   )
 }
 
+/* ------------------------------------------------------------------ */
+/* 16. VerificationStackFunnel — 12M → 100 verified suppliers          */
+/* ------------------------------------------------------------------ */
+interface VerificationStackStep {
+  label: string
+  value: string
+  note: string
+  color: string
+}
+
+const DEFAULT_VERIFICATION_STEPS: VerificationStackStep[] = [
+  { label: "Google results", value: "12M", note: "raw", color: "#5E8C8F" },
+  { label: "Shortlisted URLs", value: "500", note: "filtered by strategy", color: "#2A5C5D" },
+  { label: "Enriched", value: "180", note: "emails + certs", color: "#C76F96" },
+  { label: "Verified", value: "100", note: "VIES + registry", color: "#F5C451" },
+]
+
+export function VerificationStackFunnel({
+  className,
+  ariaLabel = "From 12 million Google results to 100 verified suppliers via four filters",
+  steps = DEFAULT_VERIFICATION_STEPS,
+}: InfographicProps & { steps?: VerificationStackStep[] }) {
+  return (
+    <div
+      className={cn(
+        "w-full rounded-2xl border border-slate-200 bg-white p-6 md:p-8 shadow-premium",
+        className
+      )}
+      role="img"
+      aria-label={ariaLabel}
+    >
+      <div className="space-y-2.5">
+        {steps.map((s, i) => {
+          const widthPct = Math.max(20, 100 - i * 20)
+          return (
+            <div key={i} className="flex items-center gap-4">
+              <div className="w-28 text-right">
+                <div className="text-2xl font-display font-bold tracking-tight text-slate-900">{s.value}</div>
+                <div className="text-[11px] text-slate-500 leading-tight">{s.note}</div>
+              </div>
+              <div
+                className="h-11 rounded-lg flex items-center px-4 text-sm font-semibold text-white transition-transform hover:-translate-x-1"
+                style={{ width: `${widthPct}%`, background: s.color }}
+              >
+                {s.label}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      <p className="mt-5 text-xs text-slate-500 leading-snug">
+        Each stage drops 60-80% — the narrowest point is verification, not discovery.
+      </p>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* 17. EuropeCountryMatrix — dense 6-country comparison grid           */
+/* ------------------------------------------------------------------ */
+interface EuropeCountryRow {
+  flag: string
+  country: string
+  laborIndex: number
+  leadDays: string
+  strength: string
+}
+
+const DEFAULT_EU_COUNTRIES: EuropeCountryRow[] = [
+  { flag: "🇵🇱", country: "Poland", laborIndex: 100, leadDays: "7-10", strength: "Manufacturing, metals" },
+  { flag: "🇨🇿", country: "Czechia", laborIndex: 108, leadDays: "5-9", strength: "Precision, automotive" },
+  { flag: "🇵🇹", country: "Portugal", laborIndex: 92, leadDays: "9-14", strength: "Textiles, footwear" },
+  { flag: "🇹🇷", country: "Turkey", laborIndex: 58, leadDays: "10-15", strength: "Textiles, home goods" },
+  { flag: "🇷🇴", country: "Romania", laborIndex: 72, leadDays: "8-12", strength: "Electronics assembly" },
+  { flag: "🇪🇸", country: "Spain", laborIndex: 118, leadDays: "6-10", strength: "Food, chemicals" },
+]
+
+export function EuropeCountryMatrix({
+  className,
+  ariaLabel = "European nearshoring candidates compared on labor cost, lead time, and category strengths",
+  countries = DEFAULT_EU_COUNTRIES,
+}: InfographicProps & { countries?: EuropeCountryRow[] }) {
+  return (
+    <div
+      className={cn(
+        "w-full rounded-2xl border border-slate-200 bg-white p-5 md:p-6 shadow-premium overflow-x-auto",
+        className
+      )}
+      role="img"
+      aria-label={ariaLabel}
+    >
+      <table className="w-full min-w-[520px] text-sm">
+        <thead>
+          <tr className="text-left text-[11px] uppercase tracking-[0.08em] text-slate-500 border-b border-slate-200">
+            <th className="py-2.5 pr-3 font-semibold">Country</th>
+            <th className="py-2.5 px-3 font-semibold">Labor idx</th>
+            <th className="py-2.5 px-3 font-semibold">Lead days</th>
+            <th className="py-2.5 pl-3 font-semibold">Strongest categories</th>
+          </tr>
+        </thead>
+        <tbody>
+          {countries.map((c, i) => {
+            const labelWidth = `${Math.min(100, c.laborIndex - 40)}%`
+            const labelColor = c.laborIndex < 80 ? "#10B981" : c.laborIndex < 105 ? "#F5C451" : "#C76F96"
+            return (
+              <tr key={i} className="border-b border-slate-100 last:border-0">
+                <td className="py-3 pr-3">
+                  <div className="flex items-center gap-2 font-display font-bold tracking-tight text-slate-900">
+                    <span aria-hidden="true">{c.flag}</span>
+                    <span>{c.country}</span>
+                  </div>
+                </td>
+                <td className="py-3 px-3">
+                  <div className="flex items-center gap-2">
+                    <div className="h-1.5 rounded-full bg-slate-100 w-24 overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: labelWidth, background: labelColor }} aria-hidden="true" />
+                    </div>
+                    <span className="text-xs text-slate-600 font-mono tabular-nums">{c.laborIndex}</span>
+                  </div>
+                </td>
+                <td className="py-3 px-3 text-slate-700 font-mono tabular-nums text-xs">{c.leadDays}</td>
+                <td className="py-3 pl-3 text-slate-600 text-xs">{c.strength}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+      <p className="mt-3 text-[11px] text-slate-500">Poland = 100 labor baseline. Lead days port-to-warehouse EU.</p>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* 18. AribaFitMatrix — fit comparison, not feature parity             */
+/* ------------------------------------------------------------------ */
+interface FitDimension {
+  dimension: string
+  ariba: string
+  midMarket: string
+  aribaWins: boolean
+}
+
+const DEFAULT_FIT_ROWS: FitDimension[] = [
+  { dimension: "Annual procurement spend", ariba: "€500M+", midMarket: "€10-150M", aribaWins: true },
+  { dimension: "Implementation time", ariba: "9-18 months", midMarket: "1-4 weeks", aribaWins: false },
+  { dimension: "In-house admin team", ariba: "2-5 FTE", midMarket: "0-0.5 FTE", aribaWins: false },
+  { dimension: "Process depth (S2P)", ariba: "Full source-to-pay", midMarket: "Sourcing layer only", aribaWins: true },
+  { dimension: "Annual cost", ariba: "€200-800k", midMarket: "€3-25k", aribaWins: false },
+  { dimension: "Global supplier network", ariba: "4M+ pre-onboarded", midMarket: "Discovery-based", aribaWins: true },
+]
+
+export function AribaFitMatrix({
+  className,
+  ariaLabel = "SAP Ariba vs mid-market sourcing tools: comparison on six fit dimensions",
+  rows = DEFAULT_FIT_ROWS,
+}: InfographicProps & { rows?: FitDimension[] }) {
+  return (
+    <div
+      className={cn(
+        "w-full rounded-2xl border border-slate-200 bg-white p-5 md:p-6 shadow-premium overflow-x-auto",
+        className
+      )}
+      role="img"
+      aria-label={ariaLabel}
+    >
+      <table className="w-full min-w-[560px] text-sm">
+        <thead>
+          <tr className="text-left text-[11px] uppercase tracking-[0.08em] text-slate-500 border-b border-slate-200">
+            <th className="py-2.5 pr-3 font-semibold">Dimension</th>
+            <th className="py-2.5 px-3 font-semibold text-blue-700">SAP Ariba</th>
+            <th className="py-2.5 pl-3 font-semibold text-emerald-700">Mid-market tools</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={i} className="border-b border-slate-100 last:border-0">
+              <td className="py-3 pr-3 font-display font-semibold tracking-tight text-slate-900 text-xs md:text-sm">{r.dimension}</td>
+              <td className={cn("py-3 px-3 text-xs md:text-sm", r.aribaWins ? "text-blue-700 font-semibold" : "text-slate-500")}>
+                {r.ariba}{r.aribaWins && <span className="ml-1.5 text-blue-500" aria-hidden="true">▲</span>}
+              </td>
+              <td className={cn("py-3 pl-3 text-xs md:text-sm", !r.aribaWins ? "text-emerald-700 font-semibold" : "text-slate-500")}>
+                {r.midMarket}{!r.aribaWins && <span className="ml-1.5 text-emerald-500" aria-hidden="true">▲</span>}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="mt-3 text-[11px] text-slate-500">▲ marks the better fit per dimension. Neither is "better overall" — they solve different shapes of problem.</p>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* 19. RfqScoringMatrix — 3-supplier × 5-criterion weighted grid       */
+/* ------------------------------------------------------------------ */
+interface RfqCriterion {
+  name: string
+  weight: number
+  a: number
+  b: number
+  c: number
+}
+
+const DEFAULT_RFQ_CRITERIA: RfqCriterion[] = [
+  { name: "Unit price",    weight: 30, a: 7, b: 9, c: 6 },
+  { name: "Lead time",     weight: 20, a: 8, b: 6, c: 9 },
+  { name: "MOQ fit",       weight: 15, a: 9, b: 5, c: 7 },
+  { name: "Certs/quality", weight: 20, a: 8, b: 7, c: 9 },
+  { name: "Payment terms", weight: 15, a: 6, b: 8, c: 7 },
+]
+
+function weightedTotal(c: RfqCriterion[], key: "a" | "b" | "c"): number {
+  return c.reduce((sum, row) => sum + row[key] * (row.weight / 100), 0)
+}
+
+function cellColor(score: number): string {
+  if (score >= 8) return "bg-emerald-50 text-emerald-800"
+  if (score >= 6) return "bg-amber-50 text-amber-800"
+  return "bg-rose-50 text-rose-800"
+}
+
+export function RfqScoringMatrix({
+  className,
+  ariaLabel = "Example weighted RFQ scoring across three suppliers on five criteria",
+  criteria = DEFAULT_RFQ_CRITERIA,
+}: InfographicProps & { criteria?: RfqCriterion[] }) {
+  const totals = {
+    a: weightedTotal(criteria, "a"),
+    b: weightedTotal(criteria, "b"),
+    c: weightedTotal(criteria, "c"),
+  }
+  const winner: "a" | "b" | "c" = totals.b >= totals.a && totals.b >= totals.c ? "b" : totals.a >= totals.c ? "a" : "c"
+  return (
+    <div
+      className={cn(
+        "w-full rounded-2xl border border-slate-200 bg-white p-5 md:p-6 shadow-premium overflow-x-auto",
+        className
+      )}
+      role="img"
+      aria-label={ariaLabel}
+    >
+      <table className="w-full min-w-[480px] text-sm">
+        <thead>
+          <tr className="text-left text-[11px] uppercase tracking-[0.08em] text-slate-500 border-b border-slate-200">
+            <th className="py-2.5 pr-3 font-semibold">Criterion</th>
+            <th className="py-2.5 px-2 font-semibold text-right">Wt.</th>
+            <th className="py-2.5 px-2 font-semibold text-center">Supplier A</th>
+            <th className="py-2.5 px-2 font-semibold text-center">Supplier B</th>
+            <th className="py-2.5 pl-2 font-semibold text-center">Supplier C</th>
+          </tr>
+        </thead>
+        <tbody>
+          {criteria.map((c, i) => (
+            <tr key={i} className="border-b border-slate-100 last:border-0">
+              <td className="py-2.5 pr-3 font-display font-semibold tracking-tight text-slate-900 text-xs md:text-sm">{c.name}</td>
+              <td className="py-2.5 px-2 text-right text-slate-500 font-mono tabular-nums text-xs">{c.weight}%</td>
+              {(["a", "b", "c"] as const).map(k => (
+                <td key={k} className="py-2.5 px-1.5">
+                  <div className={cn("mx-auto w-9 h-9 rounded-md flex items-center justify-center text-sm font-display font-bold tabular-nums", cellColor(c[k]))}>
+                    {c[k]}
+                  </div>
+                </td>
+              ))}
+            </tr>
+          ))}
+          <tr className="bg-slate-50">
+            <td className="py-3 pr-3 font-display font-bold tracking-tight text-slate-900 text-xs md:text-sm">Weighted total</td>
+            <td className="py-3 px-2" />
+            {(["a", "b", "c"] as const).map(k => (
+              <td key={k} className="py-3 px-2 text-center">
+                <span className={cn(
+                  "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold tabular-nums",
+                  k === winner ? "bg-emerald-600 text-white" : "bg-slate-200 text-slate-700"
+                )}>
+                  {totals[k].toFixed(2)}
+                  {k === winner && <span aria-hidden="true">★</span>}
+                </span>
+              </td>
+            ))}
+          </tr>
+        </tbody>
+      </table>
+      <p className="mt-3 text-[11px] text-slate-500">Scores 1-10 per criterion · weighted totals pick Supplier {winner.toUpperCase()} · tweak weights to reflect your priorities.</p>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* 20. SalesforceEntityGap — CRM entities vs procurement entities      */
+/* ------------------------------------------------------------------ */
+interface EntityRow {
+  salesforce: string
+  procurement: string
+  maps: "well" | "partial" | "breaks"
+  note: string
+}
+
+const DEFAULT_ENTITY_MAP: EntityRow[] = [
+  { salesforce: "Account", procurement: "Supplier record", maps: "partial", note: "No MOQ, lead time, certs, payment terms" },
+  { salesforce: "Contact", procurement: "Supplier contact", maps: "well", note: "1:1 mapping works fine" },
+  { salesforce: "Opportunity", procurement: "RFQ / sourcing project", maps: "breaks", note: "Inverted funnel: buyer shortlists, not seller" },
+  { salesforce: "Quote", procurement: "Supplier offer", maps: "breaks", note: "One Quote per RFQ line, not per deal" },
+  { salesforce: "Contract", procurement: "Framework / PO", maps: "partial", note: "No PO lifecycle, no GRN, no 3-way match" },
+]
+
+const STATUS_STYLE: Record<EntityRow["maps"], { bg: string; fg: string; dot: string; label: string }> = {
+  well:    { bg: "bg-emerald-50", fg: "text-emerald-700", dot: "bg-emerald-500", label: "Maps well" },
+  partial: { bg: "bg-amber-50",   fg: "text-amber-700",   dot: "bg-amber-500",   label: "Partial" },
+  breaks:  { bg: "bg-rose-50",    fg: "text-rose-700",    dot: "bg-rose-500",    label: "Breaks" },
+}
+
+export function SalesforceEntityGap({
+  className,
+  ariaLabel = "How Salesforce CRM entities map — or do not map — to procurement workflows",
+  rows = DEFAULT_ENTITY_MAP,
+}: InfographicProps & { rows?: EntityRow[] }) {
+  return (
+    <div
+      className={cn("w-full rounded-2xl border border-slate-200 bg-white p-5 md:p-6 shadow-premium", className)}
+      role="img"
+      aria-label={ariaLabel}
+    >
+      <div className="grid grid-cols-1 gap-2.5">
+        {rows.map((r, i) => {
+          const s = STATUS_STYLE[r.maps]
+          return (
+            <div key={i} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 md:gap-4 p-3 rounded-xl border border-slate-100">
+              <div>
+                <div className="text-[10px] uppercase tracking-[0.08em] text-sky-600 font-semibold mb-0.5">Salesforce</div>
+                <div className="font-display font-bold text-slate-900 text-sm tracking-tight">{r.salesforce}</div>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em]", s.bg, s.fg)}>
+                  <span className={cn("w-1.5 h-1.5 rounded-full", s.dot)} aria-hidden="true" />
+                  {s.label}
+                </span>
+              </div>
+              <div>
+                <div className="text-[10px] uppercase tracking-[0.08em] text-emerald-600 font-semibold mb-0.5">Procurement</div>
+                <div className="font-display font-bold text-slate-900 text-sm tracking-tight">{r.procurement}</div>
+                <div className="text-[11px] text-slate-500 mt-0.5 leading-snug">{r.note}</div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export default {
   ThirtyHourBreakdown,
   SourcingFunnel,
@@ -1746,4 +2096,9 @@ export default {
   ErpComparisonGrid,
   BuyersGuideQuestions,
   GermanSourcingMap,
+  VerificationStackFunnel,
+  EuropeCountryMatrix,
+  AribaFitMatrix,
+  RfqScoringMatrix,
+  SalesforceEntityGap,
 }
