@@ -100,7 +100,7 @@ export function ResourcesIndexPage() {
           <section className="pb-10">
             <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <Link
-                to={`${resourcesBase}/library/${flagship.slug}`}
+                to={`${resourcesBase}/${flagship.slug}`}
                 className="group block rounded-3xl bg-gradient-to-br from-amber-50 via-white to-white border border-black/[0.06] overflow-hidden hover:shadow-[0_20px_60px_-20px_rgba(0,0,0,0.18)] transition-all duration-300"
               >
                 <div className="grid md:grid-cols-2 gap-0 items-stretch">
@@ -230,7 +230,7 @@ function ResourceCard({ resource, resourcesBase }: ResourceCardProps) {
   return (
     <RevealOnScroll>
       <Link
-        to={`${resourcesBase}/library/${resource.slug}`}
+        to={`${resourcesBase}/${resource.slug}`}
         className="group flex flex-col rounded-2xl bg-white border border-black/[0.06] overflow-hidden h-full
           hover:shadow-[0_16px_48px_-12px_rgba(0,0,0,0.15)] hover:-translate-y-1 hover:border-black/[0.12]
           transition-all duration-300

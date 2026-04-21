@@ -82,11 +82,11 @@ const ROUTES_PL = [
   '/porownanie',
   '/partnerzy',
   // Content Hub
-  '/materialy', '/blog', '/materialy/library', '/case-studies',
+  '/materialy', '/materialy/wszystko', '/blog', '/case-studies',
   // Blog posts
   ...BLOG_SLUGS.map(slug => `/blog/${slug}`),
-  // Resources (lead magnets)
-  ...RESOURCE_SLUGS.map(slug => `/materialy/library/${slug}`),
+  // Resources (lead magnets) — /materialy/:slug now
+  ...RESOURCE_SLUGS.map(slug => `/materialy/${slug}`),
   // Case studies
   ...CASE_STUDY_SLUGS.map(slug => `/case-studies/${slug}`),
 ]
@@ -100,11 +100,11 @@ const ROUTES_EN = [
   '/vs-manual-sourcing',
   '/partners',
   // Content Hub
-  '/resources', '/blog', '/resources/library', '/case-studies',
+  '/resources', '/resources/all', '/blog', '/case-studies',
   // Blog posts
   ...BLOG_SLUGS.map(slug => `/blog/${slug}`),
-  // Resources (lead magnets)
-  ...RESOURCE_SLUGS.map(slug => `/resources/library/${slug}`),
+  // Resources (lead magnets) — /resources/:slug now
+  ...RESOURCE_SLUGS.map(slug => `/resources/${slug}`),
   // Case studies
   ...CASE_STUDY_SLUGS.map(slug => `/case-studies/${slug}`),
 ]
@@ -168,11 +168,11 @@ const META = {
   '/partnerzy': { title: 'Program partnerski — Procurea', description: 'Zostań partnerem Procurea. Współpracujemy z konsultantami ERP, agencjami procurement i partnerami technologicznymi.' },
   '/partners': { title: 'Partner Program — Procurea', description: 'Partner with Procurea. We work with ERP consultants, procurement agencies, and technology partners to bring AI sourcing to more teams.' },
   // Content Hub index pages
-  '/materialy': { title: 'Materialy — Wiedza, przewodniki i case studies | Procurea', description: 'Praktyczne materialy procurement: artykuly, przewodniki do pobrania i rzeczywiste case studies z beta cohort Procurea.' },
-  '/resources': { title: 'Resources — Procurement Insights, Guides & Case Studies | Procurea', description: 'Practical procurement resources for buyers: articles, downloadable guides, and real case studies from Procurea beta cohort.' },
+  '/materialy': { title: 'Przewodniki i szablony procurement — darmowe do pobrania | Procurea', description: 'Darmowe szablony, playbooki, checklisty i kalkulatory procurement: RFQ, TCO, scoring dostawcy, nearshore. Excel, PDF, Notion.' },
+  '/resources': { title: 'Procurement Guides & Templates — Free Downloads | Procurea', description: 'Free procurement templates, playbooks, checklists, and calculators. RFQ comparison, TCO calculator, supplier risk checklist, nearshore playbook, vendor scoring.' },
   '/blog': { title: 'Procurement Blog — Insights for Buyers | Procurea', description: 'Sharp analysis of sourcing, supplier management, and procurement automation — written by practitioners, for practitioners.' },
-  '/materialy/library': { title: 'Przewodniki i szablony procurement — Procurea', description: 'Darmowe szablony, playbooki, checklisty i kalkulatory procurement. Excel, PDF, Notion — do pobrania.' },
-  '/resources/library': { title: 'Procurement Guides & Templates — Free Downloads | Procurea', description: 'Free procurement templates, playbooks, checklists, and calculators. RFQ template, TCO calculator, supplier risk checklist, nearshore playbook.' },
+  '/materialy/wszystko': { title: 'Wszystkie materialy — blog, przewodniki, case studies | Procurea', description: 'Pelne archiwum tresci Procurea: artykuly blogowe, lead magnets i case studies w jednym miejscu.' },
+  '/resources/all': { title: 'Full content library — blog, guides, case studies | Procurea', description: 'The full Procurea content archive: blog posts, lead magnets, and case studies in one place.' },
   '/case-studies': { title: 'Case Studies — How Procurement Teams Use Procurea', description: 'Real sourcing outcomes from the Procurea beta cohort: 8 automotive suppliers in 5 days, Barcelona event vendors in 72h, 14% HoReCa cost reduction.' },
 }
 
@@ -265,8 +265,8 @@ for (const slug of BLOG_SLUGS) {
 for (const slug of RESOURCE_SLUGS) {
   const en = RESOURCE_META_EN[slug]
   const pl = RESOURCE_META_PL[slug]
-  if (en) META[`/resources/library/${slug}`] = en
-  if (pl) META[`/materialy/library/${slug}`] = pl
+  if (en) META[`/resources/${slug}`] = en
+  if (pl) META[`/materialy/${slug}`] = pl
 }
 for (const slug of CASE_STUDY_SLUGS) {
   const en = CASE_STUDY_META_EN[slug]
@@ -305,7 +305,7 @@ const ALT_MAP = {
   '/funkcje/porownywarka-ofert': '/features/offer-comparison', '/features/offer-comparison': '/funkcje/porownywarka-ofert',
   // Content Hub (PL ↔ EN)
   '/materialy': '/resources', '/resources': '/materialy',
-  '/materialy/library': '/resources/library', '/resources/library': '/materialy/library',
+  '/materialy/wszystko': '/resources/all', '/resources/all': '/materialy/wszystko',
   // /blog and /case-studies are the same URL in both languages (no alt needed — handled via canonical)
 }
 
@@ -315,10 +315,10 @@ for (const slug of CASE_STUDY_SLUGS) ALT_MAP[`/case-studies/${slug}`] = `/case-s
 ALT_MAP['/blog'] = '/blog'
 ALT_MAP['/case-studies'] = '/case-studies'
 
-// Add resource library alt for each slug
+// Add resource detail alt for each slug (PL /materialy/:slug ↔ EN /resources/:slug)
 for (const slug of RESOURCE_SLUGS) {
-  ALT_MAP[`/materialy/library/${slug}`] = `/resources/library/${slug}`
-  ALT_MAP[`/resources/library/${slug}`] = `/materialy/library/${slug}`
+  ALT_MAP[`/materialy/${slug}`] = `/resources/${slug}`
+  ALT_MAP[`/resources/${slug}`] = `/materialy/${slug}`
 }
 
 function escapeHtml(s) {

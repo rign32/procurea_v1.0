@@ -47,7 +47,7 @@ function blogHref(slug: string): string {
 }
 
 function resourceHref(slug: string): string {
-  return `${pathMappings.resourcesHub[LANG]}/library/${slug}`
+  return `${pathMappings.resourcesHub[LANG]}/${slug}`
 }
 
 function caseStudyHref(slug: string): string {

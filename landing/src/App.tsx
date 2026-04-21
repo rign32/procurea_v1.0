@@ -1,5 +1,5 @@
 import { useEffect, lazy, Suspense } from "react"
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom"
+import { BrowserRouter, Routes, Route, useLocation, Navigate, useParams } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { pathMappings } from "@/i18n/paths"
 import { t } from "@/i18n"
@@ -71,6 +71,12 @@ const p = (key: keyof typeof pathMappings) => pathMappings[key][lang]
 const industriesHubPath = p('industriesHub')
 const featuresHubPath = p('featuresHub')
 
+// 301-style redirect for legacy /materialy/library/:slug -> /materialy/:slug
+function LegacyLibraryRedirect() {
+  const { slug } = useParams<{ slug: string }>()
+  return <Navigate to={`${pathMappings.resourcesHub[lang]}/${slug ?? ''}`} replace />
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -121,10 +127,16 @@ export default function App() {
         <Route path={p('blogIndex')} element={<BlogIndexPage />} />
         <Route path={`${p('blogIndex')}/:slug`} element={<BlogPostPage />} />
 
-        {/* Content Hub (unified /resources page) */}
-        <Route path={p('resourcesHub')} element={<ContentHubPage />} />
-        <Route path={`${p('resourcesHub')}/library`} element={<ResourcesIndexPage />} />
-        <Route path={`${p('resourcesHub')}/library/:slug`} element={<ResourcePage />} />
+        {/* Materials / Resources — ResourcesIndexPage is the main landing */}
+        <Route path={p('resourcesHub')} element={<ResourcesIndexPage />} />
+        <Route path={`${p('resourcesHub')}/:slug`} element={<ResourcePage />} />
+
+        {/* Legacy /library aliases — keep old blog + email links working */}
+        <Route path={`${p('resourcesHub')}/library`} element={<Navigate to={p('resourcesHub')} replace />} />
+        <Route path={`${p('resourcesHub')}/library/:slug`} element={<LegacyLibraryRedirect />} />
+
+        {/* Unified content discovery (blog + resources + case studies) moved to /wszystko */}
+        <Route path={`${p('resourcesHub')}/${isEN ? 'all' : 'wszystko'}`} element={<ContentHubPage />} />
 
         {/* Case Studies */}
         <Route path={p('caseStudiesHub')} element={<CaseStudiesIndexPage />} />

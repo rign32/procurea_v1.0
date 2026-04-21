@@ -291,30 +291,44 @@ export function metaFor(path: string): RouteMeta {
         canonical,
       }
 
-    // Content Hub — unified resources page
+    // Resources hub (lead magnets index) — lives at /materialy directly
     case '/materialy':
       return {
-        title: 'Materialy — Wiedza, przewodniki i case studies | Procurea',
-        description: 'Praktyczne materialy procurement: artykuly, przewodniki do pobrania i rzeczywiste case studies z beta cohort Procurea.',
+        title: 'Przewodniki i szablony procurement — darmowe do pobrania | Procurea',
+        description: 'Darmowe szablony, playbooki, checklisty i kalkulatory procurement: RFQ, TCO, scoring dostawcy, nearshore. Excel, PDF, Notion.',
         canonical,
         jsonLd: {
           '@context': 'https://schema.org',
           '@type': 'CollectionPage',
-          name: 'Materialy Procurement',
+          name: 'Przewodniki i szablony Procurea',
           url: canonical,
         },
       }
     case '/resources':
       return {
-        title: 'Resources — Procurement Insights, Guides & Case Studies | Procurea',
-        description: 'Practical procurement resources: articles, downloadable guides, and real case studies from Procurea beta cohort.',
+        title: 'Procurement Guides & Templates — Free Downloads | Procurea',
+        description: 'Free procurement templates, playbooks, checklists, and calculators. RFQ comparison, TCO calculator, supplier risk checklist, nearshore playbook, vendor scoring.',
         canonical,
         jsonLd: {
           '@context': 'https://schema.org',
           '@type': 'CollectionPage',
-          name: 'Procurement Resources',
+          name: 'Procurement Resources Library',
           url: canonical,
         },
+      }
+
+    // Unified content discovery (blog + resources + case studies) moved to /wszystko
+    case '/materialy/wszystko':
+      return {
+        title: 'Wszystkie materialy — blog, przewodniki, case studies | Procurea',
+        description: 'Pelne archiwum tresci Procurea: artykuly blogowe, lead magnets i case studies w jednym miejscu.',
+        canonical,
+      }
+    case '/resources/all':
+      return {
+        title: 'Full content library — blog, guides, case studies | Procurea',
+        description: 'The full Procurea content archive: blog posts, lead magnets, and case studies in one place.',
+        canonical,
       }
 
     // Blog index
@@ -333,18 +347,14 @@ export function metaFor(path: string): RouteMeta {
         },
       }
 
-    // Resources library (lead magnets index)
+    // Legacy /library paths — kept as canonical hints only; React Router redirects at runtime
     case '/materialy/library':
-      return {
-        title: 'Przewodniki i szablony procurement — Procurea',
-        description: 'Darmowe szablony, playbooki, checklisty i kalkulatory procurement. Do pobrania w formacie Excel, PDF, Notion.',
-        canonical,
-      }
     case '/resources/library':
       return {
-        title: 'Procurement Guides & Templates — Free Downloads | Procurea',
-        description: 'Free procurement templates, playbooks, checklists, and calculators. RFQ comparison template, TCO calculator, supplier risk checklist, nearshore migration playbook.',
+        title: 'Redirecting…',
+        description: '',
         canonical,
+        noindex: true,
       }
 
     // Case studies index
@@ -406,8 +416,8 @@ export const STATIC_ROUTES_PL = [
   '/partnerzy',
   // Content Hub
   '/materialy',
+  '/materialy/wszystko',
   '/blog',
-  '/materialy/library',
   '/case-studies',
 ]
 
@@ -445,7 +455,7 @@ export const STATIC_ROUTES_EN = [
   '/partners',
   // Content Hub
   '/resources',
+  '/resources/all',
   '/blog',
-  '/resources/library',
   '/case-studies',
 ]
