@@ -263,6 +263,7 @@ export const EN: Translations = {
 
     card: {
       qualified: 'Qualified',
+      contacted: 'Contacted',
       suppliersCount: 'Suppliers',
       created: 'Created',
     },

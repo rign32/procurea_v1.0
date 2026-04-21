@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { t } from '@/i18n';
+import { t, isEN } from '@/i18n';
 import organizationService from '@/services/organization.service';
 import type { UpdateOrganizationDto, Organization } from '@/services/organization.service';
 import { toast } from 'sonner';
@@ -204,6 +204,11 @@ export function OrganizationTab({ user }: OrganizationTabProps) {
                                         <Label className="flex items-center gap-2">
                                             <Eye className="h-4 w-4" /> {t.footer.preview}
                                         </Label>
+                                        <p className="text-xs text-muted-foreground -mt-3">
+                                            {isEN
+                                                ? 'Shown in outbound supplier emails (RFQ invitations, reminders) and at the bottom of the supplier offer portal.'
+                                                : 'Widoczne w e-mailach wychodzących do dostawców (zaproszenia RFQ, przypomnienia) oraz w stopce portalu ofertowego dostawcy.'}
+                                        </p>
                                         <div className="border rounded-md p-6 bg-white dark:bg-zinc-900 text-sm font-sans shadow-sm h-full flex flex-col justify-center">
                                             <p className="text-muted-foreground mb-4 italic">{t.settings.organization.footerPreviewMessage}</p>
                                             <div className="mt-auto border-t pt-4">

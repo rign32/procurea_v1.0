@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Globe, Loader2, Users, Download, Search, Check, X, FolderKanban, XCircle, ShieldAlert, Upload, FileSpreadsheet, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Globe, Loader2, Users, Download, Search, Check, X, FolderKanban, XCircle, ShieldAlert, Upload, FileSpreadsheet, CheckCircle2, AlertCircle, Star } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { SearchInput } from '@/components/ui/search-input';
@@ -53,6 +53,7 @@ export function SuppliersPage() {
 
   const [selectedCampaigns, setSelectedCampaigns] = useState<string[]>([]);
   const [campaignFilterOpen, setCampaignFilterOpen] = useState(false);
+  const [minScore, setMinScore] = useState<number>(0);
 
   // Import dialog state
   const [importDialogOpen, setImportDialogOpen] = useState(false);
@@ -90,10 +91,13 @@ export function SuppliersPage() {
     queryKey: ['suppliers', {
       search: debouncedSearch || undefined,
       campaignIds: selectedCampaigns.length > 0 ? selectedCampaigns : undefined,
+      minScore: minScore > 0 ? minScore : undefined,
     }],
     queryFn: ({ pageParam = 1 }) => suppliersService.getAll({
       search: debouncedSearch || undefined,
       campaignIds: selectedCampaigns.length > 0 ? selectedCampaigns : undefined,
+      // UI exposes 0-100 percent; backend stores analysisScore as 0-10.
+      minScore: minScore > 0 ? minScore / 10 : undefined,
       page: pageParam,
       pageSize: 100,
     }),
@@ -421,23 +425,16 @@ export function SuppliersPage() {
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[320px] p-0" align="end">
-            {/* Preset buttons */}
+            {/* Reset */}
             <div className="flex gap-1.5 p-2 border-b">
               <Button
                 variant={selectedCampaigns.length === 0 ? 'default' : 'outline'}
                 size="sm"
                 className="h-7 text-xs flex-1"
                 onClick={() => setSelectedCampaigns([])}
+                disabled={selectedCampaigns.length === 0}
               >
-                {t.common.all}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs flex-1"
-                onClick={() => setSelectedCampaigns([])}
-              >
-                {t.suppliers.page.clearFilters}
+                {selectedCampaigns.length === 0 ? t.common.all : t.suppliers.page.clearFilters}
               </Button>
             </div>
 
@@ -524,8 +521,9 @@ export function SuppliersPage() {
                 size="sm"
                 className="h-7 text-xs flex-1"
                 onClick={() => setSelectedCountries([])}
+                disabled={selectedCountries.length === 0}
               >
-                {t.common.all}
+                {selectedCountries.length === 0 ? t.common.all : t.suppliers.page.clearFilters}
               </Button>
               <Button
                 variant="outline"
@@ -534,14 +532,6 @@ export function SuppliersPage() {
                 onClick={selectEU}
               >
                 {t.suppliers.page.euOnly}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs flex-1"
-                onClick={() => setSelectedCountries([])}
-              >
-                {t.suppliers.page.clearFilters}
               </Button>
             </div>
 
@@ -581,6 +571,52 @@ export function SuppliersPage() {
                 {t.suppliers.page.selectedOf.replace('{selected}', String(selectedCountries.length)).replace('{total}', String(countries.length))}
               </div>
             )}
+          </PopoverContent>
+        </Popover>
+
+        {/* Min Score Filter */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-full sm:w-[180px] justify-between font-normal"
+            >
+              <span className="flex items-center gap-2 truncate">
+                <Star className="h-4 w-4 shrink-0 text-muted-foreground" />
+                {minScore > 0
+                  ? (isEN ? `Score ≥ ${minScore}%` : `Ocena ≥ ${minScore}%`)
+                  : (isEN ? 'Any score' : 'Dowolna ocena')}
+              </span>
+              {minScore > 0 ? (
+                <X
+                  className="h-4 w-4 shrink-0 text-muted-foreground hover:text-foreground"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMinScore(0);
+                  }}
+                />
+              ) : (
+                <svg className="h-4 w-4 shrink-0 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[240px] p-2" align="end">
+            <div className="text-[10.5px] font-mono uppercase tracking-[0.1em] text-muted-ink-2 px-1 pb-1.5">
+              {isEN ? 'Minimum AI match score' : 'Minimalna ocena AI'}
+            </div>
+            <div className="grid grid-cols-2 gap-1">
+              {[0, 50, 70, 85].map((v) => (
+                <Button
+                  key={v}
+                  variant={minScore === v ? 'default' : 'outline'}
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={() => setMinScore(v)}
+                >
+                  {v === 0 ? (isEN ? 'Any' : 'Dowolna') : `≥ ${v}%`}
+                </Button>
+              ))}
+            </div>
           </PopoverContent>
         </Popover>
       </div>

@@ -261,6 +261,7 @@ export const PL = {
 
     card: {
       qualified: 'Zakwalifikowanych',
+      contacted: 'Skontaktowanych',
       suppliersCount: 'Dostawców',
       created: 'Utworzono',
     },

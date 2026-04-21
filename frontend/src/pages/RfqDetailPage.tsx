@@ -144,6 +144,62 @@ function AlternativeOfferCard({ alt, unit }: { alt: Offer; unit: string }) {
   );
 }
 
+// Validity helpers — offers with an expired `validityDate` must not be silently accepted.
+type ValidityInfo = { state: 'none' | 'valid' | 'expiring' | 'expired'; days: number; date: Date | null };
+
+function getValidityInfo(validityDate: string | null | undefined): ValidityInfo {
+  if (!validityDate) return { state: 'none', days: 0, date: null };
+  const date = new Date(validityDate);
+  if (Number.isNaN(date.getTime())) return { state: 'none', days: 0, date: null };
+  const now = Date.now();
+  const diffMs = date.getTime() - now;
+  const days = Math.ceil(diffMs / (24 * 60 * 60 * 1000));
+  if (days < 0) return { state: 'expired', days, date };
+  if (days <= 7) return { state: 'expiring', days, date };
+  return { state: 'valid', days, date };
+}
+
+function ValidityCell({ validityDate }: { validityDate: string | null | undefined }) {
+  const info = getValidityInfo(validityDate);
+  const label = isEN ? 'Valid until' : 'Ważna do';
+  if (info.state === 'none' || !info.date) {
+    return (
+      <div>
+        <p className="text-muted-ink">{label}</p>
+        <p className="font-medium text-xs">—</p>
+      </div>
+    );
+  }
+  const toneClass =
+    info.state === 'expired' ? 'text-bad' :
+    info.state === 'expiring' ? 'text-warn' : 'text-ink';
+  return (
+    <div>
+      <p className="text-muted-ink">{label}</p>
+      <p className={`font-medium text-xs ${toneClass}`}>
+        {info.date.toLocaleDateString(isEN ? 'en-US' : 'pl-PL')}
+      </p>
+    </div>
+  );
+}
+
+function getValidityBadge(validityDate: string | null | undefined) {
+  const info = getValidityInfo(validityDate);
+  if (info.state === 'none' || info.state === 'valid') return null;
+  if (info.state === 'expired') {
+    return (
+      <Badge variant="destructive" className="text-[10px]">
+        {isEN ? `Expired ${-info.days}d ago` : `Wygasła ${-info.days} dni temu`}
+      </Badge>
+    );
+  }
+  return (
+    <Badge variant="outline" className="text-[10px] border-warn-border text-warn bg-warn-soft">
+      {isEN ? `Expires in ${info.days}d` : `Wygasa za ${info.days} dni`}
+    </Badge>
+  );
+}
+
 export function RfqDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -849,10 +905,13 @@ export function RfqDetailPage() {
                             </button>
                           </div>
                         </div>
-                        {getStatusBadge(offer.status)}
+                        <div className="flex items-center gap-2">
+                          {getValidityBadge(offer.validityDate)}
+                          {getStatusBadge(offer.status)}
+                        </div>
                       </div>
 
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
                         <div>
                           <p className="text-muted-ink">{t.rfqs.offer.price}</p>
                           {offer.priceTiers && offer.priceTiers.length > 0 ? (
@@ -881,6 +940,7 @@ export function RfqDetailPage() {
                             {new Date(offer.createdAt).toLocaleDateString(isEN ? 'en-US' : 'pl-PL')}
                           </p>
                         </div>
+                        <ValidityCell validityDate={offer.validityDate} />
                       </div>
 
                       {offer.comments && (
@@ -1175,33 +1235,57 @@ export function RfqDetailPage() {
 
       {/* Accept Confirmation Dialog */}
       {
-        acceptDialogId && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <Card className="max-w-md w-full">
-              <CardHeader>
-                <CardTitle>{t.rfqs.offer.acceptOffer}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-ink">{t.rfqs.detail.confirmAccept}</p>
-                <div className="flex gap-2 justify-end">
-                  <Button variant="outline" onClick={() => setAcceptDialogId(null)}>
-                    {t.common.cancel}
-                  </Button>
-                  <Button
-                    className="bg-green-600 hover:bg-green-700"
-                    onClick={() => handleAccept(acceptDialogId)}
-                    disabled={acceptMutation.isPending}
-                  >
-                    {acceptMutation.isPending ? (
-                      <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                    ) : null}
-                    {t.rfqs.offer.acceptOffer}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )
+        acceptDialogId && (() => {
+          const acceptingOffer = (offers as Offer[] | undefined)?.find((o) => o.id === acceptDialogId);
+          const info = getValidityInfo(acceptingOffer?.validityDate);
+          const isExpired = info.state === 'expired';
+          return (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <Card className="max-w-md w-full">
+                <CardHeader>
+                  <CardTitle>{t.rfqs.offer.acceptOffer}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-ink">{t.rfqs.detail.confirmAccept}</p>
+                  {isExpired && (
+                    <div className="rounded-md border border-bad-border bg-bad-soft p-3 text-sm text-bad">
+                      <strong>{isEN ? 'Offer expired' : 'Oferta wygasła'}</strong>
+                      <p className="text-xs mt-0.5 text-bad/80">
+                        {isEN
+                          ? `This offer's validity expired ${-info.days} day(s) ago (${info.date?.toLocaleDateString('en-US')}). Request a re-quote from the supplier before accepting to avoid stale pricing.`
+                          : `Ważność tej oferty wygasła ${-info.days} dni temu (${info.date?.toLocaleDateString('pl-PL')}). Przed akceptacją poproś dostawcę o odnowienie oferty, żeby uniknąć nieaktualnych cen.`}
+                      </p>
+                    </div>
+                  )}
+                  {info.state === 'expiring' && (
+                    <div className="rounded-md border border-warn-border bg-warn-soft p-3 text-sm text-warn">
+                      {isEN
+                        ? `Offer validity expires in ${info.days} day(s) (${info.date?.toLocaleDateString('en-US')}).`
+                        : `Ważność oferty wygasa za ${info.days} dni (${info.date?.toLocaleDateString('pl-PL')}).`}
+                    </div>
+                  )}
+                  <div className="flex gap-2 justify-end">
+                    <Button variant="outline" onClick={() => setAcceptDialogId(null)}>
+                      {t.common.cancel}
+                    </Button>
+                    <Button
+                      className={isExpired ? 'bg-amber-600 hover:bg-amber-700' : 'bg-green-600 hover:bg-green-700'}
+                      onClick={() => handleAccept(acceptDialogId)}
+                      disabled={acceptMutation.isPending}
+                    >
+                      {acceptMutation.isPending ? (
+                        <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                      ) : null}
+                      {isExpired
+                        ? (isEN ? 'Accept anyway' : 'Zaakceptuj mimo to')
+                        : t.rfqs.offer.acceptOffer}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          );
+        })()
       }
 
       {/* Contract Auto-Fill Modal (AI-generated draft from accepted offer) */}
@@ -1223,8 +1307,8 @@ export function RfqDetailPage() {
             </DialogTitle>
             <DialogDescription>
               {isEN
-                ? 'AI has pre-filled the contract draft. Review and edit before saving.'
-                : 'AI wypełniło wstępny kontrakt. Sprawdź i edytuj przed zapisem.'}
+                ? 'Contract draft pre-filled from the accepted offer (product, supplier, price, incoterms). Review and edit all terms before saving.'
+                : 'Wstępny kontrakt wypełniony z zaakceptowanej oferty (produkt, dostawca, cena, Incoterms). Sprawdź i edytuj wszystkie warunki przed zapisem.'}
             </DialogDescription>
           </DialogHeader>
 

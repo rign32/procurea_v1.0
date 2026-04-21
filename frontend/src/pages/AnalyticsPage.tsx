@@ -1,10 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Target, Users, Star, DollarSign, Zap, Search } from 'lucide-react';
+import { Target, Users, Star, DollarSign, Zap, Search, RefreshCw } from 'lucide-react';
 import { t, isEN } from '@/i18n';
 import { motion } from 'framer-motion';
 import apiClient from '@/services/api.client';
+import { formatRelative } from '@/lib/utils';
+
+/** Clamp a percentage value to 0..100 to prevent backend bugs from displaying 120% or -3%. */
+function clampPct(value: number | null | undefined): number {
+  if (value == null || Number.isNaN(value)) return 0;
+  return Math.max(0, Math.min(100, value));
+}
 
 interface AnalyticsData {
   funnel: {
@@ -136,7 +143,7 @@ function LoadingSkeleton() {
 }
 
 export default function AnalyticsPage() {
-  const { data, isLoading } = useAnalytics();
+  const { data, isLoading, dataUpdatedAt, refetch, isFetching } = useAnalytics();
 
   if (isLoading) return <LoadingSkeleton />;
 
@@ -171,9 +178,27 @@ export default function AnalyticsPage() {
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
-      <div>
-        <h1 className="text-[30px] leading-[1.1] tracking-[-0.03em] font-bold">{t.analytics.title}</h1>
-        <p className="text-muted-ink mt-1">{t.analytics.subtitle}</p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-[30px] leading-[1.1] tracking-[-0.03em] font-bold">{t.analytics.title}</h1>
+          <p className="text-muted-ink mt-1">{t.analytics.subtitle}</p>
+        </div>
+        <div className="flex items-center gap-3 text-xs font-mono text-muted-ink-2">
+          {dataUpdatedAt > 0 && (
+            <span title={new Date(dataUpdatedAt).toLocaleString(isEN ? 'en-US' : 'pl-PL')}>
+              {isEN ? 'Updated' : 'Zaktualizowano'}: {formatRelative(new Date(dataUpdatedAt))}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="inline-flex items-center gap-1 px-2 py-1 rounded-[6px] border border-rule hover:border-rule-3 hover:bg-bg-2 disabled:opacity-50 transition-colors"
+          >
+            <RefreshCw className={`h-3 w-3 ${isFetching ? 'animate-spin' : ''}`} />
+            {isEN ? 'Refresh' : 'Odśwież'}
+          </button>
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -188,7 +213,7 @@ export default function AnalyticsPage() {
           title={t.analytics.kpi.totalSuppliers}
           value={quality.totalSuppliers}
           icon={Users}
-          description={`${funnel.avgAuditorPassRate}% ${isEN ? 'pass rate' : 'przechodzi audyt'}`}
+          description={`${clampPct(funnel.avgAuditorPassRate)}% ${isEN ? 'pass rate' : 'przechodzi audyt'}`}
         />
         <KpiCard
           title={t.analytics.kpi.avgScore}
@@ -241,11 +266,11 @@ export default function AnalyticsPage() {
             <div className="flex gap-3 pt-2">
               <div className="rounded-md bg-emerald-50 dark:bg-emerald-950/30 px-3 py-1.5 text-xs">
                 <span className="text-muted-ink">{isEN ? 'Screener rate' : 'Screener rate'}: </span>
-                <span className="font-semibold text-emerald-600 dark:text-emerald-400">{funnel.avgScreenerPassRate}%</span>
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400">{clampPct(funnel.avgScreenerPassRate)}%</span>
               </div>
               <div className="rounded-md bg-green-50 dark:bg-green-950/30 px-3 py-1.5 text-xs">
                 <span className="text-muted-ink">{isEN ? 'Auditor rate' : 'Auditor rate'}: </span>
-                <span className="font-semibold text-green-600 dark:text-green-400">{funnel.avgAuditorPassRate}%</span>
+                <span className="font-semibold text-green-600 dark:text-green-400">{clampPct(funnel.avgAuditorPassRate)}%</span>
               </div>
             </div>
           </CardContent>

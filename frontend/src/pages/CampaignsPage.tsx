@@ -248,7 +248,7 @@ export function CampaignsPage() {
                     <div className="flex items-center justify-between text-sm">
                       {isFullPlan && (
                         <div>
-                          <p className="text-muted-foreground">{t.campaigns.card.qualified}</p>
+                          <p className="text-muted-foreground">{t.campaigns.card.contacted}</p>
                           <p className="text-2xl font-bold text-green-600">
                             {campaign.suppliersQualified || 0}
                           </p>

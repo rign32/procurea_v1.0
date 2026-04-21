@@ -98,8 +98,8 @@ export function NotificationsTab({ user, isFullPlan = false }: NotificationsTabP
                         <>
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
-                                    <Label className="text-base">{nt.newOffer}</Label>
-                                    <p className="text-sm text-muted-foreground">{nt.newOfferDesc}</p>
+                                    <Label className="text-base">{nt.emailNotifications}</Label>
+                                    <p className="text-sm text-muted-foreground">{nt.emailNotificationsDesc}</p>
                                 </div>
                                 <Switch
                                     checked={prefs.emailNotifications}
@@ -108,8 +108,8 @@ export function NotificationsTab({ user, isFullPlan = false }: NotificationsTabP
                             </div>
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
-                                    <Label className="text-base">{nt.supplierMessage}</Label>
-                                    <p className="text-sm text-muted-foreground">{nt.supplierMessageDesc}</p>
+                                    <Label className="text-base">{nt.weeklyReports}</Label>
+                                    <p className="text-sm text-muted-foreground">{nt.weeklyReportsDesc}</p>
                                 </div>
                                 <Switch
                                     checked={prefs.weeklyReports}
@@ -118,7 +118,7 @@ export function NotificationsTab({ user, isFullPlan = false }: NotificationsTabP
                             </div>
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
-                                    <Label className="text-base">{nt.offerRoundEnd}</Label>
+                                    <Label className="text-base">{nt.campaignCompleted}</Label>
                                     <p className="text-sm text-muted-foreground">{nt.campaignCompletedDesc}</p>
                                 </div>
                                 <Switch
