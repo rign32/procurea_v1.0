@@ -560,7 +560,7 @@ function UploadDialog({
         <DialogHeader>
           <DialogTitle>{t.documents.uploadDialog}</DialogTitle>
           <DialogDescription>
-            PDF, DXF, STEP, JPG, PNG -- max 10MB
+            {t.documents.uploadHint}
           </DialogDescription>
         </DialogHeader>
 

@@ -1242,6 +1242,7 @@ export const PL = {
     subtitle: 'Zarządzaj dokumentami zakupowymi',
     upload: 'Dodaj dokument',
     uploadDialog: 'Dodaj nowy dokument',
+    uploadHint: 'PDF, DXF, STEP, JPG, PNG — max 10 MB',
     uploadVersion: 'Dodaj nową wersję',
     noDocuments: 'Brak dokumentów',
     noDocumentsDesc: 'Dodaj pierwszy dokument klikając przycisk powyżej.',

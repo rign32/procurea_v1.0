@@ -21,18 +21,16 @@ type EmailFilter = 'all' | 'with_email' | 'without_email';
 export function ContactsPage() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter] = useState<string>('');
   const [emailFilter, setEmailFilter] = useState<EmailFilter>('with_email');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [addForm, setAddForm] = useState({ supplierId: '', name: '', role: '', email: '', phone: '' });
   const [saving, setSaving] = useState(false);
 
   const { data: contacts = [], isLoading } = useQuery({
-    queryKey: ['contacts', searchQuery, statusFilter],
+    queryKey: ['contacts', searchQuery],
     queryFn: () =>
       campaignsService.getAllContacts({
         search: searchQuery || undefined,
-        emailStatus: statusFilter || undefined,
       }),
     staleTime: 30000,
   });
@@ -59,12 +57,12 @@ export function ContactsPage() {
         email: addForm.email.trim() || undefined,
         phone: addForm.phone.trim() || undefined,
       });
-      toast.success(t.common.success);
+      toast.success(isEN ? 'Contact added' : 'Kontakt dodany');
       setAddDialogOpen(false);
       setAddForm({ supplierId: '', name: '', role: '', email: '', phone: '' });
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
     } catch {
-      toast.error(t.common.error);
+      toast.error(isEN ? 'Failed to add contact' : 'Nie udało się dodać kontaktu');
     } finally {
       setSaving(false);
     }
