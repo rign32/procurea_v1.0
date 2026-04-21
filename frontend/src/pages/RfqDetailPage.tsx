@@ -966,7 +966,8 @@ export function RfqDetailPage() {
                       const isFastest = comparisonResult.comparison.fastestDelivery?.offerId === offer.id;
                       const isRecommended = comparisonResult.aiRecommendation?.recommendedOfferId === offer.id;
                       const aiScore = comparisonResult.aiRecommendation?.scores?.find((s) => s.offerId === offer.id);
-                      const risks = offer.riskFlags || {};
+                      const risks: { isNewSupplier?: boolean; leadTimeRisk?: boolean; priceOutlier?: boolean } =
+                        offer.riskFlags ?? {};
 
                       // Use tier price for comparison if available
                       let displayPrice: string;
