@@ -68,7 +68,7 @@ const featuresEN: Record<string, FeatureContent> = {
   'ai-sourcing': {
     slug: 'ai-sourcing',
     group: 'sourcing',
-    tierBadge: 'AI Sourcing · from $89 / 10 credits · 10 free on signup',
+    tierBadge: 'Included in every plan · from $69/month · 3 free campaigns',
     heroTitle: 'AI Sourcing — 50–250 verified vendors in 20 minutes',
     heroSubtitle:
       'Describe what you need in plain language. Our AI-native pipeline plans a search strategy across 26 languages, crawls directories and sources traditional tools miss, scores every supplier for capability fit, and enriches the shortlist with contact data and certification evidence. First 20 vendors land in your dashboard in under three minutes; the full list of 50–250 qualified suppliers — deduplicated against your existing base — is Excel-ready in about 20.',
@@ -95,12 +95,12 @@ const featuresEN: Record<string, FeatureContent> = {
       'Supplier Database with AI scores, contacts, and certification tracking',
       'One-click Excel export (full supplier list with contacts)',
       'Deduplicates against your existing supplier base',
-      '10 free credits on signup — no credit card required',
+      '3 free campaigns on signup — no credit card required',
     ],
     relatedIndustries: ['produkcja', 'eventy', 'budownictwo', 'retail-ecommerce'],
     relatedFeatures: ['fCompanyRegistry', 'fEmailOutreach'],
     ctaTitle: 'Start your first campaign free',
-    ctaBody: 'Sign up with your work email. You get 10 free credits — enough to run your first 10 AI sourcing campaigns. No credit card required.',
+    ctaBody: 'Sign up with your work email. You get 3 free campaigns — enough to try AI sourcing on real categories. No credit card required.',
     isSelfServe: true,
     interestTag: 'ai_sourcing',
     hasPage: true,
@@ -227,20 +227,20 @@ const featuresEN: Record<string, FeatureContent> = {
         a: 'Full support for 26 languages covering the EU plus major global markets. Highest precision today: Polish, German, French, Italian, Spanish, English — thanks to very strong directory and registry coverage. Turkish, Czech, Dutch, Portuguese and Nordic languages are fully supported. Non-Latin scripts (Arabic, Chinese, Japanese) are on the roadmap.',
       },
       {
-        q: 'What does one credit actually get me?',
-        a: 'One campaign = one credit. A campaign returns 50–250 qualified vendors depending on category coverage — niche B2B segments lean toward 50–80, mainstream categories (packaging, logistics, generic manufacturing) routinely return 200+. Average across all campaigns: ~120 vendors per credit. 10 free credits on signup means 10 real campaigns with no card required.',
+        q: 'What does one sourcing campaign actually get me?',
+        a: 'A campaign returns 50–250 qualified vendors depending on category coverage — niche B2B segments lean toward 50–80, mainstream categories (packaging, logistics, generic manufacturing) routinely return 200+. Average across all campaigns: ~120 vendors per run. 3 free campaigns on signup means three real shortlists with no card required.',
       },
       {
         q: 'Can I filter by certification before the AI scores vendors?',
-        a: 'Yes. Supported filters include ISO 9001, IATF 16949, FSC, PEFC, FDA, CE, OEKO-TEX, BRC, IFS, GOTS, GMP, ISO 22716, ISO 14001, ISO 27001 and more. The filter is applied at the Screener stage — vendors without evidence of the certification never reach enrichment, which keeps the shortlist tight and the credit cost low.',
+        a: 'Yes. Supported filters include ISO 9001, IATF 16949, FSC, PEFC, FDA, CE, OEKO-TEX, BRC, IFS, GOTS, GMP, ISO 22716, ISO 14001, ISO 27001 and more. The filter is applied at the Screener stage — vendors without evidence of the certification never reach enrichment, which keeps the shortlist tight and the per-run cost low.',
       },
       {
-        q: 'How does Enterprise tier differ from self-serve credits?',
-        a: 'Enterprise adds: priority pipeline processing (2x faster turnaround under load), REST API access for ERP integration, custom certification and data filters, SSO, dedicated customer success, higher per-campaign vendor caps, and volume pricing. Self-serve credits are perfect for teams running under 50 campaigns a month; Enterprise is the right fit above that or where API + SSO are non-negotiable.',
+        q: 'How does Enterprise Custom differ from self-serve plans?',
+        a: 'Enterprise Custom adds: priority pipeline processing (2x faster turnaround under load), REST API access for ERP integration, custom certification and data filters, SSO, dedicated customer success, higher per-campaign vendor caps, and volume pricing. Self-serve plans (Starter $69/mo, Growth $159/mo, Scale $299/mo) are perfect for teams running under 150 campaigns a month; Enterprise Custom is the right fit above that or where API + SSO are non-negotiable.',
       },
       {
         q: 'Is there a real free trial?',
-        a: 'Yes — 10 credits on signup, no credit card, no trial clock. That is enough to run 10 full production campaigns across different categories. If you find the results useful, top up at $89 per 10 credits. If you do not, you owe us nothing and your research is still yours to export.',
+        a: 'Yes — 3 free sourcing campaigns on signup, no credit card, no trial clock. That is enough to run production campaigns across three different categories. If you find the results useful, start on Starter at $69/month (10 campaigns). If you do not, you owe us nothing and your research is still yours to export.',
       },
     ],
   },
@@ -291,7 +291,7 @@ const featuresEN: Record<string, FeatureContent> = {
   'outreach-mailowy': {
     slug: 'email-outreach',
     group: 'outreach',
-    tierBadge: 'AI Procurement · from $349 / 10 credits · contact sales',
+    tierBadge: 'Procurement workflow add-on · $29 per run',
     heroTitle: 'Email Outreach — send RFQ to 200+ suppliers in one click',
     heroSubtitle:
       'Replace two weeks of manual RFQ sending with a 10-minute workflow. Automated bulk outreach, localized per supplier country, with full delivery and open tracking. Built for procurement teams (1–5 people) drowning in mail-merge spreadsheets, PDF attachments, and chasing non-responders across 20+ email threads. Integrates with the Supplier Portal — no manual data entry, structured responses from day one.',
@@ -344,7 +344,7 @@ const featuresEN: Record<string, FeatureContent> = {
   'enrichment-kontaktow': {
     slug: 'contact-enrichment',
     group: 'outreach',
-    tierBadge: 'AI Procurement · contact sales',
+    tierBadge: 'Procurement workflow add-on · $29 per run',
     heroTitle: 'Contact Enrichment — decision-maker contacts per supplier',
     heroSubtitle:
       'Find verified decision-maker emails, phone numbers, and LinkedIn profiles for every supplier in your campaign. Feeds directly into Email Outreach for high-quality bulk RFQ.',
@@ -363,7 +363,7 @@ const featuresEN: Record<string, FeatureContent> = {
     relatedIndustries: ['produkcja', 'budownictwo', 'retail-ecommerce'],
     relatedFeatures: ['fEmailOutreach', 'fAutoFollowUp'],
     ctaTitle: 'Book a demo',
-    ctaBody: 'Contact Enrichment is part of AI Procurement credits. Book a 30-min call to see it running on your category.',
+    ctaBody: 'Contact Enrichment is part of the AI Procurement workflow add-on ($29/run). Book a 30-min call to see it running on your category.',
     isSelfServe: false,
     interestTag: 'ai_procurement',
     hasPage: false,
@@ -372,7 +372,7 @@ const featuresEN: Record<string, FeatureContent> = {
   'auto-follow-up': {
     slug: 'auto-follow-up',
     group: 'outreach',
-    tierBadge: 'AI Procurement · contact sales',
+    tierBadge: 'Procurement workflow add-on · $29 per run',
     heroTitle: 'Auto Follow-up — sequences that reach non-responders',
     heroSubtitle:
       'Multi-step email sequences on your schedule. Reach suppliers who missed the first RFQ without any manual work. Stop automatically when a supplier submits an offer.',
@@ -391,7 +391,7 @@ const featuresEN: Record<string, FeatureContent> = {
     relatedIndustries: ['produkcja', 'budownictwo', 'eventy'],
     relatedFeatures: ['fEmailOutreach', 'fMultilingualOutreach'],
     ctaTitle: 'Book a demo',
-    ctaBody: 'Auto Follow-up is part of AI Procurement credits. See it in action in a 30-min demo.',
+    ctaBody: 'Auto Follow-up is part of the AI Procurement workflow add-on ($29/run). See it in action in a 30-min demo.',
     isSelfServe: false,
     interestTag: 'ai_procurement',
     hasPage: false,
@@ -400,7 +400,7 @@ const featuresEN: Record<string, FeatureContent> = {
   'wielojezyczny-outreach': {
     slug: 'multilingual-outreach',
     group: 'outreach',
-    tierBadge: 'AI Procurement · contact sales',
+    tierBadge: 'Procurement workflow add-on · $29 per run',
     heroTitle: 'Multilingual Outreach — 26 languages via Gemini',
     heroSubtitle:
       'Talk to every supplier in their local language. Gemini-powered translation preserves context, terminology, and tone. Response rate 2–3x higher than English-only outreach.',
@@ -420,7 +420,7 @@ const featuresEN: Record<string, FeatureContent> = {
     relatedIndustries: ['produkcja', 'eventy', 'retail-ecommerce'],
     relatedFeatures: ['fEmailOutreach', 'fAutoFollowUp'],
     ctaTitle: 'Book a demo',
-    ctaBody: 'Multilingual Outreach is part of AI Procurement credits. See the 2-way translation flow in a 30-min demo.',
+    ctaBody: 'Multilingual Outreach is part of the AI Procurement workflow add-on ($29/run). See the 2-way translation flow in a 30-min demo.',
     isSelfServe: false,
     interestTag: 'ai_procurement',
     hasPage: false,
@@ -429,7 +429,7 @@ const featuresEN: Record<string, FeatureContent> = {
   'supplier-portal': {
     slug: 'supplier-portal',
     group: 'offers',
-    tierBadge: 'AI Procurement · contact sales',
+    tierBadge: 'Procurement workflow add-on · $29 per run',
     heroTitle: 'Supplier Portal — magic link, no login, no friction',
     heroSubtitle:
       'Stop chasing PDFs, Excel attachments, and inconsistent quote formats. Suppliers submit structured offers via a personalized link — no account creation, no password, no onboarding call. Built for procurement teams running 5–50 RFQs per month who need quantity breaks, alternatives, certificates, and attachments all captured in a single standard format. 40% of suppliers respond from mobile.',
@@ -482,7 +482,7 @@ const featuresEN: Record<string, FeatureContent> = {
   'zbieranie-ofert': {
     slug: 'offer-collection',
     group: 'offers',
-    tierBadge: 'AI Procurement · contact sales',
+    tierBadge: 'Procurement workflow add-on · $29 per run',
     heroTitle: 'Offer Collection — structured quotes, not PDF attachments',
     heroSubtitle:
       'Every offer comes in as structured data: price tiers, quantity breaks, alternatives, attachments. No more parsing PDFs or chasing email threads.',
@@ -511,7 +511,7 @@ const featuresEN: Record<string, FeatureContent> = {
   'porownywarka-ofert': {
     slug: 'offer-comparison',
     group: 'offers',
-    tierBadge: 'AI Procurement · contact sales',
+    tierBadge: 'Procurement workflow add-on · $29 per run',
     heroTitle: 'Offer Comparison — every quote, side by side',
     heroSubtitle:
       'Replace hand-built Excel comparison sheets and two-day CFO prep with a structured, AI-weighted ranking view. Compare all RFQ responses on price, MOQ, lead time, certifications, payment terms, alternatives — up to 200 offers side by side. Built for procurement leads preparing tender recommendations, CFO approvals, and board-level supplier decisions. Export as PDF or PPTX for stakeholders.',
@@ -564,7 +564,7 @@ const featuresEN: Record<string, FeatureContent> = {
   'ai-insights': {
     slug: 'ai-insights',
     group: 'insights',
-    tierBadge: 'AI Procurement · contact sales',
+    tierBadge: 'Procurement workflow add-on · $29 per run',
     heroTitle: 'AI Insights — campaign reports that read themselves',
     heroSubtitle:
       'Gemini-powered summary of every campaign: supplier distribution, database quality, response rates, and offer benchmarking vs. your targets. Auto-generated PDF/PPTX reports ready for your board.',
@@ -598,7 +598,7 @@ const featuresPL: Record<string, FeatureContent> = {
   'ai-sourcing': {
     slug: 'ai-sourcing',
     group: 'sourcing',
-    tierBadge: 'AI Sourcing · od $89 / 10 kredytów · 10 darmowych po rejestracji',
+    tierBadge: 'Dostępne w każdym planie · od 289 zł/miesiąc · 3 darmowe kampanie',
     heroTitle: 'AI Sourcing — 50–250 zweryfikowanych dostawców w 20 minut',
     heroSubtitle:
       'Opisz czego szukasz zwykłym językiem. Nasz AI-native pipeline planuje strategię wyszukiwania w 26 językach, przeczesuje rejestry i katalogi branżowe, których tradycyjne narzędzia nie widzą, ocenia każdego dostawcę pod kątem dopasowania do briefu i wzbogaca shortlistę o zweryfikowane dane rejestrowe i kontaktowe. Pierwsze 20 dostawców ląduje w Twoim dashboardzie w mniej niż trzy minuty; pełna lista 50–250 zakwalifikowanych vendorów — z automatyczną deduplikacją wobec Twojej bazy — jest gotowa do eksportu do Excela w około 20.',
@@ -625,12 +625,12 @@ const featuresPL: Record<string, FeatureContent> = {
       'Baza Dostawców z ocenami AI, kontaktami i śledzeniem certyfikatów',
       'Eksport do Excela jednym kliknięciem (pełna lista z kontaktami)',
       'Deduplikacja wobec istniejącej bazy dostawców',
-      '10 darmowych kredytów po rejestracji — bez karty',
+      '3 darmowe kampanie po rejestracji — bez karty',
     ],
     relatedIndustries: ['produkcja', 'eventy', 'budownictwo', 'retail-ecommerce'],
     relatedFeatures: ['fCompanyRegistry', 'fEmailOutreach'],
     ctaTitle: 'Zacznij pierwszą kampanię za darmo',
-    ctaBody: 'Załóż konto służbowym mailem. Dostajesz 10 darmowych kredytów — wystarczy na 10 pierwszych kampanii AI sourcingu. Bez karty kredytowej.',
+    ctaBody: 'Załóż konto służbowym mailem. Dostajesz 3 darmowe kampanie — wystarczy by przetestować AI sourcing na realnych kategoriach. Bez karty kredytowej.',
     isSelfServe: true,
     interestTag: 'ai_sourcing',
     hasPage: true,
@@ -757,20 +757,20 @@ const featuresPL: Record<string, FeatureContent> = {
         a: 'Pełne wsparcie dla 26 języków pokrywających UE plus kluczowe rynki globalne. Najwyższa precyzja dziś: polski, niemiecki, francuski, włoski, hiszpański, angielski — dzięki bardzo dobremu pokryciu katalogów i rejestrów. Turecki, czeski, holenderski, portugalski i języki nordyckie są w pełni wspierane. Non-Latin scripts (arabski, chiński, japoński) są w roadmapie.',
       },
       {
-        q: 'Co dokładnie dostaję za jeden kredyt?',
-        a: 'Jedna kampania = jeden kredyt. Kampania zwraca 50–250 zakwalifikowanych vendorów zależnie od pokrycia kategorii — niszowe segmenty B2B dają 50–80, mainstream kategorie (opakowania, logistyka, ogólna produkcja) rutynowo zwracają 200+. Średnia wszystkich kampanii: ~120 dostawców per kredyt. 10 darmowych kredytów po rejestracji to 10 realnych kampanii bez karty kredytowej.',
+        q: 'Co dokładnie dostaję za jedną kampanię?',
+        a: 'Kampania zwraca 50–250 zakwalifikowanych vendorów zależnie od pokrycia kategorii — niszowe segmenty B2B dają 50–80, mainstream kategorie (opakowania, logistyka, ogólna produkcja) rutynowo zwracają 200+. Średnia wszystkich kampanii: ~120 dostawców na kampanię. 3 darmowe kampanie po rejestracji to trzy realne shortlisty bez karty kredytowej.',
       },
       {
         q: 'Czy mogę filtrować po certyfikatach, zanim AI zacznie scoringować?',
-        a: 'Tak. Wspierane filtry to ISO 9001, IATF 16949, FSC, PEFC, FDA, CE, OEKO-TEX, BRC, IFS, GOTS, GMP, ISO 22716, ISO 14001, ISO 27001 i więcej. Filtr jest aplikowany na etapie Screenera — vendorzy bez dowodów certyfikatu nigdy nie docierają do enrichment, co utrzymuje shortlistę zwięzłą a koszt kredytu niski.',
+        a: 'Tak. Wspierane filtry to ISO 9001, IATF 16949, FSC, PEFC, FDA, CE, OEKO-TEX, BRC, IFS, GOTS, GMP, ISO 22716, ISO 14001, ISO 27001 i więcej. Filtr jest aplikowany na etapie Screenera — vendorzy bez dowodów certyfikatu nigdy nie docierają do enrichment, co utrzymuje shortlistę zwięzłą a koszt za kampanię niski.',
       },
       {
-        q: 'Czym różni się tier Enterprise od self-serve kredytów?',
-        a: 'Enterprise dodaje: priority processing pipeline\'u (2x szybszy turnaround pod obciążeniem), REST API dla integracji z ERP, custom filtry certyfikatów i danych, SSO, dedykowany customer success, wyższe capy vendorów per kampania i volume pricing. Self-serve kredyty są idealne dla zespołów z poniżej 50 kampaniami miesięcznie; Enterprise to właściwy wybór powyżej albo gdy API + SSO są non-negotiable.',
+        q: 'Czym różni się Enterprise Custom od self-serve planów?',
+        a: 'Enterprise Custom dodaje: priority processing pipeline\'u (2x szybszy turnaround pod obciążeniem), REST API dla integracji z ERP, custom filtry certyfikatów i danych, SSO, dedykowany customer success, wyższe capy vendorów per kampania i volume pricing. Self-serve plany (Starter 289 zł/mies, Growth 649 zł/mies, Scale 1 199 zł/mies) są idealne dla zespołów z poniżej 150 kampaniami miesięcznie; Enterprise Custom to właściwy wybór powyżej albo gdy API + SSO są non-negotiable.',
       },
       {
         q: 'Czy jest realny free trial?',
-        a: 'Tak — 10 kredytów po rejestracji, bez karty kredytowej, bez zegara trialu. To wystarczy na 10 pełnoprawnych kampanii produkcyjnych w różnych kategoriach. Jeśli uznasz wyniki za użyteczne, doładowujesz po $89 za 10 kredytów. Jeśli nie — nic nam nie jesteś winien, a Twój research i tak pozostaje Twój do exportu.',
+        a: 'Tak — 3 darmowe kampanie sourcingowe po rejestracji, bez karty kredytowej, bez zegara trialu. To wystarczy na trzy pełnoprawne kampanie produkcyjne w różnych kategoriach. Jeśli uznasz wyniki za użyteczne, startujesz od planu Starter (289 zł/mies, 10 kampanii). Jeśli nie — nic nam nie jesteś winien, a Twój research i tak pozostaje Twój do exportu.',
       },
     ],
   },
@@ -809,7 +809,7 @@ const featuresPL: Record<string, FeatureContent> = {
   'outreach-mailowy': {
     slug: 'email-outreach',
     group: 'outreach',
-    tierBadge: 'AI Procurement · od $349 / 10 kredytów · porozmawiaj z nami',
+    tierBadge: 'Dodatek Procurement workflow · 129 zł / run',
     heroTitle: 'Email Outreach — RFQ do 200+ dostawców jednym kliknięciem',
     heroSubtitle:
       'Zastąp dwa tygodnie ręcznej wysyłki RFQ 10-minutowym workflow. Zautomatyzowane bulk-RFQ, zlokalizowane per kraj dostawcy, z pełnym trackingiem dostarczeń i otwarć. Dla zespołów procurement (1–5 osób) tonących w mail-merge arkuszach, załącznikach PDF i gonieniu nierespondentów przez 20+ wątków mailowych. Integruje się z Supplier Portalem — bez ręcznego wpisywania, strukturalne odpowiedzi od pierwszego dnia.',
@@ -862,7 +862,7 @@ const featuresPL: Record<string, FeatureContent> = {
   'enrichment-kontaktow': {
     slug: 'contact-enrichment',
     group: 'outreach',
-    tierBadge: 'AI Procurement · porozmawiaj z nami',
+    tierBadge: 'Dodatek Procurement workflow · 129 zł / run',
     heroTitle: 'Enrichment Kontaktów — kontakty do decydentów per dostawca',
     heroSubtitle:
       'Znajdź zweryfikowane emaile decydentów, telefony i profile LinkedIn dla każdego dostawcy w Twojej kampanii. Zasila bezpośrednio Email Outreach dla wysokiej jakości bulk RFQ.',
@@ -881,7 +881,7 @@ const featuresPL: Record<string, FeatureContent> = {
     relatedIndustries: ['produkcja', 'budownictwo', 'retail-ecommerce'],
     relatedFeatures: ['fEmailOutreach', 'fAutoFollowUp'],
     ctaTitle: 'Umów demo',
-    ctaBody: 'Enrichment Kontaktów jest częścią kredytów AI Procurement. Umów 30-minutowe spotkanie żeby zobaczyć to na Twojej kategorii.',
+    ctaBody: 'Enrichment Kontaktów jest częścią dodatku AI Procurement workflow (129 zł / run). Umów 30-minutowe spotkanie żeby zobaczyć to na Twojej kategorii.',
     isSelfServe: false,
     interestTag: 'ai_procurement',
     hasPage: false,
@@ -890,7 +890,7 @@ const featuresPL: Record<string, FeatureContent> = {
   'auto-follow-up': {
     slug: 'auto-follow-up',
     group: 'outreach',
-    tierBadge: 'AI Procurement · porozmawiaj z nami',
+    tierBadge: 'Dodatek Procurement workflow · 129 zł / run',
     heroTitle: 'Auto Follow-up — sekwencje docierające do nierespondentów',
     heroSubtitle:
       'Wielo-krokowe sekwencje maili na Twoim harmonogramie. Dotrzyj do dostawców którzy pominęli pierwsze RFQ bez żadnej ręcznej pracy. Zatrzymaj się automatycznie gdy dostawca złoży ofertę.',
@@ -909,7 +909,7 @@ const featuresPL: Record<string, FeatureContent> = {
     relatedIndustries: ['produkcja', 'budownictwo', 'eventy'],
     relatedFeatures: ['fEmailOutreach', 'fMultilingualOutreach'],
     ctaTitle: 'Umów demo',
-    ctaBody: 'Auto Follow-up jest częścią kredytów AI Procurement. Zobacz w akcji w 30-minutowym demo.',
+    ctaBody: 'Auto Follow-up jest częścią dodatku AI Procurement workflow (129 zł / run). Zobacz w akcji w 30-minutowym demo.',
     isSelfServe: false,
     interestTag: 'ai_procurement',
     hasPage: false,
@@ -918,7 +918,7 @@ const featuresPL: Record<string, FeatureContent> = {
   'wielojezyczny-outreach': {
     slug: 'multilingual-outreach',
     group: 'outreach',
-    tierBadge: 'AI Procurement · porozmawiaj z nami',
+    tierBadge: 'Dodatek Procurement workflow · 129 zł / run',
     heroTitle: 'Wielojęzyczny Outreach — 26 języków przez Gemini',
     heroSubtitle:
       'Rozmawiaj z każdym dostawcą w jego lokalnym języku. Tłumaczenie Gemini zachowuje kontekst, terminologię i ton. Response rate 2–3x wyższy niż outreach tylko po angielsku.',
@@ -938,7 +938,7 @@ const featuresPL: Record<string, FeatureContent> = {
     relatedIndustries: ['produkcja', 'eventy', 'retail-ecommerce'],
     relatedFeatures: ['fEmailOutreach', 'fAutoFollowUp'],
     ctaTitle: 'Umów demo',
-    ctaBody: 'Wielojęzyczny Outreach jest częścią kredytów AI Procurement. Zobacz 2-way translation flow w 30-min demo.',
+    ctaBody: 'Wielojęzyczny Outreach jest częścią dodatku AI Procurement workflow (129 zł / run). Zobacz 2-way translation flow w 30-min demo.',
     isSelfServe: false,
     interestTag: 'ai_procurement',
     hasPage: false,
@@ -947,7 +947,7 @@ const featuresPL: Record<string, FeatureContent> = {
   'supplier-portal': {
     slug: 'supplier-portal',
     group: 'offers',
-    tierBadge: 'AI Procurement · porozmawiaj z nami',
+    tierBadge: 'Dodatek Procurement workflow · 129 zł / run',
     heroTitle: 'Supplier Portal — magic link, bez logowania, bez friction',
     heroSubtitle:
       'Koniec z goniem PDF-ów, załączników Excel i niespójnych formatów ofert. Dostawcy składają strukturalne quotes przez personalizowany link — bez zakładania konta, bez hasła, bez rozmowy onboardingowej. Dla zespołów procurement prowadzących 5–50 RFQ miesięcznie, które potrzebują quantity breaks, alternatyw, certyfikatów i załączników w jednym standardzie. 40% dostawców odpowiada z telefonu.',
@@ -1000,7 +1000,7 @@ const featuresPL: Record<string, FeatureContent> = {
   'zbieranie-ofert': {
     slug: 'offer-collection',
     group: 'offers',
-    tierBadge: 'AI Procurement · porozmawiaj z nami',
+    tierBadge: 'Dodatek Procurement workflow · 129 zł / run',
     heroTitle: 'Zbieranie Ofert — strukturalne quotes, nie PDF-y w załącznikach',
     heroSubtitle:
       'Każda oferta przychodzi jako strukturalne dane: price tiers, quantity breaks, alternatywy, załączniki. Bez parsowania PDF, bez gonienia za chainami maili.',
@@ -1029,7 +1029,7 @@ const featuresPL: Record<string, FeatureContent> = {
   'porownywarka-ofert': {
     slug: 'offer-comparison',
     group: 'offers',
-    tierBadge: 'AI Procurement · porozmawiaj z nami',
+    tierBadge: 'Dodatek Procurement workflow · 129 zł / run',
     heroTitle: 'Porównywarka Ofert — każde quote, side by side',
     heroSubtitle:
       'Zastąp ręcznie budowane arkusze Excel i dwudniowy prep dla CFO strukturalnym, ważonym AI widokiem rankingu. Porównuj wszystkie odpowiedzi RFQ po cenie, MOQ, lead time, certyfikatach, warunkach płatności, alternatywach — do 200 ofert side by side. Dla lidów procurement przygotowujących rekomendacje tenderowe, akceptacje CFO i decyzje o dostawcach na poziomie zarządu. Eksport do PDF lub PPTX dla stakeholderów.',
@@ -1082,7 +1082,7 @@ const featuresPL: Record<string, FeatureContent> = {
   'ai-insights': {
     slug: 'ai-insights',
     group: 'insights',
-    tierBadge: 'AI Procurement · porozmawiaj z nami',
+    tierBadge: 'Dodatek Procurement workflow · 129 zł / run',
     heroTitle: 'AI Insights — raporty kampanii które same się piszą',
     heroSubtitle:
       'Podsumowanie Gemini każdej kampanii: rozkład dostawców, jakość bazy, statystyki odpowiedzi i benchmark ofert vs. Twoje cele. Auto-generowane raporty PDF/PPTX gotowe dla zarządu.',

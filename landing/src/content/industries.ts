@@ -95,7 +95,7 @@ const industriesEN: Record<string, IndustryContent> = {
       },
       {
         title: 'Parallel campaigns for complex events',
-        body: 'Run catering, AV, scenography campaigns simultaneously. Compare offers per category, lock in the best, move on. Scale pack = 50 credits for parallel campaigns.',
+        body: 'Run catering, AV, scenography campaigns simultaneously. Compare offers per category, lock in the best, move on. Growth or Scale plan gives you 50–150 campaigns per month — room for parallel category work.',
       },
     ],
     topFeatures: ['fAiSourcing', 'fMultilingualOutreach', 'fSupplierPortal', 'fAutoFollowUp'],
@@ -459,7 +459,7 @@ const industriesPL: Record<string, IndustryContent> = {
       },
       {
         title: 'Równoległe kampanie dla złożonych eventów',
-        body: 'Prowadź kampanie catering, AV, scenografia jednocześnie. Porównuj oferty per kategoria, blokuj najlepsze, idź dalej. Pakiet Scale = 50 kredytów na równoległe kampanie.',
+        body: 'Prowadź kampanie catering, AV, scenografia jednocześnie. Porównuj oferty per kategoria, blokuj najlepsze, idź dalej. Plan Growth lub Scale daje 50–150 kampanii miesięcznie — zapas na równoległą pracę per kategoria.',
       },
     ],
     topFeatures: ['fAiSourcing', 'fMultilingualOutreach', 'fSupplierPortal', 'fAutoFollowUp'],

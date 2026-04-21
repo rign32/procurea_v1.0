@@ -174,7 +174,7 @@ export function metaFor(path: string): RouteMeta {
     case '/features/ai-sourcing':
       return {
         title: 'AI Sourcing — Procurea',
-        description: 'Describe what you need. AI delivers a verified supplier shortlist in minutes. From $89 / 10 credits. Free credits on signup.',
+        description: 'Describe what you need. AI delivers a verified supplier shortlist in minutes. From $69/month (10 campaigns). 3 free campaigns on signup — no credit card.',
         canonical,
       }
 
@@ -198,7 +198,7 @@ export function metaFor(path: string): RouteMeta {
     case '/features/offer-comparison':
       return {
         title: 'Offer Comparison & Reports — Procurea',
-        description: 'Side-by-side comparison of all RFQ responses — price, MOQ, lead time, certifications. Export to PDF/PPTX. Part of AI Procurement credits.',
+        description: 'Side-by-side comparison of all RFQ responses — price, MOQ, lead time, certifications. Export to PDF/PPTX. Part of the AI Procurement workflow add-on ($29/run).',
         canonical,
       }
 

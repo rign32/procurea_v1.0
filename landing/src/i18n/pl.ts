@@ -34,8 +34,6 @@ export const PL = {
     howItWorks: 'jak-to-dziala',
     features: 'co-zyskujesz',
     audience: 'dla-kogo',
-    betaSignup: 'zacznij',
-    faq: 'faq',
     demo: 'demo',
   },
   hero: {
@@ -48,7 +46,7 @@ export const PL = {
     ctaPrimary: 'Zacznij za darmo',
     ctaSecondary: 'Obejrzyj demo',
     ctaPricingLink: 'Zobacz cennik',
-    trustFreeAccess: '10 darmowych kredytów',
+    trustFreeAccess: '3 darmowe kampanie',
     trustNoCreditCard: 'Bez karty',
     trustBeta: 'Integruje się z Twoim ERP',
     stats: [
@@ -149,7 +147,7 @@ export const PL = {
     sectionLabel: 'Platforma',
     heading: 'Co zyskujesz',
     headingSub: 'z Procurea',
-    description: 'Narzędzie AI, które zastępuje tygodnie ręcznego wyszukiwania dostawców. 10 darmowych kredytów na start — bez karty kredytowej.',
+    description: 'Narzędzie AI, które zastępuje tygodnie ręcznego wyszukiwania dostawców. 3 darmowe kampanie sourcingowe na start — bez karty kredytowej.',
     featuredLabel: 'Kluczowa funkcja',
     items: [
       {
@@ -223,71 +221,15 @@ export const PL = {
     industriesLabel: 'Działa w każdej branży:',
     industries: ['IT & Software', 'Ochrona zdrowia', 'Energetyka', 'Logistyka', 'Budownictwo', 'FMCG & Food', 'Usługi finansowe', 'Przemysł'],
   },
-  betaSignup: {
-    sectionLabel: 'Zacznij za darmo',
-    heading: 'Zacznij z',
-    headingHighlight: '10 darmowymi kredytami',
-    description: 'Pełny dostęp do AI Sourcing. Bez karty kredytowej. Bez zobowiązań.',
-    benefits: [
-      {
-        title: '10 darmowych kredytów na start',
-        description: '10 pełnych kampanii sourcingowych za darmo. Wyszukiwanie w 26 językach, dane kontaktowe, oceny AI.',
-      },
-      {
-        title: 'Wyniki w 20 minut, nie w 6 tygodniach',
-        description: 'Uruchom kampanię i obserwuj jak AI znajduje 50–250 dostawców. Eksportuj do Excela jednym kliknięciem.',
-      },
-      {
-        title: 'Płać tylko gdy potrzebujesz więcej',
-        description: 'Po wykorzystaniu darmowych kredytów doładowujesz od $89 za 10 kampanii. Bez subskrypcji, bez automatycznych odnowień.',
-      },
-    ],
-    cta: 'Zacznij za darmo',
-    trustPoints: [
-      'Rejestracja zajmuje 30 sekund',
-      'Logowanie przez Google lub Microsoft',
-      'Dane w europejskiej chmurze',
-    ],
-  },
-  faq: {
-    heading: 'Często zadawane pytania',
-    description: 'Wszystko co musisz wiedzieć o Procurea',
-    items: [
-      {
-        question: 'Jak działa wyszukiwanie AI?',
-        answer: 'Procurea jest data agnostic — nie mamy bazy dostawców ani listy „rekomendowanych" firm. Dla każdego zapytania Agent Strategii generuje zestaw zapytań w 26 językach, dopasowany do Twoich wymagań. Te zapytania trafiają do Google Search API w czasie rzeczywistym. Osobny agent otwiera każdą stronę i ocenia, czy firma istnieje, czy to producent, dystrybutor, czy strona spoza tematu. Agent wzbogacania dobiera dane kontaktowe. Pierwsze wyniki pojawiają się po 2–3 minutach, pełna lista jest gotowa w max 20 minut — bez predefiniowanych list, bez uprzedzeń.',
-      },
-      {
-        question: 'Jakie regiony są obsługiwane?',
-        answer: 'Możesz wyszukiwać dostawców w Polsce, całej Unii Europejskiej lub globalnie. System generuje zapytania w 26 językach, w tym niemieckim, czeskim, włoskim, ale też japońskim, koreańskim, chińskim, tureckim czy hindi — dzięki czemu dociera do dostawców, których nie znajdziesz standardowym wyszukiwaniem.',
-      },
-      {
-        question: 'Ile kosztuje Procurea?',
-        answer: 'AI Sourcing zaczyna się od $89 za 10 kredytów (1 kredyt = 1 kampania). Każde nowe konto dostaje 10 darmowych kredytów — bez karty kredytowej. AI Procurement od $349 / 10 kredytów. Bundle (oba moduły) od $399 / 10 kredytów z 15% oszczędnością. Kredyty nigdy nie wygasają. Pełny cennik: /cennik.',
-      },
-      {
-        question: 'Czy jest darmowy trial?',
-        answer: 'Tak. Każde nowe konto dostaje 10 darmowych kredytów AI Sourcing — wystarczą na 10 pełnych kampanii (50–250 dostawców każda). Bez karty kredytowej, bez limitu czasowego, bez automatycznych odnowień. Po wyczerpaniu doładowujesz od $89 za 10 kredytów.',
-      },
-      {
-        question: 'Czy moje dane są bezpieczne?',
-        answer: 'Tak. Korzystamy z infrastruktury Google Cloud w UE, szyfrowania danych w transmisji i spoczynku oraz uwierzytelniania OAuth 2.0 przez Google i Microsoft. Twoje dane nigdy nie opuszczają infrastruktury europejskiej. Pełna polityka: /polityka-prywatnosci.',
-      },
-      {
-        question: 'Jak szybko mogę zacząć?',
-        answer: 'Rejestracja zajmuje 30 sekund (Google lub Microsoft). Pierwszą kampanię sourcingową uruchamiasz w 5 minut — bez onboardingu, bez konfiguracji. Opisz czego szukasz, a AI zrobi resztę.',
-      },
-    ],
-  },
   cta: {
     headingPart1: 'Zacznij automatyzować',
     headingHighlight: 'procurement z AI',
-    description: '10 darmowych kredytów na start. Bez karty, bez zobowiązań.',
+    description: '3 darmowe kampanie sourcingowe na start. Bez karty, bez zobowiązań.',
     ctaPrimary: 'Zacznij za darmo',
     ctaEmail: 'Napisz do nas',
     contactEmail: 'r.ignaczak1@gmail.com',
     trustPoints: [
-      'Pełny dostęp za darmo',
+      '3 darmowe kampanie sourcingowe',
       'Bez karty kredytowej',
       'Platforma AI do automatyzacji sourcingu',
     ],
@@ -305,103 +247,12 @@ export const PL = {
       mro: 'MRO',
     },
   },
-  moduleOverview: {
-    sectionLabel: 'WYBIERZ SWÓJ MODUŁ',
-    heading: 'Płać tylko za to co uruchamiasz',
-    subheading:
-      'Model credit-based, pay-as-you-go. Zacznij za darmo od AI Sourcing, dodaj Procurement gdy jesteś gotowy, lub weź Bundle z oszczędnością 15%.',
-    bestValueLink: 'Zobacz więcej',
-    modules: [
-      {
-        iconName: 'search',
-        title: 'AI Sourcing',
-        tagline: 'Znajdź 50–250 dostawców w 20 minut',
-        price: 'Od $89 / 10 kredytów',
-        linkLabel: 'Zobacz więcej',
-        href: '/cennik?product=sourcing',
-        highlight: false,
-      },
-      {
-        iconName: 'workflow',
-        title: 'AI Procurement',
-        tagline: 'Pełen workflow RFQ, wspierany przez AI',
-        price: 'Od $349 / 10 kredytów',
-        linkLabel: 'Zobacz więcej',
-        href: '/cennik?product=procurement',
-        highlight: false,
-      },
-      {
-        iconName: 'layers',
-        title: 'Bundle',
-        tagline: 'End-to-end, oszczędzasz 15%',
-        price: 'Od $399 / 10 kredytów',
-        linkLabel: 'Best value',
-        href: '/cennik?product=bundle',
-        highlight: true,
-      },
-      {
-        iconName: 'sparkles',
-        title: 'Enterprise Custom',
-        tagline: 'Unlimited, dedykowana instancja, custom ERP',
-        price: 'Od $25k / rok',
-        linkLabel: 'Umów demo',
-        href: '/kontakt?interest=enterprise_custom',
-        highlight: false,
-      },
-    ],
-  },
   testimonial: {
     quote:
       'Spędzaliśmy 6 tygodni na sourcingu dostawców opakowań w Europie. Procurea dostarczyła 180 zweryfikowanych vendorów w 20 minut. Wielojęzyczny outreach pozwolił nam dotrzeć na rynki, na których wcześniej nie byliśmy obecni.',
     authorRole: 'Senior Procurement Manager',
     authorContext: 'NordPack Industries · Producent opakowań',
     authorInitials: 'MK',
-  },
-  homeFaq: {
-    sectionLabel: 'CZĘSTE PYTANIA',
-    heading: 'Pytania które dostajemy',
-    items: [
-      {
-        q: 'Jak AI Sourcing znajduje dostawców?',
-        a: 'AI Sourcing łączy wyszukiwanie w Google (Serper.dev) z oceną Gemini 2.0 Flash. Opisujesz czego szukasz językiem naturalnym — np. „producenci części CNC z aluminium w Europie z certyfikacją ISO 9001" — a nasz pipeline generuje strategię wyszukiwania w 26 językach, scrapuje i weryfikuje strony dostawców, waliduje dopasowanie, i zwraca 50–250 zakwalifikowanych firm z danymi kontaktowymi w 20 minut. Nie potrzebujesz frazy kluczowej ani znajomości rynków zagranicznych — AI dobiera kraje i queries za Ciebie.',
-      },
-      {
-        q: 'Czym różni się AI Sourcing od AI Procurement?',
-        a: 'AI Sourcing to moduł bazowy — wyszukuje i kwalifikuje dostawców, działa samodzielnie. AI Procurement to rozszerzenie: RFQ do dostawców, zbieranie ofert przez Supplier Portal, porównywarka ofert z AI Insights, auto follow-upy i komunikacja wielojęzyczna. AI Procurement wymaga AI Sourcing — każda kampania Procurement bazuje na kampanii Sourcing. Możesz używać samego AI Sourcing (jeśli masz własny ERP do reszty), albo dodać AI Procurement gdy potrzebujesz pełnego workflow RFQ. Bundle zawiera oba z 15% rabatem. Cennik i detale: /cennik.',
-      },
-      {
-        q: 'Jak działają kredyty?',
-        a: '1 kredyt = 1 kampania sourcingowa (AI Sourcing) lub 1 cykl RFQ (AI Procurement). Kredyty kupujesz w pakietach od 10 w górę, bez subskrypcji. Kredyty nigdy nie wygasają. Każde nowe konto startuje z 10 darmowymi kredytami sourcingu — bez karty, bez trialu czasowego. Kupujesz tyle kredytów ile realnie zużyjesz, bez narzutów za nieużywany seat fee.',
-      },
-      {
-        q: 'Z jakimi systemami ERP/CRM się integrujecie?',
-        a: 'Integrujemy się przez unified API (Merge.dev) z 50+ systemami ERP, księgowymi i CRM — m.in. Oracle NetSuite, Microsoft Dynamics 365 Business Central, QuickBooks Online, Xero, Sage, HubSpot, Pipedrive, Zoho. Synchronizacja obejmuje master data dostawców i PO. SAP S/4HANA, Salesforce i systemy on-prem — dostępne w ramach Enterprise Custom z dedykowanym adapterem. Pełna lista i szczegóły: /integracje.',
-      },
-      {
-        q: 'Jak szybkie jest wdrożenie?',
-        a: 'Self-serve (Sourcing, Procurement, Bundle): rejestracja → pierwsza kampania w 5 minut, bez onboardingu. Enterprise Custom: dedykowany wdrożeniowiec, typowy SOW 4–8 tygodni obejmuje integrację ERP, konfigurację workflow, mapowanie kategorii, szkolenie zespołu i migrację istniejącej bazy dostawców. Dla większości klientów SMB pierwsza realna kampania z outreach do dostawców działa tego samego dnia.',
-      },
-      {
-        q: 'Czy jest darmowy trial?',
-        a: 'Tak. Każde nowe konto dostaje 10 darmowych kredytów AI Sourcing — wystarczą na 10 pełnych kampanii (50–250 dostawców każda). Bez karty kredytowej, bez automatycznego przedłużenia, bez limitu czasowego. Po wyczerpaniu kupujesz pakiety od 10 kredytów. AI Procurement i Bundle nie mają free trial — start od $349 / $399, ale można umówić demo: /kontakt.',
-      },
-      {
-        q: 'Gdzie przechowywane są moje dane?',
-        a: 'Google Cloud Platform, region europe-west1 (Belgia, UE). Dane klientów są izolowane per-organizacja w PostgreSQL. Szyfrowanie at-rest (AES-256) i in-transit (TLS 1.3). Zgodność: RODO/GDPR, ISO 27001 (w procesie certyfikacji). Nie używamy Twoich danych do trenowania modeli AI. Pełna polityka: /polityka-prywatnosci oraz /rodo. Enterprise Custom — możliwość dedykowanej instancji w wybranym regionie GCP.',
-      },
-      {
-        q: 'Które branże działają najlepiej?',
-        a: 'Procurea jest industry-agnostic — pracujemy z produkcją (CNC, OEM, komponenty), eventami (AV, catering, decor), budownictwem (materiały, prefabrykaty, subkontraktorzy), retail/e-com (private label, packaging), HoReCa, ochroną zdrowia (medical supplies, lab equipment), logistyką i MRO. Pełne opisy i case-studies: /dla-kogo. Im bardziej fragmentowana dostawcza baza i międzynarodowy scope, tym większa oszczędność czasu — AI Sourcing przekłada 6 tygodni researchu na 20 minut.',
-      },
-      {
-        q: 'Co jeśli mojego ERP nie ma na liście?',
-        a: 'Dwie ścieżki. (1) Jeśli Twój system jest w naszym katalogu 50+ obsługiwanych systemów (przez Merge.dev) — integracja działa out-of-the-box, aktywujemy ją w ramach standardowego planu Procurement lub Bundle. (2) Jeśli system jest niszowy, on-prem lub wymaga głębszej synchronizacji (SAP, Salesforce, dedykowane ERP) — Enterprise Custom buduje dedykowany adapter (REST/SOAP/file-based) w ramach SOW, typowo 2–4 tygodnie. Umów rozmowę techniczną: /kontakt.',
-      },
-      {
-        q: 'Kiedy wybrać Enterprise Custom?',
-        a: 'Enterprise Custom ma sens gdy: (a) robisz 500+ kampanii sourcingowych rocznie (wtedy unlimited taniej niż kredyty), (b) potrzebujesz custom ERP adapter którego nie ma w naszym standardowym katalogu, (c) wymagasz dedykowanej instancji (izolowana baza, własny VPC), (d) masz ścisłe wymagania compliance (ISO 27001 audit, DPA z regionalnym residency), (e) chcesz SSO/SAML, custom SLA i dedykowanego CSM. Cena od $25k/rok, typowe kontrakty $40–120k. Umów demo: /kontakt.',
-      },
-    ],
   },
   calculator: {
     title: 'Oblicz swoje oszczędności w zakupach',
@@ -419,19 +270,6 @@ export const PL = {
     cta: 'Zacznij oszczędzać',
     pricingTitle: 'Zobacz jak Procurea zwróci się w kilka tygodni',
     pricingSubtitle: 'Suwak: Twój roczny budżet zakupowy. Wynik: oszczędności i czas zwrotu pełnej kampanii (sourcing + AI Procurement).',
-  },
-  pricing: {
-    creditPacks: {
-      title: 'Pakiety kredytów',
-      subtitle: 'Kupuj hurtowo — im większy pakiet, tym niższa cena za kredyt',
-      helper: '1 kredyt = 1 kampania. Kredyty nigdy nie wygasają. Kupuj teraz, używaj kiedy chcesz.',
-      tiers: [
-        { name: 'Starter', credits: '10 kredytów', badge: '' },
-        { name: 'Growth', credits: '25 kredytów', badge: 'Najpopularniejsze' },
-        { name: 'Scale', credits: '50 kredytów', badge: '' },
-      ],
-      productLabels: { sourcing: 'AI Sourcing', procurement: 'AI Procurement', bundle: 'Bundle' },
-    },
   },
   footer: {
     brand: 'Automatyzacja zaopatrzenia dla globalnych zespołów. AI Sourcing + pełen workflow procurement.',

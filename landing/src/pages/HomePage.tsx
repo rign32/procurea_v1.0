@@ -9,7 +9,7 @@ import { BeforeAfterSection } from "@/components/sections/BeforeAfterSection"
 import { StatsStripSection } from "@/components/sections/StatsStripSection"
 import { HowItWorksSection } from "@/components/sections/HowItWorksSection"
 import { FeaturesSneakPeek } from "@/components/sections/FeaturesSneakPeek"
-import { ModuleOverview } from "@/components/sections/ModuleOverview"
+import { PricingSection } from "@/components/sections/PricingSection"
 import { IndustriesGridSection } from "@/components/sections/IndustriesGridSection"
 import { BenefitsSection } from "@/components/sections/BenefitsSection"
 import { SavingsCalculator } from "@/components/sections/SavingsCalculator"
@@ -42,7 +42,7 @@ export function HomePage() {
         <div data-track-section="stats-strip"><StatsStripSection /></div>
         <div data-track-section="how-it-works"><HowItWorksSection /></div>
         <div data-track-section="features-preview"><FeaturesSneakPeek /></div>
-        <div data-track-section="modules"><ModuleOverview /></div>
+        <div data-track-section="pricing"><PricingSection /></div>
         <div data-track-section="industries-grid"><IndustriesGridSection /></div>
         <div data-track-section="benefits"><BenefitsSection /></div>
         <div data-track-section="calculator" className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-12 md:py-16"><RevealOnScroll scale><SavingsCalculator /></RevealOnScroll></div>
