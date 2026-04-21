@@ -7,26 +7,6 @@ import { t } from "@/i18n"
 
 const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
 
-const floatingCards = [
-  { label: "183 suppliers found", x: "-12%", y: "18%", delay: 0 },
-  { label: "18 min average",     x: "108%", y: "30%", delay: 1.2 },
-  { label: "26 languages",       x: "95%",  y: "72%", delay: 2.4 },
-]
-
-function FloatingCard({ label, x, y, delay }: { label: string; x: string; y: string; delay: number }) {
-  return (
-    <motion.div
-      className="absolute hidden lg:flex items-center gap-2 px-4 py-2.5 rounded-[10px] bg-white/10 backdrop-blur-md border border-white/15 text-xs text-white/80 font-medium pointer-events-none select-none"
-      style={{ left: x, top: y }}
-      animate={{ y: [0, -12, 0], rotate: [0, 1, -1, 0] }}
-      transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay }}
-    >
-      <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--ds-cta))] shrink-0" />
-      {label}
-    </motion.div>
-  )
-}
-
 export function CtaSection() {
   return (
     <section className="py-[clamp(72px,10vw,128px)] px-[clamp(20px,4vw,72px)]">
@@ -47,13 +27,6 @@ export function CtaSection() {
           />
 
           <div className="relative grid lg:grid-cols-[1.2fr_1fr] gap-8 items-center">
-            {/* Floating glass cards */}
-            <div className="absolute inset-0 pointer-events-none">
-              {floatingCards.map((card) => (
-                <FloatingCard key={card.label} {...card} />
-              ))}
-            </div>
-
             <RevealOnScroll>
               <div>
                 <span className="eyebrow !bg-white/10 !text-white/80 mb-5 inline-flex">
