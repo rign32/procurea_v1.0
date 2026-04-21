@@ -4,6 +4,40 @@ Sesja QA wykonana na branchu `staging` po deploy runa `24712050121`.
 Staging smoke test **PASS 24/24** po deploy, backend tests **241/241 PASS**.
 Dokument dla full-stack/dev grup które będą naprawiać znaleziska.
 
+## Update 2026-04-21 (po bugfix pass)
+
+Aktualny status znalezisk po sesji naprawczej (commity `c8137c8` + `050a3b1`):
+
+| Bug | Status | Komentarz |
+|---|---|---|
+| P1 cold-start 500 | ⚠️ **kod gotowy, wymaga manual deploy** | `minInstances: 1` w komentarzu [main.functions.ts:145](../backend/src/main.functions.ts). Firebase CLI odrzuca bill-increase przez CI `--force`. Uruchom raz lokalnie: `npx firebase deploy --only functions:apiStaging --force` |
+| P2 error shape 401 | ✅ **LIVE** | Zweryfikowane: `{"error":"Unauthorized"}` zamiast `"Internal Server Error"`. Fix: `defaultErrorForStatus()` w [all-exceptions.filter.ts](../backend/src/common/filters/all-exceptions.filter.ts) |
+| P2 malformed JSON | ⚠️ **kod deployed, nadal 500 plain-text na live** | Zarejestrowałem `express.json()` + error middleware przed `app.init()` w [main.functions.ts](../backend/src/main.functions.ts). Na stagingu dalej zwraca 500 plain text. Podejrzenie: Firebase Functions 2nd gen / Express5Adapter ma własny body parser w wyższej warstwie. Wymaga głębszej diagnostyki. |
+| P2 demo/create DoS | ✅ **LIVE** | `x-ratelimit-limit: 3, reset: 3600` — tighter niż wymagałem |
+| P2 email/login spam | ❌ **nie tknięty** | Wymaga decyzji biznesowej (TTL vs tworzenie dopiero po verify) |
+| P2 E2E w CI | ❌ **nie tknięty** | Wymaga zaprojektowania PG service container w GH Actions |
+| P3 CSP + Referrer-Policy | ✅ **LIVE** | Wszystkie 3 headery obecne na `/api/**` |
+
+### Auto-QA routine (nowe)
+
+Dodany [.github/workflows/qa-nightly.yml](../.github/workflows/qa-nightly.yml):
+- Cron `0 6 * * *` (08:00 PL zimą / 09:00 latem)
+- Smoke test staging + production + backend unit tests
+- Slack notify on failure (wymaga **SLACK_WEBHOOK_URL** secret)
+- Manual trigger: `gh workflow run qa-nightly.yml`
+
+**Aby włączyć Slack alerty**, dodaj secret `SLACK_WEBHOOK_URL`:
+1. Slack → kanał (np. `#procurea-alerts`) → Apps → Incoming Webhooks → Add → Copy URL
+2. `gh secret set SLACK_WEBHOOK_URL --repo rign32/procurea_v1.0` (wklej URL)
+3. Opcjonalnie `SLACK_WEBHOOK_SUMMARY_URL` dla dzielnych success summaries
+
+Bez tych secretów cron uruchamia się normalnie, tylko pomija krok Slack.
+
+### Known limitations fixów
+
+- **Malformed JSON body**: mój fix rejestruje body parser + error handler w expressApp przed `NestFactory.create()`. Działa lokalnie w backend tests ale nie na Firebase Functions 2nd gen. Hipoteza: `Express5Adapter` overwrite'a expressApp middleware, lub Cloud Run layer parsuje body wcześniej. Trzeba: albo (a) złapać `SyntaxError` w `AllExceptionsFilter` (może nie zadziała bo error wychodzi przed Nest pipeline), albo (b) dodać `middleware-body-parser` konfigurację NestJS wprost przez `app.use(express.json(...))` przed enableCors. Ticket: 1h diagnostyki.
+
+
 ---
 
 ## 1. Co zostało dostarczone w tej sesji
