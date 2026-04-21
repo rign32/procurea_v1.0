@@ -455,6 +455,26 @@ export function LogisticsIndustryPage() {
           </div>
         </section>
 
+        {/* SOLUTION BANNER */}
+        <section className="py-12 sm:py-16">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <RevealOnScroll>
+              <div className="relative overflow-hidden rounded-3xl aspect-[21/9] sm:aspect-[21/8]">
+                <img src="/industries/logistics-solution.jpg" alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/60 to-slate-950/10" />
+                <div className="absolute inset-x-0 bottom-0 p-6 sm:p-10 md:p-12">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 border border-emerald-300/30 backdrop-blur-sm px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-emerald-200 mb-3">
+                    {isEN ? 'After Procurea' : 'Po Procurea'}
+                  </span>
+                  <div className="max-w-2xl text-xl sm:text-2xl md:text-3xl font-bold text-white leading-tight">
+                    {isEN ? 'Parts in stock. Trucks back on the road.' : 'Części na stanie. Ciężarówki wracają na trasę.'}
+                  </div>
+                </div>
+              </div>
+            </RevealOnScroll>
+          </div>
+        </section>
+
         {/* CASE STUDY */}
         <section className="py-16">
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">

@@ -86,6 +86,14 @@ export function IndustriesHubPage() {
           </div>
         </section>
 
+        <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mb-16">
+          <RevealOnScroll>
+            <div className="relative overflow-hidden rounded-3xl aspect-[21/9] shadow-[0_24px_64px_-16px_rgba(8,14,28,0.2)]">
+              <img src="/pages/industries-hub-hero.webp" alt="" className="absolute inset-0 h-full w-full object-cover" loading="eager" />
+            </div>
+          </RevealOnScroll>
+        </section>
+
         <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-20">
           <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}>
             {industries.map((i) => (
