@@ -369,37 +369,85 @@ function main() {
 
   // --- Sitemap generation (production only, overwritten for staging below) ---
   {
-    const LASTMOD = '2026-04-18'
+    const LASTMOD = '2026-04-22'
+    const ALT_SITE = isEN ? 'https://procurea.pl' : 'https://procurea.io'
+    const ALT_LANG = isEN ? 'pl' : 'en'
+    const CURR_LANG = isEN ? 'en' : 'pl'
 
     // Priority / changefreq rules
     function getSitemapMeta(route) {
       if (route === '/') return { priority: '1.0', changefreq: 'weekly' }
 
-      // Hub pages
-      const hubPages = ['/pricing', '/cennik', '/features', '/funkcje', '/industries', '/dla-kogo']
-      if (hubPages.includes(route)) return { priority: '0.8', changefreq: 'weekly' }
+      // Hub pages (including content hub — high organic intent)
+      const hubPages = ['/pricing', '/cennik', '/features', '/funkcje', '/industries', '/dla-kogo', '/resources', '/materialy']
+      if (hubPages.includes(route)) return { priority: '0.9', changefreq: 'weekly' }
+
+      // Blog posts — fresh content
+      if (route.startsWith('/blog/')) return { priority: '0.8', changefreq: 'monthly' }
+
+      // Lead magnets — conversion pages
+      if (route.startsWith('/resources/') || route.startsWith('/materialy/')) return { priority: '0.8', changefreq: 'monthly' }
+
+      // Feature / industry detail pages
+      if (route.startsWith('/features/') || route.startsWith('/funkcje/') ||
+          route.startsWith('/industries/') || route.startsWith('/dla-kogo/')) {
+        return { priority: '0.7', changefreq: 'monthly' }
+      }
 
       // Secondary pages
-      const secondaryPages = ['/integrations', '/integracje', '/about', '/o-nas', '/contact', '/kontakt']
-      if (secondaryPages.includes(route)) return { priority: '0.7', changefreq: 'monthly' }
+      const secondaryPages = ['/integrations', '/integracje', '/about', '/o-nas', '/contact', '/kontakt',
+                              '/partners', '/partnerzy', '/vs-manual-sourcing', '/porownanie']
+      if (secondaryPages.includes(route)) return { priority: '0.6', changefreq: 'monthly' }
 
       // Legal
       const legalPages = ['/terms', '/regulamin', '/privacy', '/polityka-prywatnosci', '/gdpr', '/rodo', '/security', '/bezpieczenstwo', '/compliance', '/zgodnosc']
       if (legalPages.includes(route)) return { priority: '0.3', changefreq: 'yearly' }
 
-      // Individual feature / industry pages (everything else)
-      return { priority: '0.6', changefreq: 'monthly' }
+      return { priority: '0.5', changefreq: 'monthly' }
     }
 
     const urls = routes.map(route => {
       const { priority, changefreq } = getSitemapMeta(route)
       const loc = `${SITE}${route === '/' ? '/' : route}`
-      return `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${LASTMOD}</lastmod>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`
+      const altRoute = ALT_MAP[route]
+      const altLoc = altRoute ? `${ALT_SITE}${altRoute === '/' ? '/' : altRoute}` : null
+
+      const lines = [
+        '  <url>',
+        `    <loc>${loc}</loc>`,
+        `    <lastmod>${LASTMOD}</lastmod>`,
+        `    <changefreq>${changefreq}</changefreq>`,
+        `    <priority>${priority}</priority>`,
+      ]
+      if (altLoc) {
+        lines.push(`    <xhtml:link rel="alternate" hreflang="${CURR_LANG}" href="${loc}" />`)
+        lines.push(`    <xhtml:link rel="alternate" hreflang="${ALT_LANG}" href="${altLoc}" />`)
+        // x-default points to the EN version (primary international)
+        const xDefault = isEN ? loc : altLoc
+        lines.push(`    <xhtml:link rel="alternate" hreflang="x-default" href="${xDefault}" />`)
+      }
+      lines.push('  </url>')
+      return lines.join('\n')
     }).join('\n')
 
-    const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`
+    const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls}\n</urlset>\n`
     writeFileSync(join(DIST, 'sitemap.xml'), sitemapXml, 'utf8')
-    console.log(`[prerender] sitemap.xml generated with ${routes.length} URLs`)
+    console.log(`[prerender] sitemap.xml generated with ${routes.length} URLs (hreflang-enabled)`)
+
+    // Production robots.txt — explicit sitemap + allow crawling
+    if (!isStaging) {
+      const robotsLines = [
+        'User-agent: *',
+        'Allow: /',
+        '',
+        '# Block duplicate/internal paths',
+        'Disallow: /api/',
+        'Disallow: /*?utm_',
+        '',
+        `Sitemap: ${SITE}/sitemap.xml`,
+      ]
+      writeFileSync(join(DIST, 'robots.txt'), robotsLines.join('\n') + '\n', 'utf8')
+    }
   }
 
   // Staging: replace robots.txt and sitemap.xml with noindex versions.

@@ -89,6 +89,9 @@
     <meta name="twitter:image" content="https://procurea.pl/hero-screenshot.png" />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/logo-procurea.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#0f172a" />
     <link rel="canonical" href="https://procurea.pl/" />
     <link rel="alternate" hreflang="pl" href="https://procurea.pl/" />
     <link rel="alternate" hreflang="en" href="https://procurea.io/" />
@@ -99,26 +102,54 @@
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@500;600;700;800&display=swap" as="style" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@500;600;700;800&display=swap" rel="stylesheet" />
 
-    <!-- Structured Data -->
+    <!-- Structured Data — Organization + WebSite (with SearchAction) + SoftwareApplication -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "Procurea",
-      "applicationCategory": "BusinessApplication",
-      "operatingSystem": "Web",
-      "description": "Polskie narzędzie AI do automatycznego wyszukiwania dostawców dla firm produkcyjnych. Darmowe beta testy.",
-      "url": "https://procurea.pl",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "PLN",
-        "description": "Darmowe beta testy"
-      },
-      "creator": {
-        "@type": "Organization",
-        "name": "Procurea"
-      }
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://procurea.pl/#organization",
+          "name": "Procurea",
+          "url": "https://procurea.pl",
+          "logo": "https://procurea.pl/logo-procurea.png",
+          "description": "AI-powered procurement automation platform",
+          "foundingDate": "2025",
+          "founder": { "@type": "Person", "name": "Rafał Reiwer" },
+          "sameAs": ["https://www.linkedin.com/company/procurea"]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://procurea.pl/#website",
+          "url": "https://procurea.pl",
+          "name": "Procurea",
+          "inLanguage": "pl",
+          "publisher": { "@id": "https://procurea.pl/#organization" },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://procurea.pl/materialy?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "SoftwareApplication",
+          "name": "Procurea",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web",
+          "description": "Polskie narzędzie AI do automatycznego wyszukiwania dostawców dla firm produkcyjnych. Darmowe beta testy.",
+          "url": "https://procurea.pl",
+          "offers": {
+            "@type": "AggregateOffer",
+            "priceCurrency": "PLN",
+            "lowPrice": "69",
+            "description": "Darmowe beta testy"
+          },
+          "creator": { "@id": "https://procurea.pl/#organization" }
+        }
+      ]
     }
     </script>
 </head>

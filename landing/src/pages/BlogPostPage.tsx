@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useMemo, useEffect } from "react"
 import { Link, useParams } from "react-router-dom"
 import { ArrowLeft, ArrowRight, Download, BookOpen, Clock3, Calendar } from "lucide-react"
 import { Navbar } from "@/components/layout/Navbar"
@@ -18,7 +18,8 @@ import {
   StatsTimeline,
   ProcessDiagram,
 } from "@/components/content/BlogInlineComponents"
-import { trackCtaClick } from "@/lib/analytics"
+import { trackCtaClick, trackBlogRead, initScrollDepthTracking } from "@/lib/analytics"
+import { breadcrumbJsonLd } from "@/lib/jsonld"
 import { getRichBlogPost, getRelatedPosts, type RichBlogPost } from "@/content/blog"
 import type { BlogSection } from "@/content/blog-data/types"
 import { getResource } from "@/content/resources"
@@ -319,6 +320,14 @@ export function BlogPostPage() {
 
   const relatedPosts = useMemo(() => (post ? getRelatedPosts(post.slug, 3) : []), [post])
 
+  useEffect(() => {
+    if (!post) return
+    const cleanup = initScrollDepthTracking((milestone) => {
+      trackBlogRead(post.slug, milestone)
+    })
+    return cleanup
+  }, [post?.slug])
+
   if (!post) {
     return (
       <div className="min-h-screen">
@@ -356,6 +365,11 @@ export function BlogPostPage() {
 
   const articleJsonLd = buildJsonLd(post)
   const faqJsonLd = buildFaqJsonLd(post)
+  const breadcrumb = breadcrumbJsonLd([
+    { name: isEN ? 'Home' : 'Strona główna', path: '/' },
+    { name: isEN ? 'Content Hub' : 'Centrum Wiedzy', path: pathMappings.resourcesHub[LANG] },
+    { name: title, path: `${blogBase}/${post.slug}` },
+  ])
 
   const pillarBadgeClass = PILLAR_BADGE[post.pillar] || PILLAR_BADGE['supply-chain-strategy']
 
@@ -390,6 +404,13 @@ export function BlogPostPage() {
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
+      {breadcrumb && (
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
         />
       )}
 

@@ -5,6 +5,7 @@ import { motion } from "framer-motion"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
+import { BreadcrumbScript } from "@/components/seo/BreadcrumbScript"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { AnimatedGrid } from "@/components/ui/AnimatedGrid"
 import { PagePlaceholder } from "@/components/layout/PagePlaceholder"
@@ -86,16 +87,35 @@ export function IndustryPage() {
   const { slug = '' } = useParams<{ slug: string }>()
   const resolvedSlug = resolveSlug(slug)
 
+  const industryCrumb = getIndustryLink(resolvedSlug)
+  const crumbs = [
+    { name: isEN ? 'Home' : 'Strona główna', path: '/' },
+    { name: isEN ? 'Industries' : 'Dla kogo', path: pathFor('industriesHub') },
+    { name: industryCrumb?.label || slug, path: `${pathFor('industriesHub')}/${slug}` },
+  ]
+
   // Dispatch to bespoke industry pages (unique layout, infographics, content)
-  switch (resolvedSlug) {
-    case 'budownictwo': return <ConstructionIndustryPage />
-    case 'produkcja': return <ManufacturingIndustryPage />
-    case 'eventy': return <EventsIndustryPage />
-    case 'retail-ecommerce': return <RetailIndustryPage />
-    case 'gastronomia': return <HorecaIndustryPage />
-    case 'ochrona-zdrowia': return <HealthcareIndustryPage />
-    case 'logistyka': return <LogisticsIndustryPage />
-    case 'mro-utrzymanie-ruchu': return <MroIndustryPage />
+  const bespoke = (() => {
+    switch (resolvedSlug) {
+      case 'budownictwo': return <ConstructionIndustryPage />
+      case 'produkcja': return <ManufacturingIndustryPage />
+      case 'eventy': return <EventsIndustryPage />
+      case 'retail-ecommerce': return <RetailIndustryPage />
+      case 'gastronomia': return <HorecaIndustryPage />
+      case 'ochrona-zdrowia': return <HealthcareIndustryPage />
+      case 'logistyka': return <LogisticsIndustryPage />
+      case 'mro-utrzymanie-ruchu': return <MroIndustryPage />
+      default: return null
+    }
+  })()
+
+  if (bespoke) {
+    return (
+      <>
+        <BreadcrumbScript crumbs={crumbs} />
+        {bespoke}
+      </>
+    )
   }
 
   const industry = getIndustry(resolvedSlug)
@@ -113,6 +133,7 @@ export function IndustryPage() {
   return (
     <div className="min-h-screen">
       <RouteMeta />
+      <BreadcrumbScript crumbs={crumbs} />
       <Navbar />
 
       <main id="main-content">

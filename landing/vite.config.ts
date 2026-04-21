@@ -63,70 +63,18 @@ export default defineConfig(({ mode }) => {
               /<link rel="canonical" href=".*?" \/>/,
               '<link rel="canonical" href="https://procurea.io/" />'
             )
+            // JSON-LD: swap URLs, currency, language, description for EN build
+            .replaceAll('https://procurea.pl', 'https://procurea.io')
+            .replace(/"inLanguage": "pl"/, '"inLanguage": "en"')
+            .replace(/"priceCurrency": "PLN"/, '"priceCurrency": "USD"')
             .replace(
               /"description": "Polskie narzędzie AI do automatycznego wyszukiwania dostawców dla firm produkcyjnych\. Darmowe beta testy\."/,
               '"description": "AI-powered tool for automated supplier discovery across global markets. Free beta access."'
             )
             .replace(
-              /"url": "https:\/\/procurea\.pl"/,
-              '"url": "https://procurea.io"'
-            )
-            .replace(
-              /"priceCurrency": "PLN"/,
-              '"priceCurrency": "USD"'
-            )
-            .replace(
               /"description": "Darmowe beta testy"/,
               '"description": "Free beta access"'
             )
-        },
-      },
-      {
-        name: 'public-assets-i18n',
-        generateBundle() {
-          if (!isEN) return
-
-          this.emitFile({
-            type: 'asset',
-            fileName: 'robots.txt',
-            source: 'User-agent: *\nAllow: /\nSitemap: https://procurea.io/sitemap.xml\n',
-          })
-
-          this.emitFile({
-            type: 'asset',
-            fileName: 'sitemap.xml',
-            source: `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml">
-  <url>
-    <loc>https://procurea.io/</loc>
-    <xhtml:link rel="alternate" hreflang="pl" href="https://procurea.pl/" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://procurea.io/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://procurea.io/" />
-    <lastmod>2026-03-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://procurea.io/terms</loc>
-    <lastmod>2026-02-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.3</priority>
-  </url>
-  <url>
-    <loc>https://procurea.io/privacy</loc>
-    <lastmod>2026-02-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.3</priority>
-  </url>
-  <url>
-    <loc>https://procurea.io/gdpr</loc>
-    <lastmod>2026-02-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.3</priority>
-  </url>
-</urlset>`,
-          })
         },
       },
     ],
