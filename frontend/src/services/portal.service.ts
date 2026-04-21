@@ -61,6 +61,28 @@ export interface PortalOfferView {
       name: string;
       address: string;
     } | null;
+    // Multi-SKU / BOQ line items (Sprint #4 + Faza 2B)
+    lineItems?: Array<{
+      id: string;
+      sortOrder: number;
+      sku: string | null;
+      name: string;
+      description: string | null;
+      material: string | null;
+      quantity: number;
+      unit: string;
+      targetPrice: number | null;
+      requiredCerts: string[] | null;
+      quote: {
+        unitPrice: number | null;
+        currency: string | null;
+        moq: number | null;
+        leadTime: number | null;
+        altDescription: string | null;
+        altMaterial: string | null;
+        notes: string | null;
+      } | null;
+    }>;
   };
   organization: {
     name: string;
@@ -141,6 +163,27 @@ export const portalService = {
 
   getTranslations: async (langCode: string): Promise<any> => {
     const { data } = await apiClient.get(`/portal/translations/${langCode}`);
+    return data;
+  },
+
+  // Supplier-side per-line quote save (Faza 2B follow-up)
+  saveLineItems: async (
+    accessToken: string,
+    items: Array<{
+      rfqLineItemId: string;
+      unitPrice?: number;
+      currency?: string;
+      moq?: number;
+      leadTime?: number;
+      altDescription?: string;
+      altMaterial?: string;
+      notes?: string;
+    }>,
+  ): Promise<{ saved: number }> => {
+    const { data } = await apiClient.post(
+      `/portal/offers/${accessToken}/line-items`,
+      { items },
+    );
     return data;
   },
 };

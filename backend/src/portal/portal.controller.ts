@@ -29,6 +29,14 @@ export class PortalController {
         return this.portalService.submitOffer(accessToken, body);
     }
 
+    @Post('offers/:accessToken/line-items')
+    saveLineItems(
+        @Param('accessToken') accessToken: string,
+        @Body() body: { items: Array<{ rfqLineItemId: string; unitPrice?: number; currency?: string; moq?: number; leadTime?: number; altDescription?: string; altMaterial?: string; notes?: string }> },
+    ) {
+        return this.portalService.saveLineItemsForToken(accessToken, body.items ?? []);
+    }
+
     @Post('offers/:accessToken/upload')
     @Throttle({ default: { ttl: 60000, limit: 10 } }) // 10 uploads per minute
     async uploadFile(

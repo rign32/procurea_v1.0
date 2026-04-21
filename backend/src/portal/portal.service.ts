@@ -59,6 +59,9 @@ export class PortalService {
                             },
                         },
                         deliveryLocation: true,
+                        // Multi-SKU / BOQ line items (Sprint #4) — supplier needs
+                        // to see the list to quote each position
+                        lineItems: { orderBy: { sortOrder: 'asc' } },
                     },
                 },
                 supplier: true,
@@ -68,6 +71,8 @@ export class PortalService {
                         priceTiers: { orderBy: { minQty: 'asc' } },
                     },
                 },
+                // Supplier's own per-line quotes saved so far (Faza 2B)
+                lineItems: true,
             },
         });
 
@@ -160,6 +165,34 @@ export class PortalService {
                     name: rfq.deliveryLocation.name,
                     address: rfq.deliveryLocation.address,
                 } : null,
+                // Multi-SKU line items + supplier's per-line quotes merged for convenience
+                lineItems: (rfq.lineItems ?? []).map((line) => {
+                    const supplierQuote = (offer as any).lineItems?.find(
+                        (q: any) => q.rfqLineItemId === line.id,
+                    );
+                    return {
+                        id: line.id,
+                        sortOrder: line.sortOrder,
+                        sku: line.sku,
+                        name: line.name,
+                        description: line.description,
+                        material: line.material,
+                        quantity: line.quantity,
+                        unit: line.unit,
+                        targetPrice: line.targetPrice,
+                        requiredCerts: line.requiredCerts ?? null,
+                        // supplier's quote (may be null if not yet filled)
+                        quote: supplierQuote ? {
+                            unitPrice: supplierQuote.unitPrice,
+                            currency: supplierQuote.currency,
+                            moq: supplierQuote.moq,
+                            leadTime: supplierQuote.leadTime,
+                            altDescription: supplierQuote.altDescription,
+                            altMaterial: supplierQuote.altMaterial,
+                            notes: supplierQuote.notes,
+                        } : null,
+                    };
+                }),
             },
             organization: org ? {
                 name: org.name,
@@ -222,6 +255,74 @@ export class PortalService {
         }
 
         return offer;
+    }
+
+    /**
+     * Supplier-side: save per-line quotes for a multi-SKU RFQ (Faza 2B follow-up).
+     * Accepts an array of { rfqLineItemId, unitPrice, currency, moq, leadTime, notes }
+     * and atomically replaces this offer's OfferLineItem rows.
+     */
+    async saveLineItemsForToken(
+        accessToken: string,
+        items: Array<{
+            rfqLineItemId: string;
+            unitPrice?: number | null;
+            currency?: string | null;
+            moq?: number | null;
+            leadTime?: number | null;
+            altDescription?: string | null;
+            altMaterial?: string | null;
+            notes?: string | null;
+        }>,
+    ) {
+        const offer = await this.prisma.offer.findUnique({
+            where: { accessToken },
+            select: { id: true, status: true, tokenExpiresAt: true, rfqRequestId: true },
+        });
+        if (!offer) throw new NotFoundException('Offer not found');
+        if (offer.tokenExpiresAt && offer.tokenExpiresAt < new Date()) {
+            throw new BadRequestException('This link has expired.');
+        }
+        if (!['PENDING', 'VIEWED', 'COUNTER_OFFERED', 'SUBMITTED'].includes(offer.status)) {
+            throw new BadRequestException('Offer is no longer editable');
+        }
+
+        // Validate that every rfqLineItemId belongs to this offer's RFQ
+        if (items.length > 0) {
+            const ids = items.map((i) => i.rfqLineItemId);
+            const valid = await this.prisma.rfqLineItem.findMany({
+                where: { id: { in: ids }, rfqRequestId: offer.rfqRequestId },
+                select: { id: true },
+            });
+            const validSet = new Set(valid.map((l) => l.id));
+            const invalid = ids.filter((id) => !validSet.has(id));
+            if (invalid.length > 0) {
+                throw new BadRequestException(
+                    `Line items don't belong to this RFQ: ${invalid.join(', ')}`,
+                );
+            }
+        }
+
+        return this.prisma.$transaction(async (tx) => {
+            await tx.offerLineItem.deleteMany({ where: { offerId: offer.id } });
+            if (items.length === 0) return { saved: 0 };
+
+            await tx.offerLineItem.createMany({
+                data: items.map((i) => ({
+                    offerId: offer.id,
+                    rfqLineItemId: i.rfqLineItemId,
+                    unitPrice: i.unitPrice ?? null,
+                    currency: i.currency ?? 'EUR',
+                    moq: i.moq ?? null,
+                    leadTime: i.leadTime ?? null,
+                    altDescription: i.altDescription ?? null,
+                    altMaterial: i.altMaterial ?? null,
+                    notes: i.notes ?? null,
+                })),
+            });
+
+            return { saved: items.length };
+        });
     }
 
     async submitOffer(accessToken: string, dto: SubmitOfferDto) {

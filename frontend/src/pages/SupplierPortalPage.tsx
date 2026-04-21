@@ -21,6 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { usePortalOffer, useSubmitPortalOffer, usePortalTranslations } from '@/hooks/usePortal';
 import portalService from '@/services/portal.service';
 import type { OfferAttachment } from '@/services/portal.service';
+import { PortalLineItemsGrid } from '@/components/portal/PortalLineItemsGrid';
 import {
   getPortalTranslations,
   SUPPORTED_PORTAL_LANGUAGES,
@@ -733,6 +734,16 @@ export function SupplierPortalPage() {
                   )}
                 </CardContent>
               </Card>
+
+              {/* Multi-SKU line items grid (Sprint #4 + Faza 2B) */}
+              {accessToken && (data.rfq as any).lineItems && (data.rfq as any).lineItems.length > 0 && (
+                <PortalLineItemsGrid
+                  accessToken={accessToken}
+                  lineItems={(data.rfq as any).lineItems}
+                  currency={rfq.currency}
+                  locked={['SUBMITTED', 'ACCEPTED', 'REJECTED'].includes(offer.status)}
+                />
+              )}
 
               <div className="flex justify-end">
                 <Button onClick={handleNext} size="lg">
