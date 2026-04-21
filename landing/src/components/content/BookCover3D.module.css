@@ -1,0 +1,388 @@
+/* ============================================================
+   3D BOOK COVER — CSS module
+   Portrait lead magnet covers rendered as standing 3D books.
+   Drives via CSS custom properties: --cover-bg, --spine-bg, --t
+   ============================================================ */
+
+.book {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 10px 36px 36px 10px;
+  perspective: 1800px;
+  perspective-origin: 50% 32%;
+  isolation: isolate;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  transform-style: preserve-3d;
+  transform: rotateY(-26deg) rotateX(4deg);
+  transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+  --t: 28px;
+}
+
+.thick .stage { --t: 40px; }
+.thin .stage  { --t: 14px; }
+.magazine .stage { --t: 8px; transform: rotateY(-22deg) rotateX(3deg); }
+.workbook .stage { --t: 30px; }
+
+.book:hover .stage {
+  transform: rotateY(-16deg) rotateX(2deg) translateY(-4px);
+}
+
+.static .stage { transform: none !important; }
+
+/* FRONT FACE --------------------------------------------------- */
+.face {
+  position: absolute;
+  inset: 0;
+  transform: translateZ(calc(var(--t) / 2));
+  background: var(--cover-bg, linear-gradient(135deg, #162a52 0%, #0b1a3d 100%));
+  color: #fff;
+  border-radius: 2px 6px 6px 2px;
+  padding: clamp(16px, 2.6vw, 28px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow:
+    inset 14px 0 18px -8px rgba(0, 0, 0, 0.42),
+    inset -1px 0 0 rgba(255, 255, 255, 0.06),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  z-index: 3;
+}
+
+.face::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 22% 12%, rgba(255, 255, 255, 0.08), transparent 52%),
+    radial-gradient(circle at 80% 88%, rgba(0, 0, 0, 0.18), transparent 55%);
+  mix-blend-mode: screen;
+  opacity: 0.9;
+}
+
+.face::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.35),
+    rgba(255, 255, 255, 0)
+  );
+  pointer-events: none;
+}
+
+/* SPINE — left connecting front -> back ----------------------- */
+.spine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--t);
+  transform: translateX(calc(var(--t) * -0.5)) rotateY(-90deg);
+  transform-origin: right center;
+  background: var(--spine-bg, linear-gradient(to right, #050c1a 0%, #0b1a3d 60%, #162a52 100%));
+  border-radius: 2px 0 0 2px;
+  box-shadow:
+    inset -8px 0 16px rgba(0, 0, 0, 0.55),
+    inset 1px 0 0 rgba(255, 255, 255, 0.08);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spineText {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(244, 200, 66, 0.72);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.magazine .spine {
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1));
+}
+
+/* PAGES — right side showing sheet stack ---------------------- */
+.pages {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  right: 0;
+  width: var(--t);
+  transform: translateX(calc(var(--t) * 0.5)) rotateY(90deg);
+  transform-origin: left center;
+  background:
+    linear-gradient(to right, rgba(0, 0, 0, 0.22) 0%, transparent 18%),
+    repeating-linear-gradient(180deg, #fbf7ed 0px, #e9dfc8 1px, #fbf7ed 2px, #f3ead4 3px);
+  border-radius: 0 2px 2px 0;
+  box-shadow: inset -2px 0 4px rgba(0, 0, 0, 0.08);
+  z-index: 2;
+}
+
+.magazine .pages {
+  background: repeating-linear-gradient(180deg, #fafafa 0, #e4e4e4 1px, #fafafa 2px);
+}
+
+.workbook .pages {
+  background:
+    linear-gradient(to right, rgba(0, 0, 0, 0.2) 0%, transparent 20%),
+    repeating-linear-gradient(180deg, #fff 0, #dde2ec 1px, #fff 2px);
+}
+
+/* GROUND SHADOW ----------------------------------------------- */
+.book::after {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 2%;
+  bottom: 14px;
+  height: 28px;
+  z-index: -1;
+  background: radial-gradient(
+    ellipse at 40% center,
+    rgba(8, 14, 28, 0.45) 0%,
+    rgba(8, 14, 28, 0.18) 40%,
+    transparent 72%
+  );
+  filter: blur(14px);
+  transform: translateY(6px);
+}
+
+/* ── COVER CONTENT LAYOUT ─────────────────────────────────── */
+.brand {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 700;
+}
+
+.brandMark {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: #f4c842;
+  color: #162a52;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: -0.03em;
+}
+
+.pill {
+  margin-left: auto;
+  padding: 3px 7px;
+  border-radius: 3px;
+  background: #f4c842;
+  color: #0e1614;
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+}
+
+.kicker {
+  position: relative;
+  z-index: 2;
+  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #f4c842;
+  font-weight: 700;
+  margin-top: 16px;
+}
+
+.title {
+  position: relative;
+  z-index: 2;
+  font-family: "Fraunces", "Manrope", ui-serif, Georgia, serif;
+  font-weight: 500;
+  color: #fff;
+  font-size: clamp(18px, 2.4vw, 28px);
+  line-height: 1;
+  letter-spacing: -0.028em;
+  margin: 10px 0 0;
+  max-width: 14ch;
+  text-wrap: balance;
+}
+
+.title em {
+  color: #f4c842;
+  font-style: italic;
+}
+
+.dek {
+  position: relative;
+  z-index: 2;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.68);
+  line-height: 1.45;
+  max-width: 26ch;
+  margin-top: 10px;
+  font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
+}
+
+.motif {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.foot {
+  position: relative;
+  z-index: 2;
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-top: 14px;
+  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.52);
+}
+
+.pagesBadge {
+  font-size: 44px;
+  line-height: 1;
+  color: rgba(244, 200, 66, 0.95);
+  letter-spacing: -0.05em;
+  font-weight: 500;
+  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+
+.pagesBadge small {
+  display: block;
+  font-size: 8.5px;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.18em;
+  margin-top: 2px;
+  text-align: right;
+}
+
+/* Spiral binding for workbook -------------------------------- */
+.workbook .face {
+  padding-left: calc(clamp(16px, 2.6vw, 28px) + 26px);
+}
+
+.spiral {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  bottom: 12px;
+  width: 12px;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.spiral i {
+  display: block;
+  width: 12px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #c9c4b5, #8c8878);
+  box-shadow:
+    inset 0 -2px 0 rgba(0, 0, 0, 0.25),
+    0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* MOTIF LIBRARY — pure CSS decorations ----------------------- */
+.motifMap {
+  position: absolute;
+  inset: 0;
+  opacity: 0.75;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 24% 60%, rgba(244, 200, 66, 0.18) 0%, transparent 14%),
+    radial-gradient(circle at 74% 45%, rgba(244, 200, 66, 0.22) 0%, transparent 14%),
+    radial-gradient(circle at 24% 60%, transparent 19%, rgba(244, 200, 66, 0.35) 20%, transparent 21%),
+    radial-gradient(circle at 74% 45%, transparent 19%, rgba(244, 200, 66, 0.35) 20%, transparent 21%),
+    radial-gradient(circle at 24% 60%, transparent 27%, rgba(244, 200, 66, 0.18) 28%, transparent 29%),
+    radial-gradient(circle at 74% 45%, transparent 27%, rgba(244, 200, 66, 0.18) 28%, transparent 29%);
+}
+
+.motifGrid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.22;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.24) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.24) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.motifRows {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 52%;
+  opacity: 0.85;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, transparent 0, rgba(0, 0, 0, 0.18) 100%),
+    repeating-linear-gradient(
+      180deg,
+      transparent 0,
+      transparent 12px,
+      rgba(255, 255, 255, 0.08) 12px,
+      rgba(255, 255, 255, 0.08) 13px
+    );
+}
+
+.motifRadar {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 58%;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 100%, transparent 24%, rgba(255, 255, 255, 0.18) 25%, transparent 26%),
+    radial-gradient(circle at 50% 100%, transparent 40%, rgba(255, 255, 255, 0.14) 41%, transparent 42%),
+    radial-gradient(circle at 50% 100%, transparent 58%, rgba(255, 255, 255, 0.10) 59%, transparent 60%),
+    radial-gradient(circle at 50% 100%, transparent 76%, rgba(244, 200, 66, 0.22) 77%, transparent 78%);
+  opacity: 0.9;
+}
+
+/* Coming-soon overlay ---------------------------------------- */
+.comingSoon {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 5;
+  padding: 4px 9px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #162a52;
+  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}

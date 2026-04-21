@@ -629,6 +629,171 @@ Recovery: they paused, moved back to 70% China for critical SKUs, restarted with
 
 ---
 
+\newpage
+
+# 16. Printable 90-day one-page checklist
+
+Tear this page out, pin it above your desk, tick boxes as you go. Every item is specific enough to mark "done" or "not done" — no fuzzy verbs, no "analyse" or "review" without the artefact that proves you did it. Use alongside the narrative in Section 11; this is the execution checklist, not the reasoning.
+
+## Phase 1 — Discover (Weeks 1-4)
+
+### Week 1 — Baseline and kickoff (Discover)
+
+- [ ] Category spend list reviewed with finance — volume-weighted top 20 SKUs confirmed and signed off by controller
+- [ ] Current-state baseline documented: unit cost, landed cost, lead time, PPM, OTD% — last 12 months, pulled from ERP not from memory
+- [ ] Kickoff meeting held — category manager, supply chain, quality, commercial, finance all present; 60-minute cap; RACI produced
+- [ ] Pilot category selected and rationale written (one paragraph): why this category, not the others
+
+### Week 2 — Success criteria and country shortlist (Discover)
+
+- [ ] Quantitative success criteria declared in writing: OTD target %, PPM target, landed-cost delta acceptable band, timeline to first production PO
+- [ ] Country shortlist reduced to 2-3 from the Six-Country Matrix (Section 3); rationale logged against category fit
+- [ ] Disqualifying criteria documented: e.g. "no non-EU origin for CBAM-covered material", "ISO 27001 required for suppliers with ERP access"
+- [ ] CFO briefed on insurance framing (not savings framing); expected year-1 cost impact communicated
+
+### Week 3 — Long list (Discover)
+
+- [ ] Long list of 20-40 candidate suppliers compiled (target 30); sources logged (directory, AI-tool, referral, trade fair)
+- [ ] Duplicate and shell-company entities removed; VAT/VIES verified for EU suppliers; registration verified for non-EU
+- [ ] Capacity-band filter applied: employees 50-500 for mid-complexity custom categories, 100-2000 for commodity
+- [ ] Capability filter applied: sector certifications (IATF / ISO 13485 / AS9100) held or in progress — mark each
+
+### Week 4 — Short list and RFQ (Discover → RFQ)
+
+- [ ] Short list of 8-12 viable suppliers finalised; reasons-for-exclusion logged for the 20+ not progressing (for audit)
+- [ ] RFQ document drafted using RFQ Comparison Template; 10-business-day response window; clarification channel named
+- [ ] RFQ sent simultaneously to all shortlisted suppliers (same content, same day, same deadline)
+- [ ] Response-tracking sheet built: supplier, sent date, clarifying questions logged, response date
+
+## Phase 2 — RFQ (Weeks 5-6)
+
+### Week 5 — Quotes received and scored (RFQ)
+
+- [ ] All quotes received or non-responders logged (target: >70% response rate; below that, revisit RFQ clarity)
+- [ ] Vendor Scoring Framework applied by 2 analysts independently on every responding supplier
+- [ ] Scoring gaps >1.5 points resolved via Conflict-Resolution SOP; audit-trail rows captured
+- [ ] Top 3 ranked; rationale drafted (3 sentences per supplier: why top, why not top)
+
+### Week 6 — Deep qualification (RFQ → Sample)
+
+- [ ] Supplier Risk Checklist (20 points) run on top 3; red flags addressed or supplier dropped
+- [ ] On-site audit scheduled for top 1-2 (for strategic category) or detailed video factory tour for commodity
+- [ ] Reference calls completed: minimum 2 existing customers per short-listed supplier; questions scripted in advance
+- [ ] Financial-health evidence collected: D-U-N-S, credit bureau report, or audited financials under NDA
+
+## Phase 3 — Sample (Weeks 7-10)
+
+### Week 7 — Final selection and tooling kick-off (Sample)
+
+- [ ] Final supplier selected; decision rationale archived using Vendor Scoring audit-trail template
+- [ ] Commercial documents signed: NDA, supply agreement skeleton, quality agreement, logistics Incoterms
+- [ ] Tooling path decided: transfer existing vs. duplicate vs. fabricate new; budget and timeline confirmed in writing
+- [ ] Runner-up supplier thanked in writing and kept warm for dual-source / failure-recovery option
+
+### Week 8 — Tooling transfer and quality plan (Sample)
+
+- [ ] Tooling transfer logistics booked (if applicable): crate, insurance in transit, customs paperwork, delivery window confirmed
+- [ ] Quality plan aligned with new supplier: incoming inspection protocol, SPC limits, first-article requirements written down
+- [ ] CAD/drawing package transferred under signed NDA; version control confirmed with new supplier's engineering lead
+- [ ] Freight forwarder and customs broker onboarded; test shipment planned for week 11
+
+### Week 9 — First article produced (Sample)
+
+- [ ] First-article batch produced (10-50 units depending on category); delivery confirmed
+- [ ] Incoming inspection completed; dimensional report produced; material certifications archived
+- [ ] First-article anomalies logged — any deviation from print, even if within tolerance, documented with photo evidence
+- [ ] If automotive / medical / aerospace: PPAP documentation pack assembled
+
+### Week 10 — First-article decision (Sample → Decision)
+
+- [ ] First-article inspection signed off by quality manager OR rejected with specific remediation list and timeline
+- [ ] If rejected: Recovery Case Study (Section 17) decision tree invoked — reject, fix-cycle, or dual-track
+- [ ] If signed off: production PO drafted for pilot volume (15-25% of category annual volume)
+- [ ] Go/no-go decision documented with date, signatories, and supporting evidence
+
+## Phase 4 — Decision (Week 11)
+
+### Week 11 — First production PO and logistics live (Decision)
+
+- [ ] Production PO issued to new supplier for pilot volume; PO number and expected ship date logged
+- [ ] China-supplier volume adjusted downward by pilot-volume equivalent; communicated to China supplier as "temporary rebalance"
+- [ ] Safety stock position rechecked for the parallel period: minimum 60 days coverage maintained across both suppliers
+- [ ] Exception-handling process declared: who calls whom when the first problem occurs (expect problems)
+
+## Phase 5 — Ramp (Weeks 12-13)
+
+### Week 12 — First production delivery and measurement (Ramp)
+
+- [ ] First production batch received; on-time status logged (days early/late); incoming inspection results logged
+- [ ] Quality data captured: defects found, PPM calculated for the batch, comparison vs. baseline PPM
+- [ ] Communication-quality scored: response time of supplier on the 2-3 issues that inevitably arose (track actual)
+- [ ] Finance reconciliation: landed cost vs. quote vs. baseline; variance explained item by item
+
+### Week 13 — Pilot review and stage-gate prep (Ramp)
+
+- [ ] 90-day pilot review meeting held; same attendee list as kickoff; 60-minute cap
+- [ ] Performance vs. success criteria tabled: OTD hit? PPM hit? Landed cost within band? Timeline hit?
+- [ ] Stage-gate decision prepared for month-4 review: proceed to Parallel, extend pilot, or kill
+- [ ] Lessons-learned document drafted (max 2 pages): what worked, what nearly broke, what to change for category #2
+
+**Total checkable items:** 52. Print, pin, tick. If you end week 13 with fewer than 45 ticked, the pilot is not done — extend rather than advance to Parallel. If you end with 52, you're ready for month 4 stage gate.
+
+---
+
+\newpage
+
+# 17. Recovery case study: "When the sample fails"
+
+Every playbook section assumes the pilot supplier's first article passes. Roughly 35% of the time it does not. This section is what to do when the sample comes back and the metrology report says no. Composite drawn from two Procurea beta-cohort cases; the numbers are real, the company is anonymised.
+
+## The failure specifics
+
+**Setup.** Mid-EU buyer, automotive tier-2, moving a metal-stamped bracket from a Chinese supplier to a Polish supplier as the pilot category in a diversification program. Pilot volume 20,000 units; annual 85,000 units. Tooling was duplicated (not transferred) at a Polish toolmaker to preserve the China line as hedge. First-article batch of 30 units delivered at week 9, on schedule.
+
+**The failure.** The metrology report on the first-article dimensional check showed one critical feature — the mounting hole centre-to-centre distance — was off by **0.08mm** on 27 of 30 units. The print called for 48.00mm ±0.05mm. Measured average was 47.92mm, with a standard deviation of 0.012mm. The process was consistent; it was consistently wrong.
+
+**The diagnosis, within 24 hours.** The Polish toolmaker had interpreted one feature on the CAD as a reference datum rather than a critical dimension. The tool was cut to 47.92mm nominal. Everything else on the part was inside tolerance. A straightforward tool mod — grind and re-temper — would bring the hole centre back to 48.00mm. The question was not "can it be fixed" but "do we have time."
+
+## The 48-hour decision tree
+
+Three options surfaced in the emergency meeting held the day after the metrology report landed.
+
+**Option A — Reject and find a backup supplier.** Go to the runner-up from the RFQ. Restart the tooling process elsewhere. Timeline: 14-18 weeks to first article with a new supplier. Cost: €42,000 in duplicate tooling plus 6+ weeks of schedule slip beyond the original pilot window. Risk: a new supplier has not been on-site audited; runner-up chosen as fallback, not qualified at the same rigour as the primary.
+
+**Option B — 2-week fix cycle with current supplier.** Ship the tool back to the Polish toolmaker. Grind and re-temper the offending insert. Produce a new first-article batch. Timeline: 10-14 days from tool receipt to new samples. Cost: €3,500 tool mod + €1,200 re-inspection. Risk: the pilot slips by ~3 weeks; if the mod produces a secondary problem, the fallback option (A) becomes 2-3 weeks later.
+
+**Option C — Dual-track: start the fix (B) AND begin talks with runner-up in parallel.** Invest in both paths for 2 weeks. At week 11, if B has produced a passing first-article batch, cancel A and continue. If B has failed a second time, A is 2 weeks further along than it would have been.
+
+## The decision and why it was right
+
+The team chose **Option C — dual-track**. The incremental cost over Option B was a €2,400 runner-up mobilisation fee plus ~40 hours of buyer time to kick off the parallel path: ~€8,000 all-in. The benefit was insurance: if the Polish fix failed, the program was 2 weeks ahead of where it would have been otherwise.
+
+The dual-track was right for three reasons specific to this situation.
+
+**First, the failure was plausibly recoverable but not certainly recoverable.** A tool mod on a well-understood feature is a routine operation, but metrology is unforgiving — a mis-diagnosis of root cause (e.g. if the issue were thermal distortion rather than geometry) would waste the 2 weeks with no fix. Option C hedged that.
+
+**Second, the original decision to duplicate tooling at the Polish toolmaker had already pre-paid the switching-cost insurance.** The China line was intact. There was no production-urgency pressure to pick the fastest option; there was only pilot-schedule pressure, which was absorbable.
+
+**Third, the runner-up supplier was genuinely viable.** If it had been a known weak candidate, Option C collapses to Option B and the parallel path is theatre. In this case the runner-up had scored 3.6 on the framework (vs. primary's 4.1) — close enough to be a real fallback.
+
+## The outcome
+
+At week 11, the Polish toolmaker delivered the mod on time. New first-article batch (20 units this time) passed on all dimensions, all 20 parts inside ±0.04mm on the critical feature. Option C was collapsed — runner-up was paid the €2,400 mobilisation and thanked. Pilot production PO was issued at week 12 against a slipped schedule; first production batch landed at week 14. The original 90-day window blew by two weeks, which was absorbed within the broader 14-month program plan without breaching the month-4 stage gate.
+
+**Landed-cost impact of the 2-week slip:** €5,100 in incremental safety stock at the China supplier to cover the gap. **Dual-track insurance cost:** €8,000. **Total sample-failure cost:** €13,100. **Compared to Option A (restart with runner-up):** €42,000 tooling + 4-6 weeks of additional safety stock (~€25,000) + unquantifiable program-morale cost. **Net saving from dual-track over restart: ~€54,000.**
+
+## Lessons for anyone running their own pilot
+
+**1. Duplicate tooling instead of transferring, if the budget allows.** The €18,000 incremental cost of duplicating (vs. transferring from China) pre-paid the optionality to run a dual-track recovery without disrupting the incumbent. Every program that transferred tooling and hit a first-article failure faced a much harder decision tree.
+
+**2. Qualify your runner-up to 80% of the primary's rigour, not 40%.** The instinct is to audit the primary exhaustively and treat the runner-up as a name on a list. The sample-failure rate means the runner-up will be called on in roughly a third of pilots. Treating them as a genuine fallback — on-site audit, reference calls, commercial terms outlined but not signed — costs ~€4,000 per candidate and is the single highest-ROI investment in the pilot stage.
+
+**3. Build a named 48-hour decision protocol before you need it.** The pilot team should know in advance: who convenes the meeting, who has authority to commit dual-track spend, what the decision tree looks like. When the failure arrives, you do not have time to invent the governance. Pre-write the A/B/C options into the pilot plan so that when week 9 produces a problem, week 10 produces a decision rather than a debate.
+
+---
+
+\newpage
+
 ## About this playbook
 
 Published by Procurea, April 2026. Patterns drawn from beta cohort engagements. Composites anonymised — the scenarios are real patterns but no individual company is identifiable.

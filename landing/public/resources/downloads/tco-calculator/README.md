@@ -4,10 +4,22 @@ A pragmatic Excel calculator that reveals the real Total Cost of Ownership behin
 
 ## What's in this bundle
 
+- `tco-calculator.xlsx` — ready-to-use workbook (three tabs: Categories, Comparison, Sensitivity)
 - `tco-calculator-tab1-categories.csv` — the ten cost categories with definitions, default calculation basis, an example value (so the sheet isn't blank), and usage notes
 - `tco-calculator-tab2-comparison.csv` — five-supplier comparison using realistic numbers: China, Turkey, Poland, Portugal, Romania for a hypothetical machined-metal part at 50,000 units/year
 - `tco-calculator-tab3-sensitivity.csv` — sensitivity analysis: what happens to the winner when FX moves, lead times blow out, or tariffs shift
-- `README.md` — this file
+- `README.md` — this file (setup + defaults)
+- `tco-calculator-guide.md` — **practitioner's guide**: 5 industry profiles (electronics, metals, apparel, medical, packaging), sensitivity walkthrough with worked China-vs-Poland example, 8 Excel formulas to rebuild the XLSX, decision rules when the winner flips, 6 common mistakes
+
+## Start here
+
+If you're setting up the workbook: read this README, then see `tco-calculator-guide.md` section 3 for formulas.
+
+If you have the XLSX open and want to adapt it to your category: go straight to `tco-calculator-guide.md` section 1 (industry profiles) — pick the one closest to yours, paste the parameter overrides, move on.
+
+If your baseline winner looks fragile under sensitivity: `tco-calculator-guide.md` section 4 (decision rules when the winner flips).
+
+If something in your analysis feels off: `tco-calculator-guide.md` section 5 (6 common mistakes).
 
 ## How to convert to XLSX
 
@@ -87,6 +99,18 @@ This calculator is for **goods**, not services. Service TCO has different struct
 It assumes **steady-state** demand. For seasonal or launch categories, add a launch-cost line item.
 
 It does not replace a **supplier risk assessment**. Run the 20-point Supplier Risk Checklist in parallel — a supplier with the lowest TCO but a 60% customer-concentration risk or a missed sanctions screen is not a winner regardless of the number.
+
+## Quick reference: category calibration
+
+The shipped XLSX defaults (20% carrying rate, 3× rework multiplier, 3% risk premium) are calibrated for **machined metal parts, EU buyer, 50k units/year**. If you're in a different category, these are the first-pass overrides. Full profiles with gotchas in `tco-calculator-guide.md` section 1.
+
+| Category | Carrying rate | Rework mult. | CBAM relevance | First-pass gotcha |
+|---|---|---|---|---|
+| Electronics / CM | 15% | 5× | Negligible (chassis only) | Model BOM volatility reserve 3-5% separate from FX |
+| Metals / machined | 20% | 3-10× | 30-80 EUR/tonne | Check if raw material 3.1 cert traceability priced in |
+| Apparel / textiles | 28% | 2× | None, CSRD relevant | Late delivery = markdown cascade, not a % late |
+| Medical devices | 22% | 10-30× | Part-dependent | Supplier change triggers regulatory notification — price it |
+| Packaging / consumables | 15% | 1.5× | Paper/alu from non-EU | MOQ over-buy + SKU churn dominates unit price |
 
 ## How Procurea fits (light touch)
 

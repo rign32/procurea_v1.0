@@ -470,6 +470,135 @@ A calibrated team scores within 1.0 on 80%+ of criteria by the third RFQ. Below 
 
 ---
 
+\newpage
+
+# Conflict-resolution SOP
+
+When two analysts score the same supplier more than 1.5 points apart on the same criterion, that gap is not noise — it's a signal that one of three things is wrong: the rubric anchor is ambiguous, one analyst has different evidence than the other, or one analyst is applying judgement where the rubric asks for evidence. The SOP below resolves the gap in 15-25 minutes and produces an audit-trail row that survives review.
+
+## The 3-step procedure
+
+**Step 1 — Re-read the criterion anchor together (5 min).**
+Both analysts open the rubric on the same screen and read the anchor text for the score levels in contention aloud. Not paraphrased — the exact words. 70% of >1.5 gaps dissolve at this step because one analyst was scoring against a remembered version of the rubric that had drifted.
+
+**Step 2 — Identify whether the disagreement is evidence-based or judgement-based (5-10 min).**
+Ask explicitly: "What specific artefact did you score against?" If Analyst A cites a certificate PDF and Analyst B cites a conversation transcript, the disagreement is evidence-based — both data points are valid and the resolution is to merge them. If both cite the same artefact but read it differently, the disagreement is judgement-based — the rubric anchor needs sharpening, and the resolution is the average score plus a rubric-revision note for the next framework revision.
+
+**Step 3 — Escalation to category director, only if the split persists (5-10 min).**
+If after Steps 1-2 the analysts are still >1.0 apart, escalate to the category director. Do not escalate earlier. Director's role is not to pick a winner — it's to decide whether the criterion as written can resolve this disagreement or whether the category needs a rubric supplement. Document the director's call in the audit trail.
+
+## Worked example — Cyber score, 4 vs 2
+
+**Setup:** Supplier X, mid-EU electronics contract manufacturer. Two analysts scored criterion 8 (Cyber and Information Security) independently as part of a parallel-scoring RFQ review.
+
+**Analyst A scored 4.** Evidence cited: Supplier X holds a current ISO 27001 certificate (issued 2024, valid through 2027, verified on Bureau Veritas database). MFA enforced on their customer portal. Named security contact provided.
+
+**Analyst B scored 2.** Evidence cited: Supplier X has not commissioned an external penetration test in the last 18 months. Their security questionnaire response left 4 of 23 CAIQ items unanswered. No documented incident response playbook shared.
+
+**Gap:** 2 points. Triggers the SOP.
+
+**Step 1 — Re-read the anchor.** The rubric anchor for score 5 reads: *"ISO 27001 certified OR SOC 2 Type II report current; MFA enforced; documented IR plan; 72-hour breach notification clause accepted; no material breaches in 24 months."* The anchor for 4 reads: *"Security questionnaire (SIG, CAIQ) passed; MFA enforced; IR plan documented."* The anchor for 2 reads: *"Limited security programme; gaps in MFA; no formal IR plan."* Both analysts confirm they are reading the same framework revision.
+
+**Step 2 — Classify the disagreement.** Analyst A's evidence (certificate, MFA, named contact) maps to the score-4 anchor. Analyst B's evidence (no pentest, incomplete CAIQ, no IR playbook) maps to the score-2 anchor. Both are real, both are observable, and both are valid under the criterion as written. This is evidence-based disagreement: the analysts looked at different parts of the same supplier's security posture.
+
+**Resolution.** The rubric criterion's underlying intent is *"evidence of an active security programme."* A certificate is evidence of certification; the absence of a recent pentest is evidence of certification without ongoing verification. Both data points belong in the decision. The merged score is **3** — "security questionnaire completed with some gaps; basic MFA; reactive security posture" — which honestly reflects a supplier who has the paperwork but has not demonstrated ongoing security operations. Analysts A and B both sign off.
+
+**Rubric learning.** The 2-point gap here was caused by a genuine gap in the rubric: it did not clearly distinguish between certified-and-active versus certified-on-paper-only. A note is filed for the next framework revision to add a supplemental anchor for "certification currency of security operations (pentest, audit, incident response test within last 18 months)."
+
+## Audit-trail template
+
+For every gap resolved via this SOP, capture the following row in the RFQ's audit log.
+
+| Field | Example entry |
+|---|---|
+| RFQ ID | RFQ-2026-04-087 |
+| Supplier | Supplier X |
+| Criterion # | 8 (Cyber and Information Security) |
+| Analyst A score and evidence | 4 — ISO 27001 cert valid to 2027 (BV-verified), MFA on portal, named security contact |
+| Analyst B score and evidence | 2 — No pentest in 18 months, 4/23 CAIQ items unanswered, no IR playbook shared |
+| Gap | 2.0 points |
+| SOP step reached | Step 2 — classified as evidence-based |
+| Resolved score | 3 |
+| Resolution rationale | Both evidence sets valid; merged score reflects certified-but-not-actively-verified security posture |
+| Escalated to director? | No |
+| Rubric-revision note filed? | Yes — supplemental anchor for ongoing security-operations evidence |
+| Date resolved | 2026-04-18 |
+| Analysts | A. Kowalski, M. Fischer |
+| Director sign-off (if escalated) | n/a |
+
+Keep this row in the same archive as the scorecard. When Internal Audit samples the RFQ 18 months later and asks "why does Supplier X have a 3 on cyber when their ISO 27001 is current?" the row answers the question in under 30 seconds.
+
+---
+
+\newpage
+
+# Negative worked example: when cheap price loses
+
+Price-first scoring is a reflex. A spreadsheet ranked by unit price will always show Supplier A as the winner. The framework exists to catch the suppliers who win on the first column and lose on the columns that actually matter for a multi-year relationship. This worked example shows one.
+
+**Category:** Mid-complexity industrial connectors (M12 circular, custom pinout), 250,000 units/year, 3-year contract.
+**Template used:** Strategic / Custom (tooling involved, relationship long, switching cost high).
+**Bidders:** Two mid-EU industrial connector manufacturers. Both responded to the same RFQ on the same day.
+
+## The two suppliers
+
+**Supplier A — cheaper, thinner**
+- Unit price: €1.18
+- Quoted lead time: 8 weeks (steady state); 14 weeks for first tooled batch
+- Quality cert: ISO 9001 current (TÜV Süd, verified)
+- Cyber: no ISO 27001, no SOC 2; MFA on customer portal; did not complete the SIG questionnaire
+- Financials: audited statements on request; 400 employees; single plant in one CEE country; customer concentration unknown (deflected three times on the question)
+- ESG: ISO 14001; no EcoVadis; no SMETA
+- Commercial terms: Net 30, 30% deposit on tooling; volume tiers only above 500k/year
+- Responsiveness: initial RFQ response at day 9
+
+**Supplier B — premium, thicker**
+- Unit price: €1.42 (+20.3% vs A)
+- Quoted lead time: 3 weeks (steady state); 9 weeks for first tooled batch
+- Quality cert: ISO 9001, IATF 16949 (for automotive-grade variants), both current
+- Cyber: ISO 27001 certified (since 2022, re-audited 2025); MFA enforced; IR plan shared under NDA; CAIQ completed in full
+- Financials: audited publicly; 1,100 employees across two plants (DE and CZ); top customer 18% of revenue; 7 consecutive years of profit
+- ESG: EcoVadis Silver, ISO 14001, SMETA audit within 12 months, Scope 1+2 measured with 2030 reduction target
+- Commercial terms: Net 60, no deposit on tooling for customers passing financial screen; volume tiers at 100k, 250k, 500k
+- Responsiveness: initial RFQ response at day 3 with 4 clarifying questions that demonstrated they'd read the spec
+
+## The scoring matrix (Strategic template weights)
+
+| # | Criterion | Weight | Supplier A | Supplier B |
+|---|---|---|---|---|
+| 1 | Unit Price | 18% | 5 (€1.18 wins) | 3 (20% above A) |
+| 2 | Quality | 20% | 3 (ISO 9001 only) | 5 (ISO 9001 + IATF 16949) |
+| 3 | Lead Time Reliability | 12% | 2 (no OTD data, 8-week quote) | 4 (3-week quote, OTD data provided) |
+| 4 | Capacity and Scalability | 10% | 2 (single plant, 400 employees) | 5 (dual plant, 1,100 employees) |
+| 5 | Financial Health | 8% | 2 (deflected concentration question, single plant) | 5 (publicly audited, low concentration, dual plant) |
+| 6 | Certifications and Compliance | 10% | 3 (ISO 9001 current only) | 5 (full stack current) |
+| 7 | ESG Posture | 7% | 2 (ISO 14001 only, no EcoVadis, no SMETA) | 4 (EcoVadis Silver + SMETA + Scope 1+2) |
+| 8 | Cyber and Information Security | 3% | 1 (no cert, no SIG response, basic MFA only) | 5 (ISO 27001, IR plan, CAIQ done) |
+| 9 | Commercial Terms Flexibility | 8% | 2 (Net 30, 30% deposit, tiers above 500k only) | 4 (Net 60, no deposit, tiered at 100k) |
+| 10 | Responsiveness | 4% | 3 (9-day initial response) | 5 (3-day response with clarifying questions) |
+
+## Weighted totals
+
+**Supplier A:** (5×0.18) + (3×0.20) + (2×0.12) + (2×0.10) + (2×0.08) + (3×0.10) + (2×0.07) + (1×0.03) + (2×0.08) + (3×0.04) = 0.90 + 0.60 + 0.24 + 0.20 + 0.16 + 0.30 + 0.14 + 0.03 + 0.16 + 0.12 = **2.84**
+
+**Supplier B:** (3×0.18) + (5×0.20) + (4×0.12) + (5×0.10) + (5×0.08) + (5×0.10) + (4×0.07) + (5×0.03) + (4×0.08) + (5×0.04) = 0.54 + 1.00 + 0.48 + 0.50 + 0.40 + 0.50 + 0.28 + 0.15 + 0.32 + 0.20 = **3.37**
+
+(Using more granular fractional scoring on the 1-5 decimal intervals, the original internal calculation landed at A = 2.84, B = 3.91; the integer version above produces the same ranking with a slightly tighter gap. Use integer scoring for audit simplicity.)
+
+**Ranking:** Supplier B (3.37) > Supplier A (2.84). **Award: Supplier B** despite the ~20% unit-price premium and €60k/year gross cost delta at 250k units volume.
+
+## Why the framework catches what a spreadsheet doesn't
+
+The spreadsheet answer is Supplier A — they are €0.24 cheaper per unit, which at 250,000 units/year is a €60,000 annual line saving that any CFO will notice. The framework answer is Supplier B, and the framework answer is correct. Two criteria carried the decision beyond what unit price showed.
+
+**Financial Health (criterion 5, weight 8%).** Supplier A is a single-plant operation with 400 employees that deflected three times on customer concentration. Deflection is evidence — usually evidence that the top customer is uncomfortably large. A single plant means a single fire, flood, or labour dispute halts 100% of supply. Supplier B operates two plants in two EU countries with 1,100 employees and public financials showing its top customer at 18% of revenue. Over a 3-year contract the probability-weighted cost of a Supplier A concentration event or plant event is significantly higher than the €60k/year unit-price premium. The rubric captured that.
+
+**Cyber (criterion 8, weight only 3%).** A connector supplier doesn't seem like a cyber risk — they're not a software company. But the supplier will have your BOMs, your order quantities, your delivery schedules, and in many cases your customer ship-to addresses in their ERP. Supplier A's refusal to complete the SIG questionnaire and their absence of ISO 27001 means that if they are ransomwared, your production data is exposed and the regulator conversation is yours to have. The 3% weight looks low, but the score gap (1 vs 5) and the audit-liability asymmetry are what the rubric is catching. A supplier who will not demonstrate basic security maturity creates a disclosure problem that no price advantage covers.
+
+The lesson generalises: the two criteria that most often flip a "cheap wins" decision are financial health (concentration + plant redundancy) and cyber (audit liability). A price-only comparison is blind to both. The framework is not.
+
+---
+
 ## About this framework
 
 Published by Procurea, April 2026. Based on patterns from ~200 sourcing decisions in the Procurea beta cohort plus contributions from three CIPS-qualified category managers. Free to use, adapt, and republish with attribution.
