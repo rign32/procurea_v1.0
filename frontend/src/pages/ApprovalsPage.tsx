@@ -95,7 +95,7 @@ export function ApprovalsPage() {
   if (!approvals && isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-ink" />
       </div>
     );
   }
@@ -119,8 +119,8 @@ export function ApprovalsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">{isEN ? 'Approvals' : 'Zatwierdzenia'}</h1>
-        <p className="text-muted-foreground mt-1">
+        <h1 className="text-[30px] leading-[1.1] tracking-[-0.03em] font-bold">{isEN ? 'Approvals' : 'Zatwierdzenia'}</h1>
+        <p className="text-muted-ink mt-1">
           {isEN ? 'Review and manage approval requests' : 'Przegladaj i zarzadzaj wnioskami o zatwierdzenie'}
         </p>
       </div>
@@ -134,7 +134,7 @@ export function ApprovalsPage() {
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               activeTab === tab.key
                 ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
+                : 'text-muted-ink hover:text-foreground'
             }`}
           >
             {tab.label}
@@ -187,25 +187,25 @@ export function ApprovalsPage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
                         <div>
-                          <span className="text-muted-foreground">{isEN ? 'Type: ' : 'Typ: '}</span>
+                          <span className="text-muted-ink">{isEN ? 'Type: ' : 'Typ: '}</span>
                           <span className="font-medium">{approval.entityType}</span>
                         </div>
                         {approval.reason && (
                           <div className="md:col-span-2">
-                            <span className="text-muted-foreground">{isEN ? 'Reason: ' : 'Powod: '}</span>
+                            <span className="text-muted-ink">{isEN ? 'Reason: ' : 'Powod: '}</span>
                             <span>{approval.reason}</span>
                           </div>
                         )}
                       </div>
 
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-ink">
                         {formatDate(approval.createdAt)}
                       </p>
 
                       {approval.comments && (
                         <div className="flex items-start gap-2 mt-2 p-2 bg-muted/30 rounded-md">
-                          <MessageSquare className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
-                          <p className="text-xs text-muted-foreground">{approval.comments}</p>
+                          <MessageSquare className="h-3.5 w-3.5 text-muted-ink mt-0.5 shrink-0" />
+                          <p className="text-xs text-muted-ink">{approval.comments}</p>
                         </div>
                       )}
                     </div>
@@ -261,7 +261,7 @@ export function ApprovalsPage() {
                 {actionDialog?.type === 'approve'
                   ? (isEN ? 'Comments' : 'Komentarz')
                   : (isEN ? 'Rejection Reason' : 'Powod odrzucenia')}
-                {' '}<span className="text-muted-foreground text-xs">({isEN ? 'optional' : 'opcjonalne'})</span>
+                {' '}<span className="text-muted-ink text-xs">({isEN ? 'optional' : 'opcjonalne'})</span>
               </Label>
               <Input
                 value={actionInput}

@@ -88,7 +88,7 @@ export function RegistryPage() {
     <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-6">
       {/* Header */}
       <motion.div variants={itemVariants}>
-        <h1 className="text-3xl font-bold">{t.registry.title}</h1>
+        <h1 className="text-[30px] leading-[1.1] tracking-[-0.03em] font-bold">{t.registry.title}</h1>
         <p className="text-muted-foreground mt-1">{t.registry.subtitle}</p>
       </motion.div>
 

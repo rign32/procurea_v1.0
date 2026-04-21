@@ -49,7 +49,7 @@ function HorizontalBar({ label, value, max, color }: { label: string; value: num
   const pct = max > 0 ? Math.round((value / max) * 100) : 0;
   return (
     <div className="flex items-center gap-3">
-      <span className="text-sm text-muted-foreground w-36 shrink-0 truncate" title={label}>{label}</span>
+      <span className="text-sm text-muted-ink w-36 shrink-0 truncate" title={label}>{label}</span>
       <div className="flex-1 h-7 bg-muted/30 rounded-md overflow-hidden relative">
         <motion.div
           className={`h-full rounded-md ${color}`}
@@ -79,7 +79,7 @@ function VerticalBar({ label, value, max, delay }: { label: string; value: numbe
           transition={{ duration: 0.5, delay, ease: 'easeOut' }}
         />
       </div>
-      <span className="text-[10px] text-muted-foreground">{label}</span>
+      <span className="text-[10px] text-muted-ink">{label}</span>
     </div>
   );
 }
@@ -104,7 +104,7 @@ function KpiCard({ title, value, icon: Icon, description }: {
         <CardContent>
           <div className="text-3xl font-bold tracking-tight">{value}</div>
           {description && (
-            <p className="text-xs text-muted-foreground mt-1">{description}</p>
+            <p className="text-xs text-muted-ink mt-1">{description}</p>
           )}
         </CardContent>
       </Card>
@@ -144,13 +144,13 @@ export default function AnalyticsPage() {
     return (
       <div className="flex flex-col gap-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t.analytics.title}</h1>
-          <p className="text-muted-foreground mt-1">{t.analytics.subtitle}</p>
+          <h1 className="text-[30px] leading-[1.1] tracking-[-0.03em] font-bold">{t.analytics.title}</h1>
+          <p className="text-muted-ink mt-1">{t.analytics.subtitle}</p>
         </div>
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <Target className="h-12 w-12 text-muted-foreground/30 mb-4" />
-            <p className="text-muted-foreground">{t.analytics.noData}</p>
+            <Target className="h-12 w-12 text-muted-ink/30 mb-4" />
+            <p className="text-muted-ink">{t.analytics.noData}</p>
           </CardContent>
         </Card>
       </div>
@@ -172,8 +172,8 @@ export default function AnalyticsPage() {
     <div className="flex flex-col gap-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t.analytics.title}</h1>
-        <p className="text-muted-foreground mt-1">{t.analytics.subtitle}</p>
+        <h1 className="text-[30px] leading-[1.1] tracking-[-0.03em] font-bold">{t.analytics.title}</h1>
+        <p className="text-muted-ink mt-1">{t.analytics.subtitle}</p>
       </div>
 
       {/* KPI Cards */}
@@ -240,11 +240,11 @@ export default function AnalyticsPage() {
             {/* Pass rate badges */}
             <div className="flex gap-3 pt-2">
               <div className="rounded-md bg-emerald-50 dark:bg-emerald-950/30 px-3 py-1.5 text-xs">
-                <span className="text-muted-foreground">{isEN ? 'Screener rate' : 'Screener rate'}: </span>
+                <span className="text-muted-ink">{isEN ? 'Screener rate' : 'Screener rate'}: </span>
                 <span className="font-semibold text-emerald-600 dark:text-emerald-400">{funnel.avgScreenerPassRate}%</span>
               </div>
               <div className="rounded-md bg-green-50 dark:bg-green-950/30 px-3 py-1.5 text-xs">
-                <span className="text-muted-foreground">{isEN ? 'Auditor rate' : 'Auditor rate'}: </span>
+                <span className="text-muted-ink">{isEN ? 'Auditor rate' : 'Auditor rate'}: </span>
                 <span className="font-semibold text-green-600 dark:text-green-400">{funnel.avgAuditorPassRate}%</span>
               </div>
             </div>
@@ -281,7 +281,7 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent className="space-y-2.5">
             {topCountries.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">{t.analytics.noData}</p>
+              <p className="text-sm text-muted-ink py-4 text-center">{t.analytics.noData}</p>
             ) : (
               topCountries.map((item, i) => (
                 <HorizontalBar
@@ -306,13 +306,13 @@ export default function AnalyticsPage() {
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
                 <div className="rounded-lg bg-muted/30 p-3">
-                  <p className="text-xs text-muted-foreground">{t.analytics.cost.avgPerCampaign}</p>
+                  <p className="text-xs text-muted-ink">{t.analytics.cost.avgPerCampaign}</p>
                   <p className="text-xl font-bold mt-1">
                     {cost.avgCostPerCampaign > 0 ? `$${cost.avgCostPerCampaign.toFixed(2)}` : '--'}
                   </p>
                 </div>
                 <div className="rounded-lg bg-muted/30 p-3">
-                  <p className="text-xs text-muted-foreground">{t.analytics.cost.avgPerSupplier}</p>
+                  <p className="text-xs text-muted-ink">{t.analytics.cost.avgPerSupplier}</p>
                   <p className="text-xl font-bold mt-1">
                     {cost.avgCostPerSupplier > 0 ? `$${cost.avgCostPerSupplier.toFixed(3)}` : '--'}
                   </p>
@@ -320,14 +320,14 @@ export default function AnalyticsPage() {
                 <div className="rounded-lg bg-muted/30 p-3 flex items-center gap-2">
                   <Zap className="h-4 w-4 text-amber-500" />
                   <div>
-                    <p className="text-xs text-muted-foreground">{t.analytics.cost.geminiCalls}</p>
+                    <p className="text-xs text-muted-ink">{t.analytics.cost.geminiCalls}</p>
                     <p className="text-lg font-semibold">{cost.totalGeminiCalls.toLocaleString()}</p>
                   </div>
                 </div>
                 <div className="rounded-lg bg-muted/30 p-3 flex items-center gap-2">
                   <Search className="h-4 w-4 text-blue-500" />
                   <div>
-                    <p className="text-xs text-muted-foreground">{t.analytics.cost.serperCalls}</p>
+                    <p className="text-xs text-muted-ink">{t.analytics.cost.serperCalls}</p>
                     <p className="text-lg font-semibold">{cost.totalSerperCalls.toLocaleString()}</p>
                   </div>
                 </div>
@@ -343,13 +343,13 @@ export default function AnalyticsPage() {
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
                 <div className="rounded-lg bg-muted/30 p-4 text-center">
-                  <p className="text-xs text-muted-foreground mb-1">{t.analytics.quality.capability}</p>
+                  <p className="text-xs text-muted-ink mb-1">{t.analytics.quality.capability}</p>
                   <p className="text-3xl font-bold text-primary">
                     {quality.avgCapabilityScore > 0 ? quality.avgCapabilityScore.toFixed(1) : '--'}
                   </p>
                 </div>
                 <div className="rounded-lg bg-muted/30 p-4 text-center">
-                  <p className="text-xs text-muted-foreground mb-1">{t.analytics.quality.trust}</p>
+                  <p className="text-xs text-muted-ink mb-1">{t.analytics.quality.trust}</p>
                   <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
                     {quality.avgTrustScore > 0 ? quality.avgTrustScore.toFixed(1) : '--'}
                   </p>

@@ -102,7 +102,7 @@ export function RankingWeightsConfigurator({
         <div className="flex items-start justify-between">
           <div>
             <CardTitle className="text-base">Wagi rankingu ofert</CardTitle>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-ink mt-1">
               Ustaw jak ważne jest każde kryterium. Suma musi wynosić 100%.
             </p>
           </div>
@@ -140,7 +140,7 @@ export function RankingWeightsConfigurator({
                     step={5}
                     className="w-14 h-7 px-2 text-xs border rounded text-right tabular-nums"
                   />
-                  <span className="text-xs text-muted-foreground w-4">%</span>
+                  <span className="text-xs text-muted-ink w-4">%</span>
                 </div>
               </div>
               <input
@@ -152,7 +152,7 @@ export function RankingWeightsConfigurator({
                 step={5}
                 className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-primary"
               />
-              <p className="text-[11px] text-muted-foreground mt-1">{c.hint}</p>
+              <p className="text-[11px] text-muted-ink mt-1">{c.hint}</p>
             </div>
           );
         })}

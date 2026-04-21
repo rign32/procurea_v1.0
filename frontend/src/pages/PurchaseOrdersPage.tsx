@@ -115,7 +115,7 @@ export function PurchaseOrdersPage() {
   if (!purchaseOrders && isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-ink" />
       </div>
     );
   }
@@ -140,8 +140,8 @@ export function PurchaseOrdersPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">{isEN ? 'Purchase Orders' : 'Zamówienia'}</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-[30px] leading-[1.1] tracking-[-0.03em] font-bold">{isEN ? 'Purchase Orders' : 'Zamówienia'}</h1>
+          <p className="text-muted-ink mt-1">
             {isEN ? 'Manage purchase orders generated from contracts' : 'Zarządzaj zamówieniami wygenerowanymi z kontraktów'}
           </p>
         </div>
@@ -160,7 +160,7 @@ export function PurchaseOrdersPage() {
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               activeTab === tab.key
                 ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
+                : 'text-muted-ink hover:text-foreground'
             }`}
           >
             {tab.label}
@@ -206,9 +206,9 @@ export function PurchaseOrdersPage() {
                       <div className="flex items-center gap-3">
                         <CardTitle className="text-base">{po.poNumber || po.id.slice(0, 8)}</CardTitle>
                         {isExpanded ? (
-                          <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                          <ChevronUp className="h-4 w-4 text-muted-ink" />
                         ) : (
-                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                          <ChevronDown className="h-4 w-4 text-muted-ink" />
                         )}
                       </div>
                       <Badge variant={STATUS_BADGE_VARIANT[po.status]}>
@@ -220,23 +220,23 @@ export function PurchaseOrdersPage() {
                   <CardContent>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
                       <div>
-                        <p className="text-muted-foreground">{isEN ? 'Supplier' : 'Dostawca'}</p>
+                        <p className="text-muted-ink">{isEN ? 'Supplier' : 'Dostawca'}</p>
                         <p className="font-medium">{po.offer?.supplier?.name ?? '\u2014'}</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">{isEN ? 'Contract' : 'Kontrakt'}</p>
+                        <p className="text-muted-ink">{isEN ? 'Contract' : 'Kontrakt'}</p>
                         <p className="font-medium">{po.contract?.title ?? '\u2014'}</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">{isEN ? 'Total' : 'Kwota'}</p>
+                        <p className="text-muted-ink">{isEN ? 'Total' : 'Kwota'}</p>
                         <p className="font-medium">{formatCurrency(po.totalAmount, po.currency)}</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">{isEN ? 'Delivery' : 'Dostawa'}</p>
+                        <p className="text-muted-ink">{isEN ? 'Delivery' : 'Dostawa'}</p>
                         <p className="font-medium">{formatDate(po.deliveryDate)}</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">{isEN ? 'Created' : 'Utworzono'}</p>
+                        <p className="text-muted-ink">{isEN ? 'Created' : 'Utworzono'}</p>
                         <p className="font-medium">{formatDate(po.createdAt)}</p>
                       </div>
                     </div>
@@ -247,7 +247,7 @@ export function PurchaseOrdersPage() {
                         {/* Line items */}
                         {po.lines && po.lines.length > 0 && (
                           <div>
-                            <p className="text-sm text-muted-foreground mb-2">{isEN ? 'Line Items' : 'Pozycje'}</p>
+                            <p className="text-sm text-muted-ink mb-2">{isEN ? 'Line Items' : 'Pozycje'}</p>
                             <div className="rounded-md border overflow-hidden">
                               <table className="w-full text-sm">
                                 <thead className="bg-muted/50">
@@ -276,7 +276,7 @@ export function PurchaseOrdersPage() {
                         {/* Status Transition Buttons */}
                         {transitions.length > 0 && (
                           <div className="flex items-center gap-2 pt-2">
-                            <span className="text-sm text-muted-foreground mr-2">
+                            <span className="text-sm text-muted-ink mr-2">
                               {isEN ? 'Change status:' : 'Zmień status:'}
                             </span>
                             {transitions.map((nextStatus) => (
@@ -334,7 +334,7 @@ export function PurchaseOrdersPage() {
                 ))}
               </select>
               {eligibleContracts.length === 0 && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-ink">
                   {isEN
                     ? 'No signed or active contracts found. Sign a contract first.'
                     : 'Brak podpisanych lub aktywnych kontraktów. Najpierw podpisz kontrakt.'}

@@ -130,7 +130,7 @@ export function ContractsPage() {
   if (!contracts && isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-ink" />
       </div>
     );
   }
@@ -155,8 +155,8 @@ export function ContractsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">{isEN ? 'Contracts' : 'Kontrakty'}</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-[30px] leading-[1.1] tracking-[-0.03em] font-bold">{isEN ? 'Contracts' : 'Kontrakty'}</h1>
+          <p className="text-muted-ink mt-1">
             {isEN ? 'Manage your contracts with suppliers' : 'Zarzadzaj kontraktami z dostawcami'}
           </p>
         </div>
@@ -175,7 +175,7 @@ export function ContractsPage() {
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               activeTab === tab.key
                 ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
+                : 'text-muted-ink hover:text-foreground'
             }`}
           >
             {tab.label}
@@ -221,9 +221,9 @@ export function ContractsPage() {
                       <div className="flex items-center gap-3">
                         <CardTitle className="text-base">{contract.title}</CardTitle>
                         {isExpanded ? (
-                          <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                          <ChevronUp className="h-4 w-4 text-muted-ink" />
                         ) : (
-                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                          <ChevronDown className="h-4 w-4 text-muted-ink" />
                         )}
                       </div>
                       <Badge variant={STATUS_BADGE_VARIANT[contract.status]}>
@@ -235,19 +235,19 @@ export function ContractsPage() {
                   <CardContent>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div>
-                        <p className="text-muted-foreground">{isEN ? 'Supplier' : 'Dostawca'}</p>
+                        <p className="text-muted-ink">{isEN ? 'Supplier' : 'Dostawca'}</p>
                         <p className="font-medium">{contract.offer?.supplier?.name ?? '\u2014'}</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">{isEN ? 'Product' : 'Produkt'}</p>
+                        <p className="text-muted-ink">{isEN ? 'Product' : 'Produkt'}</p>
                         <p className="font-medium">{contract.offer?.rfqRequest?.productName ?? '\u2014'}</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">{isEN ? 'Start Date' : 'Data rozpoczecia'}</p>
+                        <p className="text-muted-ink">{isEN ? 'Start Date' : 'Data rozpoczecia'}</p>
                         <p className="font-medium">{formatDate(contract.startDate)}</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">{isEN ? 'End Date' : 'Data zakonczenia'}</p>
+                        <p className="text-muted-ink">{isEN ? 'End Date' : 'Data zakonczenia'}</p>
                         <p className="font-medium">{formatDate(contract.endDate)}</p>
                       </div>
                     </div>
@@ -257,17 +257,17 @@ export function ContractsPage() {
                       <div className="mt-4 pt-4 border-t space-y-4 animate-in fade-in zoom-in-95 duration-200">
                         {contract.terms && (
                           <div>
-                            <p className="text-sm text-muted-foreground mb-1">{isEN ? 'Terms' : 'Warunki'}</p>
+                            <p className="text-sm text-muted-ink mb-1">{isEN ? 'Terms' : 'Warunki'}</p>
                             <p className="text-sm whitespace-pre-wrap bg-muted/30 rounded-md p-3">{contract.terms}</p>
                           </div>
                         )}
 
                         {contract.offer && (
                           <div>
-                            <p className="text-sm text-muted-foreground mb-1">{isEN ? 'Offer Details' : 'Szczegoly oferty'}</p>
+                            <p className="text-sm text-muted-ink mb-1">{isEN ? 'Offer Details' : 'Szczegoly oferty'}</p>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm bg-muted/30 rounded-md p-3">
                               <div>
-                                <p className="text-muted-foreground">{isEN ? 'Price' : 'Cena'}</p>
+                                <p className="text-muted-ink">{isEN ? 'Price' : 'Cena'}</p>
                                 <p className="font-medium">
                                   {contract.offer.price != null
                                     ? new Intl.NumberFormat(isEN ? 'en-US' : 'pl-PL', {
@@ -278,11 +278,11 @@ export function ContractsPage() {
                                 </p>
                               </div>
                               <div>
-                                <p className="text-muted-foreground">{isEN ? 'Supplier Country' : 'Kraj dostawcy'}</p>
+                                <p className="text-muted-ink">{isEN ? 'Supplier Country' : 'Kraj dostawcy'}</p>
                                 <p className="font-medium">{contract.offer.supplier?.country ?? '\u2014'}</p>
                               </div>
                               <div>
-                                <p className="text-muted-foreground">{isEN ? 'Created' : 'Utworzono'}</p>
+                                <p className="text-muted-ink">{isEN ? 'Created' : 'Utworzono'}</p>
                                 <p className="font-medium">{formatDate(contract.createdAt)}</p>
                               </div>
                             </div>
@@ -292,7 +292,7 @@ export function ContractsPage() {
                         {/* Status Transition Buttons */}
                         {transitions.length > 0 && (
                           <div className="flex items-center gap-2 pt-2">
-                            <span className="text-sm text-muted-foreground mr-2">
+                            <span className="text-sm text-muted-ink mr-2">
                               {isEN ? 'Change status:' : 'Zmien status:'}
                             </span>
                             {transitions.map((nextStatus) => (
@@ -358,16 +358,16 @@ export function ContractsPage() {
                 ))}
               </select>
               {acceptedOffers.length === 0 && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-ink">
                   {isEN ? 'No accepted offers found. Accept an offer in RFQs first.' : 'Brak zaakceptowanych ofert. Najpierw zaakceptuj oferte w zapytaniach.'}
                 </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label>{isEN ? 'Terms' : 'Warunki'} <span className="text-muted-foreground text-xs">({isEN ? 'optional' : 'opcjonalne'})</span></Label>
+              <Label>{isEN ? 'Terms' : 'Warunki'} <span className="text-muted-ink text-xs">({isEN ? 'optional' : 'opcjonalne'})</span></Label>
               <textarea
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 value={formTerms}
                 onChange={(e) => setFormTerms(e.target.value)}
                 placeholder={isEN ? 'Contract terms and conditions...' : 'Warunki kontraktu...'}
@@ -376,7 +376,7 @@ export function ContractsPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>{isEN ? 'Start Date' : 'Data rozpoczecia'} <span className="text-muted-foreground text-xs">({isEN ? 'optional' : 'opcjonalne'})</span></Label>
+                <Label>{isEN ? 'Start Date' : 'Data rozpoczecia'} <span className="text-muted-ink text-xs">({isEN ? 'optional' : 'opcjonalne'})</span></Label>
                 <Input
                   type="date"
                   value={formStartDate}
@@ -384,7 +384,7 @@ export function ContractsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>{isEN ? 'End Date' : 'Data zakonczenia'} <span className="text-muted-foreground text-xs">({isEN ? 'optional' : 'opcjonalne'})</span></Label>
+                <Label>{isEN ? 'End Date' : 'Data zakonczenia'} <span className="text-muted-ink text-xs">({isEN ? 'optional' : 'opcjonalne'})</span></Label>
                 <Input
                   type="date"
                   value={formEndDate}
