@@ -370,9 +370,15 @@ export class AuthService {
             throw new BadRequestException('Invalid or expired verification code');
         }
 
-        // Get user data
-        const user = await this.prisma.user.findUnique({
+        // Mark email as verified (was previously silently skipped — meant
+        // `isEmailVerified` was always false even for fully logged-in users,
+        // and the field was effectively unused for spam mitigation).
+        const user = await this.prisma.user.update({
             where: { id: userId },
+            data: {
+                isEmailVerified: true,
+                lastLoginAt: new Date(),
+            },
             include: {
                 organization: {
                     include: { locations: true }
@@ -381,13 +387,45 @@ export class AuthService {
                     select: { id: true, name: true, displayName: true, permissions: true }
                 },
             }
-        });
+        }).catch(() => null);
 
         if (!user) {
             throw new BadRequestException('User not found');
         }
 
         return user;
+    }
+
+    /**
+     * Delete unverified email-login users older than 7 days.
+     * Protects against spam: each email/login call creates a user before magic-code
+     * verification, so an attacker hitting the endpoint 5×/min×IP for days would
+     * pollute the DB. SSO users (google/microsoft) are excluded — their identity
+     * is verified by the provider so isEmailVerified can remain false without risk.
+     *
+     * Called via cron at 03:15 UTC daily (registered in AuthModule onModuleInit).
+     */
+    async cleanupUnverifiedUsers(): Promise<{ deleted: number }> {
+        const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        const candidates = await this.prisma.user.findMany({
+            where: {
+                ssoProvider: 'email',
+                isEmailVerified: false,
+                onboardingCompleted: false,
+                createdAt: { lt: cutoff },
+                isDemo: false,
+            },
+            select: { id: true },
+        });
+        if (candidates.length === 0) return { deleted: 0 };
+        const ids = candidates.map(u => u.id);
+        await this.prisma.$transaction(async (tx) => {
+            await tx.refreshToken.deleteMany({ where: { userId: { in: ids } } });
+            await tx.creditTransaction.deleteMany({ where: { userId: { in: ids } } });
+            await tx.user.deleteMany({ where: { id: { in: ids } } });
+        });
+        console.log(`[AUTH CLEANUP] Deleted ${ids.length} unverified email users (>7 days old)`);
+        return { deleted: ids.length };
     }
 
     // --- PHONE VERIFICATION ---

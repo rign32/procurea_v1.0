@@ -279,13 +279,17 @@ describe('AuthService', () => {
             expect(result.userId).toBe('u1');
         });
 
-        it('verifyEmailCode returns user on valid code', async () => {
-            const user = { id: 'u1', email: 'test@acme.com', organization: null, rbacRole: null };
+        it('verifyEmailCode returns user on valid code + marks email verified', async () => {
+            const user = { id: 'u1', email: 'test@acme.com', isEmailVerified: true, organization: null, rbacRole: null };
             redis.verifyAndDeleteMagicCode.mockResolvedValue('u1');
-            prisma.user.findUnique.mockResolvedValue(user);
+            prisma.user.update.mockResolvedValue(user);
 
             const result = await service.verifyEmailCode('test@acme.com', '123456');
             expect(result).toEqual(user);
+            expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({
+                where: { id: 'u1' },
+                data: expect.objectContaining({ isEmailVerified: true }),
+            }));
         });
 
         it('verifyEmailCode throws on invalid code + emits observability warning', async () => {

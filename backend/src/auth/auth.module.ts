@@ -15,6 +15,7 @@ import { SalesOpsModule } from '../sales-ops/sales-ops.module';
 import { ObservabilityModule } from '../observability/observability.module';
 import { RedisService } from './redis.service';
 import { TokensService } from './tokens.service';
+import { AuthCleanupScheduler } from './auth-cleanup.scheduler';
 
 @Module({
     imports: [
@@ -48,6 +49,7 @@ import { TokensService } from './tokens.service';
         SmsService,
         RedisService,
         TokensService,
+        AuthCleanupScheduler,
     ],
     exports: [AuthService, JwtModule, SmsService, RedisService, TokensService],
 })
