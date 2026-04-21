@@ -117,15 +117,6 @@ export function IntegrationsHubPage() {
           </p>
         </section>
 
-        {/* Hero illustration */}
-        <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mb-12">
-          <RevealOnScroll>
-            <div className="relative overflow-hidden rounded-3xl aspect-[21/9] shadow-[0_24px_64px_-16px_rgba(8,14,28,0.2)]">
-              <img src="/pages/integrations-hub-hero.webp" alt="" className="absolute inset-0 h-full w-full object-cover" loading="eager" />
-            </div>
-          </RevealOnScroll>
-        </section>
-
         {/* Search */}
         <section className="mx-auto max-w-xl px-4 sm:px-6 lg:px-8 mb-12">
           <input

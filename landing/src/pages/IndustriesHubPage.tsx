@@ -18,26 +18,27 @@ interface IndustryItem {
   desc: string
   to: string | null // null = coming soon
   round: 1 | 2
+  image: string
 }
 
 const industries: IndustryItem[] = isEN ? [
-  { icon: Factory, title: 'Manufacturing', desc: 'Alternative suppliers for raw materials and components. ISO 9001 / IATF qualification.', to: pathFor('iManufacturing'), round: 1 },
-  { icon: Calendar, title: 'Events', desc: 'Local vendors in 48h — catering, AV, scenography for events in foreign cities.', to: pathFor('iEvents'), round: 1 },
-  { icon: HardHat, title: 'Construction', desc: 'Subcontractors and materials for developers and general contractors.', to: pathFor('iConstruction'), round: 1 },
-  { icon: ShoppingBag, title: 'Retail & E-commerce', desc: 'Private label manufacturers — nearshore migration from China.', to: pathFor('iRetail'), round: 1 },
-  { icon: UtensilsCrossed, title: 'HoReCa', desc: 'F&B ingredients, equipment, tabletop for restaurants and hotels.', to: pathFor('iHoreca'), round: 1 },
-  { icon: HeartPulse, title: 'Healthcare', desc: 'Medical devices, disposables — CE, FDA, MDR certified vendors.', to: pathFor('iHealthcare'), round: 1 },
-  { icon: Truck, title: 'Logistics', desc: 'Warehouse equipment, fleet parts, outsourced 3PL services.', to: pathFor('iLogistics'), round: 1 },
-  { icon: Wrench, title: 'MRO', desc: 'Industrial spare parts, maintenance services, urgent sourcing.', to: pathFor('iMro'), round: 1 },
+  { icon: Factory, title: 'Manufacturing', desc: 'Alternative suppliers for raw materials and components. ISO 9001 / IATF qualification.', to: pathFor('iManufacturing'), round: 1, image: '/industries/manufacturing-solution.jpg' },
+  { icon: Calendar, title: 'Events', desc: 'Local vendors in 48h — catering, AV, scenography for events in foreign cities.', to: pathFor('iEvents'), round: 1, image: '/industries/events-solution.jpg' },
+  { icon: HardHat, title: 'Construction', desc: 'Subcontractors and materials for developers and general contractors.', to: pathFor('iConstruction'), round: 1, image: '/industries/construction-solution.jpg' },
+  { icon: ShoppingBag, title: 'Retail & E-commerce', desc: 'Private label manufacturers — nearshore migration from China.', to: pathFor('iRetail'), round: 1, image: '/industries/retail-solution.jpg' },
+  { icon: UtensilsCrossed, title: 'HoReCa', desc: 'F&B ingredients, equipment, tabletop for restaurants and hotels.', to: pathFor('iHoreca'), round: 1, image: '/industries/horeca-solution.jpg' },
+  { icon: HeartPulse, title: 'Healthcare', desc: 'Medical devices, disposables — CE, FDA, MDR certified vendors.', to: pathFor('iHealthcare'), round: 1, image: '/industries/healthcare-solution.jpg' },
+  { icon: Truck, title: 'Logistics', desc: 'Warehouse equipment, fleet parts, outsourced 3PL services.', to: pathFor('iLogistics'), round: 1, image: '/industries/logistics-solution.jpg' },
+  { icon: Wrench, title: 'MRO', desc: 'Industrial spare parts, maintenance services, urgent sourcing.', to: pathFor('iMro'), round: 1, image: '/industries/mro-solution.jpg' },
 ] : [
-  { icon: Factory, title: 'Produkcja', desc: 'Alternatywni dostawcy surowców i komponentów. Kwalifikacja ISO 9001 / IATF.', to: pathFor('iManufacturing'), round: 1 },
-  { icon: Calendar, title: 'Eventy', desc: 'Lokalni dostawcy w 48h — catering, AV, scenografia dla eventów w obcych miastach.', to: pathFor('iEvents'), round: 1 },
-  { icon: HardHat, title: 'Budownictwo', desc: 'Podwykonawcy i materiały dla deweloperów i generalnych wykonawców.', to: pathFor('iConstruction'), round: 1 },
-  { icon: ShoppingBag, title: 'Retail & E-commerce', desc: 'Producenci private label — migracja nearshore z Chin.', to: pathFor('iRetail'), round: 1 },
-  { icon: UtensilsCrossed, title: 'HoReCa', desc: 'Składniki F&B, sprzęt, tabletop dla restauracji i hoteli.', to: pathFor('iHoreca'), round: 1 },
-  { icon: HeartPulse, title: 'Ochrona zdrowia', desc: 'Wyroby medyczne, jednorazówki — dostawcy z certyfikatami CE, FDA, MDR.', to: pathFor('iHealthcare'), round: 1 },
-  { icon: Truck, title: 'Logistyka', desc: 'Sprzęt magazynowy, części floty, outsourcing usług 3PL.', to: pathFor('iLogistics'), round: 1 },
-  { icon: Wrench, title: 'MRO', desc: 'Części zamienne przemysłowe, serwis, pilne sourcing.', to: pathFor('iMro'), round: 1 },
+  { icon: Factory, title: 'Produkcja', desc: 'Alternatywni dostawcy surowców i komponentów. Kwalifikacja ISO 9001 / IATF.', to: pathFor('iManufacturing'), round: 1, image: '/industries/manufacturing-solution.jpg' },
+  { icon: Calendar, title: 'Eventy', desc: 'Lokalni dostawcy w 48h — catering, AV, scenografia dla eventów w obcych miastach.', to: pathFor('iEvents'), round: 1, image: '/industries/events-solution.jpg' },
+  { icon: HardHat, title: 'Budownictwo', desc: 'Podwykonawcy i materiały dla deweloperów i generalnych wykonawców.', to: pathFor('iConstruction'), round: 1, image: '/industries/construction-solution.jpg' },
+  { icon: ShoppingBag, title: 'Retail & E-commerce', desc: 'Producenci private label — migracja nearshore z Chin.', to: pathFor('iRetail'), round: 1, image: '/industries/retail-solution.jpg' },
+  { icon: UtensilsCrossed, title: 'HoReCa', desc: 'Składniki F&B, sprzęt, tabletop dla restauracji i hoteli.', to: pathFor('iHoreca'), round: 1, image: '/industries/horeca-solution.jpg' },
+  { icon: HeartPulse, title: 'Ochrona zdrowia', desc: 'Wyroby medyczne, jednorazówki — dostawcy z certyfikatami CE, FDA, MDR.', to: pathFor('iHealthcare'), round: 1, image: '/industries/healthcare-solution.jpg' },
+  { icon: Truck, title: 'Logistyka', desc: 'Sprzęt magazynowy, części floty, outsourcing usług 3PL.', to: pathFor('iLogistics'), round: 1, image: '/industries/logistics-solution.jpg' },
+  { icon: Wrench, title: 'MRO', desc: 'Części zamienne przemysłowe, serwis, pilne sourcing.', to: pathFor('iMro'), round: 1, image: '/industries/mro-solution.jpg' },
 ]
 
 const copy = {
@@ -51,15 +52,27 @@ function IndustryCard({ industry }: { industry: IndustryItem }) {
   const Icon = industry.icon
   const content = (
     <TiltCard className="h-full">
-    <div className={`group h-full rounded-2xl border border-black/[0.08] bg-white p-6 hover:border-primary/30 hover:shadow-md hover:shadow-hover-card hover:-translate-y-1 transition-all flex flex-col`}>
-      <div className="h-11 w-11 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200">
-        <Icon className="h-5 w-5 text-primary" />
+    <div className={`group h-full rounded-2xl border border-black/[0.08] bg-white overflow-hidden hover:border-primary/30 hover:shadow-md hover:shadow-hover-card hover:-translate-y-1 transition-all flex flex-col`}>
+      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+        <img
+          src={industry.image}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover group-hover:scale-[1.04] transition-transform duration-500 ease-out"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/30 via-transparent to-transparent" />
+        <div className="absolute top-3 left-3 h-9 w-9 rounded-lg bg-white/95 backdrop-blur-sm flex items-center justify-center shadow-sm ring-1 ring-black/[0.04]">
+          <Icon className="h-5 w-5 text-primary" />
+        </div>
       </div>
-      <h3 className="text-lg font-bold mb-2">{industry.title}</h3>
-      <p className="text-sm text-muted-foreground leading-relaxed flex-1">{industry.desc}</p>
-      <div className="mt-4 text-sm font-semibold text-primary group-hover:gap-2 flex items-center gap-1 transition-all">
-        {isEN ? 'Learn more' : 'Dowiedz się więcej'}
-        <ArrowRight className="h-3.5 w-3.5" />
+      <div className="p-5 flex flex-col flex-1">
+        <h3 className="text-lg font-bold mb-2">{industry.title}</h3>
+        <p className="text-sm text-muted-foreground leading-relaxed flex-1">{industry.desc}</p>
+        <div className="mt-4 text-sm font-semibold text-primary group-hover:gap-2 flex items-center gap-1 transition-all">
+          {isEN ? 'Learn more' : 'Dowiedz się więcej'}
+          <ArrowRight className="h-3.5 w-3.5" />
+        </div>
       </div>
     </div>
     </TiltCard>
@@ -84,14 +97,6 @@ export function IndustriesHubPage() {
             </RevealOnScroll>
             <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">{copy.heroSubtitle}</p>
           </div>
-        </section>
-
-        <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mb-16">
-          <RevealOnScroll>
-            <div className="relative overflow-hidden rounded-3xl aspect-[21/9] shadow-[0_24px_64px_-16px_rgba(8,14,28,0.2)]">
-              <img src="/pages/industries-hub-hero.webp" alt="" className="absolute inset-0 h-full w-full object-cover" loading="eager" />
-            </div>
-          </RevealOnScroll>
         </section>
 
         <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-20">
