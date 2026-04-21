@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 import { useScrollProgress } from "@/hooks/useScrollProgress"
 import { MobileMenu } from "./MobileMenu"
 import { NavDropdown, NavDropdownGroup, type DropdownSection } from "./NavDropdown"
-import { Menu, Search, Mail, LayoutGrid, Zap, Sparkles, Building2, BookOpen, Download, Newspaper } from "lucide-react"
+import { Menu, Search, Mail, LayoutGrid, Zap, Sparkles, Building2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { trackCtaClick } from "@/lib/analytics"
 import { appendUtm } from "@/lib/utm"
@@ -63,33 +63,6 @@ const modulesSections: DropdownSection[] = [
       },
     ],
     footer: { label: isEN ? 'All modules →' : 'Wszystkie moduly →', to: pathFor('featuresHub') },
-  },
-]
-
-const resourcesSections: DropdownSection[] = [
-  {
-    label: isEN ? 'Content Hub' : 'Centrum Wiedzy',
-    items: [
-      {
-        label: isEN ? 'All content' : 'Wszystkie materialy',
-        to: pathFor('resourcesHub'),
-        description: isEN ? 'Articles, guides, templates — one place' : 'Artykuly, przewodniki, szablony — w jednym miejscu',
-        icon: <Newspaper className="h-4 w-4" />,
-      },
-      {
-        label: isEN ? 'Articles' : 'Artykuly',
-        to: `${pathFor('resourcesHub')}?type=blog`,
-        description: isEN ? 'Procurement insights from the field' : 'Wiedza o procurement z terenu',
-        icon: <BookOpen className="h-4 w-4" />,
-      },
-      {
-        label: isEN ? 'Guides & Templates' : 'Przewodniki i szablony',
-        to: `${pathFor('resourcesHub')}?type=resource`,
-        description: isEN ? 'RFQ template, TCO calculator, playbooks' : 'Szablon RFQ, kalkulator TCO, playbooki',
-        icon: <Download className="h-4 w-4" />,
-      },
-    ],
-    footer: { label: isEN ? 'Browse content hub →' : 'Przejdź do centrum wiedzy →', to: pathFor('resourcesHub') },
   },
 ]
 
@@ -178,11 +151,9 @@ export function Navbar() {
                 <Link to={pathFor('integrationsHub')} className={linkClass}>
                   {t.nav.integrations}
                 </Link>
-                <NavDropdown
-                  label={isEN ? 'Resources' : 'Materialy'}
-                  sections={resourcesSections}
-                  columns={1}
-                />
+                <Link to={pathFor('resourcesHub')} className={linkClass}>
+                  {isEN ? 'Resources' : 'Materialy'}
+                </Link>
                 <Link to={pathFor('about')} className={linkClass}>
                   {t.nav.company}
                 </Link>

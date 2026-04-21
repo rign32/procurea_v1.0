@@ -5,14 +5,13 @@ import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll"
 import { AnimatedGrid } from "@/components/ui/AnimatedGrid"
-import { NewsletterSignupInline } from "@/components/content/NewsletterSignupInline"
 import { ResourceCover } from "@/components/content/ResourceCover"
 import { BLOG_HEROES } from "@/assets/content-hub/BlogHeroes"
 import { getBlogPostImages } from "@/assets/content-hub/BlogHeroImages"
 import { getAllHubItems, filterHubItems, type ContentType } from "@/content/contentHub"
 import { RESOURCES } from "@/content/resources"
 import { pathMappings } from "@/i18n/paths"
-import { Sparkles, Search, Download, BookOpen, ArrowRight, Clock3, Calendar } from "lucide-react"
+import { Sparkles, Search, Download, ArrowRight, Clock3, Calendar, CheckCircle2 } from "lucide-react"
 import type { HubItem } from "@/content/contentHub"
 
 const LANG = (import.meta.env.VITE_LANGUAGE || "pl") as "pl" | "en"
@@ -32,7 +31,6 @@ export function ContentHubPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const allItems = useMemo(() => getAllHubItems(), [])
   const resourcesBase = pathMappings.resourcesHub[LANG]
-  const blogBase = pathMappings.blogIndex[LANG]
 
   const initialFilter = (searchParams.get("type") as FilterValue) || "all"
   const [activeFilter, setActiveFilter] = useState<FilterValue>(
@@ -81,15 +79,11 @@ export function ContentHubPage() {
   )
   const showFlagship = !query && (activeFilter === "all" || activeFilter === "resource") && flagshipResource
 
-  const featuredBlog = useMemo(() => allItems.find((i) => i.type === "blog" && i.isFeatured), [allItems])
-  const showFeaturedBlog = !query && activeFilter === "all" && featuredBlog
-
   const gridItems = useMemo(() => {
     const excludedSlugs = new Set<string>()
     if (showFlagship && flagshipResource) excludedSlugs.add(flagshipResource.slug)
-    if (showFeaturedBlog && featuredBlog) excludedSlugs.add(featuredBlog.slug)
     return filtered.filter((item) => !excludedSlugs.has(item.slug))
-  }, [filtered, showFlagship, flagshipResource, showFeaturedBlog, featuredBlog])
+  }, [filtered, showFlagship, flagshipResource])
 
   const filterOptions: Array<{ value: FilterValue; label: string; count: number }> = [
     { value: "all", label: isEN ? "All" : "Wszystkie", count: counts.all },
@@ -112,7 +106,7 @@ export function ContentHubPage() {
       <Navbar />
 
       <main id="main-content" className="flex-1">
-        <section className="relative pt-28 sm:pt-32 pb-12 sm:pb-16 bg-gradient-to-b from-white via-[hsl(var(--ds-accent-soft))]/40 to-white overflow-hidden">
+        <section className="relative pt-28 sm:pt-32 pb-10 sm:pb-14 bg-gradient-to-b from-white via-[hsl(var(--ds-accent-soft))]/40 to-white overflow-hidden">
           <div
             className="absolute top-20 -right-40 w-[600px] h-[600px] rounded-full bg-brand-500/[0.06] blur-[120px] pointer-events-none"
             aria-hidden="true"
@@ -123,53 +117,33 @@ export function ContentHubPage() {
           />
           <AnimatedGrid className="opacity-30" />
 
-          <div className="relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
+          <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <RevealOnScroll>
-              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-brand-600 mb-5">
-                <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-                {isEN ? "Content Hub" : "Centrum Wiedzy"}
-              </span>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold font-display tracking-tight mb-5 text-slate-900">
-                {isEN
-                  ? "Everything procurement — in one place"
-                  : "Wszystko o procurement — w jednym miejscu"}
-              </h1>
-              <p className="text-lg md:text-xl text-slate-600 leading-relaxed max-w-3xl mx-auto mb-10">
-                {isEN
-                  ? "Articles, downloadable guides, templates, and calculators. Built from 200+ real sourcing projects. Written by practitioners who still lose sleep over supplier lead times."
-                  : "Artykuły, przewodniki do pobrania, szablony i kalkulatory. Zbudowane na 200+ prawdziwych projektach sourcingowych. Pisane przez praktyków, nie marketerów."}
-              </p>
-              <NewsletterSignupInline variant="hero" />
+              <div className="text-center mb-10 sm:mb-12 max-w-4xl mx-auto">
+                <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-brand-600 mb-5">
+                  <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                  {isEN ? "Content Hub" : "Centrum Wiedzy"}
+                </span>
+                <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold font-display tracking-tight mb-5 text-slate-900">
+                  {isEN
+                    ? "Everything procurement — in one place"
+                    : "Wszystko o procurement — w jednym miejscu"}
+                </h1>
+                <p className="text-lg md:text-xl text-slate-600 leading-relaxed">
+                  {isEN
+                    ? "Articles, downloadable guides, templates, and calculators. Built from 200+ real sourcing projects. Written by practitioners who still lose sleep over supplier lead times."
+                    : "Artykuły, przewodniki do pobrania, szablony i kalkulatory. Zbudowane na 200+ prawdziwych projektach sourcingowych. Pisane przez praktyków, nie marketerów."}
+                </p>
+              </div>
             </RevealOnScroll>
+
+            {showFlagship && flagshipResource && (
+              <RevealOnScroll>
+                <HeroFlagshipResource resource={flagshipResource} resourcesBase={resourcesBase} />
+              </RevealOnScroll>
+            )}
           </div>
         </section>
-
-        {(showFlagship || showFeaturedBlog) && (
-          <section className="pb-10">
-            <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="flex items-baseline justify-between mb-6">
-                <h2 className="text-xl sm:text-2xl font-bold font-display tracking-tight">
-                  {isEN ? "Start here" : "Zacznij tutaj"}
-                </h2>
-                <span className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-slate-500 font-bold">
-                  {isEN ? "Flagship content" : "Kluczowe materiały"}
-                </span>
-              </div>
-              <div className="grid md:grid-cols-2 gap-6">
-                {showFlagship && flagshipResource && (
-                  <RevealOnScroll>
-                    <FlagshipResourceCard resource={flagshipResource} resourcesBase={resourcesBase} />
-                  </RevealOnScroll>
-                )}
-                {showFeaturedBlog && featuredBlog && (
-                  <RevealOnScroll>
-                    <FlagshipBlogCard item={featuredBlog} blogBase={blogBase} />
-                  </RevealOnScroll>
-                )}
-              </div>
-            </div>
-          </section>
-        )}
 
         <div className="sticky top-16 z-30 backdrop-blur-xl bg-white/85 border-y border-black/[0.06]">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center gap-2">
@@ -259,27 +233,6 @@ export function ContentHubPage() {
           </div>
         </section>
 
-        <section className="py-20 bg-gradient-to-br from-brand-500 via-brand-600 to-slate-900 relative overflow-hidden">
-          <div
-            className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-white/10 blur-[120px] pointer-events-none"
-            aria-hidden="true"
-          />
-          <div className="relative mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold font-display tracking-tight text-white mb-5">
-              {isEN
-                ? "Weekly procurement notes, straight to your inbox"
-                : "Cotygodniowe notki procurement, prosto na maila"}
-            </h2>
-            <p className="text-lg text-white/80 mb-10 max-w-2xl mx-auto">
-              {isEN
-                ? "One email per week. Sharp analysis of procurement trends, vendor strategies, and AI sourcing tactics from the field."
-                : "Jeden email tygodniowo. Analizy trendów w zakupach, strategii vendorów i taktyk AI sourcing."}
-            </p>
-            <div className="flex justify-center">
-              <NewsletterSignupInline variant="hero" />
-            </div>
-          </div>
-        </section>
       </main>
 
       <Footer />
@@ -296,108 +249,61 @@ interface FlagshipResource {
   formatLabel: string
   fileSize?: string
   pageCount?: number
+  valueProps?: string[]
 }
 
-function FlagshipResourceCard({
+function HeroFlagshipResource({
   resource,
   resourcesBase,
 }: {
   resource: FlagshipResource
   resourcesBase: string
 }) {
+  const bullets = (resource.valueProps || []).slice(0, 3)
   return (
     <Link
       to={`${resourcesBase}/${resource.slug}`}
-      className="group block h-full rounded-3xl bg-gradient-to-br from-[hsl(var(--ds-accent-soft))] via-white to-white border border-black/[0.06] overflow-hidden hover:shadow-[0_20px_60px_-20px_rgba(0,0,0,0.18)] transition-all duration-300"
+      className="group block rounded-3xl bg-white border border-black/[0.06] overflow-hidden shadow-[0_24px_64px_-24px_rgba(8,14,28,0.2)] hover:shadow-[0_32px_80px_-24px_rgba(8,14,28,0.28)] transition-shadow duration-300"
     >
-      <div className="flex flex-col h-full">
-        <div className="bg-[#0b1a3d] p-6 sm:p-8 flex items-center justify-center">
-          <div className="w-full max-w-sm">
+      <div className="grid md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+        <div className="bg-[#0b1a3d] p-8 sm:p-10 md:p-12 flex items-center justify-center">
+          <div className="w-full max-w-sm transition-transform duration-500 ease-out group-hover:scale-[1.02]">
             <ResourceCover slug={resource.slug} title={resource.title} size="hero" hover={false} />
           </div>
         </div>
-        <div className="p-6 sm:p-8 flex flex-col flex-1">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[hsl(var(--ds-accent-soft))] text-[hsl(var(--ds-accent))] font-mono text-[10px] uppercase tracking-[0.12em] font-bold">
-              {isEN ? "Flagship · Guide" : "Flagowy · Przewodnik"}
+        <div className="p-8 sm:p-10 md:p-12 flex flex-col justify-center">
+          <div className="flex items-center gap-2 mb-4 flex-wrap">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 font-mono text-[10.5px] uppercase tracking-[0.12em] font-bold">
+              ★ {isEN ? "Flagship guide" : "Flagowy przewodnik"}
             </span>
             <span className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-slate-500 font-bold">
               {resource.formatLabel}
             </span>
           </div>
-          <h3 className="text-xl sm:text-2xl font-bold font-display tracking-tight text-slate-900 leading-[1.2] mb-3">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold font-display tracking-tight text-slate-900 leading-[1.15] mb-4">
             {resource.title}
-          </h3>
-          <p className="text-sm text-slate-600 leading-relaxed mb-5 flex-1">{resource.excerpt}</p>
-          <div className="flex items-center gap-3 flex-wrap mt-auto">
-            <span className="inline-flex items-center gap-2 rounded-lg bg-[hsl(var(--ds-accent))] group-hover:bg-[hsl(var(--ds-accent))]/90 text-white font-semibold py-2.5 px-4 text-sm transition-colors">
+          </h2>
+          <p className="text-base sm:text-lg text-slate-600 leading-relaxed mb-6">
+            {resource.excerpt}
+          </p>
+          {bullets.length > 0 && (
+            <ul className="space-y-2 mb-7">
+              {bullets.map((b) => (
+                <li key={b} className="flex items-start gap-2.5 text-sm text-slate-700">
+                  <CheckCircle2 className="h-4 w-4 text-[hsl(var(--ds-accent))] shrink-0 mt-0.5" aria-hidden="true" />
+                  <span>{b}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="flex items-center gap-4 flex-wrap">
+            <span className="inline-flex items-center gap-2 rounded-lg bg-[hsl(var(--ds-accent))] group-hover:bg-[hsl(var(--ds-accent))]/90 text-white font-semibold py-3 px-5 text-sm transition-colors">
               <Download className="h-4 w-4" aria-hidden="true" />
               {isEN ? "Download free" : "Pobierz za darmo"}
             </span>
             <span className="font-mono text-[10.5px] uppercase tracking-[0.08em] text-slate-500">
               {resource.fileSize}
               {resource.pageCount ? ` · ${resource.pageCount} ${isEN ? "pages" : "stron"}` : ""}
-            </span>
-          </div>
-        </div>
-      </div>
-    </Link>
-  )
-}
-
-function FlagshipBlogCard({ item, blogBase }: { item: HubItem; blogBase: string }) {
-  const Hero = BLOG_HEROES[item.slug]
-  const postImages = getBlogPostImages(item.slug)
-  void blogBase
-
-  return (
-    <Link
-      to={item.href}
-      className="group block h-full rounded-3xl bg-white border border-black/[0.06] overflow-hidden hover:shadow-[0_20px_60px_-20px_rgba(0,0,0,0.18)] transition-all duration-300"
-    >
-      <div className="flex flex-col h-full">
-        <div className="relative aspect-[16/10] bg-gradient-to-br from-brand-400 via-brand-600 to-slate-800 overflow-hidden">
-          {postImages?.hero ? (
-            <img src={postImages.hero} alt={item.title} className="w-full h-full object-cover" loading="eager" />
-          ) : Hero ? (
-            <Hero className="w-full h-full" />
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" aria-hidden="true" />
-          )}
-          <div className="absolute top-3 right-3">
-            <span className="inline-flex items-center rounded-full bg-white/95 backdrop-blur-sm px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-900 shadow-sm">
-              ★ {isEN ? "Featured article" : "Polecany artykuł"}
-            </span>
-          </div>
-        </div>
-        <div className="p-6 sm:p-8 flex flex-col flex-1">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-brand-50 text-brand-700 font-mono text-[10px] uppercase tracking-[0.12em] font-bold">
-              {isEN ? "Flagship · Article" : "Flagowy · Artykuł"}
-            </span>
-            <span className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-slate-500 font-bold">
-              {item.categoryLabel}
-            </span>
-          </div>
-          <h3 className="text-xl sm:text-2xl font-bold font-display tracking-tight text-slate-900 leading-[1.2] mb-3">
-            {item.title}
-          </h3>
-          <p className="text-sm text-slate-600 leading-relaxed mb-5 flex-1">{item.excerpt}</p>
-          <div className="flex items-center gap-3 flex-wrap mt-auto">
-            <span className="inline-flex items-center gap-2 rounded-lg bg-brand-500 group-hover:bg-brand-600 text-white font-semibold py-2.5 px-4 text-sm transition-colors">
-              <BookOpen className="h-4 w-4" aria-hidden="true" />
-              {isEN ? "Read article" : "Czytaj artykuł"}
-            </span>
-            <span className="font-mono text-[10.5px] uppercase tracking-[0.08em] text-slate-500 inline-flex items-center gap-2">
-              <Calendar className="h-3 w-3" aria-hidden="true" />
-              {formatDate(item.date)}
-              {item.readingTime && (
-                <>
-                  <span className="text-slate-300">·</span>
-                  <Clock3 className="h-3 w-3" aria-hidden="true" />
-                  {item.readingTime}
-                </>
-              )}
             </span>
           </div>
         </div>
