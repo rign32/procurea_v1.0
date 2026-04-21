@@ -26,10 +26,15 @@ generuje konkretne klasy błędów. Ten dokument opisuje jak ich unikać.
 ### 1. Sync przed edycją
 Zawsze zaczynaj sesję (i nowy task w sesji) od:
 ```bash
-git fetch origin
-git status                      # zobacz co jest niecommitowane
-git log HEAD..origin/staging    # zobacz nowe commity
+./scripts/claude-status.sh
 ```
+Skrypt pokazuje:
+- Czy jesteś behind/ahead wobec origin
+- Ile jest uncommitted plików (>10 = prawdopodobnie WIP innej sesji)
+- Co inne sesje pushnęły w ostatniej godzinie
+- Status ostatniego CI run
+- Ile stashy jest w repo
+
 Jeśli `git status` pokazuje zmiany których nie robiłeś → to cudza sesja, **nie dotykaj tych plików**.
 
 ### 2. Nigdy `git add .` ani `git add -A`
@@ -45,6 +50,14 @@ Nie trzymaj długo niecommitowanego kodu. Każde zakończone zadanie →
 commit. Zmniejsza okno w którym inna sesja może „pochłonąć" twoje zmiany.
 
 ### 4. Przed push — rebase na origin/staging
+Użyj helpera który robi to wszystko atomowo:
+```bash
+./scripts/claude-safe-push.sh
+```
+Skrypt: fetch → rebase na origin → push → pokazuje status CI. Na konflikcie
+przerywa jasnym komunikatem (nie force-pushuje, nie nadpisuje pracy innej sesji).
+
+Ręcznie:
 ```bash
 git fetch origin
 git rebase origin/staging
@@ -103,23 +116,39 @@ git reflog                         # znajdź hash
 git cherry-pick <hash>             # wyciągnij pojedynczy commit
 ```
 
-## Istniejące stashe do przejrzenia
+## Opcjonalnie: git worktrees (pełna izolacja sesji)
 
-Na 2026-04-21 w repo jest 10 stashy od różnych sesji
-(`git stash list`). Przed ich usunięciem — obejrzyj każdy:
+Jeśli pain multi-session jest zbyt duży mimo powyższych zabezpieczeń —
+rozważ git worktrees. Każda Claude sesja dostaje **osobny working directory**
+(ta sama .git w tle, różne checkouty):
+
 ```bash
-git stash show -p stash@{N}
+# Utwórz worktree dla konkretnej sesji/feature
+git worktree add ../procurea-feature-rfq feature/rfq-wizard
+git worktree add ../procurea-sourcing   feature/sourcing-pipeline
+
+# Teraz Claude Code sesja #1 pracuje w /procurea/
+# Sesja #2 w /procurea-feature-rfq/
+# Sesja #3 w /procurea-sourcing/
+
+# Pliki w każdym dir są niezależne — jedna sesja nie widzi plików drugiej
+# Commity we wszystkich idą do tego samego repo
+
+# Gdy skończysz:
+git worktree remove ../procurea-feature-rfq
 ```
-Stashe z labelami `other-claude`, `other-session`, `chat-*` mogą zawierać
-pracę która się zgubiła.
 
-## CI optimization (ref)
+**Trade-off**: każdy worktree = duplikowane node_modules (500MB-1GB).
+Zalety: zero kolizji plików, zero stashy, każda sesja ma własny TypeScript
+daemon/ESLint cache.
 
-Zmiany z 2026-04-21:
-- `quick-check` job (tsc + lint, ~2 min) odpala się pierwszy, fail-fast
-- Deploy job równolegli npm ci (backend+frontend+landing) oraz builds
-- Lint enforcing na staging (było `continue-on-error: true`)
-- Paths-ignore: `.claude/**`, `Dokumenty/**`, `**.md` — push z samymi
-  dokumentami lub memory nie uruchamia deploy
+**Kiedy warto**: jeśli masz >3 sesje pracujące na DŁUGOTRWAŁYCH featurach.
+Dla krótkich tasków (30min-2h) — obecne zabezpieczenia (pre-commit hook +
+claude-status.sh + małe commity) wystarczą.
 
-Efekt: happy-path ~8-10 min (było 12-13). Fail-fast na lint: 2 min (było 4-5).
+## Efekt CI optimization (2026-04-21)
+
+Przed: monolityczny build, lint z `continue-on-error`, ~12-13 min happy-path.
+Po: quick-check fail-fast (~40s) + parallel builds, lint enforced, ~5 min total.
+
+Fail-fast na lint oszczędza ~10 min przy każdym niepoprawnym pushu.

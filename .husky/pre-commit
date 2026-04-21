@@ -1,1 +1,64 @@
+#!/usr/bin/env sh
+# Multi-session safety checks for Procurea.
+# Context: ~10 parallel Claude Code chats work on one working directory.
+# Without these guards, one session's `git add .` scoops up another's
+# uncommitted files → commits with misleading titles, lost work in stashes.
+# See docs/multisession-workflow.md.
+
+# --- Guard 1: sanity-check staged file count -----------------------------
+# A single Claude task typically touches < 20 files. More usually means
+# `git add .` / `git add -A` pulled in other sessions' WIP.
+STAGED_COUNT=$(git diff --cached --name-only | wc -l | tr -d ' ')
+STAGED_MAX=${PROCUREA_STAGED_MAX:-30}
+
+if [ "$STAGED_COUNT" -gt "$STAGED_MAX" ]; then
+  echo "⚠️  $STAGED_COUNT files staged (threshold: $STAGED_MAX)."
+  echo ""
+  echo "   With ~10 parallel Claude sessions, a large staging set is usually a"
+  echo "   'git add .' / 'git add -A' that scooped up OTHER sessions' WIP."
+  echo "   This causes commits with misleading titles (a 2026-04-21 incident"
+  echo "   produced 'fix --force' and 'wire infographics' commits that actually"
+  echo "   contained CI workflow rewrites)."
+  echo ""
+  echo "   Review: git diff --cached --name-only | less"
+  echo "   Unstage all and restart: git reset HEAD"
+  echo "   Raise threshold for one commit: PROCUREA_STAGED_MAX=100 git commit ..."
+  echo "   Bypass (last resort): git commit --no-verify"
+  exit 1
+fi
+
+# --- Guard 2: block tracked junk re-entering the index -------------------
+# These are in .gitignore but can sneak in via `git add -f` or editor quirks.
+JUNK=$(git diff --cached --name-only --diff-filter=AM | grep -E "(^|/)\.DS_Store$|\.tsbuildinfo$|node_modules/|\.env($|\.local$)" || true)
+if [ -n "$JUNK" ]; then
+  echo "❌ Blocked — these files should not be in git:"
+  echo "$JUNK" | sed 's/^/   /'
+  echo ""
+  echo "   Unstage: git reset HEAD -- <file>"
+  exit 1
+fi
+
+# --- Guard 3: block obvious secrets in staged diff -----------------------
+# Catches API keys / tokens that shouldn't end up in git history.
+SECRETS=$(git diff --cached -U0 2>/dev/null | grep -iE "^\+.*(api[_-]?key|secret[_-]?key|password|token)\s*[:=]\s*['\"][A-Za-z0-9_\-]{20,}" || true)
+if [ -n "$SECRETS" ]; then
+  echo "❌ Blocked — staged diff looks like it contains a secret:"
+  echo "$SECRETS" | head -5 | sed 's/^/   /'
+  echo ""
+  echo "   Move to .env and reference via process.env.*"
+  echo "   Bypass if false positive: git commit --no-verify"
+  exit 1
+fi
+
+# --- Guard 4: warn (not block) if staged files come from multiple apps ---
+# A single task in one app normally doesn't need changes in another. Mixed
+# staging across backend/frontend/landing/admin-frontend is a smell.
+APPS=$(git diff --cached --name-only | awk -F/ 'NF>1 {print $1}' | sort -u | grep -E "^(backend|frontend|landing|admin-frontend)$" | wc -l | tr -d ' ')
+if [ "$APPS" -gt "2" ]; then
+  echo "ℹ️  Heads-up: staged changes span $APPS apps (backend/frontend/landing/admin-frontend)."
+  echo "   If this is one logical change, ignore. Otherwise split into separate commits."
+  echo ""
+fi
+
+# --- Run lint-staged (eslint --fix on changed frontend files) ------------
 npx lint-staged
