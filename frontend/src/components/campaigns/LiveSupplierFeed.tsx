@@ -28,6 +28,7 @@ function WaitingForResults({ isRunning, campaignStartedAt }: { isRunning?: boole
 
   const minutes = Math.floor(secondsLeft / 60);
   const seconds = secondsLeft % 60;
+  const overran = secondsLeft <= 0;
 
   if (!isRunning) {
     return (
@@ -41,24 +42,40 @@ function WaitingForResults({ isRunning, campaignStartedAt }: { isRunning?: boole
   return (
     <div className="text-center py-16 space-y-6">
       <p className="text-lg font-medium">{t.feed.searching}</p>
-      <div className="flex justify-center">
-        <svg className="w-24 h-24" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor"
-            className="text-muted/30" strokeWidth="4" />
-          <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor"
-            className="text-primary" strokeWidth="4" strokeLinecap="round"
-            strokeDasharray={`${2 * Math.PI * 45}`}
-            strokeDashoffset={`${2 * Math.PI * 45 * (1 - secondsLeft / MAX_SECONDS)}`}
-            transform="rotate(-90 50 50)"
-            style={{ transition: 'stroke-dashoffset 1s linear' }} />
-          <text x="50" y="50" textAnchor="middle" dominantBaseline="central"
-            className="text-xl font-bold fill-foreground">
-            {minutes}:{seconds.toString().padStart(2, '0')}
-          </text>
-        </svg>
-      </div>
-      <p className="text-xs text-muted-foreground">
-        {t.feed.runsInBackground}
+      {overran ? (
+        // Estimate exceeded — keep the spinner, drop the countdown, reassure user.
+        <div className="flex justify-center">
+          <svg className="w-24 h-24 animate-spin" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor"
+              className="text-muted/30" strokeWidth="4" />
+            <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor"
+              className="text-primary" strokeWidth="4" strokeLinecap="round"
+              strokeDasharray={`${2 * Math.PI * 45 * 0.25}, ${2 * Math.PI * 45}`}
+              transform="rotate(-90 50 50)" />
+          </svg>
+        </div>
+      ) : (
+        <div className="flex justify-center">
+          <svg className="w-24 h-24" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor"
+              className="text-muted/30" strokeWidth="4" />
+            <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor"
+              className="text-primary" strokeWidth="4" strokeLinecap="round"
+              strokeDasharray={`${2 * Math.PI * 45}`}
+              strokeDashoffset={`${2 * Math.PI * 45 * (1 - secondsLeft / MAX_SECONDS)}`}
+              transform="rotate(-90 50 50)"
+              style={{ transition: 'stroke-dashoffset 1s linear' }} />
+            <text x="50" y="50" textAnchor="middle" dominantBaseline="central"
+              className="text-xl font-bold fill-foreground">
+              {minutes}:{seconds.toString().padStart(2, '0')}
+            </text>
+          </svg>
+        </div>
+      )}
+      <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+        {overran
+          ? (t.feed.stillSearching ?? t.feed.runsInBackground)
+          : t.feed.runsInBackground}
       </p>
     </div>
   );

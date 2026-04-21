@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { t } from '@/i18n';
@@ -34,6 +34,9 @@ export default function Login({ onLogin }: { onLogin: (user: User) => void }) {
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const [blockedMessage, setBlockedMessage] = useState('');
+    const [resendCountdown, setResendCountdown] = useState(0);
+    const emailInputRef = useRef<HTMLInputElement>(null);
+    const codeInputRef = useRef<HTMLInputElement>(null);
 
     // Detect ?blocked=true URL param (set by OAuth redirect or API interceptor)
     useEffect(() => {
@@ -64,6 +67,21 @@ export default function Login({ onLogin }: { onLogin: (user: User) => void }) {
         }
     }, [isAuthenticated, user]);
 
+    // Autofocus the active input when step changes so the user can type
+    // immediately after landing on the page or after a send-code redirect.
+    useEffect(() => {
+        if (step === 'email') emailInputRef.current?.focus();
+        else codeInputRef.current?.focus();
+    }, [step]);
+
+    // Resend-code cooldown ticker (prevents hammering the endpoint and
+    // surfaces the wait to the user).
+    useEffect(() => {
+        if (resendCountdown <= 0) return;
+        const timer = setTimeout(() => setResendCountdown((s) => s - 1), 1000);
+        return () => clearTimeout(timer);
+    }, [resendCountdown]);
+
     const handleSSOLogin = async (provider: 'google' | 'microsoft') => {
         analytics.methodSelected(provider);
         document.cookie = 'procurea_auth_mode=login; path=/; max-age=600; SameSite=Lax';
@@ -92,6 +110,7 @@ export default function Login({ onLogin }: { onLogin: (user: User) => void }) {
             fireGoogleAdsConversion();
             setStep('code');
             setMessage(t.auth.codeSent);
+            setResendCountdown(30);
         } catch (err: unknown) {
             const errMsg = err instanceof Error ? err.message : String(err);
             analytics.codeFailed(errMsg);
@@ -231,18 +250,21 @@ export default function Login({ onLogin }: { onLogin: (user: User) => void }) {
                                         <div className="relative">
                                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                             <input
+                                                ref={emailInputRef}
                                                 id="email"
                                                 type="email"
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}
                                                 required
+                                                autoComplete="email"
+                                                autoFocus
                                                 placeholder={t.auth.emailPlaceholder}
                                                 className="w-full rounded-md border border-input bg-background px-10 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                                             />
                                         </div>
                                     </div>
-                                    <Button type="submit" className="w-full" disabled={loading}>
-                                        {loading ? t.common.loading : t.auth.sendCode}
+                                    <Button type="submit" className="w-full" disabled={loading || !email}>
+                                        {loading ? t.auth.sending : t.auth.sendCode}
                                     </Button>
                                 </form>
                             </>
@@ -257,24 +279,46 @@ export default function Login({ onLogin }: { onLogin: (user: User) => void }) {
                                     <div className="relative">
                                         <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                         <input
+                                            ref={codeInputRef}
                                             id="code"
                                             type="text"
+                                            inputMode="numeric"
+                                            autoComplete="one-time-code"
+                                            pattern="\d{6}"
+                                            maxLength={6}
                                             value={code}
-                                            onChange={(e) => setCode(e.target.value)}
+                                            onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
                                             required
+                                            autoFocus
                                             placeholder={t.auth.codePlaceholder}
-                                            className="w-full rounded-md border border-input bg-background px-10 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                                            className="w-full rounded-md border border-input bg-background px-10 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring font-mono tracking-[0.3em]"
                                         />
                                     </div>
                                 </div>
-                                <Button type="submit" className="w-full" disabled={loading}>
-                                    {loading ? t.common.loading : t.auth.verify}
+                                <Button type="submit" className="w-full" disabled={loading || code.length < 6}>
+                                    {loading ? t.auth.verifying : t.auth.verify}
                                 </Button>
+
+                                {/* Resend — 30s cooldown prevents hammering the endpoint */}
+                                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                                    <span>{t.auth.didNotReceive}</span>
+                                    <button
+                                        type="button"
+                                        disabled={resendCountdown > 0 || loading}
+                                        onClick={(e) => { e.preventDefault(); void handleEmailSubmit(e as unknown as React.FormEvent); }}
+                                        className="text-primary hover:underline disabled:text-muted-foreground disabled:no-underline disabled:cursor-not-allowed"
+                                    >
+                                        {resendCountdown > 0
+                                            ? t.auth.resendCodeIn.replace('{seconds}', String(resendCountdown))
+                                            : t.auth.resendCode}
+                                    </button>
+                                </div>
+
                                 <Button
                                     type="button"
                                     variant="ghost"
                                     className="w-full"
-                                    onClick={() => { setStep('email'); setMessage(''); setError(''); }}
+                                    onClick={() => { setStep('email'); setMessage(''); setError(''); setCode(''); }}
                                 >
                                     <ArrowLeft className="mr-2 h-4 w-4" />
                                     {t.common.back}
