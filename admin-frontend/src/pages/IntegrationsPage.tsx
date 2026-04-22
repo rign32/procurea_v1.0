@@ -17,7 +17,19 @@ import {
     Cpu,
     TrendingDown,
     Users,
+    Eye,
+    EyeOff,
+    Copy,
+    Check,
 } from 'lucide-react';
+
+/** Hide all but the last 4 chars of an API key so an over-the-shoulder
+ *  screenshot of the admin panel doesn't leak secrets. */
+function maskApiKey(key: string): string {
+    if (!key) return '';
+    if (key.length <= 8) return '••••••••';
+    return `${key.slice(0, 3)}••••••••${key.slice(-4)}`;
+}
 
 interface ServiceStatus {
     status: 'healthy' | 'degraded' | 'unhealthy';
@@ -68,6 +80,48 @@ const serviceIcons: Record<string, any> = {
     email: Mail,
     firebase: Flame,
 };
+
+function ApiKeyRow({ apiKey }: { apiKey: string }) {
+    const [revealed, setRevealed] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = async () => {
+        try {
+            await navigator.clipboard.writeText(apiKey);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1500);
+        } catch {
+            // clipboard unavailable (e.g. non-HTTPS dev) — leave silent
+        }
+    };
+
+    return (
+        <div className="flex items-center gap-2 text-xs">
+            <span className="text-text-muted">Klucz:</span>
+            <code className="px-2 py-0.5 rounded bg-surface text-text-secondary font-mono select-all">
+                {revealed ? apiKey : maskApiKey(apiKey)}
+            </code>
+            <button
+                type="button"
+                onClick={() => setRevealed((v) => !v)}
+                className="text-text-muted hover:text-text-primary transition-colors"
+                aria-label={revealed ? 'Ukryj klucz' : 'Pokaż klucz'}
+                title={revealed ? 'Ukryj klucz' : 'Pokaż klucz'}
+            >
+                {revealed ? <EyeOff size={12} /> : <Eye size={12} />}
+            </button>
+            <button
+                type="button"
+                onClick={handleCopy}
+                className="text-text-muted hover:text-text-primary transition-colors"
+                aria-label="Kopiuj klucz"
+                title="Kopiuj klucz"
+            >
+                {copied ? <Check size={12} className="text-success" /> : <Copy size={12} />}
+            </button>
+        </div>
+    );
+}
 
 function StatusBadge({ status }: { status: 'healthy' | 'degraded' | 'unhealthy' }) {
     const cfg = statusConfig[status] || statusConfig.healthy;
@@ -197,10 +251,7 @@ export default function IntegrationsPage() {
                                 </div>
                                 <p className="text-xs text-text-secondary mb-2">{svc.message}</p>
                                 {svc.apiKey && (
-                                    <div className="flex items-center gap-2 text-xs">
-                                        <span className="text-text-muted">Klucz:</span>
-                                        <code className="px-2 py-0.5 rounded bg-surface text-text-secondary font-mono">{svc.apiKey}</code>
-                                    </div>
+                                    <ApiKeyRow apiKey={svc.apiKey} />
                                 )}
                             </div>
                         );

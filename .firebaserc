@@ -34,6 +34,9 @@
         ],
         "landing-staging-en": [
           "procurea-landing-staging-en"
+        ],
+        "admin-staging": [
+          "procurea-admin-panel-staging"
         ]
       }
     }

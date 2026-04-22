@@ -159,13 +159,28 @@ export default function UsersPage() {
     };
 
     const handleImpersonate = async (user: User) => {
+        // Explicit confirmation — impersonation is a sensitive, logged action
+        // that should never fire on a misclick in the dense row-actions area.
+        const confirmed = window.confirm(
+            `Zalogować się jako ${user.email}?\n\n` +
+            `Akcja jest logowana w audit log. Otwórz nową kartę, zrób co trzeba, zamknij kartę po zakończeniu.`,
+        );
+        if (!confirmed) return;
+
         setActionLoading(user.id);
+        // Open the target tab up-front so Safari's popup blocker treats it as
+        // user-initiated; hand it the impersonation URL once the token arrives.
         const newTab = window.open('about:blank', '_blank');
         try {
             const { data } = await impersonateUser(user.id);
             let frontendUrl: string;
             if (window.location.hostname === 'localhost') {
                 frontendUrl = 'http://localhost:5173';
+            } else if (window.location.hostname.includes('staging')) {
+                // Admin staging impersonates into app staging so tokens match apiStaging.
+                frontendUrl = user.language === 'en'
+                    ? 'https://procurea-app-staging-en.web.app'
+                    : 'https://procurea-app-staging.web.app';
             } else {
                 frontendUrl = user.language === 'en'
                     ? 'https://app.procurea.io'
@@ -177,16 +192,28 @@ export default function UsersPage() {
             } else {
                 window.location.href = impersonationUrl;
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
+            const e = err as { response?: { data?: { message?: string } }; message?: string };
             console.error('Impersonation failed:', err);
             if (newTab) newTab.close();
-            alert(`Nie udalo sie zalogowac jako uzytkownik: ${err?.response?.data?.message || err?.message || 'Nieznany blad'}`);
+            alert(`Nie udało się zalogować jako użytkownik: ${e?.response?.data?.message || e?.message || 'Nieznany błąd'}`);
         } finally {
             setActionLoading(null);
         }
     };
 
     const handleToggleBlock = async (user: User) => {
+        // Confirmation — block/unblock changes login ability for a real user
+        // and should never be a one-click mistake from the dense row actions.
+        const action = user.isBlocked ? 'odblokować' : 'zablokować';
+        const consequence = user.isBlocked
+            ? 'Użytkownik odzyska możliwość logowania.'
+            : 'Użytkownik nie będzie mógł się zalogować do aplikacji.';
+        const confirmed = window.confirm(
+            `Czy na pewno chcesz ${action} użytkownika ${user.email}?\n\n${consequence}`,
+        );
+        if (!confirmed) return;
+
         setActionLoading(user.id);
         try {
             if (user.isBlocked) {
@@ -195,8 +222,10 @@ export default function UsersPage() {
                 await blockUser(user.id, 'Zablokowany przez administratora');
             }
             fetchUsers();
-        } catch (err) {
+        } catch (err: unknown) {
+            const e = err as { response?: { data?: { message?: string } }; message?: string };
             console.error(err);
+            alert(`Błąd ${action === 'zablokować' ? 'blokowania' : 'odblokowywania'}: ${e?.response?.data?.message || e?.message || 'Nieznany błąd'}`);
         } finally {
             setActionLoading(null);
         }
