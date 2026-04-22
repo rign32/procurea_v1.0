@@ -1,6 +1,31 @@
-import { useMemo, useEffect } from "react"
+import { useMemo, useEffect, type ComponentType, type SVGProps } from "react"
 import { Link, useParams } from "react-router-dom"
-import { ArrowLeft, ArrowRight, Download, BookOpen, Clock3, Calendar } from "lucide-react"
+import {
+  ArrowLeft,
+  ArrowRight,
+  Download,
+  BookOpen,
+  Clock3,
+  Calendar,
+  Search,
+  Mail,
+  LayoutGrid,
+  Zap,
+  Sparkles,
+  Building2,
+  UserSearch,
+  FileText,
+  Repeat,
+  Languages,
+  Factory,
+  PartyPopper,
+  HardHat,
+  ShoppingBag,
+  UtensilsCrossed,
+  HeartPulse,
+  Truck,
+  Wrench,
+} from "lucide-react"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { RouteMeta } from "@/lib/RouteMeta"
@@ -45,6 +70,37 @@ function resolveCtaHref(href: string): string {
     if (href.startsWith(en + '/')) return pl + href.slice(en.length)
   }
   return href
+}
+
+type LucideIcon = ComponentType<SVGProps<SVGSVGElement>>
+
+interface PillMeta {
+  label: { pl: string; en: string }
+  icon: LucideIcon
+  tone: 'feature' | 'industry'
+}
+
+const PILL_META: Partial<Record<PathKey, PillMeta>> = {
+  // Features
+  fAiSourcing: { label: { pl: 'AI Sourcing', en: 'AI Sourcing' }, icon: Search, tone: 'feature' },
+  fEmailOutreach: { label: { pl: 'Email Outreach', en: 'Email Outreach' }, icon: Mail, tone: 'feature' },
+  fSupplierPortal: { label: { pl: 'Supplier Portal', en: 'Supplier Portal' }, icon: LayoutGrid, tone: 'feature' },
+  fOfferComparison: { label: { pl: 'Porównywarka ofert', en: 'Offer Comparison' }, icon: Zap, tone: 'feature' },
+  fEnrichment: { label: { pl: 'Enrichment kontaktów', en: 'Contact Enrichment' }, icon: UserSearch, tone: 'feature' },
+  fCompanyRegistry: { label: { pl: 'Baza Dostawców', en: 'Supplier Database' }, icon: Building2, tone: 'feature' },
+  fOfferCollection: { label: { pl: 'Zbieranie ofert', en: 'Offer Collection' }, icon: FileText, tone: 'feature' },
+  fAutoFollowUp: { label: { pl: 'Auto Follow-up', en: 'Auto Follow-up' }, icon: Repeat, tone: 'feature' },
+  fMultilingualOutreach: { label: { pl: 'Wielojęzyczny outreach', en: 'Multilingual Outreach' }, icon: Languages, tone: 'feature' },
+  fAiInsights: { label: { pl: 'AI Insights', en: 'AI Insights' }, icon: Sparkles, tone: 'feature' },
+  // Industries
+  iManufacturing: { label: { pl: 'Produkcja', en: 'Manufacturing' }, icon: Factory, tone: 'industry' },
+  iEvents: { label: { pl: 'Eventy', en: 'Events' }, icon: PartyPopper, tone: 'industry' },
+  iConstruction: { label: { pl: 'Budownictwo', en: 'Construction' }, icon: HardHat, tone: 'industry' },
+  iRetail: { label: { pl: 'Retail & E-com', en: 'Retail & E-com' }, icon: ShoppingBag, tone: 'industry' },
+  iHoreca: { label: { pl: 'HoReCa', en: 'HoReCa' }, icon: UtensilsCrossed, tone: 'industry' },
+  iHealthcare: { label: { pl: 'Ochrona zdrowia', en: 'Healthcare' }, icon: HeartPulse, tone: 'industry' },
+  iLogistics: { label: { pl: 'Logistyka', en: 'Logistics' }, icon: Truck, tone: 'industry' },
+  iMro: { label: { pl: 'MRO', en: 'MRO' }, icon: Wrench, tone: 'industry' },
 }
 
 const PILLAR_BADGE: Record<string, string> = {
@@ -671,23 +727,45 @@ export function BlogPostPage() {
                 {relatedPosts.map(r => {
                   const rTitle = isEN ? r.title : r.titlePl || r.title
                   const rExcerpt = isEN ? r.excerpt : r.excerptPl || r.excerpt
+                  const rImages = getBlogPostImages(r.slug)
+                  const rHero = rImages?.hero
+                  const RHero = BLOG_HEROES[r.slug]
+                  const rBadgeClass = PILLAR_BADGE[r.pillar] || PILLAR_BADGE['supply-chain-strategy']
                   return (
                     <Link
                       key={r.slug}
                       to={`${blogBase}/${r.slug}`}
-                      className="group flex flex-col rounded-2xl border border-black/[0.08] bg-white p-6 hover:shadow-[0_12px_40px_-8px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300"
+                      className="group flex flex-col overflow-hidden rounded-2xl border border-black/[0.08] bg-white hover:shadow-[0_16px_48px_-12px_rgba(0,0,0,0.18)] hover:-translate-y-1 transition-all duration-300"
                     >
-                      <span className="text-xs font-bold uppercase tracking-wider text-brand-600 mb-3">
-                        {isEN ? r.category : r.categoryPl || r.category}
-                      </span>
-                      <h4 className="font-bold font-display text-lg leading-tight line-clamp-2 mb-2 text-slate-900 group-hover:text-brand-600 transition-colors">
-                        {rTitle}
-                      </h4>
-                      <p className="text-sm text-slate-600 line-clamp-3 mb-4 flex-1">{rExcerpt}</p>
-                      <span className="text-sm font-semibold text-brand-600 inline-flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-                        {isEN ? 'Read' : 'Czytaj'}
-                        <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                      </span>
+                      <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100">
+                        {rHero ? (
+                          <img
+                            src={rHero}
+                            alt={rTitle}
+                            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                            loading="lazy"
+                          />
+                        ) : RHero ? (
+                          <RHero className="w-full h-full" />
+                        ) : (
+                          <div className="absolute inset-0 bg-gradient-to-br from-brand-100 via-brand-50 to-white" />
+                        )}
+                        <span
+                          className={`absolute top-3 left-3 inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-sm bg-white/85 ${rBadgeClass}`}
+                        >
+                          {isEN ? r.category : r.categoryPl || r.category}
+                        </span>
+                      </div>
+                      <div className="flex flex-col flex-1 p-6">
+                        <h4 className="font-bold font-display text-lg leading-tight line-clamp-2 mb-2 text-slate-900 group-hover:text-brand-600 transition-colors">
+                          {rTitle}
+                        </h4>
+                        <p className="text-sm text-slate-600 line-clamp-3 mb-4 flex-1">{rExcerpt}</p>
+                        <span className="text-sm font-semibold text-brand-600 inline-flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                          {isEN ? 'Read' : 'Czytaj'}
+                          <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                        </span>
+                      </div>
                     </Link>
                   )
                 })}
@@ -696,29 +774,66 @@ export function BlogPostPage() {
           </section>
         )}
 
-        {/* Features linked from post */}
-        {post.relatedFeatures.length > 0 && (
-          <section className="py-12">
-            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-600 mb-4">
-                {isEN ? 'Procurea features in this article' : 'Funkcje Procurea w tym artykule'}
-              </h3>
-              <div className="flex flex-wrap justify-center gap-3">
-                {post.relatedFeatures.map(key => {
-                  const ref = pathMappings[key as PathKey]
-                  if (!ref) return null
-                  return (
-                    <Link
-                      key={key}
-                      to={ref[LANG]}
-                      className="inline-flex items-center gap-2 rounded-full bg-white border border-black/[0.08] px-4 py-2 text-sm font-semibold text-slate-700 hover:border-brand-500/40 hover:text-brand-600 transition-all"
-                    >
-                      {key}
-                      <ArrowRight className="h-3 w-3 opacity-60" aria-hidden="true" />
-                    </Link>
-                  )
-                })}
-              </div>
+        {/* Features + industries linked from post */}
+        {(post.relatedFeatures.length > 0 || post.relatedIndustries.length > 0) && (
+          <section className="py-14 border-t border-black/[0.05] bg-white">
+            <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+              {post.relatedFeatures.length > 0 && (
+                <div className="mb-10">
+                  <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500 mb-5 text-center">
+                    {isEN ? 'Procurea features in this article' : 'Funkcje Procurea w tym artykule'}
+                  </h3>
+                  <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                    {post.relatedFeatures.map(key => {
+                      const meta = PILL_META[key as PathKey]
+                      const ref = pathMappings[key as PathKey]
+                      if (!ref || !meta) return null
+                      const Icon = meta.icon
+                      return (
+                        <Link
+                          key={key}
+                          to={ref[LANG]}
+                          className="group flex items-center gap-3 rounded-xl border border-black/[0.08] bg-white px-4 py-3.5 hover:border-brand-500/50 hover:shadow-[0_8px_24px_-8px_rgba(14,165,233,0.25)] hover:-translate-y-0.5 transition-all"
+                        >
+                          <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600 group-hover:bg-brand-600 group-hover:text-white transition-colors">
+                            <Icon className="h-5 w-5" aria-hidden="true" />
+                          </span>
+                          <span className="flex-1 text-sm font-semibold text-slate-800 group-hover:text-brand-700 transition-colors">
+                            {meta.label[LANG]}
+                          </span>
+                          <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-brand-600 group-hover:translate-x-0.5 transition-all" aria-hidden="true" />
+                        </Link>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {post.relatedIndustries.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500 mb-5 text-center">
+                    {isEN ? 'Relevant industries' : 'Powiązane branże'}
+                  </h3>
+                  <div className="flex flex-wrap justify-center gap-2.5">
+                    {post.relatedIndustries.map(key => {
+                      const meta = PILL_META[key as PathKey]
+                      const ref = pathMappings[key as PathKey]
+                      if (!ref || !meta) return null
+                      const Icon = meta.icon
+                      return (
+                        <Link
+                          key={key}
+                          to={ref[LANG]}
+                          className="group inline-flex items-center gap-2 rounded-full border border-black/[0.08] bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-emerald-500/40 hover:bg-white hover:text-emerald-700 transition-all"
+                        >
+                          <Icon className="h-4 w-4 text-emerald-600 group-hover:scale-110 transition-transform" aria-hidden="true" />
+                          {meta.label[LANG]}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </section>
         )}
