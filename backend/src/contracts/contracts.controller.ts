@@ -60,6 +60,21 @@ export class ContractsController {
         return this.service.generateFromOffer(userId, body.offerId);
     }
 
+    /**
+     * Express lane: create SIGNED contract + DRAFT PO from an accepted offer
+     * in one call. Idempotent — reuses existing SIGNED contract / DRAFT PO
+     * if already present.
+     */
+    @Post('express-sign-and-po')
+    expressSignAndPO(
+        @Req() req: any,
+        @Body() body: GenerateFromOfferDto,
+    ) {
+        if (!body?.offerId) throw new BadRequestException('offerId is required');
+        const userId = req.user?.userId || req.user?.sub;
+        return this.service.expressSignAndPO(userId, body.offerId);
+    }
+
     @Patch(':id/status')
     updateStatus(
         @Param('id') id: string,

@@ -16,6 +16,7 @@ import {
   Mail,
   Repeat,
   FileSignature,
+  FileCheck,
   Sparkles,
   Download,
 } from 'lucide-react';
@@ -391,6 +392,7 @@ export function RfqDetailPage() {
 
   // Contract auto-fill from accepted offer (AI-powered)
   const [generatingContractOfferId, setGeneratingContractOfferId] = useState<string | null>(null);
+  const [expressingOfferId, setExpressingOfferId] = useState<string | null>(null);
   const [contractDraft, setContractDraft] = useState<ContractDraft | null>(null);
   const [contractDraftSource, setContractDraftSource] = useState<ContractDraftSource | null>(null);
   const [showContractModal, setShowContractModal] = useState(false);
@@ -614,6 +616,26 @@ export function RfqDetailPage() {
       toast.error(isEN ? `Failed to generate contract: ${msg}` : `Nie udało się wygenerować kontraktu: ${msg}`);
     } finally {
       setGeneratingContractOfferId(null);
+    }
+  };
+
+  // Express: create SIGNED contract + DRAFT PO in one call, skip the contract modal
+  const handleExpressSignAndPO = async (offerId: string) => {
+    try {
+      setExpressingOfferId(offerId);
+      const { po } = await contractsService.expressSignAndPO(offerId);
+      toast.success(
+        isEN
+          ? `PO ${po.poNumber ?? po.id} created — open Purchase Orders to sync`
+          : `Utworzono PO ${po.poNumber ?? po.id} — otwórz Zamówienia, żeby zsynchronizować z ERP`,
+      );
+      navigate('/purchase-orders');
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      const msg = e?.response?.data?.message || e?.message || (isEN ? 'Failed' : 'Błąd');
+      toast.error(isEN ? `Express PO failed: ${msg}` : `Express PO nie powiodło się: ${msg}`);
+    } finally {
+      setExpressingOfferId(null);
     }
   };
 
@@ -1458,6 +1480,23 @@ export function RfqDetailPage() {
                               {isEN ? 'Generate contract from this offer' : 'Generuj kontrakt z tej oferty'}
                             </>
                           )}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                          onClick={() => handleExpressSignAndPO(offer.id)}
+                          disabled={expressingOfferId === offer.id}
+                          title={isEN
+                            ? 'Skip drafting — create signed contract + draft PO in one step'
+                            : 'Pomiń draft — utwórz podpisany kontrakt + draft PO w jednym kroku'}
+                        >
+                          {expressingOfferId === offer.id ? (
+                            <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <FileCheck className="mr-1 h-3.5 w-3.5" />
+                          )}
+                          {isEN ? 'Express PO' : 'PO ekspresowo'}
                         </Button>
                       </div>
                     )}

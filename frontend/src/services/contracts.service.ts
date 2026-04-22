@@ -95,6 +95,16 @@ export const contractsService = {
     );
     return data;
   },
+
+  expressSignAndPO: async (
+    offerId: string,
+  ): Promise<{
+    contract: { id: string; status: string };
+    po: { id: string; poNumber?: string; status?: string };
+  }> => {
+    const { data } = await apiClient.post(`/contracts/express-sign-and-po`, { offerId });
+    return data;
+  },
 };
 
 export default contractsService;

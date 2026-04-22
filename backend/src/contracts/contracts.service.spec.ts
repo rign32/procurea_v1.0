@@ -92,4 +92,73 @@ describe('ContractsService — updateStatus + PO auto-gen', () => {
         expect(prisma.contract.update).not.toHaveBeenCalled();
         expect(purchaseOrders.generateFromContract).not.toHaveBeenCalled();
     });
+
+    describe('expressSignAndPO', () => {
+        beforeEach(() => {
+            prisma.offer = { findUnique: jest.fn() };
+            prisma.contract.findFirst = jest.fn();
+            prisma.contract.create = jest.fn();
+            prisma.purchaseOrder.findFirst = jest.fn();
+        });
+
+        it('rejects non-accepted offers', async () => {
+            prisma.offer.findUnique.mockResolvedValue({
+                id: 'off1',
+                status: 'PENDING',
+                rfqRequest: { ownerId: 'u1' },
+                supplier: { name: 'Acme' },
+            });
+            await expect(
+                service.expressSignAndPO('u1', 'off1'),
+            ).rejects.toBeInstanceOf(BadRequestException);
+        });
+
+        it('creates SIGNED contract + DRAFT PO on first call', async () => {
+            prisma.offer.findUnique.mockResolvedValue({
+                id: 'off1',
+                status: 'ACCEPTED',
+                rfqRequest: { ownerId: 'u1', productName: 'Widgets' },
+                supplier: { name: 'Acme' },
+            });
+            prisma.contract.findFirst.mockResolvedValue(null);
+            prisma.user.findUnique.mockResolvedValue({ organizationId: 'org1' });
+            prisma.contract.create.mockResolvedValue({ id: 'c1', status: 'SIGNED' });
+            prisma.purchaseOrder.findFirst.mockResolvedValue(null);
+            purchaseOrders.generateFromContract.mockResolvedValue({ id: 'po1' });
+
+            const result = await service.expressSignAndPO('u1', 'off1');
+
+            expect(prisma.contract.create).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({
+                        offerId: 'off1',
+                        status: 'SIGNED',
+                        signedAt: expect.any(Date),
+                    }),
+                }),
+            );
+            expect(purchaseOrders.generateFromContract).toHaveBeenCalledWith('u1', 'c1');
+            expect(result).toEqual({ contract: { id: 'c1', status: 'SIGNED' }, po: { id: 'po1' } });
+        });
+
+        it('reuses existing SIGNED contract + existing PO (idempotent)', async () => {
+            prisma.offer.findUnique.mockResolvedValue({
+                id: 'off1',
+                status: 'ACCEPTED',
+                rfqRequest: { ownerId: 'u1', productName: 'Widgets' },
+                supplier: { name: 'Acme' },
+            });
+            prisma.contract.findFirst.mockResolvedValue({ id: 'c-existing', status: 'SIGNED' });
+            prisma.purchaseOrder.findFirst.mockResolvedValue({ id: 'po-existing' });
+
+            const result = await service.expressSignAndPO('u1', 'off1');
+
+            expect(prisma.contract.create).not.toHaveBeenCalled();
+            expect(purchaseOrders.generateFromContract).not.toHaveBeenCalled();
+            expect(result).toEqual({
+                contract: { id: 'c-existing', status: 'SIGNED' },
+                po: { id: 'po-existing' },
+            });
+        });
+    });
 });

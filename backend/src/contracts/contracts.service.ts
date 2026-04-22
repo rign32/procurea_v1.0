@@ -119,6 +119,70 @@ export class ContractsService {
         });
     }
 
+    /**
+     * Express lane: accepted Offer → minimal SIGNED Contract → DRAFT PO, in one call.
+     *
+     * For buyers who trust the offer and want to fast-track to ERP sync without
+     * going through Draft/Under Review/Sign manually. Contract is still created
+     * (audit trail stays intact) but starts in SIGNED state. The existing
+     * auto-PO hook on SIGNED would also fire, but we call generateFromContract
+     * directly so we can return the PO to the caller in a single round-trip.
+     */
+    async expressSignAndPO(userId: string, offerId: string) {
+        const offer = await this.prisma.offer.findUnique({
+            where: { id: offerId },
+            include: {
+                rfqRequest: { select: { ownerId: true, productName: true } },
+                supplier: { select: { name: true } },
+            },
+        });
+        if (!offer) throw new NotFoundException('Offer not found');
+        if (offer.status !== 'ACCEPTED') {
+            throw new BadRequestException('Express sign + PO is only available for accepted offers');
+        }
+
+        // Idempotency: if an active contract already exists for this offer, reuse it.
+        const existingContract = await this.prisma.contract.findFirst({
+            where: {
+                offerId,
+                status: { in: ['SIGNED', 'ACTIVE'] },
+            },
+        });
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { organizationId: true },
+        });
+
+        const contract = existingContract
+            ? existingContract
+            : await this.prisma.contract.create({
+                  data: {
+                      offerId,
+                      createdById: userId,
+                      organizationId: user?.organizationId || undefined,
+                      title: `Contract — ${offer.supplier?.name ?? 'Supplier'} · ${offer.rfqRequest?.productName ?? 'RFQ'}`,
+                      terms: 'Express contract auto-generated from accepted offer. Detailed terms to follow separately.',
+                      status: 'SIGNED',
+                      signedAt: new Date(),
+                  },
+              });
+
+        // Idempotency: if a PO already exists for this contract, reuse it.
+        const existingPo = await this.prisma.purchaseOrder.findFirst({
+            where: { contractId: contract.id },
+        });
+        const po = existingPo
+            ? existingPo
+            : await this.purchaseOrders.generateFromContract(userId, contract.id);
+
+        this.logger.log(
+            `Express sign+PO: offer=${offerId} contract=${contract.id} po=${po.id}`,
+        );
+
+        return { contract, po };
+    }
+
     async updateStatus(id: string, userId: string, newStatus: string, comments?: string) {
         const contract = await this.findOne(id, userId); // Reuse ownership check
 
