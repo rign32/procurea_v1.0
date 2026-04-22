@@ -497,6 +497,18 @@ export class RequestsService {
                         priceTiers: { orderBy: { minQty: 'asc' } },
                     },
                 },
+                // Loop closers for accepted offers — show the buyer what happened
+                // downstream so they don't re-trigger contract/PO creation.
+                contracts: {
+                    select: { id: true, status: true, signedAt: true },
+                    orderBy: { createdAt: 'desc' },
+                    take: 1,
+                },
+                purchaseOrders: {
+                    select: { id: true, poNumber: true, status: true, syncedAt: true, externalId: true },
+                    orderBy: { createdAt: 'desc' },
+                    take: 1,
+                },
             },
             orderBy: { createdAt: 'desc' },
         });

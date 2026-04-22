@@ -1459,6 +1459,40 @@ export function RfqDetailPage() {
                       </div>
                     )}
 
+                    {/* Accepted offer: show downstream Contract/PO if they exist */}
+                    {offer.status === 'ACCEPTED' && ((offer as any).contracts?.length > 0 || (offer as any).purchaseOrders?.length > 0) && (
+                      <div className="flex flex-col gap-1 shrink-0 text-xs">
+                        {(offer as any).contracts?.[0] && (
+                          <Link
+                            to={`/contracts`}
+                            className="inline-flex items-center gap-1 text-emerald-700 hover:underline"
+                            title={(offer as any).contracts[0].signedAt
+                              ? `Signed ${new Date((offer as any).contracts[0].signedAt).toLocaleDateString()}`
+                              : undefined}
+                          >
+                            <FileSignature className="h-3 w-3" />
+                            {isEN
+                              ? `Contract · ${(offer as any).contracts[0].status}`
+                              : `Kontrakt · ${(offer as any).contracts[0].status}`}
+                          </Link>
+                        )}
+                        {(offer as any).purchaseOrders?.[0] && (
+                          <Link
+                            to={`/purchase-orders`}
+                            className="inline-flex items-center gap-1 text-blue-700 hover:underline"
+                          >
+                            <FileCheck className="h-3 w-3" />
+                            {`PO ${(offer as any).purchaseOrders[0].poNumber ?? ''} · ${(offer as any).purchaseOrders[0].status}`}
+                            {(offer as any).purchaseOrders[0].externalId && (
+                              <span className="text-[10px] text-muted-foreground ml-1">
+                                ({isEN ? 'synced' : 'zsynchronizowane'})
+                              </span>
+                            )}
+                          </Link>
+                        )}
+                      </div>
+                    )}
+
                     {/* Accepted offer: AI contract generation */}
                     {offer.status === 'ACCEPTED' && (
                       <div className="flex flex-col gap-1.5 shrink-0">
