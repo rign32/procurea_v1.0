@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Eye, Check, X, Download, Loader2, Inbox, FileText } from 'lucide-react';
@@ -18,11 +19,29 @@ type PendingRow = SupplierCertificate & {
 
 export function PendingCertificatesInbox() {
     const qc = useQueryClient();
+    const [selected, setSelected] = useState<Set<string>>(new Set());
 
     const { data, isLoading } = useQuery({
         queryKey: ['certificates-pending-inbox'],
         queryFn: () => certificatesService.listPendingReviewInbox(),
         staleTime: 30_000,
+    });
+
+    const bulkMutation = useMutation({
+        mutationFn: ({ ids, action, notes }: { ids: string[]; action: 'APPROVE' | 'REJECT'; notes?: string }) =>
+            certificatesService.bulkReview(ids, action, notes),
+        onSuccess: (r, variables) => {
+            qc.invalidateQueries({ queryKey: ['certificates-pending-inbox'] });
+            qc.invalidateQueries({ queryKey: ['supplier-certificates'] });
+            qc.invalidateQueries({ queryKey: ['campaign-insights'] });
+            setSelected(new Set());
+            toast.success(
+                variables.action === 'APPROVE'
+                    ? `Zatwierdzono ${r.updated} certyfikatów`
+                    : `Odrzucono ${r.updated} certyfikatów`,
+            );
+        },
+        onError: () => toast.error('Nie udało się wykonać operacji grupowej'),
     });
 
     const approveMutation = useMutation({
@@ -51,6 +70,21 @@ export function PendingCertificatesInbox() {
 
     const items = data?.items ?? [];
     const count = data?.count ?? 0;
+
+    const allItemIds = useMemo(() => items.map((i) => i.id), [items]);
+    const allSelected = allItemIds.length > 0 && selected.size === allItemIds.length;
+    const toggleAll = () => {
+        if (allSelected) setSelected(new Set());
+        else setSelected(new Set(allItemIds));
+    };
+    const toggleOne = (id: string) => {
+        setSelected((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
 
     if (isLoading) {
         return (
@@ -89,12 +123,72 @@ export function PendingCertificatesInbox() {
                 </p>
             </CardHeader>
             <CardContent>
+                {/* Bulk toolbar */}
+                <div className="flex items-center gap-2 mb-2 pb-2 border-b text-sm">
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={allSelected}
+                            onChange={toggleAll}
+                            className="h-3.5 w-3.5 rounded border-gray-300"
+                        />
+                        <span className="text-xs text-muted-foreground">
+                            {selected.size === 0
+                                ? 'Zaznacz wszystkie'
+                                : `Zaznaczone: ${selected.size}/${count}`}
+                        </span>
+                    </label>
+                    {selected.size > 0 && (
+                        <div className="ml-auto flex gap-2">
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-xs text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+                                onClick={() =>
+                                    bulkMutation.mutate({
+                                        ids: Array.from(selected),
+                                        action: 'APPROVE',
+                                    })
+                                }
+                                disabled={bulkMutation.isPending}
+                            >
+                                <Check className="h-3 w-3 mr-1" />
+                                Zatwierdź zaznaczone
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-xs text-rose-700 border-rose-200 hover:bg-rose-50"
+                                onClick={() => {
+                                    const notes = prompt('Powód odrzucenia (opcjonalnie):') ?? undefined;
+                                    bulkMutation.mutate({
+                                        ids: Array.from(selected),
+                                        action: 'REJECT',
+                                        notes: notes || undefined,
+                                    });
+                                }}
+                                disabled={bulkMutation.isPending}
+                            >
+                                <X className="h-3 w-3 mr-1" />
+                                Odrzuć zaznaczone
+                            </Button>
+                        </div>
+                    )}
+                </div>
+
                 <ul className="space-y-2">
                     {items.map((row) => (
                         <li
                             key={row.id}
                             className="flex items-start justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50/40 p-3"
                         >
+                            <input
+                                type="checkbox"
+                                checked={selected.has(row.id)}
+                                onChange={() => toggleOne(row.id)}
+                                className="h-3.5 w-3.5 mt-1 rounded border-gray-300 shrink-0"
+                                aria-label="Zaznacz do operacji grupowej"
+                            />
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap">
                                     <Link

@@ -1,4 +1,12 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import {
+    BadRequestException,
+    Body,
+    Controller,
+    Get,
+    Post,
+    Req,
+    UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { CertificatesService } from './certificates.service';
 
@@ -22,5 +30,29 @@ export class CertificatesInboxController {
             this.getUserId(req),
         );
         return { items, count: items.length };
+    }
+
+    @Post('bulk-review')
+    async bulkReview(
+        @Body()
+        body: {
+            certificateIds: string[];
+            action: 'APPROVE' | 'REJECT';
+            notes?: string;
+        },
+        @Req() req: any,
+    ) {
+        if (!Array.isArray(body?.certificateIds)) {
+            throw new BadRequestException('certificateIds must be an array');
+        }
+        if (body.action !== 'APPROVE' && body.action !== 'REJECT') {
+            throw new BadRequestException('action must be APPROVE or REJECT');
+        }
+        return this.certificatesService.bulkReviewByTenant(
+            this.getUserId(req),
+            body.certificateIds,
+            body.action,
+            body.notes,
+        );
     }
 }

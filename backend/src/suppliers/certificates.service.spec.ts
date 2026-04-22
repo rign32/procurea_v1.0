@@ -363,6 +363,74 @@ describe('CertificatesService', () => {
         });
     });
 
+    describe('bulkReviewByTenant', () => {
+        const tenant = {
+            supplierCampaignFilter: jest.fn().mockReturnValue({ rfqRequest: { ownerId: 'u1' } }),
+        };
+
+        beforeEach(() => {
+            // @ts-ignore override tenant mock
+            (service as any).tenantContext = {
+                resolve: jest.fn().mockResolvedValue(tenant),
+            };
+            prisma.supplierCertificate.updateMany = jest.fn();
+        });
+
+        it('returns updated=0 when called with empty list', async () => {
+            const result = await service.bulkReviewByTenant('u1', [], 'APPROVE');
+            expect(result).toEqual({ updated: 0 });
+            expect(prisma.supplierCertificate.findMany).not.toHaveBeenCalled();
+        });
+
+        it('throws when more than 100 certs requested', async () => {
+            const ids = Array.from({ length: 101 }, (_, i) => `c${i}`);
+            await expect(
+                service.bulkReviewByTenant('u1', ids, 'APPROVE'),
+            ).rejects.toBeInstanceOf(BadRequestException);
+        });
+
+        it('silently skips certs outside the tenant', async () => {
+            prisma.supplierCertificate.findMany.mockResolvedValue([]); // no eligible
+            const result = await service.bulkReviewByTenant('u1', ['c-foreign'], 'APPROVE');
+            expect(result).toEqual({ updated: 0 });
+            expect(prisma.supplierCertificate.updateMany).not.toHaveBeenCalled();
+        });
+
+        it('approves only eligible PENDING certs from tenant', async () => {
+            prisma.supplierCertificate.findMany.mockResolvedValue([{ id: 'c1' }, { id: 'c2' }]);
+            (prisma.supplierCertificate.updateMany as jest.Mock).mockResolvedValue({ count: 2 });
+
+            const result = await service.bulkReviewByTenant(
+                'u1',
+                ['c1', 'c2', 'c-foreign'],
+                'APPROVE',
+            );
+            expect(result).toEqual({ updated: 2 });
+            expect(prisma.supplierCertificate.updateMany).toHaveBeenCalledWith({
+                where: { id: { in: ['c1', 'c2'] } },
+                data: expect.objectContaining({
+                    reviewStatus: 'APPROVED',
+                    reviewedById: 'u1',
+                    reviewNotes: null,
+                }),
+            });
+        });
+
+        it('rejects with trimmed notes', async () => {
+            prisma.supplierCertificate.findMany.mockResolvedValue([{ id: 'c1' }]);
+            (prisma.supplierCertificate.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
+
+            await service.bulkReviewByTenant('u1', ['c1'], 'REJECT', '  not legible  ');
+            expect(prisma.supplierCertificate.updateMany).toHaveBeenCalledWith({
+                where: { id: { in: ['c1'] } },
+                data: expect.objectContaining({
+                    reviewStatus: 'REJECTED',
+                    reviewNotes: 'not legible',
+                }),
+            });
+        });
+    });
+
     describe('summaryForSupplier — respects review status', () => {
         beforeEach(() => {
             prisma.supplierCertificate.findMany.mockResolvedValue([

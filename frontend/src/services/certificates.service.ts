@@ -177,4 +177,17 @@ export const certificatesService = {
     const { data } = await apiClient.get(`/certificates/pending-review`);
     return data;
   },
+
+  bulkReview: async (
+    certificateIds: string[],
+    action: 'APPROVE' | 'REJECT',
+    notes?: string,
+  ): Promise<{ updated: number }> => {
+    const { data } = await apiClient.post(`/certificates/bulk-review`, {
+      certificateIds,
+      action,
+      notes,
+    });
+    return data;
+  },
 };

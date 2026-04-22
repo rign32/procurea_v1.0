@@ -372,6 +372,20 @@ export class PortalService {
             throw new BadRequestException('Offer has no supplier linked');
         }
 
+        // Backpressure: if this supplier already has many PENDING certs waiting
+        // for buyer review, reject new uploads so a malicious or misconfigured
+        // portal client can't flood the inbox. Approving/rejecting the existing
+        // ones frees up the slot.
+        const PENDING_CAP = 10;
+        const pendingCount = await this.prisma.supplierCertificate.count({
+            where: { supplierId: offer.supplierId, reviewStatus: 'PENDING' },
+        });
+        if (pendingCount >= PENDING_CAP) {
+            throw new BadRequestException(
+                `You already have ${pendingCount} certificates waiting for buyer review. Please wait for them to be processed before uploading more.`,
+            );
+        }
+
         // Store the file (Firebase Storage or local stub)
         const saved = await this.uploads.saveFile(file);
 

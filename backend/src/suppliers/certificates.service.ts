@@ -240,6 +240,46 @@ export class CertificatesService {
   }
 
   /**
+   * Bulk approve / reject. Only touches certs whose supplier is in the user's
+   * tenant — silently skips certs from other tenants (no info leak). Returns
+   * the count of certs actually updated.
+   */
+  async bulkReviewByTenant(
+    userId: string,
+    certificateIds: string[],
+    action: 'APPROVE' | 'REJECT',
+    notes?: string,
+  ): Promise<{ updated: number }> {
+    if (certificateIds.length === 0) return { updated: 0 };
+    if (certificateIds.length > 100) {
+      throw new BadRequestException('Max 100 certificates per bulk operation');
+    }
+    const tenant = await this.tenantContext.resolve(userId);
+
+    // Find only certs the tenant can touch AND that are still PENDING (idempotent).
+    const eligible = await this.prisma.supplierCertificate.findMany({
+      where: {
+        id: { in: certificateIds },
+        reviewStatus: 'PENDING',
+        supplier: { campaign: tenant.supplierCampaignFilter() },
+      },
+      select: { id: true },
+    });
+    if (eligible.length === 0) return { updated: 0 };
+
+    const result = await this.prisma.supplierCertificate.updateMany({
+      where: { id: { in: eligible.map((c) => c.id) } },
+      data: {
+        reviewStatus: action === 'APPROVE' ? 'APPROVED' : 'REJECTED',
+        reviewedById: userId,
+        reviewedAt: new Date(),
+        reviewNotes: action === 'REJECT' ? (notes?.trim() || null) : null,
+      },
+    });
+    return { updated: result.count };
+  }
+
+  /**
    * List all PENDING certs visible to a user's tenant — buyer-facing inbox
    * of portal-uploaded certs awaiting approval. Returns supplier + document
    * metadata so the UI can render the inbox row without an extra round-trip.
