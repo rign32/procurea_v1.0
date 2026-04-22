@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Loader2, User as UserIcon, Building, MapPin, Bell, Users, CreditCard, ArrowUpRight, Receipt, Lock, ScrollText, Key, CalendarClock } from 'lucide-react';
+import { Loader2, User as UserIcon, Building, MapPin, Bell, Users, CreditCard, ArrowUpRight, Receipt, Lock, ScrollText, Key, CalendarClock, Plug } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import { useUIStore } from '@/stores/ui.store';
 import { t, isEN } from '@/i18n';
@@ -13,11 +13,12 @@ import { TransactionHistoryTab } from '@/components/settings/TransactionHistoryT
 import { AuditLogTab } from '@/components/settings/AuditLogTab';
 import { ApiKeysTab } from '@/components/settings/ApiKeysTab';
 import { ScheduledReportsTab } from '@/components/settings/ScheduledReportsTab';
+import { IntegrationsTab } from '@/components/settings/IntegrationsTab';
 import { analytics } from '@/lib/analytics';
 
-type TabKey = 'profile' | 'organization' | 'locations' | 'team' | 'notifications' | 'history' | 'audit-log' | 'api-keys' | 'scheduled-reports';
+type TabKey = 'profile' | 'organization' | 'locations' | 'team' | 'notifications' | 'history' | 'audit-log' | 'api-keys' | 'scheduled-reports' | 'integrations';
 
-const VALID_TABS: TabKey[] = ['profile', 'organization', 'locations', 'team', 'notifications', 'history', 'audit-log', 'api-keys', 'scheduled-reports'];
+const VALID_TABS: TabKey[] = ['profile', 'organization', 'locations', 'team', 'notifications', 'history', 'audit-log', 'api-keys', 'scheduled-reports', 'integrations'];
 
 export function SettingsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -48,6 +49,7 @@ export function SettingsPage() {
     ...(isFullPlan && user?.role === 'ADMIN' ? [{ key: 'audit-log' as TabKey, label: isEN ? 'Audit Log' : 'Dziennik audytu', icon: <ScrollText className="h-4 w-4" /> }] : []),
     ...(isFullPlan ? [{ key: 'api-keys' as TabKey, label: isEN ? 'API Keys' : 'Klucze API', icon: <Key className="h-4 w-4" /> }] : []),
     ...(isFullPlan ? [{ key: 'scheduled-reports' as TabKey, label: isEN ? 'Reports' : 'Raporty', icon: <CalendarClock className="h-4 w-4" /> }] : []),
+    ...(isFullPlan ? [{ key: 'integrations' as TabKey, label: isEN ? 'Integrations' : 'Integracje', icon: <Plug className="h-4 w-4" /> }] : []),
   ];
 
   if (isLoading) {
@@ -115,6 +117,7 @@ export function SettingsPage() {
         {activeTab === 'audit-log' && <AuditLogTab user={user} />}
         {activeTab === 'api-keys' && isFullPlan && <ApiKeysTab />}
         {activeTab === 'scheduled-reports' && isFullPlan && <ScheduledReportsTab />}
+        {activeTab === 'integrations' && isFullPlan && <IntegrationsTab />}
       </div>
     </div>
   );
