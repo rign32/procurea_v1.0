@@ -89,6 +89,35 @@ export function SupplierDetailPage() {
 
   const TAG_SUGGESTIONS = ['preferred', 'quality-issues', 'backup', 'local', 'certified', 'new'];
 
+  const vatVerifyMutation = useMutation({
+    mutationFn: () => suppliersService.verifyVat(id!),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['suppliers', id] });
+      queryClient.invalidateQueries({ queryKey: ['supplier', id] });
+      queryClient.invalidateQueries({ queryKey: ['certificates', id] });
+      switch (res.status) {
+        case 'verified':
+          toast.success(`VAT zweryfikowany${res.registeredName ? ` — ${res.registeredName}` : ''}`);
+          break;
+        case 'invalid':
+          toast.error(`VIES zwróciło INVALID dla ${res.vatCountry}${res.vatNumber}`);
+          break;
+        case 'no_vat_found':
+          toast.info('Nie znaleziono NIP/VAT na stronie dostawcy');
+          break;
+        case 'api_unavailable':
+          toast.error('Usługa VIES chwilowo niedostępna — spróbuj ponownie');
+          break;
+        case 'no_website':
+          toast.error('Dostawca nie ma strony WWW — VIES check wymaga strony');
+          break;
+      }
+    },
+    onError: () => {
+      toast.error('Błąd podczas sprawdzania VIES');
+    },
+  });
+
   const blacklistMutation = useMutation({
     mutationFn: async (reason: string) => {
       const res = await apiClient.post(`/suppliers/${id}/blacklist`, { reason });
@@ -194,6 +223,15 @@ export function SupplierDetailPage() {
                 return vat ? <VatVerifiedBadge vat={vat} /> : null;
               })()}
               {supplier.id && <ErpMatchBadge supplierId={supplier.id} />}
+              <button
+                type="button"
+                onClick={() => vatVerifyMutation.mutate()}
+                disabled={vatVerifyMutation.isPending}
+                className="text-[10px] text-muted-ink hover:text-ink underline underline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Pobierz dane VAT ze strony dostawcy i zweryfikuj w rejestrze VIES"
+              >
+                {vatVerifyMutation.isPending ? 'Sprawdzam…' : 'Przesprawdź VIES'}
+              </button>
             </div>
             <p className="mt-1.5 font-mono text-[12.5px] text-muted-ink tabular-nums flex flex-wrap items-center gap-x-3 gap-y-1">
               {supplier.country && (

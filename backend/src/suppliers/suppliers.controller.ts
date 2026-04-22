@@ -171,6 +171,16 @@ export class SuppliersController {
         return this.suppliersService.verify(id);
     }
 
+    @Post(':id/verify-vat')
+    verifyVat(@Param('id') id: string) {
+        return this.suppliersService.verifyVat(id);
+    }
+
+    @Post('campaign/:campaignId/verify-vat')
+    verifyVatForCampaign(@Param('campaignId') campaignId: string) {
+        return this.suppliersService.verifyVatForCampaign(campaignId);
+    }
+
     @Post(':id/blacklist')
     blacklist(@Param('id') id: string, @Body() body: { reason?: string }) {
         return this.suppliersService.blacklist(id, body.reason);

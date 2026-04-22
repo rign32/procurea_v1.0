@@ -1,6 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException, Optional } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantContextService } from '../common/services/tenant-context.service';
+import { VatValidationService } from '../common/services/vat-validation.service';
+import { ScrapingService } from '../common/services/scraping.service';
 import * as XLSX from 'xlsx';
 
 interface SupplierFilters {
@@ -15,10 +17,168 @@ interface SupplierFilters {
 
 @Injectable()
 export class SuppliersService {
+    private readonly logger = new Logger(SuppliersService.name);
+
     constructor(
         private readonly prisma: PrismaService,
         private readonly tenantContext: TenantContextService,
+        @Optional() private readonly vatValidation?: VatValidationService,
+        @Optional() private readonly scraping?: ScrapingService,
     ) { }
+
+    /**
+     * Extract a VAT number from a supplier's existing agent JSON blobs (no network call).
+     * Source of truth order: auditor.extracted_data > enrichment.enriched_data > screener.extracted_data.
+     */
+    private vatFromStoredAgentResults(supplier: {
+        explorerResult: string | null;
+        analystResult: string | null;
+        enrichmentResult: string | null;
+        auditorResult: string | null;
+    }): string | null {
+        const tryParse = (raw: string | null) => {
+            if (!raw) return null;
+            try { return JSON.parse(raw); } catch { return null; }
+        };
+        const candidates = [
+            tryParse(supplier.auditorResult)?.golden_record?.vat_id,
+            tryParse(supplier.auditorResult)?.extracted_data?.vat_id,
+            tryParse(supplier.enrichmentResult)?.enriched_data?.vat_id,
+            tryParse(supplier.analystResult)?.extracted_data?.vat_id,
+            tryParse(supplier.explorerResult)?.extracted_data?.vat_id,
+        ];
+        for (const v of candidates) {
+            if (typeof v === 'string' && v.trim().length >= 8) return v.trim();
+        }
+        return null;
+    }
+
+    /**
+     * Re-run VIES verification for a single supplier.
+     * Tries stored agent data first; falls back to scraping the supplier's homepage.
+     * On success: writes Supplier.metadata.vat + promotes all PIPELINE certs to VERIFIED.
+     */
+    async verifyVat(supplierId: string): Promise<{
+        status: 'verified' | 'invalid' | 'no_vat_found' | 'api_unavailable' | 'no_website';
+        vatCountry?: string;
+        vatNumber?: string;
+        registeredName?: string;
+        registeredAddress?: string;
+    }> {
+        if (!this.vatValidation) {
+            throw new BadRequestException('VAT validation service unavailable');
+        }
+
+        const supplier = await this.prisma.supplier.findUnique({
+            where: { id: supplierId },
+            select: {
+                id: true, website: true, url: true,
+                explorerResult: true, analystResult: true,
+                enrichmentResult: true, auditorResult: true,
+            },
+        });
+        if (!supplier) throw new NotFoundException('Supplier not found');
+
+        // 1. Try cached agent data first (free).
+        let rawVat = this.vatFromStoredAgentResults(supplier);
+
+        // 2. Fallback: scrape homepage and look for VAT pattern (one network call).
+        if (!rawVat) {
+            const target = supplier.website || supplier.url;
+            if (!target) return { status: 'no_website' };
+            if (this.scraping) {
+                try {
+                    const content = await this.scraping.fetchContent(target);
+                    const parsed = this.vatValidation.extractVatFromContent(content);
+                    if (parsed) rawVat = `${parsed.countryCode}${parsed.vatNumber}`;
+                } catch (err: any) {
+                    this.logger.warn(`verifyVat scrape failed for ${supplierId}: ${err.message}`);
+                }
+            }
+        }
+
+        if (!rawVat) return { status: 'no_vat_found' };
+
+        const parsed = this.vatValidation.extractVatFromContent(rawVat);
+        if (!parsed) return { status: 'no_vat_found' };
+
+        const result = await this.vatValidation.validate(parsed.countryCode, parsed.vatNumber).catch(() => null);
+        if (!result) return { status: 'api_unavailable' };
+
+        const vatMetadata = {
+            vatVerified: result.valid,
+            vatCountry: parsed.countryCode,
+            vatNumber: parsed.vatNumber,
+            registeredName: result.name,
+            registeredAddress: result.address,
+            checkedAt: new Date().toISOString(),
+        };
+
+        // Persist to Supplier.metadata (merge with existing flexible blob)
+        const existing = await this.prisma.supplier.findUnique({
+            where: { id: supplierId },
+            select: { metadata: true },
+        });
+        let blob: Record<string, any> = {};
+        if (existing?.metadata) {
+            try { blob = JSON.parse(existing.metadata) || {}; } catch { blob = {}; }
+        }
+        blob.vat = vatMetadata;
+        await this.prisma.supplier.update({
+            where: { id: supplierId },
+            data: { metadata: JSON.stringify(blob) },
+        });
+
+        // If VIES confirms the company, promote all PIPELINE certs to VERIFIED.
+        if (result.valid) {
+            await this.prisma.supplierCertificate.updateMany({
+                where: { supplierId, source: 'PIPELINE', verificationStatus: { not: 'VERIFIED' } },
+                data: { verificationStatus: 'VERIFIED' },
+            });
+        }
+
+        return {
+            status: result.valid ? 'verified' : 'invalid',
+            vatCountry: parsed.countryCode,
+            vatNumber: parsed.vatNumber,
+            registeredName: result.name,
+            registeredAddress: result.address,
+        };
+    }
+
+    /**
+     * Bulk VIES re-check for every supplier in a campaign.
+     * Runs sequentially to respect VIES rate limits (1.2s / request).
+     */
+    async verifyVatForCampaign(campaignId: string): Promise<{
+        total: number;
+        verified: number;
+        invalid: number;
+        noVatFound: number;
+        apiUnavailable: number;
+        noWebsite: number;
+    }> {
+        const suppliers = await this.prisma.supplier.findMany({
+            where: { campaignId, deletedAt: null },
+            select: { id: true },
+        });
+        const counters = { total: suppliers.length, verified: 0, invalid: 0, noVatFound: 0, apiUnavailable: 0, noWebsite: 0 };
+        for (const s of suppliers) {
+            try {
+                const r = await this.verifyVat(s.id);
+                switch (r.status) {
+                    case 'verified': counters.verified++; break;
+                    case 'invalid': counters.invalid++; break;
+                    case 'no_vat_found': counters.noVatFound++; break;
+                    case 'api_unavailable': counters.apiUnavailable++; break;
+                    case 'no_website': counters.noWebsite++; break;
+                }
+            } catch (err: any) {
+                this.logger.warn(`Bulk verifyVat: ${s.id} failed: ${err.message}`);
+            }
+        }
+        return counters;
+    }
 
     async findAll(filters?: SupplierFilters, userId?: string, pagination?: { page: number; pageSize: number }) {
         const where: any = { deletedAt: null };

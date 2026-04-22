@@ -132,7 +132,43 @@ export const suppliersService = {
     });
     return data;
   },
+
+  /**
+   * Re-run VIES VAT verification for a single supplier.
+   * On success (VAT valid) promotes all PIPELINE certs to VERIFIED server-side.
+   */
+  verifyVat: async (supplierId: string): Promise<VerifyVatResult> => {
+    const { data } = await apiClient.post<VerifyVatResult>(`/suppliers/${supplierId}/verify-vat`);
+    return data;
+  },
+
+  /**
+   * Bulk VIES re-check across all suppliers in a campaign.
+   */
+  verifyVatForCampaign: async (campaignId: string): Promise<VerifyVatSummary> => {
+    const { data } = await apiClient.post<VerifyVatSummary>(
+      `/suppliers/campaign/${campaignId}/verify-vat`,
+    );
+    return data;
+  },
 };
+
+export interface VerifyVatResult {
+  status: 'verified' | 'invalid' | 'no_vat_found' | 'api_unavailable' | 'no_website';
+  vatCountry?: string;
+  vatNumber?: string;
+  registeredName?: string;
+  registeredAddress?: string;
+}
+
+export interface VerifyVatSummary {
+  total: number;
+  verified: number;
+  invalid: number;
+  noVatFound: number;
+  apiUnavailable: number;
+  noWebsite: number;
+}
 
 /**
  * Registry Service - API calls dla Company Registry (global knowledge base)

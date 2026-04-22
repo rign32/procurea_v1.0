@@ -9,6 +9,7 @@ import { DatabaseExplorerService } from './services/database-explorer.service';
 import { ApiUsageService } from './services/api-usage.service';
 import { TranslationService } from './services/translation.service';
 import { VatValidationService } from './services/vat-validation.service';
+import { ScrapingService } from './services/scraping.service';
 import { TenantContextService } from './services/tenant-context.service';
 import { HealthController } from './controllers/health.controller';
 import { DatabaseExplorerController } from './controllers/database-explorer.controller';
@@ -36,6 +37,7 @@ import { ObservabilityModule } from '../observability/observability.module';
         TranslationService,
         TenantContextService,
         VatValidationService,
+        ScrapingService,
     ],
     exports: [
         PermissionsGuard,
@@ -50,6 +52,7 @@ import { ObservabilityModule } from '../observability/observability.module';
         TranslationService,
         TenantContextService,
         VatValidationService,
+        ScrapingService,
     ],
 })
 export class CommonModule { }
