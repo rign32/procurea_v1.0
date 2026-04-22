@@ -110,6 +110,28 @@ const createNestServer = async () => {
             credentials: true,
         });
 
+        // Swagger / OpenAPI — exposed at /api/docs on both staging and prod
+        // so integrators can hit one URL. Declares both auth schemes (Bearer
+        // JWT for buyer flow + X-API-Key for programmatic use).
+        try {
+            const { DocumentBuilder, SwaggerModule } = await import('@nestjs/swagger');
+            const config = new DocumentBuilder()
+                .setTitle('Procurea API')
+                .setDescription(
+                    'Procurea B2B sourcing + procurement platform API. Two auth options: Bearer JWT from /api/auth/login (primary, buyer flow) or X-API-Key header (programmatic, manage keys at Settings → API Keys). See INTEGRATIONS.md for integration recipes.',
+                )
+                .setVersion('1.0')
+                .addBearerAuth(undefined, 'jwt')
+                .addApiKey({ type: 'apiKey', name: 'X-API-Key', in: 'header' }, 'apiKey')
+                .addServer('https://app.procurea.pl/api', 'production')
+                .addServer('https://procurea-app-staging.web.app/api', 'staging')
+                .build();
+            const document = SwaggerModule.createDocument(app, config);
+            SwaggerModule.setup('api/docs', app, document);
+        } catch (err) {
+            console.warn('Swagger init skipped:', (err as Error).message);
+        }
+
         await app.init();
         console.log('NestJS initialized for Cloud Functions (2nd Gen)');
     }

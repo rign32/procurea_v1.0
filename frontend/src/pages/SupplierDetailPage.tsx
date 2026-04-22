@@ -49,6 +49,7 @@ import { CommentThread } from '@/components/collaboration/CommentThread';
 import { SupplierDocuments } from '@/components/suppliers/SupplierDocuments';
 import { CertificatesSection } from '@/components/suppliers/CertificatesSection';
 import { VatVerifiedBadge } from '@/components/suppliers/VatVerifiedBadge';
+import { ErpMatchBadge } from '@/components/suppliers/ErpMatchBadge';
 import { getVatMetadata } from '@/utils/supplier-metadata';
 
 export function SupplierDetailPage() {
@@ -187,14 +188,13 @@ export function SupplierDetailPage() {
             <h1 className="text-[30px] leading-[1.1] tracking-[-0.03em] font-bold truncate">
               {supplier.name || 'Unknown'}
             </h1>
-            {(() => {
-              const vat = getVatMetadata(supplier);
-              return vat ? (
-                <div className="mt-2">
-                  <VatVerifiedBadge vat={vat} />
-                </div>
-              ) : null;
-            })()}
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              {(() => {
+                const vat = getVatMetadata(supplier);
+                return vat ? <VatVerifiedBadge vat={vat} /> : null;
+              })()}
+              {supplier.id && <ErpMatchBadge supplierId={supplier.id} />}
+            </div>
             <p className="mt-1.5 font-mono text-[12.5px] text-muted-ink tabular-nums flex flex-wrap items-center gap-x-3 gap-y-1">
               {supplier.country && (
                 <span className="inline-flex items-center gap-1">

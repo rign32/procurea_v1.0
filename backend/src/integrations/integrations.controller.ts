@@ -86,6 +86,41 @@ export class IntegrationsController {
         });
     }
 
+    /**
+     * Single-supplier ERP match lookup — used by SupplierDetailPage to render
+     * the "Already in ERP" badge without loading the full matches list.
+     */
+    @Get('matches/by-supplier/:supplierId')
+    async matchesForSupplier(
+        @Req() req: Request,
+        @Param('supplierId') supplierId: string,
+    ) {
+        const user = this.requireOrgUser(req);
+        return this.prisma.supplierMatch.findMany({
+            where: {
+                supplierId,
+                externalSupplier: {
+                    connection: { organizationId: user.organizationId },
+                },
+            },
+            include: {
+                externalSupplier: {
+                    select: {
+                        id: true,
+                        name: true,
+                        taxNumber: true,
+                        website: true,
+                        primaryEmail: true,
+                        connection: {
+                            select: { platformName: true, platformSlug: true },
+                        },
+                    },
+                },
+            },
+            orderBy: [{ status: 'asc' }, { confidence: 'desc' }],
+        });
+    }
+
     @Post('matches/confirm')
     async confirmMatch(@Req() req: Request, @Body() dto: ConfirmMatchDto) {
         const user = this.requireOrgUser(req);

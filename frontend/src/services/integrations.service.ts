@@ -14,6 +14,29 @@ export interface IntegrationConnection {
     createdAt: string;
 }
 
+export interface SupplierMatch {
+    id: string;
+    supplierId: string;
+    externalSupplierId: string;
+    confidence: number;
+    matchType: string;
+    status: 'suggested' | 'confirmed' | 'rejected' | string;
+    externalSupplier: {
+        id: string;
+        name: string;
+        taxNumber: string | null;
+        website: string | null;
+        primaryEmail: string | null;
+        connection: { platformName: string | null; platformSlug: string | null };
+    };
+    supplier?: {
+        id: string;
+        name: string | null;
+        website: string | null;
+        country: string | null;
+    };
+}
+
 export const integrationsService = {
     listConnections: async (): Promise<IntegrationConnection[]> => {
         const { data } = await apiClient.get<IntegrationConnection[]>(
@@ -31,6 +54,30 @@ export const integrationsService = {
 
     disconnect: async (connectionId: string): Promise<void> => {
         await apiClient.delete(`/integrations/connections/${connectionId}`);
+    },
+
+    listMatches: async (): Promise<SupplierMatch[]> => {
+        const { data } = await apiClient.get<SupplierMatch[]>('/integrations/matches');
+        return data;
+    },
+
+    matchesForSupplier: async (supplierId: string): Promise<SupplierMatch[]> => {
+        const { data } = await apiClient.get<SupplierMatch[]>(
+            `/integrations/matches/by-supplier/${supplierId}`,
+        );
+        return data;
+    },
+
+    confirmMatch: async (
+        matchId: string,
+        status: 'confirmed' | 'rejected',
+        rejectedReason?: string,
+    ): Promise<SupplierMatch> => {
+        const { data } = await apiClient.post<SupplierMatch>(
+            '/integrations/matches/confirm',
+            { matchId, status, rejectedReason },
+        );
+        return data;
     },
 };
 
