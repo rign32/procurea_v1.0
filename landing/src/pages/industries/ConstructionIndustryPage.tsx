@@ -30,7 +30,8 @@ import { appendUtm } from "@/lib/utm"
 import { trackCtaClick } from "@/lib/analytics"
 import { pathFor } from "@/i18n/paths"
 
-const APP_URL = import.meta.env.VITE_APP_URL || "https://app.procurea.pl/login"
+const APP_BASE = (import.meta.env.VITE_APP_URL || "https://app.procurea.pl").replace(/\/login\/?$/, "")
+const APP_URL = `${APP_BASE}/campaigns/new?industry=construction&mode=mixed`
 const LANG = (import.meta.env.VITE_LANGUAGE || "pl") as "pl" | "en"
 const isEN = LANG === "en"
 

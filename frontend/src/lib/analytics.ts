@@ -125,9 +125,20 @@ export const analytics = {
   dashboardCtaClick: () => trackEvent('dashboard_cta_click'),
   campaignWizardStart: () => trackEvent('campaign_wizard_start'),
   campaignWizardStep: (step: number) => trackEvent('campaign_wizard_step', { step }),
-  campaignCreated: (region?: string) => trackEvent('campaign_created', { region }),
+  campaignCreated: (region?: string, industry?: string, sourcingMode?: string) =>
+    trackEvent('campaign_created', { region, industry, sourcing_mode: sourcingMode }),
   campaignWizardAbandoned: (lastStep: number) =>
     trackEvent('campaign_wizard_abandoned', { last_step: lastStep }),
+  briefAiFillClicked: (industry?: string, sourcingMode?: string) =>
+    trackEvent('brief_ai_fill_clicked', { industry, sourcing_mode: sourcingMode }),
+  briefAiFillSucceeded: (confidence: number, industry?: string, sourcingMode?: string) =>
+    trackEvent('brief_ai_fill_succeeded', { confidence, industry, sourcing_mode: sourcingMode }),
+  briefAiFillFailed: (reason: string) =>
+    trackEvent('brief_ai_fill_failed', { reason }),
+  briefAiFillLowConfidence: (confidence: number, industry?: string) =>
+    trackEvent('brief_ai_fill_low_confidence', { confidence, industry }),
+  wizardPrefillApplied: (industry?: string, sourcingMode?: string) =>
+    trackEvent('wizard_prefill_applied', { industry, sourcing_mode: sourcingMode }),
   campaignDetailView: () => trackEvent('campaign_detail_view'),
   campaignStopped: () => trackEvent('campaign_stopped'),
   suppliersAccepted: () => trackEvent('suppliers_accepted'),

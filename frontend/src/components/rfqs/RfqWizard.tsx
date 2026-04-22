@@ -116,6 +116,8 @@ const REGION_OPTIONS = isEN ? REGION_OPTIONS_EN : REGION_OPTIONS_PL;
 
 interface RfqWizardProps {
   onComplete?: (campaignId: string) => void;
+  prefillIndustry?: Industry;
+  prefillMode?: SourcingMode;
 }
 
 const WIZARD_STORAGE_KEY = 'procurea_wizard_draft_v2';
@@ -138,10 +140,14 @@ function clearWizardDraft() {
   try { sessionStorage.removeItem(WIZARD_STORAGE_KEY); } catch { /* ignore */ }
 }
 
-export function RfqWizard({ onComplete }: RfqWizardProps) {
+export function RfqWizard({ onComplete, prefillIndustry, prefillMode }: RfqWizardProps) {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState<Partial<CreateCampaignDto>>({ supplierTypes: ['PRODUCENT'] });
+  const [formData, setFormData] = useState<Partial<CreateCampaignDto>>({
+    supplierTypes: ['PRODUCENT'],
+    ...(prefillIndustry ? { industry: prefillIndustry } : {}),
+    ...(prefillMode ? { sourcingMode: prefillMode } : {}),
+  });
   const [showResumeDialog, setShowResumeDialog] = useState(false);
   const [sequences, setSequences] = useState<SequenceTemplate[]>([]);
   const [locations, setLocations] = useState<OrganizationLocation[]>([]);
@@ -200,6 +206,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
   useEffect(() => {
     analytics.campaignWizardStart();
     analytics.campaignWizardStep(0);
+    if (prefillIndustry || prefillMode) analytics.wizardPrefillApplied(prefillIndustry, prefillMode);
     const cleanupHesitation = startHesitationTracker('wizard', 45000);
     return () => {
       cleanupHesitation();
@@ -263,9 +270,12 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
       return;
     }
     setAiParsing(true);
+    analytics.briefAiFillClicked(industry, sourcingMode);
     try {
       const parsed = await campaignsService.parseBrief({ brief, industry, sourcingMode });
       setParsedBrief(parsed);
+      analytics.briefAiFillSucceeded(parsed.confidence, parsed.industry, parsed.sourcingMode);
+      if (parsed.confidence < 0.4) analytics.briefAiFillLowConfidence(parsed.confidence, parsed.industry);
 
       // Auto-fill form data for downstream steps
       const autoFill: Partial<CreateCampaignDto> = {
@@ -301,6 +311,8 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
       toast.success(t.campaigns.wizard.brief?.aiFilled || 'Form auto-filled');
     } catch (err) {
       console.error('Brief parse failed:', err);
+      const reason = (err as { statusCode?: number })?.statusCode === 429 ? 'rate_limited' : 'server_error';
+      analytics.briefAiFillFailed(reason);
       toast.error(t.campaigns.wizard.brief?.aiError || 'Failed to parse brief');
     } finally {
       setAiParsing(false);
@@ -346,7 +358,7 @@ export function RfqWizard({ onComplete }: RfqWizardProps) {
         const result = await createMutation.mutateAsync(finalData as CreateCampaignDto);
         submittedRef.current = true;
         clearWizardDraft();
-        analytics.campaignCreated(newFormData.targetRegion);
+        analytics.campaignCreated(newFormData.targetRegion, newFormData.industry as string | undefined, newFormData.sourcingMode as string | undefined);
         if (onComplete) {
           onComplete(result.id);
         } else {

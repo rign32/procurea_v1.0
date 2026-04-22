@@ -1,10 +1,36 @@
 import { ArrowLeft, X } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { RfqWizard } from '@/components/rfqs/RfqWizard';
 import { t } from '@/i18n';
+import type { Industry, SourcingMode } from '@/types/campaign.types';
+
+const VALID_INDUSTRIES: Industry[] = ['manufacturing', 'events', 'construction', 'horeca', 'healthcare', 'retail', 'logistics', 'mro', 'other'];
+const VALID_MODES: SourcingMode[] = ['product', 'service', 'mixed'];
+
+// Landing-page slug → wizard industry. PL slugs included so deep-links from procurea.pl work.
+const SLUG_TO_INDUSTRY: Record<string, Industry> = {
+  manufacturing: 'manufacturing', produkcja: 'manufacturing',
+  events: 'events', eventy: 'events',
+  construction: 'construction', budownictwo: 'construction',
+  horeca: 'horeca', gastronomia: 'horeca',
+  healthcare: 'healthcare', 'ochrona-zdrowia': 'healthcare',
+  'retail-ecommerce': 'retail', retail: 'retail',
+  logistics: 'logistics', logistyka: 'logistics',
+  mro: 'mro', 'mro-utrzymanie-ruchu': 'mro',
+};
 
 export function RfqWizardPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const rawIndustry = (searchParams.get('industry') || '').toLowerCase();
+  const rawMode = searchParams.get('mode') || '';
+  const prefillIndustry: Industry | undefined =
+    SLUG_TO_INDUSTRY[rawIndustry] ||
+    (VALID_INDUSTRIES.includes(rawIndustry as Industry) ? (rawIndustry as Industry) : undefined);
+  const prefillMode: SourcingMode | undefined = VALID_MODES.includes(rawMode as SourcingMode)
+    ? (rawMode as SourcingMode)
+    : undefined;
 
   const handleComplete = (campaignId: string) => {
     navigate(`/campaigns/${campaignId}`);
@@ -61,7 +87,7 @@ export function RfqWizardPage() {
               {t.campaigns.wizard.description}
             </p>
           </div>
-          <RfqWizard onComplete={handleComplete} />
+          <RfqWizard onComplete={handleComplete} prefillIndustry={prefillIndustry} prefillMode={prefillMode} />
         </div>
       </main>
     </div>
