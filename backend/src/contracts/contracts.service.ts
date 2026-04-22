@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, ForbiddenException, BadRequestException,
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantContextService } from '../common/services/tenant-context.service';
 import { GeminiService } from '../common/services/gemini.service';
+import { PurchaseOrdersService } from '../purchase-orders/purchase-orders.service';
 import { parseAiJson } from '../common/utils/parse-ai-json';
 
 const CONTRACT_TRANSITIONS: Record<string, string[]> = {
@@ -19,6 +20,7 @@ export class ContractsService {
         private readonly prisma: PrismaService,
         private readonly tenantContext: TenantContextService,
         private readonly geminiService: GeminiService,
+        private readonly purchaseOrders: PurchaseOrdersService,
     ) {}
 
     async findAll(userId: string, status?: string) {
@@ -128,7 +130,36 @@ export class ContractsService {
         const data: any = { status: newStatus };
         if (newStatus === 'SIGNED') data.signedAt = new Date();
 
-        return this.prisma.contract.update({ where: { id }, data });
+        const updated = await this.prisma.contract.update({ where: { id }, data });
+
+        // Orchestration: when a contract is signed, auto-create a DRAFT PO so the
+        // buyer doesn't have to click "Generate PO" separately. Idempotent — if a
+        // PO already exists for this contract, skip. Errors are logged but don't
+        // fail the status transition (signing the contract is the primary action).
+        if (newStatus === 'SIGNED') {
+            try {
+                const existing = await this.prisma.purchaseOrder.findFirst({
+                    where: { contractId: id },
+                    select: { id: true },
+                });
+                if (!existing) {
+                    const po = await this.purchaseOrders.generateFromContract(userId, id);
+                    this.logger.log(
+                        `Auto-generated PO ${po.id} (${po.poNumber}) for signed contract ${id}`,
+                    );
+                } else {
+                    this.logger.log(
+                        `Skipped PO auto-gen for contract ${id} — PO ${existing.id} already exists`,
+                    );
+                }
+            } catch (err) {
+                this.logger.warn(
+                    `Failed to auto-generate PO for contract ${id}: ${(err as Error).message}`,
+                );
+            }
+        }
+
+        return updated;
     }
 
     async update(id: string, userId: string, data: any) {
