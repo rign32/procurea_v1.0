@@ -90,6 +90,108 @@ export class ApolloEnrichmentAgent {
   }
 
   /**
+   * Normalize website or URL into a bare domain ("www.foo.com/path" → "foo.com").
+   */
+  private domainOf(urlOrHost: string | null | undefined): string | null {
+    if (!urlOrHost) return null;
+    try {
+      const u = urlOrHost.startsWith('http') ? urlOrHost : `https://${urlOrHost}`;
+      return new URL(u).hostname.replace(/^www\./, '').toLowerCase() || null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Respect Apollo rate limit (shared across all endpoints in this agent).
+   */
+  private async throttleApollo(): Promise<void> {
+    const elapsed = Date.now() - this.lastRequestTime;
+    if (elapsed < this.MIN_DELAY_MS) {
+      await new Promise((r) => setTimeout(r, this.MIN_DELAY_MS - elapsed));
+    }
+    this.lastRequestTime = Date.now();
+  }
+
+  /**
+   * Apollo Organization Enrichment — cross-checks employee count, industry,
+   * founded year, LinkedIn etc. against the supplier's website. Used to:
+   *  - lift Supplier.metadata.apollo for UI badges,
+   *  - flag mismatches (website says "50-200 employees", Apollo says "10").
+   *
+   * Returns null on any error (caller treats as "no enrichment available").
+   */
+  async enrichOrganization(websiteOrDomain: string): Promise<{
+    name?: string;
+    domain?: string;
+    industry?: string;
+    estimatedEmployees?: number;
+    foundedYear?: number;
+    linkedinUrl?: string;
+    annualRevenue?: number;
+    publicCompany?: boolean;
+    city?: string;
+    country?: string;
+  } | null> {
+    if (!this.apiKey) return null;
+    const domain = this.domainOf(websiteOrDomain);
+    if (!domain) return null;
+
+    await this.throttleApollo();
+
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), this.FETCH_TIMEOUT_MS);
+
+      const response = await fetch(
+        `${this.baseUrl}/api/v1/organizations/enrich?domain=${encodeURIComponent(domain)}`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            Accept: 'application/json',
+          },
+          signal: controller.signal,
+        },
+      );
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        if (response.status === 422 || response.status === 404) {
+          return null; // Unknown domain — not an error worth logging.
+        }
+        this.logger.warn(`Apollo enrichOrganization ${domain}: HTTP ${response.status}`);
+        return null;
+      }
+
+      const data = await response.json();
+      const org = data?.organization ?? data;
+      if (!org || typeof org !== 'object') return null;
+
+      return {
+        name: org.name || undefined,
+        domain: org.primary_domain || domain,
+        industry: org.industry || undefined,
+        estimatedEmployees:
+          typeof org.estimated_num_employees === 'number'
+            ? org.estimated_num_employees
+            : undefined,
+        foundedYear:
+          typeof org.founded_year === 'number' ? org.founded_year : undefined,
+        linkedinUrl: org.linkedin_url || undefined,
+        annualRevenue:
+          typeof org.annual_revenue === 'number' ? org.annual_revenue : undefined,
+        publicCompany: typeof org.publicly_traded_symbol === 'string' ? true : undefined,
+        city: org.city || undefined,
+        country: org.country || undefined,
+      };
+    } catch (err: any) {
+      this.logger.debug(`Apollo enrichOrganization ${domain} failed: ${err.message}`);
+      return null;
+    }
+  }
+
+  /**
    * Main entry point: enrich contacts for all suppliers in a campaign.
    * Uses 5-level cascade fallback to maximize contact coverage.
    */

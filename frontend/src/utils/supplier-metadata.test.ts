@@ -37,6 +37,22 @@ describe('parseSupplierMetadata', () => {
   });
 });
 
+describe('getApolloMetadata', () => {
+  it('returns undefined when metadata has no apollo field', () => {
+    expect(parseSupplierMetadata({ metadata: '{"vat": {}}' }).apollo).toBeUndefined();
+  });
+
+  it('parses apollo payload alongside vat', async () => {
+    const { getApolloMetadata, getVatMetadata } = await import('./supplier-metadata');
+    const json = JSON.stringify({
+      vat: { vatVerified: true, vatCountry: 'PL', vatNumber: '1234567890', checkedAt: 'now' },
+      apollo: { name: 'X', industry: 'Manufacturing', estimatedEmployees: 120 },
+    });
+    expect(getApolloMetadata({ metadata: json })?.industry).toBe('Manufacturing');
+    expect(getVatMetadata({ metadata: json })?.vatVerified).toBe(true);
+  });
+});
+
 describe('getVatMetadata', () => {
   it('returns undefined when no metadata', () => {
     expect(getVatMetadata({ metadata: null })).toBeUndefined();

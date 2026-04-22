@@ -49,8 +49,9 @@ import { CommentThread } from '@/components/collaboration/CommentThread';
 import { SupplierDocuments } from '@/components/suppliers/SupplierDocuments';
 import { CertificatesSection } from '@/components/suppliers/CertificatesSection';
 import { VatVerifiedBadge } from '@/components/suppliers/VatVerifiedBadge';
+import { ApolloEnrichedBadge } from '@/components/suppliers/ApolloEnrichedBadge';
 import { ErpMatchBadge } from '@/components/suppliers/ErpMatchBadge';
-import { getVatMetadata } from '@/utils/supplier-metadata';
+import { getVatMetadata, getApolloMetadata } from '@/utils/supplier-metadata';
 
 export function SupplierDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -221,6 +222,10 @@ export function SupplierDetailPage() {
               {(() => {
                 const vat = getVatMetadata(supplier);
                 return vat ? <VatVerifiedBadge vat={vat} /> : null;
+              })()}
+              {(() => {
+                const apollo = getApolloMetadata(supplier);
+                return apollo ? <ApolloEnrichedBadge apollo={apollo} /> : null;
               })()}
               {supplier.id && <ErpMatchBadge supplierId={supplier.id} />}
               <button

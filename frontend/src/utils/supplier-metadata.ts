@@ -9,8 +9,24 @@ export interface VatMetadata {
   checkedAt: string;
 }
 
+export interface ApolloMetadata {
+  name?: string;
+  domain?: string;
+  industry?: string;
+  estimatedEmployees?: number;
+  foundedYear?: number;
+  linkedinUrl?: string;
+  annualRevenue?: number;
+  publicCompany?: boolean;
+  city?: string;
+  country?: string;
+  employeeMismatch?: boolean;
+  enrichedAt?: string;
+}
+
 export interface SupplierMetadata {
   vat?: VatMetadata;
+  apollo?: ApolloMetadata;
 }
 
 export function parseSupplierMetadata(supplier: Pick<Supplier, 'metadata'>): SupplierMetadata {
@@ -25,4 +41,8 @@ export function parseSupplierMetadata(supplier: Pick<Supplier, 'metadata'>): Sup
 
 export function getVatMetadata(supplier: Pick<Supplier, 'metadata'>): VatMetadata | undefined {
   return parseSupplierMetadata(supplier).vat;
+}
+
+export function getApolloMetadata(supplier: Pick<Supplier, 'metadata'>): ApolloMetadata | undefined {
+  return parseSupplierMetadata(supplier).apollo;
 }

@@ -3164,6 +3164,40 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             await this.log(campaignId, `${workerTag} QUALIFIED: ${newSupplier.name} (${finalScore}%) | Emails: ${emailArray.length}`);
             this.sourcingGateway?.emitSupplierUpdate(campaignId, { url, status: 'QUALIFIED', data: newSupplier });
 
+            // Apollo Organizations enrichment — cross-check employee count, industry etc.
+            // Fire-and-forget; merges result into Supplier.metadata.apollo when available.
+            this.apolloEnrichment
+                .enrichOrganization(finalWebsite)
+                .then(async (apollo) => {
+                    if (!apollo) return;
+                    const current = await this.prisma.supplier.findUnique({
+                        where: { id: newSupplier.id },
+                        select: { metadata: true, employeeCount: true },
+                    });
+                    let blob: Record<string, any> = {};
+                    if (current?.metadata) {
+                        try { blob = JSON.parse(current.metadata) || {}; } catch { blob = {}; }
+                    }
+                    blob.apollo = { ...apollo, enrichedAt: new Date().toISOString() };
+                    // Flag mismatch: Apollo employees vs. AI-extracted employeeCount band.
+                    const aiEmpStr = (current?.employeeCount || '').toLowerCase();
+                    if (apollo.estimatedEmployees && aiEmpStr && aiEmpStr !== 'n/a') {
+                        const band = aiEmpStr.match(/(\d+)\s*[-–]\s*(\d+)/);
+                        if (band) {
+                            const lo = parseInt(band[1], 10);
+                            const hi = parseInt(band[2], 10);
+                            if (apollo.estimatedEmployees < lo / 2 || apollo.estimatedEmployees > hi * 2) {
+                                blob.apollo.employeeMismatch = true;
+                            }
+                        }
+                    }
+                    await this.prisma.supplier.update({
+                        where: { id: newSupplier.id },
+                        data: { metadata: JSON.stringify(blob) },
+                    });
+                })
+                .catch(() => { /* fire-and-forget */ });
+
             // Persist AI-discovered certs (fire-and-forget — never blocks pipeline).
             // VIES-confirmed suppliers get all their PIPELINE certs promoted to VERIFIED.
             this.persistPipelineCertificates(
