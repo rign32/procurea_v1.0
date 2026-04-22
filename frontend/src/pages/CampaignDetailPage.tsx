@@ -62,6 +62,7 @@ interface ApolloContact {
 interface SequenceExecution {
   supplierName?: string | null;
   supplierId?: string | null;
+  stepId?: string;
   stepType?: string;
   dayOffset?: number;
   dueAt?: string | null;
@@ -90,15 +91,36 @@ interface CampaignReport {
   offersCreated: number;
   offersReceived: number;
   accepted: number;
-  sequenceProgress?: Array<{ stepType: string; dayOffset: number; sent: number; failed: number }>;
+  sequenceProgress?: Array<{
+    stepId: string;
+    stepName: string;
+    dayOffset: number;
+    type: string;
+    sent: number;
+    failed: number;
+    total: number;
+  }>;
   sequenceTemplateName?: string | null;
   sequenceDetails?: SequenceDetail[];
   countries?: Array<{ country: string; count: number }>;
 }
 
 interface AiCampaignSummary {
+  marketOverview?: string;
+  keyPlayers?: Array<{
+    name: string;
+    why?: string;
+    country?: string;
+    type?: string;
+    note?: string;
+  }>;
+  geographicAnalysis?: string;
+  coverageAssessment?: 'HIGH' | 'MEDIUM' | 'LOW';
+  coverageNote?: string;
+  recommendations?: string[];
+  riskFactors?: string[];
+  priceInsight?: string;
   overview?: string;
-  keyPlayers?: Array<{ name: string; country?: string; type?: string; note?: string }>;
   marketInsights?: string[];
   nextSteps?: string[];
 }
