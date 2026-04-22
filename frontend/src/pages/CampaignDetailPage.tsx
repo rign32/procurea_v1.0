@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { formatRelative } from '@/lib/utils';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -45,6 +44,65 @@ const tabItemVariants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.2 } }
 };
 
+// Apollo.io enriched contact — flat shape returned by /campaigns/:id/contacts.
+// Only the fields the page reads are typed; everything else is ignored.
+interface ApolloContact {
+  id?: string;
+  supplierId?: string;
+  email?: string | null;
+  name?: string | null;
+  role?: string | null;
+  emailStatus?: string;
+  linkedinUrl?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  title?: string | null;
+}
+
+interface SequenceExecution {
+  supplierName?: string | null;
+  supplierId?: string | null;
+  stepType?: string;
+  dayOffset?: number;
+  dueAt?: string | null;
+  sentAt?: string | null;
+  status?: string;
+  recipientEmail?: string | null;
+}
+
+interface SequenceDetail {
+  offerId: string;
+  offerStatus?: string;
+  supplierId?: string | null;
+  supplierName?: string | null;
+  supplierCountry?: string | null;
+  allEmails?: string[];
+  executions?: SequenceExecution[];
+  nextScheduled?: { stepType: string; dueAt: string; dayOffset: number } | null;
+}
+
+interface CampaignReport {
+  campaignId: string;
+  campaignStatus: string;
+  totalSuppliers: number;
+  qualifiedCount: number;
+  excludedCount: number;
+  offersCreated: number;
+  offersReceived: number;
+  accepted: number;
+  sequenceProgress?: Array<{ stepType: string; dayOffset: number; sent: number; failed: number }>;
+  sequenceTemplateName?: string | null;
+  sequenceDetails?: SequenceDetail[];
+  countries?: Array<{ country: string; count: number }>;
+}
+
+interface AiCampaignSummary {
+  overview?: string;
+  keyPlayers?: Array<{ name: string; country?: string; type?: string; note?: string }>;
+  marketInsights?: string[];
+  nextSteps?: string[];
+}
+
 export function CampaignDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -69,7 +127,7 @@ export function CampaignDetailPage() {
   const [excludingId, setExcludingId] = useState<string | null>(null);
   const [accepting, setAccepting] = useState(false);
   const [supplierSearch, setSupplierSearch] = useState('');
-  const [apolloContacts, setApolloContacts] = useState<any[]>([]);
+  const [apolloContacts, setApolloContacts] = useState<ApolloContact[]>([]);
   const [activeTab, setActiveTab] = useState(() => {
     // For completed/accepted campaigns, default to suppliers tab
     if (campaign && ['COMPLETED', 'ACCEPTED', 'DONE'].includes(campaign.status)) return 'suppliers';
@@ -145,8 +203,9 @@ export function CampaignDetailPage() {
       toast.success(t.campaigns.detail.stoppedSuccess);
       queryClient.invalidateQueries({ queryKey: ['campaigns', id] });
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
-    } catch (err: any) {
-      toast.error(`${t.campaigns.detail.errorTitle}: ${err.response?.data?.message || err.message}`);
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      toast.error(`${t.campaigns.detail.errorTitle}: ${e.response?.data?.message || e.message}`);
     }
   };
 
@@ -157,10 +216,10 @@ export function CampaignDetailPage() {
     }
   };
 
-  const [report, setReport] = useState<any>(null);
+  const [report, setReport] = useState<CampaignReport | null>(null);
   const [reportFetchedAt, setReportFetchedAt] = useState<number | null>(null);
   const [reportReloading, setReportReloading] = useState(false);
-  const [aiSummary, setAiSummary] = useState<any>(null);
+  const [aiSummary, setAiSummary] = useState<AiCampaignSummary | null>(null);
   const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
   const [downloadingPptx, setDownloadingPptx] = useState(false);
 
@@ -224,8 +283,9 @@ export function CampaignDetailPage() {
       refetchCampaign();
       // Refresh report
       apiClient.get(`/reports/campaign/${id}`).then(({ data }) => { setReport(data); setReportFetchedAt(Date.now()); }).catch(() => { });
-    } catch (err: any) {
-      toast.error(`${t.campaigns.detail.acceptError}: ${err.response?.data?.message || err.message}`);
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      toast.error(`${t.campaigns.detail.acceptError}: ${e.response?.data?.message || e.message}`);
     } finally {
       setAccepting(false);
     }
@@ -404,7 +464,7 @@ export function CampaignDetailPage() {
             tabs={[
               { key: 'overview', label: t.campaigns.detail.tabOverview },
               { key: 'suppliers', label: t.campaigns.detail.tabSuppliers, count: suppliers.length },
-              { key: 'contacts', label: t.campaigns.detail.tabContacts, count: apolloContacts.filter((c: any) => c.email).length },
+              { key: 'contacts', label: t.campaigns.detail.tabContacts, count: apolloContacts.filter((c) => c.email).length },
               { key: 'comments', label: t.collaboration.tabComments },
             ]}
             activeTab={activeTab}
@@ -511,7 +571,7 @@ export function CampaignDetailPage() {
                       <div>
                         <h4 className="text-sm font-semibold mb-2">{t.campaigns.detail.keyPlayers}</h4>
                         <div className="space-y-2">
-                          {aiSummary.keyPlayers.map((kp: any, i: number) => (
+                          {aiSummary.keyPlayers.map((kp, i: number) => (
                             <div key={i} className="flex items-start gap-2 text-sm">
                               <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0 mt-0.5">{i + 1}</span>
                               <div>
@@ -627,7 +687,7 @@ export function CampaignDetailPage() {
 
                     {report.sequenceProgress && report.sequenceProgress.length > 0 ? (
                       <div className="space-y-3">
-                        {report.sequenceProgress.map((step: any, idx: number) => {
+                        {report.sequenceProgress.map((step, idx: number) => {
                           const pct = step.total > 0 ? Math.round((step.sent / step.total) * 100) : 0;
                           const stepLabel = step.type === 'INITIAL' ? t.campaigns.detail.invitation : step.type === 'REMINDER' ? t.campaigns.detail.reminder : step.type === 'FINAL' ? t.campaigns.detail.finalStep : step.type;
                           const isActive = step.sent > 0 && step.sent < step.total;
@@ -702,7 +762,7 @@ export function CampaignDetailPage() {
                     <div className="space-y-3">
                       <h4 className="text-sm font-medium text-muted-foreground">{t.campaigns.detail.countryBreakdown}</h4>
                       <div className="space-y-2">
-                        {report.countries.slice(0, 10).map((c: any) => (
+                        {report.countries.slice(0, 10).map((c) => (
                           <div key={c.country} className="flex items-center justify-between text-sm">
                             <span>{normalizeCountry(c.country)}</span>
                             <div className="flex items-center gap-2">
@@ -737,10 +797,10 @@ export function CampaignDetailPage() {
                   {t.campaigns.detail.sequenceDetails}
                 </CardTitle>
                 {(() => {
-                  const allExecs = report.sequenceDetails.flatMap((d: any) => d.executions || []);
+                  const allExecs = report.sequenceDetails.flatMap((d) => d.executions || []);
                   const lastSent = allExecs
-                    .filter((e: any) => e.sentAt)
-                    .sort((a: any, b: any) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime())[0];
+                    .filter((e) => e.sentAt)
+                    .sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime())[0];
                   return lastSent ? (
                     <p className="text-xs text-muted-foreground">
                       {t.campaigns.detail.lastSentLabel}: {new Date(lastSent.sentAt).toLocaleString(isEN ? 'en-US' : 'pl-PL')}
@@ -768,8 +828,8 @@ export function CampaignDetailPage() {
                     </thead>
                     <tbody>
                       {report.sequenceDetails
-                        .sort((a: any, b: any) => (a.supplierName || '').localeCompare(b.supplierName || ''))
-                        .map((detail: any) => {
+                        .sort((a, b) => (a.supplierName || '').localeCompare(b.supplierName || ''))
+                        .map((detail) => {
                           const stepLabel = (type: string) =>
                             type === 'INITIAL' ? t.campaigns.detail.invitation :
                               type === 'REMINDER' ? t.campaigns.detail.reminder :
@@ -803,7 +863,7 @@ export function CampaignDetailPage() {
                             );
                           }
 
-                          return executions.map((exec: any, idx: number) => (
+                          return executions.map((exec, idx: number) => (
                             <tr key={`${detail.offerId}-${exec.stepId}-${idx}`} className="border-b last:border-0">
                               {idx === 0 ? (
                                 <>
@@ -981,7 +1041,7 @@ export function CampaignDetailPage() {
         const processedCount = contactProgress.length;
         const totalCount = suppliers.length;
         const progressPct = totalCount > 0 ? Math.round((processedCount / totalCount) * 100) : 0;
-        const contactsWithEmail = apolloContacts.filter((c: any) => c.email);
+        const contactsWithEmail = apolloContacts.filter((c) => c.email);
 
         const levelLabel = (level?: string) => {
           if (!level) return '';
@@ -1027,8 +1087,8 @@ export function CampaignDetailPage() {
             {/* Per-supplier contact cards */}
             <div className="space-y-2">
               {suppliers.map((supplier) => {
-                const supplierContacts = apolloContacts.filter((c: any) => c.supplierId === supplier.id);
-                const bestContact = supplierContacts.find((c: any) => c.email) || supplierContacts[0];
+                const supplierContacts = apolloContacts.filter((c) => c.supplierId === supplier.id);
+                const bestContact = supplierContacts.find((c) => c.email) || supplierContacts[0];
                 const cp = contactProgress.find(p => p.supplierName === supplier.name);
 
                 // Determine status
@@ -1076,7 +1136,7 @@ export function CampaignDetailPage() {
                   statusLine = <span className="text-sm text-muted-foreground">{isEN ? 'No contact found' : 'Nie znaleziono kontaktu'}</span>;
                 }
 
-                const otherContacts = supplierContacts.filter((c: any) => c !== bestContact && c.email);
+                const otherContacts = supplierContacts.filter((c) => c !== bestContact && c.email);
 
                 return (
                   <div key={supplier.id} className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
@@ -1092,7 +1152,7 @@ export function CampaignDetailPage() {
                               : `+${otherContacts.length} ${otherContacts.length === 1 ? 'dodatkowy kontakt' : 'dodatkowych kontaktów'}`}
                           </summary>
                           <div className="mt-1.5 space-y-1 pl-2 border-l border-muted">
-                            {otherContacts.map((c: any, idx: number) => {
+                            {otherContacts.map((c, idx: number) => {
                               const displayName = getDisplayName(c);
                               const displayRole = getDisplayRole(c);
                               const cStatus = statusConfig[c.emailStatus] || { label: c.emailStatus || '—', className: 'bg-gray-100 text-gray-600' };
