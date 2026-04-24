@@ -1,7 +1,25 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getDashboard } from '../services/api';
-import { Users, Building2, Activity, DollarSign, TrendingUp, AlertTriangle } from 'lucide-react';
+import { getDashboard, getIndustryAnalytics, IndustryAnalyticsRow } from '../services/api';
+import { Users, Building2, Activity, DollarSign, TrendingUp, AlertTriangle, Briefcase } from 'lucide-react';
+
+const INDUSTRY_LABELS: Record<string, string> = {
+    manufacturing: 'Produkcja',
+    events: 'Eventy',
+    construction: 'Budownictwo',
+    horeca: 'HoReCa',
+    healthcare: 'Healthcare',
+    retail: 'Retail',
+    logistics: 'Logistyka',
+    mro: 'MRO',
+    other: 'Inne',
+};
+
+const MODE_LABELS: Record<string, string> = {
+    product: 'Produkt',
+    service: 'Usługa',
+    mixed: 'Mieszane',
+};
 
 interface DashboardData {
     users: { total: number; active: number; blocked: number };
@@ -39,14 +57,15 @@ function StatCard({ icon: Icon, label, value, sub, color, onClick }: {
 
 export default function DashboardPage() {
     const [data, setData] = useState<DashboardData | null>(null);
+    const [industries, setIndustries] = useState<IndustryAnalyticsRow[]>([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
-        getDashboard()
-            .then((res) => setData(res.data))
-            .catch(console.error)
-            .finally(() => setLoading(false));
+        Promise.all([
+            getDashboard().then(r => setData(r.data)).catch(console.error),
+            getIndustryAnalytics().then(r => setIndustries(r.data)).catch(console.error),
+        ]).finally(() => setLoading(false));
     }, []);
 
     if (loading) {
@@ -162,6 +181,65 @@ export default function DashboardPage() {
             </div>
 
             {/* Daily Stats */}
+            {/* Industry breakdown — Sprint 2 B1: kampanie per branża */}
+            {industries.length > 0 && (
+                <div className="bg-surface-raised border border-border rounded-xl p-6">
+                    <h2 className="text-lg font-semibold text-text-primary mb-1 flex items-center gap-2">
+                        <Briefcase size={20} className="text-accent" />
+                        Kampanie per branża
+                    </h2>
+                    <p className="text-xs text-text-muted mb-4">
+                        Grupowanie po wybranej branży i trybie sourcingu. Success rate = ukończone / wszystkie.
+                    </p>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="border-b border-border">
+                                    <th className="text-left py-3 px-4 font-medium text-text-muted">Branża</th>
+                                    <th className="text-left py-3 px-4 font-medium text-text-muted">Tryb</th>
+                                    <th className="text-right py-3 px-4 font-medium text-text-muted">Kampanii</th>
+                                    <th className="text-right py-3 px-4 font-medium text-text-muted">Ukończone</th>
+                                    <th className="text-right py-3 px-4 font-medium text-text-muted">Zaakceptowane</th>
+                                    <th className="text-right py-3 px-4 font-medium text-text-muted">Avg dostawców</th>
+                                    <th className="text-right py-3 px-4 font-medium text-text-muted">Avg czas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {industries.map((row, idx) => (
+                                    <tr key={`${row.industry}-${row.sourcingMode}-${idx}`} className="border-b border-border/50 hover:bg-surface-hover transition-colors">
+                                        <td className="py-3 px-4 font-medium text-text-primary">
+                                            {INDUSTRY_LABELS[row.industry] || row.industry}
+                                        </td>
+                                        <td className="py-3 px-4 text-text-muted">
+                                            {MODE_LABELS[row.sourcingMode] || row.sourcingMode}
+                                        </td>
+                                        <td className="py-3 px-4 text-right text-text-primary">{row.campaignCount}</td>
+                                        <td className="py-3 px-4 text-right">
+                                            <span className="font-mono text-success">{row.completedCount}</span>
+                                            <span className="text-xs text-text-muted ml-2">
+                                                ({(row.completionRate * 100).toFixed(0)}%)
+                                            </span>
+                                        </td>
+                                        <td className="py-3 px-4 text-right">
+                                            <span className="font-mono text-accent">{row.acceptedCount}</span>
+                                            <span className="text-xs text-text-muted ml-2">
+                                                ({(row.acceptanceRate * 100).toFixed(0)}%)
+                                            </span>
+                                        </td>
+                                        <td className="py-3 px-4 text-right text-text-primary">
+                                            {row.avgSuppliersQualified.toFixed(1)}
+                                        </td>
+                                        <td className="py-3 px-4 text-right text-text-muted">
+                                            {row.avgDurationMinutes !== null ? `${row.avgDurationMinutes} min` : '—'}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
             {data.apiUsage.dailyStats.length > 0 && (
                 <div className="bg-surface-raised border border-border rounded-xl p-6">
                     <h2 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">

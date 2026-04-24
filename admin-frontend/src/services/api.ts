@@ -107,6 +107,22 @@ export const adminLogin = (username: string, password: string) =>
 // Dashboard
 export const getDashboard = () => api.get('/admin/dashboard');
 
+// Analytics — campaigns grouped by industry + sourcing mode
+export interface IndustryAnalyticsRow {
+    industry: string;
+    sourcingMode: string;
+    campaignCount: number;
+    completedCount: number;
+    acceptedCount: number;
+    completionRate: number;
+    acceptanceRate: number;
+    avgSuppliersQualified: number;
+    avgDurationMinutes: number | null;
+}
+
+export const getIndustryAnalytics = () =>
+    api.get<IndustryAnalyticsRow[]>('/admin/analytics/by-industry');
+
 // Users
 export const getUsers = (params?: Record<string, string>) =>
     api.get('/admin/users', { params });

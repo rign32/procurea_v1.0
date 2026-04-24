@@ -378,13 +378,34 @@ export class SourcingService {
 
     async create(dto: CreateCampaignDto, userId?: string) {
         const briefMeta = (dto.searchCriteria as any)?.parsedBrief;
+        const industry = dto.searchCriteria?.industry || null;
+        const sourcingMode = (dto.searchCriteria?.sourcingMode as string | undefined) || null;
+
+        // Auto-pick an industry/mode-matched system default sequence when buyer didn't
+        // choose one explicitly — events get an events-specific opener, services get a
+        // service opener, product mode gets the classic RFQ template.
+        let effectiveSequenceId = dto.sequenceTemplateId || null;
+        if (!effectiveSequenceId && sourcingMode) {
+            const match = await this.prisma.sequenceTemplate.findFirst({
+                where: {
+                    isSystem: true,
+                    OR: [
+                        { industry, sourcingMode },
+                        { industry: null, sourcingMode },
+                    ],
+                },
+                orderBy: [{ industry: 'desc' }], // industry-specific first (NULL last)
+            });
+            if (match) effectiveSequenceId = match.id;
+        }
+
         const campaign = await this.prisma.campaign.create({
             data: {
                 name: dto.name || 'New Campaign',
                 language: dto.language || 'pl',
                 status: 'RUNNING',
                 stage: 'STRATEGY',
-                sequenceTemplateId: dto.sequenceTemplateId || null,
+                sequenceTemplateId: effectiveSequenceId,
                 searchCriteria: dto.searchCriteria ? JSON.parse(JSON.stringify(dto.searchCriteria)) : undefined,
                 industry: dto.searchCriteria?.industry || null,
                 sourcingMode: dto.searchCriteria?.sourcingMode || null,

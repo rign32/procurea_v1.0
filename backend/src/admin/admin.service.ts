@@ -139,6 +139,58 @@ export class AdminService {
     // Dashboard
     // =====================
 
+    /**
+     * Per-industry breakdown — how does each branch perform vs the others?
+     * Returns count, qualified-supplier yield, completion + acceptance rate so
+     * the PO can see which verticals the AI pipeline actually delivers for.
+     */
+    async getIndustryAnalytics() {
+        const rows = await this.prisma.$queryRaw<Array<{
+            industry: string | null;
+            sourcing_mode: string | null;
+            campaign_count: bigint;
+            completed_count: bigint;
+            accepted_count: bigint;
+            avg_suppliers_qualified: number | null;
+            avg_duration_minutes: number | null;
+        }>>`
+            SELECT
+                c."industry" AS industry,
+                c."sourcingMode" AS sourcing_mode,
+                COUNT(*)::bigint AS campaign_count,
+                COUNT(CASE WHEN c."status" IN ('COMPLETED', 'ACCEPTED', 'DONE') THEN 1 END)::bigint AS completed_count,
+                COUNT(CASE WHEN c."status" IN ('ACCEPTED', 'DONE') THEN 1 END)::bigint AS accepted_count,
+                AVG(COALESCE(cm."suppliersQualified", 0))::float AS avg_suppliers_qualified,
+                AVG(
+                    CASE
+                        WHEN c."status" IN ('COMPLETED', 'ACCEPTED', 'DONE')
+                        THEN EXTRACT(EPOCH FROM (c."updatedAt" - c."createdAt")) / 60.0
+                    END
+                )::float AS avg_duration_minutes
+            FROM "Campaign" c
+            LEFT JOIN "CampaignMetrics" cm ON cm."campaignId" = c.id
+            WHERE c."deletedAt" IS NULL
+            GROUP BY c."industry", c."sourcingMode"
+            ORDER BY campaign_count DESC;
+        `;
+
+        return rows.map(r => ({
+            industry: r.industry || 'other',
+            sourcingMode: r.sourcing_mode || 'product',
+            campaignCount: Number(r.campaign_count),
+            completedCount: Number(r.completed_count),
+            acceptedCount: Number(r.accepted_count),
+            completionRate: Number(r.campaign_count) > 0
+                ? Number(r.completed_count) / Number(r.campaign_count)
+                : 0,
+            acceptanceRate: Number(r.campaign_count) > 0
+                ? Number(r.accepted_count) / Number(r.campaign_count)
+                : 0,
+            avgSuppliersQualified: r.avg_suppliers_qualified ? Math.round(r.avg_suppliers_qualified * 10) / 10 : 0,
+            avgDurationMinutes: r.avg_duration_minutes ? Math.round(r.avg_duration_minutes) : null,
+        }));
+    }
+
     async getDashboardStats() {
         const [
             totalUsers,
@@ -454,24 +506,13 @@ export class AdminService {
             },
         });
 
-        // Send email (locale-aware)
-        const isEn = user.language === 'en';
+        // Send email (locale-aware, branded layout)
         try {
-            const { sent } = await this.emailService.sendEmail({
-                to: user.email,
-                subject: 'Password Reset - Procurea',
-                html: isEn
-                    ? `
-                    <p>Someone has initiated a password reset for your account.</p>
-                    <p>Reset token: <strong>${resetToken}</strong></p>
-                    <p>This token expires in 24 hours.</p>
-                    `
-                    : `
-                    <p>Ktoś zainicjował reset Twojego hasła.</p>
-                    <p>Token resetowania: <strong>${resetToken}</strong></p>
-                    <p>Token wygasa za 24 godziny.</p>
-                    `,
-            });
+            const sent = await this.emailService.sendPasswordResetEmail(
+                user.email,
+                resetToken,
+                user.language || 'pl',
+            );
             if (!sent) {
                 this.logger.warn(`Password reset email not sent to ${user.email}`);
             }

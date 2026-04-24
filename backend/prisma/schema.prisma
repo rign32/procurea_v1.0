@@ -895,11 +895,18 @@ model SequenceTemplate {
   id        String   @id @default(uuid())
   name      String
   isSystem  Boolean  @default(false)
+  // Industry + sourcing mode targeting — Sprint 2 C1. Used by SourcingService to
+  // auto-pick a default template matching the campaign's branch when user didn't
+  // explicitly choose one. Both nullable = generic template.
+  industry     String?
+  sourcingMode String?
   steps     SequenceStep[]
   campaigns Campaign[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([industry, sourcingMode])
 }
 
 model SequenceStep {

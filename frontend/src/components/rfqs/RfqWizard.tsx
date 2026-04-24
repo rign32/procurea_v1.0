@@ -70,6 +70,46 @@ export const PL_VOIVODESHIPS: { code: string; labelPl: string; labelEn: string }
 
 // Industry → recommended certificates. `required` are pre-ticked (compliance-heavy
 // branches like healthcare); `suggested` show up as TagInput suggestions.
+// Sample briefs — new users land on an empty wizard and freeze. One-click examples
+// per industry give them a working scaffold to edit instead of stare at a blank box.
+export const SAMPLE_BRIEFS: Record<Industry, { pl: string; en: string }[]> = {
+  manufacturing: [
+    { pl: 'Granulat HDPE virgin, 50 ton/mies., Europa, ISO 9001, MOQ 5 ton, lead time max 4 tyg.', en: 'HDPE virgin granulate, 50 tons/month, Europe, ISO 9001, MOQ 5 tons, lead time max 4 weeks.' },
+    { pl: 'Obudowy do kontrolera IoT, wtrysk z ABS, 10 000 szt/rok, IATF 16949, partia próbna 200 szt.', en: 'IoT controller enclosures, ABS injection molded, 10k units/yr, IATF 16949, sample batch 200 pcs.' },
+  ],
+  events: [
+    { pl: 'Catering dla 500 osób na konferencji w Berlinie, 18 grudnia, opcje wegańskie i bezglutenowe, budżet do 45 EUR/os.', en: 'Catering for 500 people at a conference in Berlin, December 18, vegan and gluten-free options, budget up to €45/person.' },
+    { pl: 'Obsługa AV (nagłośnienie, ekran LED, oświetlenie) na event firmowy w Warszawie, 14 listopada, 300 uczestników.', en: 'AV services (sound, LED screen, lighting) for a corporate event in Warsaw, November 14, 300 attendees.' },
+  ],
+  construction: [
+    { pl: 'Podwykonawca HVAC do osiedla 200 mieszkań w województwie mazowieckim, ISO 9001, OC min. 5M PLN.', en: 'HVAC subcontractor for a 200-unit residential development in Masovian voivodeship, ISO 9001, liability insurance min. 5M PLN.' },
+    { pl: 'Stal konstrukcyjna S355 do hali produkcyjnej, 80 ton, Dolnośląskie, DoP, CE, dostawa w 6 tygodni.', en: 'S355 structural steel for a production hall, 80 tons, Lower Silesia, DoP, CE, delivery in 6 weeks.' },
+  ],
+  horeca: [
+    { pl: 'Dostawca oliwy extra virgin z Andaluzji dla sieci 12 hoteli w Polsce, MOQ 200 L/mies, HACCP, bio certificate.', en: 'Extra virgin olive oil supplier from Andalusia for a chain of 12 hotels in Poland, MOQ 200 L/month, HACCP, organic certificate.' },
+    { pl: 'Dostawca świeżych ryb dla restauracji fine dining w Gdańsku, codzienna dostawa, IFS Food.', en: 'Fresh fish supplier for a fine-dining restaurant in Gdańsk, daily delivery, IFS Food.' },
+  ],
+  healthcare: [
+    { pl: 'Jednorazowe rękawiczki nitrylowe dla kliniki, 100 000 par/mies., CE, MDR, ISO 13485, nearshore.', en: 'Single-use nitrile gloves for a clinic, 100k pairs/month, CE, MDR, ISO 13485, nearshore.' },
+    { pl: 'Sprzęt laboratoryjny (pipety automatyczne, wirówki) dla szpitala w Krakowie, CE, wsparcie techniczne PL.', en: 'Lab equipment (automatic pipettes, centrifuges) for a Kraków hospital, CE, PL technical support.' },
+  ],
+  retail: [
+    { pl: 'Opakowania kosmetyczne private label (butelki 50ml z pompką), 20 000 szt, nearshore UE, MOQ 5000, OEKO-TEX.', en: 'Private-label cosmetic packaging (50ml bottles with pump), 20k pcs, EU nearshore, MOQ 5000, OEKO-TEX.' },
+    { pl: 'T-shirty bawełniane pod markę własną, 10 000 szt, Portugalia lub Turcja, GOTS, lead time 6 tyg.', en: 'Private-label cotton t-shirts, 10k pcs, Portugal or Turkey, GOTS, 6-week lead time.' },
+  ],
+  logistics: [
+    { pl: 'System regałów paletowych 10 000 miejsc paletowych, Europa Środkowa, CE, montaż w 8 tygodni.', en: 'Pallet racking system, 10k pallet positions, Central Europe, CE, installation in 8 weeks.' },
+    { pl: '3PL dla e-commerce, magazyn koło Warszawy, 500 zamówień/dzień, pick & pack, SLA 24h.', en: '3PL for e-commerce, warehouse near Warsaw, 500 orders/day, pick & pack, 24h SLA.' },
+  ],
+  mro: [
+    { pl: 'Łożyska SKF 6308-2RS1 + aftermarket alternatywy, 2000 szt/rok, 3 zakłady w Polsce.', en: 'SKF 6308-2RS1 bearings + aftermarket alternatives, 2000 pcs/year, 3 plants in Poland.' },
+    { pl: 'Serwis maintenance dla linii pakującej FMCG, SLA odpowiedzi <4h, 24/7, Mazowieckie.', en: 'Maintenance service for an FMCG packaging line, SLA response <4h, 24/7, Masovia.' },
+  ],
+  other: [
+    { pl: 'Opisz czego potrzebujesz — AI wypełni formularz za Ciebie.', en: 'Describe what you need — AI will fill the form for you.' },
+  ],
+};
+
 export const INDUSTRY_CERTIFICATES: Record<Industry, { required: string[]; suggested: string[] }> = {
   manufacturing: { required: [], suggested: ['ISO 9001', 'ISO 14001', 'IATF 16949', 'AS9100', 'RoHS', 'REACH', 'CE'] },
   events: { required: [], suggested: ['HACCP', 'ISO 22000'] },
@@ -550,6 +590,36 @@ export function RfqWizard({ onComplete, prefillIndustry, prefillMode }: RfqWizar
                       <AlertDescription>{parsedBrief.notes}</AlertDescription>
                     </Alert>
                   )}
+
+                  {/* Sample briefs — new users get one-click examples to avoid blank-canvas freeze */}
+                  {(() => {
+                    const ind = (formData.industry as Industry | undefined) || null;
+                    const samples = ind ? SAMPLE_BRIEFS[ind] : null;
+                    if (!samples || samples.length === 0) return null;
+                    return (
+                      <div className="mt-3">
+                        <p className="text-xs text-muted-foreground mb-2">
+                          {isEN ? 'Or pick an example:' : 'Albo wybierz przykład:'}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {samples.map((s, i) => {
+                            const text = isEN ? s.en : s.pl;
+                            return (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() => form.setValue('brief', text, { shouldDirty: true })}
+                                className="text-left text-xs px-2.5 py-1.5 rounded-md border border-dashed border-input hover:border-primary hover:bg-primary/5 transition-all max-w-full"
+                                title={text}
+                              >
+                                <span className="line-clamp-1">{text}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Industry grid */}

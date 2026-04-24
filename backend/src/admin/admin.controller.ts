@@ -45,6 +45,12 @@ export class AdminController {
         return this.adminService.getDashboardStats();
     }
 
+    @Get('analytics/by-industry')
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    async getIndustryAnalytics() {
+        return this.adminService.getIndustryAnalytics();
+    }
+
     // =====================
     // User Management
     // =====================
