@@ -142,6 +142,10 @@ export const campaignsService = {
         city: dto.city,
         eventDate: dto.eventDate,
         headcount: dto.headcount,
+        voivodeships: dto.voivodeships,
+        moq: dto.moq,
+        leadTimeWeeks: dto.leadTimeWeeks,
+        sourcingGeography: dto.sourcingGeography,
         parsedBrief: dto.parsedBrief,
       },
     };

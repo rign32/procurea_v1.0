@@ -375,6 +375,10 @@ export class StrategyAgentService {
     headcount?: number;
     brief?: string;
     effectiveProductName: string;
+    voivodeships?: string[];
+    moq?: number;
+    leadTimeWeeks?: number;
+    sourcingGeography?: string;
   }): string {
     if (!ctx.industry && !ctx.sourcingMode && !ctx.city && !ctx.brief) {
       return '';
@@ -408,14 +412,38 @@ export class StrategyAgentService {
     }
     if (ctx.eventDate) locationParts.push(`**DATA WYDARZENIA:** ${ctx.eventDate}`);
     if (ctx.headcount) locationParts.push(`**SKALA WYDARZENIA:** ${ctx.headcount} osób — preferuj wykonawców o odpowiedniej pojemności.`);
+    if (ctx.voivodeships?.length) {
+      const voivMap: Record<string, string> = {
+        DS: 'Dolnośląskie', KP: 'Kujawsko-pomorskie', LU: 'Lubelskie', LB: 'Lubuskie',
+        LD: 'Łódzkie', MA: 'Małopolskie', MZ: 'Mazowieckie', OP: 'Opolskie',
+        PK: 'Podkarpackie', PD: 'Podlaskie', PM: 'Pomorskie', SL: 'Śląskie',
+        SK: 'Świętokrzyskie', WN: 'Warmińsko-mazurskie', WP: 'Wielkopolskie', ZP: 'Zachodniopomorskie',
+      };
+      const voivLabels = ctx.voivodeships.map(c => voivMap[c] || c).join(', ');
+      locationParts.push(`**WOJEWÓDZTWA (PL):** ${voivLabels} — zawężaj do firm z tych regionów (np. "podwykonawca HVAC ${voivLabels.split(',')[0]}").`);
+    }
     const locationBlock = locationParts.length ? `\n${locationParts.join('\n')}` : '';
+
+    // Product-sourcing constraints — MOQ/lead time help strategy favor niches that match buyer's scale.
+    const constraintParts: string[] = [];
+    if (ctx.moq) constraintParts.push(`**MOQ (min. zamówienie):** ${ctx.moq} — preferuj dostawców akceptujących MOQ ≤ ${ctx.moq}.`);
+    if (ctx.leadTimeWeeks) constraintParts.push(`**LEAD TIME:** max ${ctx.leadTimeWeeks} tygodni — odrzucaj dostawców z dłuższymi cyklami produkcji.`);
+    if (ctx.sourcingGeography) {
+      const geoNote: Record<string, string> = {
+        nearshore: 'Preferuj PL, CZ, PT, IT, TR, RO — nearshore dla EU (niski MOQ, szybki lead time).',
+        offshore: 'Preferuj CN, VN, IN — offshore (niska cena jednostkowa, wysokie MOQ, długi lead time).',
+        mixed: 'Dopuść oba — nearshore i offshore; porównanie landed cost.',
+      };
+      constraintParts.push(`**GEOGRAFIA:** ${ctx.sourcingGeography}. ${geoNote[ctx.sourcingGeography] || ''}`);
+    }
+    const constraintsBlock = constraintParts.length ? `\n${constraintParts.join('\n')}` : '';
 
     const briefBlock = ctx.brief ? `\n**ORYGINALNY BRIEF OD UŻYTKOWNIKA:**\n"${ctx.brief.slice(0, 600)}"` : '';
 
     return `
 === KONTEKST BRANŻY I TRYBU SOURCINGU ===
 ${industryLine}
-${modeLine}${locationBlock}${briefBlock}
+${modeLine}${locationBlock}${constraintsBlock}${briefBlock}
 
 `;
   }
@@ -438,6 +466,10 @@ ${modeLine}${locationBlock}${briefBlock}
     eventDate?: string;
     headcount?: number;
     brief?: string;
+    voivodeships?: string[];
+    moq?: number;
+    leadTimeWeeks?: number;
+    sourcingGeography?: string;
   }): Promise<any> {
     this.logger.log(`Executing Strategy Agent for "${params.productName}" in region: ${params.region}`);
 
@@ -551,6 +583,10 @@ ${translationsBlock || '  (brak — przetłumacz samodzielnie)'}
       headcount: params.headcount,
       brief: params.brief,
       effectiveProductName,
+      voivodeships: params.voivodeships,
+      moq: params.moq,
+      leadTimeWeeks: params.leadTimeWeeks,
+      sourcingGeography: params.sourcingGeography,
     });
 
     const systemPrompt = `

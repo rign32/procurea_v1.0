@@ -1287,6 +1287,10 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 eventDate: (dto.searchCriteria as any).eventDate || undefined,
                 headcount: (dto.searchCriteria as any).headcount || undefined,
                 brief: (dto.searchCriteria as any).brief || undefined,
+                voivodeships: (dto.searchCriteria as any).voivodeships || undefined,
+                moq: (dto.searchCriteria as any).moq || undefined,
+                leadTimeWeeks: (dto.searchCriteria as any).leadTimeWeeks || undefined,
+                sourcingGeography: (dto.searchCriteria as any).sourcingGeography || undefined,
             };
 
             await this.log(id, `🎯 [STRATEGY] Generating multimodal search strategy for region: ${strategyParams.region}`);

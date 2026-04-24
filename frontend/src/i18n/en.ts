@@ -454,6 +454,11 @@ export const EN: Translations = {
         certificates: 'Certificates',
         deliveryDate: 'Delivery date',
         description: 'Description',
+        industry: 'Industry',
+        sourcingMode: 'Sourcing mode',
+        city: 'City',
+        eventDate: 'Event date',
+        headcount: 'Headcount',
         launchDescription: 'Once launched, AI will begin searching for suppliers based on your parameters. The process may take a few minutes.',
       },
 

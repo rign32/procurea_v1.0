@@ -96,6 +96,29 @@ class SearchCriteriaDto {
     @IsString()
     desiredDeliveryDate?: string;
 
+    // MOQ expectation — used by strategy/screener to filter suppliers whose MOQ won't match
+    @IsOptional()
+    @IsNumber()
+    @Min(1)
+    moq?: number;
+
+    // Expected supplier lead time (weeks) — buyer's acceptable window
+    @IsOptional()
+    @IsNumber()
+    @Min(1)
+    leadTimeWeeks?: number;
+
+    // Retail-specific: preference nearshore vs offshore (China / mixed)
+    @IsOptional()
+    @IsString()
+    sourcingGeography?: string;
+
+    // Construction PL: specific voivodeships to tighten locality from "whole country" to the site region
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    voivodeships?: string[];
+
     @IsOptional()
     @IsString()
     offerDeadline?: string;

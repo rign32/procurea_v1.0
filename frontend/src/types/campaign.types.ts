@@ -273,6 +273,10 @@ export interface CreateCampaignDto {
   city?: string;
   eventDate?: string;
   headcount?: number;
+  voivodeships?: string[];
+  moq?: number;
+  leadTimeWeeks?: number;
+  sourcingGeography?: string;
 
   // RFQ Data
   productName: string;

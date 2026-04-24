@@ -452,6 +452,11 @@ export const PL = {
         certificates: 'Certyfikaty',
         deliveryDate: 'Data dostawy',
         description: 'Opis',
+        industry: 'Branża',
+        sourcingMode: 'Typ sourcingu',
+        city: 'Miasto',
+        eventDate: 'Data wydarzenia',
+        headcount: 'Liczba osób',
         launchDescription: 'Po uruchomieniu, AI rozpocznie wyszukiwanie dostawców zgodnie z parametrami. Proces może potrwać kilka minut.',
       },
 

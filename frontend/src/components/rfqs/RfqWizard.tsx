@@ -47,6 +47,41 @@ const optionalNumber = z.preprocess(
 
 const INDUSTRY_OPTIONS: Industry[] = ['manufacturing', 'events', 'construction', 'horeca', 'healthcare', 'retail', 'logistics', 'mro', 'other'];
 
+// PL voivodeships — used for Construction campaigns to tighten locality from the
+// whole country to a single (or a few) regions where the site is located.
+export const PL_VOIVODESHIPS: { code: string; labelPl: string; labelEn: string }[] = [
+  { code: 'DS', labelPl: 'Dolnośląskie', labelEn: 'Lower Silesia' },
+  { code: 'KP', labelPl: 'Kujawsko-pomorskie', labelEn: 'Kuyavia-Pomerania' },
+  { code: 'LU', labelPl: 'Lubelskie', labelEn: 'Lublin' },
+  { code: 'LB', labelPl: 'Lubuskie', labelEn: 'Lubusz' },
+  { code: 'LD', labelPl: 'Łódzkie', labelEn: 'Łódź' },
+  { code: 'MA', labelPl: 'Małopolskie', labelEn: 'Lesser Poland' },
+  { code: 'MZ', labelPl: 'Mazowieckie', labelEn: 'Masovia' },
+  { code: 'OP', labelPl: 'Opolskie', labelEn: 'Opole' },
+  { code: 'PK', labelPl: 'Podkarpackie', labelEn: 'Subcarpathia' },
+  { code: 'PD', labelPl: 'Podlaskie', labelEn: 'Podlasie' },
+  { code: 'PM', labelPl: 'Pomorskie', labelEn: 'Pomerania' },
+  { code: 'SL', labelPl: 'Śląskie', labelEn: 'Silesia' },
+  { code: 'SK', labelPl: 'Świętokrzyskie', labelEn: 'Holy Cross' },
+  { code: 'WN', labelPl: 'Warmińsko-mazurskie', labelEn: 'Warmia-Masuria' },
+  { code: 'WP', labelPl: 'Wielkopolskie', labelEn: 'Greater Poland' },
+  { code: 'ZP', labelPl: 'Zachodniopomorskie', labelEn: 'West Pomerania' },
+];
+
+// Industry → recommended certificates. `required` are pre-ticked (compliance-heavy
+// branches like healthcare); `suggested` show up as TagInput suggestions.
+export const INDUSTRY_CERTIFICATES: Record<Industry, { required: string[]; suggested: string[] }> = {
+  manufacturing: { required: [], suggested: ['ISO 9001', 'ISO 14001', 'IATF 16949', 'AS9100', 'RoHS', 'REACH', 'CE'] },
+  events: { required: [], suggested: ['HACCP', 'ISO 22000'] },
+  construction: { required: [], suggested: ['ISO 9001', 'ISO 45001', 'CE', 'DoP'] },
+  horeca: { required: ['HACCP'], suggested: ['IFS', 'BRC', 'ISO 22000', 'organic'] },
+  healthcare: { required: ['CE', 'MDR', 'ISO 13485'], suggested: ['FDA', 'ISO 14971', 'ISO 9001'] },
+  retail: { required: [], suggested: ['OEKO-TEX', 'GOTS', 'FDA', 'CE', 'BSCI'] },
+  logistics: { required: [], suggested: ['ISO 9001', 'ISO 14001', 'GDP', 'AEO'] },
+  mro: { required: [], suggested: ['ISO 9001', 'CE', 'UL', 'ATEX'] },
+  other: { required: [], suggested: ['ISO 9001', 'CE'] },
+};
+
 const briefSchema = z.object({
   industry: z.enum(INDUSTRY_OPTIONS as [Industry, ...Industry[]], { error: t.campaigns.wizard.brief?.industryLabel || 'Select industry' }),
   sourcingMode: z.enum(['product', 'service', 'mixed'] as [SourcingMode, ...SourcingMode[]], { error: t.campaigns.wizard.brief?.modeLabel || 'Select mode' }),
@@ -72,6 +107,14 @@ const step2Schema = z.object({
   desiredDeliveryDate: z.string().optional(),
   deliveryLocationId: z.string().optional(),
   supplierTypes: z.array(z.string()).optional(),
+  moq: z.preprocess(
+    (val) => (val === '' || val === undefined || val === null || Number.isNaN(val) ? undefined : Number(val)),
+    z.number().min(1).optional()
+  ),
+  leadTimeWeeks: z.preprocess(
+    (val) => (val === '' || val === undefined || val === null || Number.isNaN(val) ? undefined : Number(val)),
+    z.number().min(1).max(52).optional()
+  ),
 });
 
 const step3Schema = z.object({
@@ -163,6 +206,7 @@ export function RfqWizard({ onComplete, prefillIndustry, prefillMode }: RfqWizar
   const [showExcludePanel, setShowExcludePanel] = useState(false);
   const [aiParsing, setAiParsing] = useState(false);
   const [parsedBrief, setParsedBrief] = useState<ParsedBrief | null>(null);
+  const [selectedVoivodeships, setSelectedVoivodeships] = useState<string[]>([]);
   const { user } = useAuthStore();
   const isFullPlan = user?.plan === 'full';
 
@@ -253,6 +297,19 @@ export function RfqWizard({ onComplete, prefillIndustry, prefillMode }: RfqWizar
   useEffect(() => {
     form.reset(formData as Record<string, unknown>);
   }, [currentStep]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-add industry-required certs when user picks the industry (compliance-heavy
+  // branches like healthcare need CE/MDR/ISO 13485 as hard gates, not optional tags).
+  useEffect(() => {
+    const industry = formData.industry as Industry | undefined;
+    if (!industry) return;
+    const required = INDUSTRY_CERTIFICATES[industry]?.required || [];
+    if (!required.length) return;
+    setCertificates(prev => {
+      const missing = required.filter(c => !prev.includes(c));
+      return missing.length ? [...prev, ...missing] : prev;
+    });
+  }, [formData.industry]);
 
   // Pre-select first sequence if none selected
   useEffect(() => {
@@ -346,6 +403,7 @@ export function RfqWizard({ onComplete, prefillIndustry, prefillMode }: RfqWizar
         incoterms: selectedIncoterms.join(','),
         targetCountries: newFormData.targetRegion === 'CUSTOM' ? selectedCountries : undefined,
         excludedCountries: (excludedCountries.length > 0 && newFormData.targetRegion !== 'CUSTOM' && !SINGLE_COUNTRY_REGIONS.has(newFormData.targetRegion as string)) ? excludedCountries : undefined,
+        voivodeships: selectedVoivodeships.length > 0 ? selectedVoivodeships : undefined,
         ...((attachments.length > 0 || selectedDocs.length > 0) ? {
           attachments: JSON.stringify([
             ...attachments,
@@ -753,6 +811,45 @@ export function RfqWizard({ onComplete, prefillIndustry, prefillMode }: RfqWizar
                   </div>
                 )}
 
+                {/* Voivodeships — Construction campaigns need site-level locality inside PL,
+                    not "whole country". A Warsaw site shouldn't surface Gdańsk-only HVAC subs. */}
+                {formData.industry === 'construction' && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      {isEN ? 'PL voivodeships (optional)' : 'Województwa PL (opcjonalnie)'}
+                    </label>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      {isEN
+                        ? 'Narrow the search to specific regions — leave empty for all of Poland.'
+                        : 'Zawęź wyszukiwanie do konkretnych regionów — zostaw puste dla całej Polski.'}
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                      {PL_VOIVODESHIPS.map(v => {
+                        const selected = selectedVoivodeships.includes(v.code);
+                        return (
+                          <button
+                            key={v.code}
+                            type="button"
+                            onClick={() => {
+                              setSelectedVoivodeships(prev =>
+                                selected ? prev.filter(x => x !== v.code) : [...prev, v.code]
+                              );
+                            }}
+                            className={cn(
+                              'px-2.5 py-1.5 rounded-md border text-xs text-left transition-all',
+                              selected
+                                ? 'border-primary bg-primary/5 text-primary font-medium'
+                                : 'border-input hover:border-primary/40'
+                            )}
+                          >
+                            {isEN ? v.labelEn : v.labelPl}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {/* Exclude countries — shown for EU/GLOBAL/GLOBAL_NO_CN */}
                 {regionCodes.length > 0 && currentRegion !== 'CUSTOM' && !SINGLE_COUNTRY_REGIONS.has(currentRegion) && (
                   <div>
@@ -889,70 +986,186 @@ export function RfqWizard({ onComplete, prefillIndustry, prefillMode }: RfqWizar
                   </div>
                 </div>
 
-                {/* Certificates */}
+                {/* Certificates — industry-aware suggestions + compliance-mandatory highlighting */}
                 <div>
                   <label className="block text-sm font-medium mb-2">{t.campaigns.wizard.search.certificates}</label>
-                  <TagInput
-                    value={certificates}
-                    onChange={setCertificates}
-                    placeholder={t.campaigns.wizard.search.certificatesPlaceholder}
-                    suggestions={['ISO 9001', 'ISO 14001', 'ISO 13485', 'IATF 16949', 'AS9100', 'CE', 'UL', 'RoHS', 'REACH']}
-                  />
+                  {(() => {
+                    const ind = (formData.industry as Industry | undefined) || 'other';
+                    const certSet = INDUSTRY_CERTIFICATES[ind];
+                    const required = certSet.required;
+                    const allSuggestions = Array.from(new Set([...required, ...certSet.suggested, 'ISO 9001', 'CE']));
+                    return (
+                      <>
+                        {required.length > 0 && (
+                          <div className="mb-2 flex flex-wrap items-center gap-1.5 text-xs">
+                            <span className="text-muted-foreground">
+                              {isEN ? 'Required for this industry:' : 'Wymagane dla tej branży:'}
+                            </span>
+                            {required.map(cert => (
+                              <Badge key={cert} variant="secondary" className="bg-primary/10 text-primary border border-primary/20">
+                                {cert}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                        <TagInput
+                          value={certificates}
+                          onChange={setCertificates}
+                          placeholder={t.campaigns.wizard.search.certificatesPlaceholder}
+                          suggestions={allSuggestions}
+                        />
+                      </>
+                    );
+                  })()}
                 </div>
 
-                {/* Incoterms — multi-select with tooltips (full plan only) */}
-                {isFullPlan && (
-                <div>
-                  <label className="block text-sm font-medium mb-3">
-                    {t.campaigns.wizard.logistics.incoterms}
-                    <span className="text-muted-foreground font-normal ml-1">({t.campaigns.wizard.search.multiSelect})</span>
-                  </label>
-                  <TooltipProvider delayDuration={200}>
-                    <div className="grid grid-cols-3 gap-2">
-                      {INCOTERMS_OPTIONS.map((term) => {
-                        const isChecked = selectedIncoterms.includes(term.value);
-                        return (
-                          <button
-                            key={term.value}
-                            type="button"
-                            onClick={() => {
-                              setSelectedIncoterms(prev =>
-                                isChecked
-                                  ? prev.filter(v => v !== term.value)
-                                  : [...prev, term.value]
+                {/* Product-sourcing logistics: Incoterms + MOQ + Lead time + nearshore preference.
+                    Previously gated behind full plan; landing promises these on Manufacturing /
+                    Retail / Healthcare so we surface them for all product/mixed-mode campaigns. */}
+                {(() => {
+                  const mode = formData.sourcingMode as SourcingMode | undefined;
+                  const ind = formData.industry as Industry | undefined;
+                  const isProductish = mode === 'product' || mode === 'mixed';
+                  const showProductLogistics = isProductish;
+                  const showMoqLeadTime = isProductish && (ind === 'manufacturing' || ind === 'retail' || ind === 'healthcare' || ind === 'mro' || ind === 'logistics' || !ind);
+                  const showSourcingGeo = ind === 'retail';
+                  if (!showProductLogistics) return null;
+                  return (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium mb-3">
+                          {t.campaigns.wizard.logistics.incoterms}
+                          <span className="text-muted-foreground font-normal ml-1">({t.campaigns.wizard.search.multiSelect})</span>
+                        </label>
+                        <TooltipProvider delayDuration={200}>
+                          <div className="grid grid-cols-3 gap-2">
+                            {INCOTERMS_OPTIONS.map((term) => {
+                              const isChecked = selectedIncoterms.includes(term.value);
+                              return (
+                                <button
+                                  key={term.value}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedIncoterms(prev =>
+                                      isChecked ? prev.filter(v => v !== term.value) : [...prev, term.value]
+                                    );
+                                  }}
+                                  className={cn(
+                                    'flex items-center justify-between px-3 py-2.5 rounded-lg border text-sm transition-all',
+                                    isChecked
+                                      ? 'border-primary bg-primary/5 text-primary font-medium'
+                                      : 'border-input hover:border-primary/40'
+                                  )}
+                                >
+                                  <span>{term.label}</span>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <HelpCircle className="h-3.5 w-3.5 text-muted-foreground ml-1 shrink-0" />
+                                    </TooltipTrigger>
+                                    <TooltipContent side="top" className="max-w-[250px]">
+                                      <p>{term.desc}</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </button>
                               );
-                            }}
-                            className={cn(
-                              'flex items-center justify-between px-3 py-2.5 rounded-lg border text-sm transition-all',
-                              isChecked
-                                ? 'border-primary bg-primary/5 text-primary font-medium'
-                                : 'border-input hover:border-primary/40'
-                            )}
-                          >
-                            <span>{term.label}</span>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <HelpCircle className="h-3.5 w-3.5 text-muted-foreground ml-1 shrink-0" />
-                              </TooltipTrigger>
-                              <TooltipContent side="top" className="max-w-[250px]">
-                                <p>{term.desc}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </TooltipProvider>
-                </div>
-                )}
+                            })}
+                          </div>
+                        </TooltipProvider>
+                      </div>
 
-                {/* Delivery date (full plan only) */}
-                {isFullPlan && (
-                <div>
-                  <label className="block text-sm font-medium mb-2">{t.campaigns.wizard.logistics.deliveryDateLabel}</label>
-                  <input type="date" {...form.register('desiredDeliveryDate')} className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
-                </div>
-                )}
+                      {showMoqLeadTime && (
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium mb-1.5">
+                              {isEN ? 'MOQ (min. order)' : 'MOQ (min. zamówienie)'}
+                              <span className="text-muted-foreground font-normal ml-1">({t.common.optional})</span>
+                            </label>
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              {...form.register('moq', { valueAsNumber: true })}
+                              placeholder={isEN ? 'e.g. 500' : 'np. 500'}
+                              className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {isEN
+                                ? 'Used to filter suppliers whose MOQ exceeds this.'
+                                : 'Odfiltruje dostawców z MOQ wyższym niż ten.'}
+                            </p>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1.5">
+                              {isEN ? 'Lead time (weeks)' : 'Lead time (tygodnie)'}
+                              <span className="text-muted-foreground font-normal ml-1">({t.common.optional})</span>
+                            </label>
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              {...form.register('leadTimeWeeks', { valueAsNumber: true })}
+                              placeholder={isEN ? 'e.g. 4' : 'np. 4'}
+                              className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {isEN
+                                ? 'Max acceptable supplier production time.'
+                                : 'Maksymalny akceptowalny czas produkcji dostawcy.'}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {showSourcingGeo && (
+                        <div>
+                          <label className="block text-sm font-medium mb-3">
+                            {isEN ? 'Sourcing geography preference' : 'Preferencja geografii'}
+                          </label>
+                          <div className="grid grid-cols-3 gap-2">
+                            {(['nearshore', 'offshore', 'mixed'] as const).map(opt => {
+                              const selected = formData.sourcingGeography === opt;
+                              const labels = {
+                                nearshore: isEN ? 'Nearshore (EU, TR)' : 'Nearshore (UE, TR)',
+                                offshore: isEN ? 'Offshore (Asia)' : 'Offshore (Azja)',
+                                mixed: isEN ? 'Mixed' : 'Mieszane',
+                              };
+                              const descs = {
+                                nearshore: isEN ? 'PL, CZ, PT, IT, TR — low MOQ, fast lead' : 'PL, CZ, PT, IT, TR — niski MOQ, szybki lead',
+                                offshore: isEN ? 'CN, VN, IN — lowest unit price' : 'CN, VN, IN — najniższa cena jednostkowa',
+                                mixed: isEN ? 'Both — compare landed cost' : 'Oba — porównaj landed cost',
+                              };
+                              return (
+                                <button
+                                  key={opt}
+                                  type="button"
+                                  onClick={() => setFormData(prev => ({ ...prev, sourcingGeography: opt }))}
+                                  className={cn(
+                                    'flex flex-col items-start gap-0.5 p-3 rounded-lg border-2 transition-all text-left',
+                                    selected
+                                      ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                                      : 'border-input hover:border-primary/40 hover:bg-muted/30'
+                                  )}
+                                >
+                                  <span className="text-sm font-medium">{labels[opt]}</span>
+                                  <span className="text-xs text-muted-foreground">{descs[opt]}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      <div>
+                        <label className="block text-sm font-medium mb-2">{t.campaigns.wizard.logistics.deliveryDateLabel}</label>
+                        <input
+                          type="date"
+                          {...form.register('desiredDeliveryDate')}
+                          className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        />
+                      </div>
+                    </>
+                  );
+                })()}
 
                 {/* Delivery location */}
                 {isFullPlan && (
@@ -1062,7 +1275,48 @@ export function RfqWizard({ onComplete, prefillIndustry, prefillMode }: RfqWizar
                 <div className="bg-muted rounded-lg p-6 space-y-4">
                   <h3 className="font-semibold text-lg">{t.campaigns.wizard.summary.campaignSummary}</h3>
                   <div className="space-y-2 text-sm">
+                    {formData.industry && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">{t.campaigns.wizard.summary.industry}:</span>
+                        <span className="font-medium">
+                          {(t.campaigns.wizard.brief.industries as Record<string, string>)[formData.industry as string] || formData.industry}
+                        </span>
+                      </div>
+                    )}
+                    {formData.sourcingMode && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">{t.campaigns.wizard.summary.sourcingMode}:</span>
+                        <span className="font-medium">
+                          {formData.sourcingMode === 'product' && t.campaigns.wizard.brief.modeProduct}
+                          {formData.sourcingMode === 'service' && t.campaigns.wizard.brief.modeService}
+                          {formData.sourcingMode === 'mixed' && t.campaigns.wizard.brief.modeMixed}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex justify-between"><span className="text-muted-foreground">{t.campaigns.wizard.summary.product}:</span><span className="font-medium">{formData.productName}</span></div>
+                    {formData.city && <div className="flex justify-between"><span className="text-muted-foreground">{t.campaigns.wizard.summary.city}:</span><span className="font-medium">{formData.city}</span></div>}
+                    {formData.eventDate && <div className="flex justify-between"><span className="text-muted-foreground">{t.campaigns.wizard.summary.eventDate}:</span><span className="font-medium">{formData.eventDate}</span></div>}
+                    {formData.headcount && <div className="flex justify-between"><span className="text-muted-foreground">{t.campaigns.wizard.summary.headcount}:</span><span className="font-medium">{formData.headcount}</span></div>}
+                    {selectedVoivodeships.length > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">{isEN ? 'Voivodeships' : 'Województwa'}:</span>
+                        <span className="font-medium text-right">
+                          {selectedVoivodeships
+                            .map(c => PL_VOIVODESHIPS.find(v => v.code === c))
+                            .filter(Boolean)
+                            .map(v => isEN ? v!.labelEn : v!.labelPl)
+                            .join(', ')}
+                        </span>
+                      </div>
+                    )}
+                    {formData.moq && <div className="flex justify-between"><span className="text-muted-foreground">MOQ:</span><span className="font-medium">{formData.moq}</span></div>}
+                    {formData.leadTimeWeeks && <div className="flex justify-between"><span className="text-muted-foreground">{isEN ? 'Lead time' : 'Lead time'}:</span><span className="font-medium">{formData.leadTimeWeeks} {isEN ? 'weeks' : 'tyg.'}</span></div>}
+                    {formData.sourcingGeography && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">{isEN ? 'Sourcing geo' : 'Geografia'}:</span>
+                        <span className="font-medium">{formData.sourcingGeography}</span>
+                      </div>
+                    )}
                     {formData.material && <div className="flex justify-between"><span className="text-muted-foreground">{t.campaigns.wizard.summary.material}:</span><span className="font-medium">{formData.material}</span></div>}
                     {formData.quantity && <div className="flex justify-between"><span className="text-muted-foreground">{t.campaigns.wizard.summary.quantity}:</span><span className="font-medium">{formData.quantity} {formData.unit || t.campaigns.wizard.specs.unitDefault}</span></div>}
                     {formData.eau && <div className="flex justify-between"><span className="text-muted-foreground">{t.campaigns.wizard.summary.eau}:</span><span className="font-medium">{formData.eau}</span></div>}
