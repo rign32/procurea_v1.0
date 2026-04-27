@@ -352,6 +352,17 @@ export const PL = {
         descriptionPlaceholder: 'Szczegółowy opis produktu i wymagań...',
       },
 
+      serviceFields: {
+        city: 'Miasto',
+        cityPlaceholder: 'np. "Berlin", "Warszawa", "Barcelona"',
+        cityHint: 'Dla wydarzeń i podwykonawstwa — wskaż lokalizację',
+        eventDate: 'Data wydarzenia',
+        eventDateHint: 'Kiedy odbywa się wydarzenie',
+        headcount: 'Liczba osób',
+        headcountPlaceholder: 'np. 500',
+        headcountHint: 'Przybliżona liczba uczestników',
+      },
+
       specs: {
         title: 'Specyfikacja techniczna',
         material: 'Materiał',

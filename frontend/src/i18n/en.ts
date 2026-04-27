@@ -354,6 +354,17 @@ export const EN: Translations = {
         descriptionPlaceholder: 'Detailed product description and requirements...',
       },
 
+      serviceFields: {
+        city: 'City',
+        cityPlaceholder: 'e.g. "Berlin", "Warsaw", "Barcelona"',
+        cityHint: 'For events and subcontracting — specify the location',
+        eventDate: 'Event date',
+        eventDateHint: 'When the event takes place',
+        headcount: 'Headcount',
+        headcountPlaceholder: 'e.g. 500',
+        headcountHint: 'Approximate number of attendees',
+      },
+
       specs: {
         title: 'Technical specification',
         material: 'Material',

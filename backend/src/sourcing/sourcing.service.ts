@@ -368,6 +368,97 @@ export class SourcingService {
         this.sourcingGateway?.emitLog(campaignId, message);
     }
 
+    /**
+     * Sprint 3 — deterministic post-Auditor filters. Wizard fields the buyer
+     * picked (CE/MDR cert, MOQ ceiling, lead-time max, voivodeship for PL
+     * construction, nearshore vs offshore) translate into HARD reject rules:
+     * if the supplier's extracted/audited data fails one, drop them entirely
+     * instead of letting them slip through with a soft score penalty.
+     *
+     * Returns `{ passes: false, bucket, reason }` so the caller can bump the
+     * matching counter in CampaignMetrics + log a precise reason for the UI.
+     */
+    private applyHardFilters(
+        golden: any,
+        screenerExtracted: any,
+        dto: CreateCampaignDto,
+    ): { passes: boolean; bucket?: string; reason?: string } {
+        const sc = (dto.searchCriteria || {}) as any;
+
+        // A) Required certificates — buyer demanded these explicitly.
+        const required: string[] = (sc.requiredCertificates || []).map((c: string) => c.trim()).filter(Boolean);
+        if (required.length > 0) {
+            const found: string[] = [
+                ...(golden?.certificates || []),
+                ...(screenerExtracted?.certificates || []),
+            ].map((c: string) => String(c).toUpperCase().trim());
+            const missing = required.filter(req => {
+                const reqUp = req.toUpperCase();
+                return !found.some(f => f.includes(reqUp) || reqUp.includes(f));
+            });
+            if (missing.length > 0) {
+                return { passes: false, bucket: 'HARD_FILTER_CERT', reason: `missing required cert(s): ${missing.join(', ')}` };
+            }
+        }
+
+        // B) MOQ ceiling — supplier MOQ above buyer's tolerance is non-viable.
+        const userMoq: number | undefined = sc.moq;
+        const supplierMoq: number | undefined = screenerExtracted?.moq ?? golden?.moq;
+        if (userMoq && supplierMoq && supplierMoq > userMoq) {
+            return { passes: false, bucket: 'HARD_FILTER_MOQ', reason: `supplier MOQ ${supplierMoq} > requested ${userMoq}` };
+        }
+
+        // C) Lead-time ceiling.
+        const userLeadWeeks: number | undefined = sc.leadTimeWeeks;
+        const supplierLeadWeeks: number | undefined = screenerExtracted?.leadTimeWeeks ?? golden?.leadTimeWeeks;
+        if (userLeadWeeks && supplierLeadWeeks && supplierLeadWeeks > userLeadWeeks) {
+            return { passes: false, bucket: 'HARD_FILTER_LEAD_TIME', reason: `supplier ${supplierLeadWeeks}w > requested ${userLeadWeeks}w` };
+        }
+
+        // D) Sourcing geography — nearshore selected but supplier is in offshore Asia.
+        const geography: string | undefined = sc.sourcingGeography;
+        const country: string = String(golden?.country || screenerExtracted?.country || '').toLowerCase();
+        if (geography === 'nearshore') {
+            const offshore = ['china', 'chiny', '中国', 'india', 'indie', 'vietnam', 'wietnam', 'thailand', 'tajlandia', 'indonesia', 'indonezja', 'pakistan'];
+            if (offshore.some(off => country.includes(off))) {
+                return { passes: false, bucket: 'HARD_FILTER_GEOGRAPHY', reason: `${country} is offshore, buyer chose nearshore` };
+            }
+        }
+
+        // E) Voivodeships (PL construction) — narrow site-level locality.
+        const voivodeships: string[] | undefined = sc.voivodeships;
+        if (voivodeships && voivodeships.length > 0) {
+            const cityRaw: string = String(golden?.city || screenerExtracted?.city || '').toLowerCase();
+            // Mapowanie najczęstszych miast PL → kod województwa. Suppliery z miast spoza
+            // mapy nie są odrzucane (false negative bezpieczniejszy niż false positive).
+            const PL_CITY_VOIV: Record<string, string> = {
+                'warszawa': 'MZ', 'warsaw': 'MZ', 'płock': 'MZ', 'radom': 'MZ', 'siedlce': 'MZ',
+                'wrocław': 'DS', 'wroclaw': 'DS', 'wałbrzych': 'DS', 'legnica': 'DS', 'jelenia góra': 'DS',
+                'kraków': 'MA', 'krakow': 'MA', 'tarnów': 'MA', 'nowy sącz': 'MA',
+                'gdańsk': 'PM', 'gdansk': 'PM', 'gdynia': 'PM', 'sopot': 'PM', 'słupsk': 'PM',
+                'poznań': 'WP', 'poznan': 'WP', 'kalisz': 'WP', 'konin': 'WP', 'leszno': 'WP',
+                'łódź': 'LD', 'lodz': 'LD', 'piotrków': 'LD',
+                'katowice': 'SL', 'sosnowiec': 'SL', 'gliwice': 'SL', 'częstochowa': 'SL', 'bytom': 'SL', 'bielsko-biała': 'SL',
+                'bydgoszcz': 'KP', 'toruń': 'KP', 'torun': 'KP', 'włocławek': 'KP', 'grudziądz': 'KP',
+                'lublin': 'LU', 'chełm': 'LU', 'zamość': 'LU',
+                'zielona góra': 'LB', 'gorzów': 'LB',
+                'opole': 'OP',
+                'rzeszów': 'PK', 'rzeszow': 'PK', 'przemyśl': 'PK',
+                'białystok': 'PD', 'bialystok': 'PD', 'łomża': 'PD', 'suwałki': 'PD',
+                'kielce': 'SK',
+                'olsztyn': 'WN', 'elbląg': 'WN', 'ełk': 'WN',
+                'szczecin': 'ZP', 'koszalin': 'ZP', 'stargard': 'ZP',
+            };
+            const matched = Object.entries(PL_CITY_VOIV).find(([city]) => cityRaw.includes(city));
+            const supplierVoiv = matched?.[1];
+            if (supplierVoiv && !voivodeships.includes(supplierVoiv)) {
+                return { passes: false, bucket: 'HARD_FILTER_VOIVODESHIP', reason: `${cityRaw} is in ${supplierVoiv}, buyer wants ${voivodeships.join(',')}` };
+            }
+        }
+
+        return { passes: true };
+    }
+
     private inferLogSeverity(message: string): 'info' | 'warning' | 'error' | 'critical' {
         const m = message.toUpperCase();
         if (m.includes('🚨') || m.includes('CRASH') || m.includes('ZERO_SUPPLIERS')) return 'critical';
@@ -2870,6 +2961,21 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 return 0;
             }
 
+            // Sprint 3 — HARD FILTERS: deterministic post-Auditor checks. Wizard-collected
+            // requirements (CE, MOQ, lead time, voivodeships, nearshore) must drop the
+            // supplier here, not just lower its score. The buyer chose them because they
+            // matter — bypass means we silently delivered junk.
+            const hardFilter = this.applyHardFilters(auditorResult.golden_record, screenerResult.extracted_data, dto);
+            if (!hardFilter.passes) {
+                const bucket = hardFilter.bucket || 'HARD_FILTER';
+                await this.log(campaignId, `${workerTag} ${bucket}: ${hardFilter.reason || ''}`);
+                if (stats) {
+                    stats.auditorRejected++;
+                    stats.rejectionReasons.set(bucket, (stats.rejectionReasons.get(bucket) || 0) + 1);
+                }
+                return 0;
+            }
+
             // BORDERLINE suppliers need higher auditor confidence to pass
             // But when auditor is in fallback mode (AI unavailable), use a lower threshold
             // to avoid cascading 0-supplier failures
@@ -3443,6 +3549,17 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 }, { industry: dto.searchCriteria?.industry, sourcingMode: (dto.searchCriteria as any)?.sourcingMode, city: (dto.searchCriteria as any)?.city });
                 if (auditorResult.validation_result === 'REJECTED' || auditorResult.is_valid === false) {
                     await this.log(campaignId, `${workerTag} CACHE PRODUCT MISMATCH: "${enrichedData.company_name}" (${enrichedData.specialization}) — ${auditorResult.rejection_reason || 'not matching product'}`);
+                    return false;
+                }
+                // Hard filters apply to cache hits too — buyer's wizard rules must be
+                // enforced regardless of where the supplier came from.
+                const cacheHardFilter = this.applyHardFilters(
+                    auditorResult.golden_record,
+                    cachedSupplier.explorerResult?.extracted_data || enrichedData,
+                    dto,
+                );
+                if (!cacheHardFilter.passes) {
+                    await this.log(campaignId, `${workerTag} CACHE HARD FILTER ${cacheHardFilter.bucket}: ${cacheHardFilter.reason}`);
                     return false;
                 }
             }
