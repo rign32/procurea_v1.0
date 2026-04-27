@@ -1403,6 +1403,15 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 moq: (dto.searchCriteria as any).moq || undefined,
                 leadTimeWeeks: (dto.searchCriteria as any).leadTimeWeeks || undefined,
                 sourcingGeography: (dto.searchCriteria as any).sourcingGeography || undefined,
+                industrySubcategory: (dto.searchCriteria as any).industrySubcategory || undefined,
+                eventType: (dto.searchCriteria as any).eventType || undefined,
+                constructionStage: (dto.searchCriteria as any).constructionStage || undefined,
+                horecaVenueType: (dto.searchCriteria as any).horecaVenueType || undefined,
+                healthcareRegClass: (dto.searchCriteria as any).healthcareRegClass || undefined,
+                mroUrgency: (dto.searchCriteria as any).mroUrgency || undefined,
+                logisticsSla: (dto.searchCriteria as any).logisticsSla || undefined,
+                mfgTolerance: (dto.searchCriteria as any).mfgTolerance || undefined,
+                retailBrandModel: (dto.searchCriteria as any).retailBrandModel || undefined,
             };
 
             await this.log(id, `🎯 [STRATEGY] Generating multimodal search strategy for region: ${strategyParams.region}`);

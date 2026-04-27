@@ -306,7 +306,7 @@ export const EN: Translations = {
         modeLabel: 'What are you looking for?',
         modeProduct: 'Product suppliers',
         modeProductDesc: 'Materials, components, finished goods',
-        modeService: 'Service contractors',
+        modeService: 'Service / Cooperation',
         modeServiceDesc: 'Subcontractors, vendors, service firms',
         modeMixed: 'Both',
         modeMixedDesc: 'Products and services together',

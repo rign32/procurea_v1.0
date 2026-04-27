@@ -304,7 +304,7 @@ export const PL = {
         modeLabel: 'Czego szukasz?',
         modeProduct: 'Dostawcy produktu',
         modeProductDesc: 'Materiały, komponenty, gotowe wyroby',
-        modeService: 'Wykonawcy usługi',
+        modeService: 'Usługa / Kooperacja',
         modeServiceDesc: 'Kooperanci, podwykonawcy, firmy usługowe',
         modeMixed: 'Obydwu',
         modeMixedDesc: 'Produkty i usługi łącznie',

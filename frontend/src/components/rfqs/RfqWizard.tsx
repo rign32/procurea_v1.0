@@ -84,6 +84,141 @@ export const INDUSTRY_CERTIFICATES: Record<Industry, { required: string[]; sugge
   other: { required: [], suggested: ['ISO 9001', 'CE'] },
 };
 
+// Industry subcategory + extra context — every branch must visibly reshape the form,
+// not just the three (events / construction / retail) that had unique fields. Each
+// branch gets a pill-row with 5-6 specializations that flow into the strategy agent
+// prompt as "user is sourcing X for Y" hint.
+export const INDUSTRY_SUBCATEGORIES: Record<Industry, { value: string; pl: string; en: string }[]> = {
+  manufacturing: [
+    { value: 'cnc', pl: 'Obróbka CNC', en: 'CNC machining' },
+    { value: 'injection', pl: 'Wtrysk tworzyw', en: 'Injection molding' },
+    { value: 'casting', pl: 'Odlewy', en: 'Casting' },
+    { value: 'sheet_metal', pl: 'Obróbka blach', en: 'Sheet metal' },
+    { value: 'assembly', pl: 'Montaż / EMS', en: 'Assembly / EMS' },
+    { value: 'raw_material', pl: 'Surowiec / granulat', en: 'Raw material / pellets' },
+  ],
+  events: [
+    { value: 'catering', pl: 'Catering', en: 'Catering' },
+    { value: 'av', pl: 'Nagłośnienie / AV', en: 'AV / lighting' },
+    { value: 'staging', pl: 'Scenografia', en: 'Staging / décor' },
+    { value: 'staff', pl: 'Obsługa / hostessy', en: 'Staff / hostesses' },
+    { value: 'gadgets', pl: 'Gadżety brandowane', en: 'Branded gadgets' },
+    { value: 'venue', pl: 'Wynajem przestrzeni', en: 'Venue rental' },
+  ],
+  construction: [
+    { value: 'hvac', pl: 'HVAC', en: 'HVAC' },
+    { value: 'electrical', pl: 'Elektryka', en: 'Electrical' },
+    { value: 'finishing', pl: 'Wykończenia', en: 'Finishing' },
+    { value: 'structural', pl: 'Konstrukcja', en: 'Structural' },
+    { value: 'materials', pl: 'Materiały budowlane', en: 'Building materials' },
+    { value: 'plumbing', pl: 'Hydraulika', en: 'Plumbing' },
+  ],
+  horeca: [
+    { value: 'food_supply', pl: 'Dostawa F&B', en: 'F&B supply' },
+    { value: 'kitchen_equipment', pl: 'Sprzęt kuchenny', en: 'Kitchen equipment' },
+    { value: 'beverage', pl: 'Napoje / alkohol', en: 'Beverages / alcohol' },
+    { value: 'catering_external', pl: 'Catering zewnętrzny', en: 'External catering' },
+    { value: 'maintenance', pl: 'Serwis sprzętu', en: 'Equipment service' },
+    { value: 'cleaning', pl: 'Środki czystości', en: 'Cleaning supplies' },
+  ],
+  healthcare: [
+    { value: 'disposables', pl: 'Jednorazówki', en: 'Disposables' },
+    { value: 'medical_devices', pl: 'Wyroby medyczne', en: 'Medical devices' },
+    { value: 'lab_equipment', pl: 'Sprzęt laboratoryjny', en: 'Lab equipment' },
+    { value: 'consumables', pl: 'Materiały eksploatacyjne', en: 'Consumables' },
+    { value: 'pharma', pl: 'Farmaceutyki / API', en: 'Pharma / API' },
+    { value: 'ppe', pl: 'PPE / odzież ochr.', en: 'PPE' },
+  ],
+  retail: [
+    { value: 'cosmetics', pl: 'Kosmetyki', en: 'Cosmetics' },
+    { value: 'apparel', pl: 'Odzież / akcesoria', en: 'Apparel / accessories' },
+    { value: 'electronics', pl: 'Elektronika', en: 'Electronics' },
+    { value: 'home_goods', pl: 'Home goods', en: 'Home goods' },
+    { value: 'food', pl: 'Spożywka', en: 'Food' },
+    { value: 'packaging', pl: 'Opakowania', en: 'Packaging' },
+  ],
+  logistics: [
+    { value: '3pl', pl: '3PL / magazyn', en: '3PL / warehouse' },
+    { value: 'racking', pl: 'Regały / sprzęt mag.', en: 'Racking / warehouse equip.' },
+    { value: 'fleet_parts', pl: 'Części do floty', en: 'Fleet parts' },
+    { value: 'last_mile', pl: 'Last-mile', en: 'Last-mile' },
+    { value: 'fulfillment', pl: 'E-com fulfillment', en: 'E-com fulfillment' },
+    { value: 'cold_chain', pl: 'Cold chain', en: 'Cold chain' },
+  ],
+  mro: [
+    { value: 'bearings', pl: 'Łożyska / uszczelnienia', en: 'Bearings / seals' },
+    { value: 'motors', pl: 'Silniki / napędy', en: 'Motors / drives' },
+    { value: 'spare_parts', pl: 'Części zamienne OEM', en: 'OEM spare parts' },
+    { value: 'maintenance_svc', pl: 'Utrzymanie ruchu', en: 'Maintenance service' },
+    { value: 'tools', pl: 'Narzędzia / oprzyrz.', en: 'Tools' },
+    { value: 'lubricants', pl: 'Smary / chemia tech.', en: 'Lubricants / tech chemistry' },
+  ],
+  other: [],
+};
+
+// Extra industry-specific pickers. Surfaced only for industries where the
+// strategy agent measurably benefits from the signal (events get dates,
+// construction gets stage, MRO gets urgency, manufacturing gets tolerance).
+export const EVENT_TYPES: { value: string; pl: string; en: string }[] = [
+  { value: 'conference', pl: 'Konferencja', en: 'Conference' },
+  { value: 'trade_show', pl: 'Targi', en: 'Trade show' },
+  { value: 'gala', pl: 'Gala / kolacja', en: 'Gala / dinner' },
+  { value: 'incentive', pl: 'Incentive / wyjazd', en: 'Incentive trip' },
+  { value: 'product_launch', pl: 'Premiera produktu', en: 'Product launch' },
+  { value: 'corporate', pl: 'Event firmowy', en: 'Corporate event' },
+];
+
+export const CONSTRUCTION_STAGES: { value: string; pl: string; en: string }[] = [
+  { value: 'planning', pl: 'Planowanie / projekt', en: 'Planning / design' },
+  { value: 'foundation', pl: 'Fundamenty', en: 'Foundation' },
+  { value: 'structure', pl: 'Konstrukcja', en: 'Structure' },
+  { value: 'finishing', pl: 'Wykończenia', en: 'Finishing' },
+  { value: 'renovation', pl: 'Remont / przebudowa', en: 'Renovation' },
+];
+
+export const HORECA_VENUES: { value: string; pl: string; en: string }[] = [
+  { value: 'hotel', pl: 'Hotel', en: 'Hotel' },
+  { value: 'restaurant', pl: 'Restauracja', en: 'Restaurant' },
+  { value: 'chain', pl: 'Sieć / multi-unit', en: 'Chain / multi-unit' },
+  { value: 'catering_co', pl: 'Firma cateringowa', en: 'Catering company' },
+  { value: 'cafe', pl: 'Kawiarnia / bar', en: 'Café / bar' },
+];
+
+export const HEALTHCARE_REG_CLASSES: { value: string; pl: string; en: string }[] = [
+  { value: 'class_I', pl: 'CE Klasa I (niskie ryzyko)', en: 'CE Class I (low risk)' },
+  { value: 'class_IIa', pl: 'CE Klasa IIa', en: 'CE Class IIa' },
+  { value: 'class_IIb', pl: 'CE Klasa IIb', en: 'CE Class IIb' },
+  { value: 'class_III', pl: 'CE Klasa III (wysokie)', en: 'CE Class III (high risk)' },
+  { value: 'not_regulated', pl: 'Nieregulowany', en: 'Not regulated' },
+];
+
+export const MRO_URGENCY: { value: string; pl: string; en: string }[] = [
+  { value: 'emergency', pl: 'Emergency (linia stoi)', en: 'Emergency (line down)' },
+  { value: 'priority', pl: 'Priority (kilka dni)', en: 'Priority (within days)' },
+  { value: 'routine', pl: 'Routine (planowo)', en: 'Routine (planned)' },
+];
+
+export const LOGISTICS_SLAS: { value: string; pl: string; en: string }[] = [
+  { value: 'sla_24h', pl: 'SLA 24h', en: '24h SLA' },
+  { value: 'sla_48h', pl: 'SLA 48h', en: '48h SLA' },
+  { value: 'sla_same_day', pl: 'Same-day', en: 'Same-day' },
+  { value: 'no_sla', pl: 'Bez SLA', en: 'No SLA' },
+];
+
+export const MFG_TOLERANCES: { value: string; pl: string; en: string }[] = [
+  { value: 'iso2768_m', pl: 'ISO 2768-mK (standardowe)', en: 'ISO 2768-mK (standard)' },
+  { value: 'iso2768_f', pl: 'ISO 2768-fH (precyzyjne)', en: 'ISO 2768-fH (precise)' },
+  { value: 'tight', pl: 'Ścisłe (<0.05mm)', en: 'Tight (<0.05mm)' },
+  { value: 'loose', pl: 'Luźne (komercyjne)', en: 'Loose (commercial)' },
+  { value: 'na', pl: 'Nie dotyczy', en: 'N/A' },
+];
+
+export const RETAIL_BRAND_MODELS: { value: string; pl: string; en: string }[] = [
+  { value: 'private_label', pl: 'Private label (pod naszą marką)', en: 'Private label (our brand)' },
+  { value: 'reseller', pl: 'Reseller (cudza marka)', en: 'Reseller (their brand)' },
+  { value: 'oem_design', pl: 'OEM z naszym designem', en: 'OEM (our design)' },
+];
+
 // One-click sample briefs per industry — break the blank-canvas freeze.
 export const SAMPLE_BRIEFS: Record<Industry, { pl: string; en: string }[]> = {
   manufacturing: [
@@ -191,6 +326,15 @@ const wizardSchema = z.object({
     z.number().min(1).max(52).optional()
   ),
   sourcingGeography: z.string().optional(),
+  industrySubcategory: z.string().optional(),
+  eventType: z.string().optional(),
+  constructionStage: z.string().optional(),
+  horecaVenueType: z.string().optional(),
+  healthcareRegClass: z.string().optional(),
+  mroUrgency: z.string().optional(),
+  logisticsSla: z.string().optional(),
+  mfgTolerance: z.string().optional(),
+  retailBrandModel: z.string().optional(),
   targetRegion: z.enum(['PL', 'US', 'GB', 'CA', 'AU', 'CN', 'EU', 'GLOBAL', 'GLOBAL_NO_CN', 'CUSTOM']).optional(),
   desiredDeliveryDate: z.string().optional(),
   deliveryLocationId: z.string().optional(),
@@ -512,11 +656,9 @@ export function RfqWizard({ onComplete, prefillIndustry, prefillMode }: RfqWizar
   const isMixed = mode === 'mixed';
   const isProductish = isProduct || isMixed;
 
+  // City visibility for events/construction/horeca service-mode flows. (Other branch
+  // flags now live inside Section 2 — see industry === 'X' guards there.)
   const showCity = (industry === 'events' || industry === 'construction' || industry === 'horeca') && (isService || isMixed);
-  const showEventDate = industry === 'events';
-  const showHeadcount = industry === 'events';
-  const showVoivodeships = industry === 'construction';
-  const showSourcingGeo = industry === 'retail' && isProductish;
   const showMoqLeadTime = isProductish && (industry === 'manufacturing' || industry === 'retail' || industry === 'healthcare' || industry === 'mro' || industry === 'logistics' || industry === 'other');
 
   const currentRegion = (formData.targetRegion as string) || 'EU';
@@ -783,30 +925,77 @@ export function RfqWizard({ onComplete, prefillIndustry, prefillMode }: RfqWizar
           )}
         </FormSection>
 
-        {/* ───── Section 2 — Branch-specific ──────────────────────────── */}
-        {(showCity || showEventDate || showHeadcount || showVoivodeships || showSourcingGeo) && (
+        {/* ───── Section 2 — Industry-specific (always visible) ───────────
+            Every industry must reshape the form: subcategory pill row + 1-2
+            extra pickers per branch (event type, construction stage, MRO
+            urgency, etc.). User explicitly asked for this — picking a branch
+            had to do more than swap a couple of niche fields. */}
+        {industry !== 'other' && INDUSTRY_SUBCATEGORIES[industry]?.length > 0 && (
           <FormSection
             number={2}
-            title={isEN ? 'Industry-specific details' : 'Szczegóły branżowe'}
-            subtitle={isEN ? 'Fields that matter only for your branch.' : 'Pola istotne tylko dla Twojej branży.'}
+            title={isEN ? `${(t.campaigns.wizard.brief.industries as Record<string, string>)[industry] || industry} — details` : `${(t.campaigns.wizard.brief.industries as Record<string, string>)[industry] || industry} — szczegóły`}
+            subtitle={isEN ? 'Fields tuned for your branch — they shape what AI looks for.' : 'Pola dopasowane do branży — sterują czego szuka AI.'}
           >
-            {showCity && (
-              <Field id="city" label={t.campaigns.wizard.serviceFields.city} required={industry === 'events'}>
-                <input
-                  type="text"
-                  value={formData.city || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                  maxLength={100}
-                  placeholder={t.campaigns.wizard.serviceFields.cityPlaceholder}
-                  className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                />
-                <p className="text-xs text-muted-foreground mt-1">{t.campaigns.wizard.serviceFields.cityHint}</p>
-              </Field>
+            {/* Subcategory — every branch gets one */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                {isEN ? 'Specialization' : 'Specjalizacja'}
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                {INDUSTRY_SUBCATEGORIES[industry].map(sub => {
+                  const selected = formData.industrySubcategory === sub.value;
+                  return (
+                    <button
+                      key={sub.value}
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, industrySubcategory: prev.industrySubcategory === sub.value ? undefined : sub.value }))}
+                      className={cn(
+                        'px-3 py-2 rounded-lg border-2 text-xs text-left transition-all',
+                        selected ? 'border-primary bg-primary/5 text-primary font-medium ring-2 ring-primary/20' : 'border-input hover:border-primary/40'
+                      )}
+                    >
+                      {isEN ? sub.en : sub.pl}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Manufacturing — tolerance dropdown */}
+            {industry === 'manufacturing' && (
+              <BranchPills
+                label={isEN ? 'Tolerance / quality grade' : 'Tolerancje / klasa jakości'}
+                options={MFG_TOLERANCES}
+                value={formData.mfgTolerance}
+                onChange={(v) => setFormData(prev => ({ ...prev, mfgTolerance: v }))}
+                isEN={isEN}
+              />
             )}
 
-            {(showEventDate || showHeadcount) && (
-              <div className="grid grid-cols-2 gap-4">
-                {showEventDate && (
+            {/* Events — type + city + date + headcount */}
+            {industry === 'events' && (
+              <>
+                <BranchPills
+                  label={isEN ? 'Event type' : 'Typ wydarzenia'}
+                  options={EVENT_TYPES}
+                  value={formData.eventType}
+                  onChange={(v) => setFormData(prev => ({ ...prev, eventType: v }))}
+                  isEN={isEN}
+                />
+                {(showCity || isService || isMixed) && (
+                  <Field id="city" label={t.campaigns.wizard.serviceFields.city} required>
+                    <input
+                      type="text"
+                      value={formData.city || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                      maxLength={100}
+                      placeholder={t.campaigns.wizard.serviceFields.cityPlaceholder}
+                      className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">{t.campaigns.wizard.serviceFields.cityHint}</p>
+                  </Field>
+                )}
+                <div className="grid grid-cols-2 gap-4">
                   <Field id="eventDate" label={t.campaigns.wizard.serviceFields.eventDate}>
                     <input
                       type="date"
@@ -815,8 +1004,6 @@ export function RfqWizard({ onComplete, prefillIndustry, prefillMode }: RfqWizar
                       className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   </Field>
-                )}
-                {showHeadcount && (
                   <Field id="headcount" label={t.campaigns.wizard.serviceFields.headcount}>
                     <input
                       type="text"
@@ -827,76 +1014,166 @@ export function RfqWizard({ onComplete, prefillIndustry, prefillMode }: RfqWizar
                       className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   </Field>
+                </div>
+              </>
+            )}
+
+            {/* Construction — voivodeships + stage + city */}
+            {industry === 'construction' && (
+              <>
+                <BranchPills
+                  label={isEN ? 'Project stage' : 'Etap inwestycji'}
+                  options={CONSTRUCTION_STAGES}
+                  value={formData.constructionStage}
+                  onChange={(v) => setFormData(prev => ({ ...prev, constructionStage: v }))}
+                  isEN={isEN}
+                />
+                {(showCity || isService || isMixed) && (
+                  <Field id="city" label={isEN ? 'Site city' : 'Miasto inwestycji'} optional>
+                    <input
+                      type="text"
+                      value={formData.city || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                      maxLength={100}
+                      placeholder={t.campaigns.wizard.serviceFields.cityPlaceholder}
+                      className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    />
+                  </Field>
                 )}
-              </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">
+                    {isEN ? 'PL voivodeships (optional)' : 'Województwa PL (opcjonalnie)'}
+                  </label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    {isEN ? 'Narrow to specific regions. Hard filter — drops suppliers from other voivodeships.' : 'Zawęź do regionów. Filtr twardy — odrzuca dostawców z innych województw.'}
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                    {PL_VOIVODESHIPS.map(v => {
+                      const selected = selectedVoivodeships.includes(v.code);
+                      return (
+                        <button
+                          key={v.code}
+                          type="button"
+                          onClick={() => setSelectedVoivodeships(prev => selected ? prev.filter(x => x !== v.code) : [...prev, v.code])}
+                          className={cn(
+                            'px-2.5 py-1.5 rounded-md border text-xs text-left transition-all',
+                            selected ? 'border-primary bg-primary/5 text-primary font-medium' : 'border-input hover:border-primary/40'
+                          )}
+                        >
+                          {isEN ? v.labelEn : v.labelPl}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
             )}
 
-            {showVoivodeships && (
-              <div>
-                <label className="block text-sm font-medium mb-1.5">
-                  {isEN ? 'PL voivodeships (optional)' : 'Województwa PL (opcjonalnie)'}
-                </label>
-                <p className="text-xs text-muted-foreground mb-2">
-                  {isEN ? 'Narrow to specific regions. Leave empty for all of Poland.' : 'Zawęź do regionów. Puste = cała Polska.'}
-                </p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                  {PL_VOIVODESHIPS.map(v => {
-                    const selected = selectedVoivodeships.includes(v.code);
-                    return (
-                      <button
-                        key={v.code}
-                        type="button"
-                        onClick={() => setSelectedVoivodeships(prev => selected ? prev.filter(x => x !== v.code) : [...prev, v.code])}
-                        className={cn(
-                          'px-2.5 py-1.5 rounded-md border text-xs text-left transition-all',
-                          selected ? 'border-primary bg-primary/5 text-primary font-medium' : 'border-input hover:border-primary/40'
-                        )}
-                      >
-                        {isEN ? v.labelEn : v.labelPl}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+            {/* HoReCa — venue type + city for catering */}
+            {industry === 'horeca' && (
+              <>
+                <BranchPills
+                  label={isEN ? 'Venue type' : 'Typ obiektu'}
+                  options={HORECA_VENUES}
+                  value={formData.horecaVenueType}
+                  onChange={(v) => setFormData(prev => ({ ...prev, horecaVenueType: v }))}
+                  isEN={isEN}
+                />
+                {(isService || isMixed) && (
+                  <Field id="city" label={t.campaigns.wizard.serviceFields.city} optional>
+                    <input
+                      type="text"
+                      value={formData.city || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                      maxLength={100}
+                      placeholder={t.campaigns.wizard.serviceFields.cityPlaceholder}
+                      className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    />
+                  </Field>
+                )}
+              </>
             )}
 
-            {showSourcingGeo && (
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  {isEN ? 'Sourcing geography' : 'Preferencja geografii'}
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(['nearshore', 'offshore', 'mixed'] as const).map(opt => {
-                    const selected = formData.sourcingGeography === opt;
-                    const labels = {
-                      nearshore: { l: isEN ? 'Nearshore (EU, TR)' : 'Nearshore (UE, TR)', d: isEN ? 'Low MOQ, fast lead' : 'Niski MOQ, szybki lead' },
-                      offshore: { l: isEN ? 'Offshore (Asia)' : 'Offshore (Azja)', d: isEN ? 'Lowest unit price' : 'Najniższa cena' },
-                      mixed: { l: isEN ? 'Mixed' : 'Mieszane', d: isEN ? 'Compare landed cost' : 'Porównaj landed cost' },
-                    };
-                    return (
-                      <button
-                        key={opt}
-                        type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, sourcingGeography: opt }))}
-                        className={cn(
-                          'flex flex-col items-start gap-0.5 p-2.5 rounded-lg border-2 transition-all text-left',
-                          selected ? 'border-primary bg-primary/5 ring-2 ring-primary/20' : 'border-input hover:border-primary/40 hover:bg-muted/30'
-                        )}
-                      >
-                        <span className="text-sm font-medium">{labels[opt].l}</span>
-                        <span className="text-xs text-muted-foreground">{labels[opt].d}</span>
-                      </button>
-                    );
-                  })}
+            {/* Healthcare — regulatory class */}
+            {industry === 'healthcare' && (
+              <BranchPills
+                label={isEN ? 'Regulatory class' : 'Klasa regulacyjna'}
+                options={HEALTHCARE_REG_CLASSES}
+                value={formData.healthcareRegClass}
+                onChange={(v) => setFormData(prev => ({ ...prev, healthcareRegClass: v }))}
+                isEN={isEN}
+              />
+            )}
+
+            {/* Retail — brand model + nearshore/offshore */}
+            {industry === 'retail' && (
+              <>
+                <BranchPills
+                  label={isEN ? 'Brand model' : 'Model brandowania'}
+                  options={RETAIL_BRAND_MODELS}
+                  value={formData.retailBrandModel}
+                  onChange={(v) => setFormData(prev => ({ ...prev, retailBrandModel: v }))}
+                  isEN={isEN}
+                />
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {isEN ? 'Sourcing geography' : 'Preferencja geografii'}
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(['nearshore', 'offshore', 'mixed'] as const).map(opt => {
+                      const selected = formData.sourcingGeography === opt;
+                      const labels = {
+                        nearshore: { l: isEN ? 'Nearshore (EU, TR)' : 'Nearshore (UE, TR)', d: isEN ? 'Low MOQ, fast lead' : 'Niski MOQ, szybki lead' },
+                        offshore: { l: isEN ? 'Offshore (Asia)' : 'Offshore (Azja)', d: isEN ? 'Lowest unit price' : 'Najniższa cena' },
+                        mixed: { l: isEN ? 'Mixed' : 'Mieszane', d: isEN ? 'Compare landed cost' : 'Porównaj landed cost' },
+                      };
+                      return (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, sourcingGeography: opt }))}
+                          className={cn(
+                            'flex flex-col items-start gap-0.5 p-2.5 rounded-lg border-2 transition-all text-left',
+                            selected ? 'border-primary bg-primary/5 ring-2 ring-primary/20' : 'border-input hover:border-primary/40 hover:bg-muted/30'
+                          )}
+                        >
+                          <span className="text-sm font-medium">{labels[opt].l}</span>
+                          <span className="text-xs text-muted-foreground">{labels[opt].d}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              </>
+            )}
+
+            {/* Logistics — SLA */}
+            {industry === 'logistics' && (
+              <BranchPills
+                label={isEN ? 'SLA expectation' : 'Wymagany SLA'}
+                options={LOGISTICS_SLAS}
+                value={formData.logisticsSla}
+                onChange={(v) => setFormData(prev => ({ ...prev, logisticsSla: v }))}
+                isEN={isEN}
+              />
+            )}
+
+            {/* MRO — urgency */}
+            {industry === 'mro' && (
+              <BranchPills
+                label={isEN ? 'Urgency' : 'Pilność'}
+                options={MRO_URGENCY}
+                value={formData.mroUrgency}
+                onChange={(v) => setFormData(prev => ({ ...prev, mroUrgency: v }))}
+                isEN={isEN}
+              />
             )}
           </FormSection>
         )}
 
         {/* ───── Section 3 — Geography ────────────────────────────────── */}
         <FormSection
-          number={showCity || showEventDate || showHeadcount || showVoivodeships || showSourcingGeo ? 3 : 2}
+          number={industry !== 'other' && INDUSTRY_SUBCATEGORIES[industry]?.length > 0 ? 3 : 2}
           title={t.campaigns.wizard.search.region}
           subtitle={isEN ? 'Where to look for suppliers.' : 'Gdzie szukamy dostawców.'}
         >
@@ -1031,7 +1308,7 @@ export function RfqWizard({ onComplete, prefillIndustry, prefillMode }: RfqWizar
 
         {/* ───── Section 4 — Logistics + Quality ──────────────────────── */}
         <FormSection
-          number={(showCity || showEventDate || showHeadcount || showVoivodeships || showSourcingGeo) ? 4 : 3}
+          number={industry !== 'other' && INDUSTRY_SUBCATEGORIES[industry]?.length > 0 ? 4 : 3}
           title={isEN ? 'Logistics & quality' : 'Logistyka i jakość'}
           subtitle={isEN ? 'Certificates, MOQ, lead time, Incoterms.' : 'Certyfikaty, MOQ, lead time, Incoterms.'}
         >
@@ -1184,7 +1461,7 @@ export function RfqWizard({ onComplete, prefillIndustry, prefillMode }: RfqWizar
         {/* ───── Section 5 — Outreach (full plan) ─────────────────────── */}
         {isFullPlan && sequences.length > 0 && (
           <FormSection
-            number={(showCity || showEventDate || showHeadcount || showVoivodeships || showSourcingGeo) ? 5 : 4}
+            number={industry !== 'other' && INDUSTRY_SUBCATEGORIES[industry]?.length > 0 ? 5 : 4}
             title={t.sequences.emailConfig}
             subtitle={isEN ? 'Email sequence sent to suppliers.' : 'Sekwencja maili do dostawców.'}
           >
@@ -1294,6 +1571,40 @@ function Field({ id, label, required, optional, error, children }: {
       </label>
       {children}
       {error && <p className="text-sm text-destructive mt-1">{error}</p>}
+    </div>
+  );
+}
+
+// Reusable pill picker for industry-specific single-select fields (event type,
+// construction stage, MRO urgency etc.). Click again on selected = clear.
+function BranchPills({ label, options, value, onChange, isEN }: {
+  label: string;
+  options: { value: string; pl: string; en: string }[];
+  value?: string;
+  onChange: (v?: string) => void;
+  isEN: boolean;
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-2">{label}</label>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+        {options.map(opt => {
+          const selected = value === opt.value;
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => onChange(selected ? undefined : opt.value)}
+              className={cn(
+                'px-3 py-2 rounded-lg border-2 text-xs text-left transition-all',
+                selected ? 'border-primary bg-primary/5 text-primary font-medium ring-2 ring-primary/20' : 'border-input hover:border-primary/40'
+              )}
+            >
+              {isEN ? opt.en : opt.pl}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

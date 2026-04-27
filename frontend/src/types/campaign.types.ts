@@ -277,6 +277,16 @@ export interface CreateCampaignDto {
   moq?: number;
   leadTimeWeeks?: number;
   sourcingGeography?: string;
+  // Per-industry subcategory + extra context (sprint 3.1 — every branch reshapes form)
+  industrySubcategory?: string;
+  eventType?: string;
+  constructionStage?: string;
+  horecaVenueType?: string;
+  healthcareRegClass?: string;
+  mroUrgency?: string;
+  logisticsSla?: string;
+  mfgTolerance?: string;
+  retailBrandModel?: string;
 
   // RFQ Data
   productName: string;

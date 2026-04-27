@@ -379,6 +379,15 @@ export class StrategyAgentService {
     moq?: number;
     leadTimeWeeks?: number;
     sourcingGeography?: string;
+    industrySubcategory?: string;
+    eventType?: string;
+    constructionStage?: string;
+    horecaVenueType?: string;
+    healthcareRegClass?: string;
+    mroUrgency?: string;
+    logisticsSla?: string;
+    mfgTolerance?: string;
+    retailBrandModel?: string;
   }): string {
     if (!ctx.industry && !ctx.sourcingMode && !ctx.city && !ctx.brief) {
       return '';
@@ -438,12 +447,33 @@ export class StrategyAgentService {
     }
     const constraintsBlock = constraintParts.length ? `\n${constraintParts.join('\n')}` : '';
 
+    // Per-industry subcategory + extra picker (event type, construction stage, MRO
+    // urgency, etc.) — surface them so query generation reflects buyer's actual niche.
+    const subcatParts: string[] = [];
+    if (ctx.industrySubcategory) subcatParts.push(`**SPECJALIZACJA:** ${ctx.industrySubcategory} — buduj zapytania pod tę niszę, nie ogólną branżę.`);
+    if (ctx.eventType) subcatParts.push(`**TYP WYDARZENIA:** ${ctx.eventType} (np. konferencja → catering biznesowy + AV; gala → catering high-end + scenografia).`);
+    if (ctx.constructionStage) subcatParts.push(`**ETAP INWESTYCJI:** ${ctx.constructionStage} — dopasuj typ podwykonawcy/materiału do etapu.`);
+    if (ctx.horecaVenueType) subcatParts.push(`**TYP OBIEKTU HoReCa:** ${ctx.horecaVenueType} — wolumen i częstotliwość dostaw zależą od typu.`);
+    if (ctx.healthcareRegClass) subcatParts.push(`**KLASA REGULACYJNA:** ${ctx.healthcareRegClass} — wymóg notyfikacji i konkretnych certyfikatów rośnie z klasą.`);
+    if (ctx.mroUrgency) {
+      const urgNote: Record<string, string> = {
+        emergency: 'EMERGENCY — linia stoi, priorytet to dystrybutorzy z magazynem na stanie, nie OEM z lead time.',
+        priority: 'PRIORITY — kilka dni, akceptujemy aftermarket equivalents.',
+        routine: 'ROUTINE — planowo, OEM lub kwalifikowani aftermarket.',
+      };
+      subcatParts.push(`**PILNOŚĆ MRO:** ${ctx.mroUrgency} — ${urgNote[ctx.mroUrgency] || ''}`);
+    }
+    if (ctx.logisticsSla) subcatParts.push(`**SLA LOGISTYCZNE:** ${ctx.logisticsSla} — wymagaj dostawców z deklaracją SLA.`);
+    if (ctx.mfgTolerance) subcatParts.push(`**TOLERANCJA PRODUKCYJNA:** ${ctx.mfgTolerance} — preferuj producentów z udokumentowaną klasą jakości.`);
+    if (ctx.retailBrandModel) subcatParts.push(`**MODEL BRANDOWANIA:** ${ctx.retailBrandModel} — private label/OEM filtruje innych dostawców niż reseller.`);
+    const subcatBlock = subcatParts.length ? `\n${subcatParts.join('\n')}` : '';
+
     const briefBlock = ctx.brief ? `\n**ORYGINALNY BRIEF OD UŻYTKOWNIKA:**\n"${ctx.brief.slice(0, 600)}"` : '';
 
     return `
 === KONTEKST BRANŻY I TRYBU SOURCINGU ===
 ${industryLine}
-${modeLine}${locationBlock}${constraintsBlock}${briefBlock}
+${modeLine}${locationBlock}${constraintsBlock}${subcatBlock}${briefBlock}
 
 `;
   }
@@ -587,6 +617,15 @@ ${translationsBlock || '  (brak — przetłumacz samodzielnie)'}
       moq: params.moq,
       leadTimeWeeks: params.leadTimeWeeks,
       sourcingGeography: params.sourcingGeography,
+      industrySubcategory: (params as any).industrySubcategory,
+      eventType: (params as any).eventType,
+      constructionStage: (params as any).constructionStage,
+      horecaVenueType: (params as any).horecaVenueType,
+      healthcareRegClass: (params as any).healthcareRegClass,
+      mroUrgency: (params as any).mroUrgency,
+      logisticsSla: (params as any).logisticsSla,
+      mfgTolerance: (params as any).mfgTolerance,
+      retailBrandModel: (params as any).retailBrandModel,
     });
 
     const systemPrompt = `
