@@ -321,6 +321,15 @@ model CampaignMetrics {
   // Rejection breakdown
   rejectionReasons    Json?
 
+  // Sprint 3: hard filter counters — track how many suppliers got dropped after Auditor
+  // by deterministic rules (required cert, MOQ, lead time, geography, voivodeship).
+  // Surfaced in campaign UI as "Found X / passed filters Y / rejected Z (47 missing CE…)".
+  hardFilteredCerts        Int @default(0)
+  hardFilteredMoq          Int @default(0)
+  hardFilteredLeadTime     Int @default(0)
+  hardFilteredGeography    Int @default(0)
+  hardFilteredVoivodeship  Int @default(0)
+
   // Timing
   totalDurationMs     Int?
 

@@ -142,6 +142,41 @@ export class EmailService {
     }
 
 
+    /** Admin-initiated password reset — minimal branded email, body is a tokenized reset link. */
+    async sendPasswordResetEmail(email: string, resetToken: string, locale?: string): Promise<boolean> {
+        if (!this.resend) return false;
+        const isEn = locale === 'en';
+        try {
+            const { to, subject } = this.getDebugRouting(email, isEn ? 'Reset your Procurea password' : 'Zresetuj hasło w Procurea');
+            const f = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+            const resetUrl = `${this.getAppUrl(locale)}/auth/reset-password?token=${encodeURIComponent(resetToken)}`;
+            await this.resend.emails.send({
+                from: this.getFromEmailForLocale(locale),
+                to,
+                subject,
+                html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:40px 20px;background:#FFF;font-family:${f};">
+<table width="600" cellpadding="0" cellspacing="0" border="0" align="center" style="max-width:600px;width:100%;">
+  <tr><td style="height:3px;background:#4F46E5;"></td></tr>
+  <tr><td style="padding:28px 0 20px 0;font-size:18px;font-weight:700;color:#4F46E5;">Procurea</td></tr>
+  <tr><td style="padding:24px 0;color:#374151;font-size:15px;line-height:1.7;">
+    <p style="margin:0 0 12px 0;font-weight:600;color:#111827;font-size:17px;">${isEn ? 'Reset your password' : 'Zresetuj swoje hasło'}</p>
+    <p style="margin:0 0 12px 0;">${isEn ? 'An administrator requested a password reset for your account.' : 'Administrator poprosił o reset hasła dla Twojego konta.'}</p>
+    <p style="margin:0;font-size:12px;color:#6B7280;">${isEn ? 'If you did not expect this, ignore — the link expires.' : 'Jeśli się tego nie spodziewałeś, zignoruj — link wygaśnie.'}</p>
+  </td></tr>
+  <tr><td align="center" style="padding:8px 0 24px 0;">
+    <a href="${resetUrl}" style="display:inline-block;background:#4F46E5;color:#FFF;padding:12px 32px;text-decoration:none;border-radius:6px;font-weight:600;font-size:14px;">${isEn ? 'Set new password' : 'Ustaw nowe hasło'}</a>
+  </td></tr>
+  <tr><td style="font-size:11px;color:#D1D5DB;">&copy; ${new Date().getFullYear()} Procurea</td></tr>
+</table></body></html>`,
+            });
+            this.logger.log(`Password reset email sent to ${email}`);
+            return true;
+        } catch (error) {
+            this.logger.error(`Failed to send password reset email to ${email}`, error);
+            return false;
+        }
+    }
+
     async sendTrialEndedEmail(email: string, name: string | null, locale?: string): Promise<boolean> {
         if (!this.resend) return false;
 
