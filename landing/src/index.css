@@ -6,7 +6,7 @@
 
 /* =====================================================
    Design System — Procurea (rebrand 2026)
-   Evergreen accent, warm off-white neutrals, CTA yellow.
+   Navy accent, warm off-white neutrals, CTA yellow.
    ===================================================== */
 
 @layer base {
@@ -160,7 +160,7 @@
     border-color: #ecd6ae;
   }
 
-  /* Buttons — primary yellow, secondary evergreen, ghost surface */
+  /* Buttons — primary yellow, secondary navy, ghost surface */
   .btn-ds {
     display: inline-flex;
     align-items: center;

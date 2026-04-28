@@ -112,7 +112,7 @@ export function BenefitsSection() {
           ))}
         </motion.div>
 
-        {/* Cards grid — clean neutral cards with evergreen accent line */}
+        {/* Cards grid — clean neutral cards with navy accent line */}
         <div className="grid md:grid-cols-2 gap-4">
           {t.benefits.cards.map((card, i) => (
             <RevealOnScroll key={card.title} delay={i * 0.12}>

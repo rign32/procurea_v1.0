@@ -113,7 +113,7 @@ export function Navbar() {
       >
         <nav role="navigation" aria-label="Main navigation" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between gap-4">
-            {/* Logo — evergreen brand mark */}
+            {/* Logo — navy brand mark */}
             <Link
               to={pathFor('home')}
               className="flex items-center gap-2.5 group shrink-0"

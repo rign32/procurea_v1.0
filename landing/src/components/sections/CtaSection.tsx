@@ -12,7 +12,7 @@ export function CtaSection() {
     <section className="py-[clamp(72px,10vw,128px)] px-[clamp(20px,4vw,72px)]">
       <div className="mx-auto max-w-[1240px]">
         <div className="cta-block-ds relative overflow-hidden">
-          {/* Evergreen ambient */}
+          {/* Navy ambient */}
           <motion.div
             className="absolute -top-40 -left-20 w-[500px] h-[500px] rounded-full blur-[120px] pointer-events-none"
             style={{ background: "radial-gradient(circle, hsl(var(--ds-accent)) 0%, transparent 70%)", opacity: 0.25 }}

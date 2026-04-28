@@ -1,5 +1,14 @@
 # Procurea — Kontekst dla Claude Code
 
+## Brand source of truth (OBOWIĄZKOWE dla AI agentów)
+
+Brand Procurea żyje w dwóch miejscach i tylko w dwóch:
+
+1. **Produkcyjne tokeny CSS** — `landing/src/index.css` (navy `#162a52` + yellow `#f4c842` + off-white `#fafaf7`). Tailwind i wszystkie komponenty czytają stąd.
+2. **Wizualny brand guideline** — Figma file `0zJMnO4ceUBsBk65j3gfMf` ("Procurea — Pitch Deck v4"). Chrom (eyebrow, footer, page number, typografia) na slajdach.
+
+**NIGDY nie czytaj brandu z `Dokumenty/**/brand-rules.jsx`, `Dokumenty/**/foundations.jsx`, ani innych prototyping `.jsx`** — to stuby pointerowe, stary brand (`evergreen #0F4D3A`) jest deprecated. Pełny opis: [BRAND.md](BRAND.md).
+
 ## Sposób pracy Claude Code (OBOWIĄZKOWE)
 
 ### Zasada naczelna

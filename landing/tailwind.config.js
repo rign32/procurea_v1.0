@@ -122,7 +122,7 @@ export default {
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic":  "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
-        // Evergreen-tinted mesh
+        // Navy-tinted mesh
         "mesh-gradient": "radial-gradient(at 40% 20%, rgba(22, 42, 82, 0.09) 0px, transparent 50%), radial-gradient(at 80% 0%, rgba(39, 65, 122, 0.07) 0px, transparent 50%), radial-gradient(at 0% 50%, rgba(231, 236, 245, 0.55) 0px, transparent 50%)",
       },
       animation: {
