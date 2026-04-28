@@ -14,7 +14,10 @@
     "generate:tco-calculator": "node scripts/generate-tco-calculator.mjs",
     "generate:vendor-scoring": "node scripts/generate-vendor-scoring-framework.mjs",
     "generate:supplier-risk-checklist": "node scripts/generate-supplier-risk-checklist.mjs",
-    "generate:nearshore-playbook": "node scripts/generate-nearshore-playbook.mjs"
+    "generate:nearshore-playbook": "node scripts/generate-nearshore-playbook.mjs",
+    "sync-magnet": "node scripts/sync-magnet-from-figma.mjs",
+    "sync-magnet:all": "node scripts/sync-magnet-from-figma.mjs --all",
+    "sync-magnet:dry": "node scripts/sync-magnet-from-figma.mjs --dry-run"
   },
   "dependencies": {
     "@calcom/embed-react": "^1.5.3",
