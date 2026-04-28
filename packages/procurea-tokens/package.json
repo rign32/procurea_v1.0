@@ -1,0 +1,23 @@
+{
+  "name": "@procurea/tokens",
+  "version": "1.0.0",
+  "description": "Procurea unified design tokens — navy brand, dual surfaces (warm marketing / cool product), yellow CTA",
+  "private": true,
+  "main": "./src/index.cjs",
+  "exports": {
+    ".": "./src/index.cjs",
+    "./tailwind": "./src/tailwind-shared.cjs",
+    "./colors": "./src/colors/index.cjs",
+    "./typography": "./src/typography/fonts.cjs"
+  },
+  "files": [
+    "src"
+  ],
+  "keywords": [
+    "design-tokens",
+    "procurea",
+    "tailwind"
+  ],
+  "author": "Procurea Design",
+  "license": "MIT"
+}
