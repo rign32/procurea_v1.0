@@ -16,29 +16,40 @@ export class FrameExtractor {
   // Top-level entry: returns array of { name, order, heading, marker, blocks, raw }.
   // `blocks` is an array of { kind: 'heading'|'body'|'caption', text } already
   // ordered as they should appear in markdown.
+  //
+  // Spread frames may live anywhere in the page tree — Procurea magnets in
+  // Figma typically wrap all spreads inside one outer "container" frame
+  // (e.g. "Nearshore Playbook"), so we walk recursively. Once we find a
+  // matching frame we don't descend into it (spreads don't nest in spreads).
   extractSpreads(page) {
-    const spreads = (page.children ?? [])
-      .filter((n) => n.type === 'FRAME' && SPREAD_NAME_RE.test(n.name))
-      .map((frame) => {
-        const m = frame.name.match(SPREAD_NAME_RE);
+    const found = [];
+    const walk = (node) => {
+      if (!node) return;
+      if (node.type === 'FRAME' && SPREAD_NAME_RE.test(node.name ?? '')) {
+        const m = node.name.match(SPREAD_NAME_RE);
         const order = m ? parseInt(m[1], 10) : 999;
-        return { frame, order };
-      })
-      .sort((a, b) => a.order - b.order || a.frame.name.localeCompare(b.frame.name));
+        found.push({ frame: node, order });
+        return; // don't descend into a spread's own children
+      }
+      if (Array.isArray(node.children)) node.children.forEach(walk);
+    };
+    walk(page);
 
-    if (this.verbose) console.log(`  [extract] ${spreads.length} spreads in page`);
+    found.sort((a, b) => a.order - b.order || a.frame.name.localeCompare(b.frame.name));
 
-    return spreads.map(({ frame, order }) => this.#parseSpread(frame, order));
+    if (this.verbose) console.log(`  [extract] ${found.length} spreads in page`);
+
+    return found.map(({ frame, order }) => this.#parseSpread(frame, order));
   }
 
   #parseSpread(frame, order) {
     const texts = this.client.collectTextNodes(frame);
     const blocks = this.#classifyBlocks(texts);
 
-    // First heading-like block is the spread heading; fallback to frame name
-    // (stripped of numeric prefix) so even diagram-only spreads get a title.
-    const headingBlock = blocks.find((b) => b.kind === 'heading');
-    const heading = headingBlock?.text ?? this.#humanizeFrameName(frame.name);
+    // Heading always derives from the spread frame name (stable, semantic).
+    // Auto-promoting the largest text to heading produced bad output: stat
+    // numbers ("73%"), running headers, and page numbers got promoted.
+    const heading = this.#humanizeFrameName(frame.name);
 
     return {
       name:    frame.name,
@@ -50,33 +61,48 @@ export class FrameExtractor {
     };
   }
 
-  // Classify text nodes into block kinds using font size buckets relative to
-  // the median size on the spread. Largest cluster = heading, mid = body,
-  // smallest = caption/footnote.
+  // Classify text nodes into body vs caption vs feature.
+  // - body:    main paragraph text (most nodes)
+  // - feature: large stat numbers / pull quotes (rendered bold + italic)
+  // - caption: small footnote / source / label text
+  // Chrome (running headers, page numbers, ALL-CAPS column eyebrows) is
+  // filtered out before classification — it doesn't read well in markdown
+  // and creates noise in diffs.
   #classifyBlocks(texts) {
-    if (texts.length === 0) return [];
+    const filtered = texts.filter((t) => !this.#isChrome(t));
+    if (filtered.length === 0) return [];
 
-    const sizes = texts.map((t) => t.fontSize ?? 0).filter((s) => s > 0);
+    const sizes = filtered.map((t) => t.fontSize ?? 0).filter((s) => s > 0);
     if (sizes.length === 0) {
-      // No font-size info — treat first as heading, rest as body.
-      return texts.map((t, i) => ({ kind: i === 0 ? 'heading' : 'body', text: t.text.trim() }));
+      return filtered.map((t) => ({ kind: 'body', text: t.text.trim() }));
     }
 
     const sorted = [...sizes].sort((a, b) => a - b);
     const median = sorted[Math.floor(sorted.length / 2)];
-    const max = sorted[sorted.length - 1];
-
-    // Heading threshold = max if max >> median, otherwise relative bumps.
-    const headingMin = max > median * 1.4 ? max * 0.95 : median * 1.4;
+    const featureMin = median * 1.6;
     const captionMax = median * 0.78;
 
-    return texts.map((t) => {
+    return filtered.map((t) => {
       const size = t.fontSize ?? median;
       let kind = 'body';
-      if (size >= headingMin) kind = 'heading';
+      if (size >= featureMin) kind = 'feature';
       else if (size <= captionMax) kind = 'caption';
       return { kind, text: t.text.trim() };
     }).filter((b) => b.text.length > 0);
+  }
+
+  // Drop chrome that pollutes the markdown output. Patterns:
+  //   - running header:  "Procurea · Nearshore Migration Playbook · v3"
+  //   - page number:     "p. 02 / 18", "02 / 18"
+  //   - section eyebrow: "01 · THE THESIS"  (kept — it's useful context)
+  //   - empty / single-char fragments
+  #isChrome(t) {
+    const text = (t.text ?? '').trim();
+    if (text.length <= 1) return true;
+    if (/^Procurea\s*[·•]/i.test(text)) return true;
+    if (/^p\.\s*\d+\s*\/\s*\d+$/i.test(text)) return true;
+    if (/^\d+\s*\/\s*\d+$/.test(text)) return true;
+    return false;
   }
 
   // Map "01-stat-card-execsummary" → "Stat Card Execsummary".

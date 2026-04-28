@@ -61,8 +61,9 @@ export class MarkdownRenderer {
         out.push(section.marker);
       }
 
-      // Group consecutive body blocks into paragraphs separated by blank lines.
-      // Caption blocks are emitted as italicized note lines.
+      // Body blocks → paragraphs (blank-line separated).
+      // Feature blocks (stat numbers, pull quotes) → bold lines.
+      // Caption blocks → buffered then flushed as a single italic line.
       let captionBuffer = [];
       const flushCaption = () => {
         if (captionBuffer.length) {
@@ -72,14 +73,13 @@ export class MarkdownRenderer {
       };
 
       for (const block of section.blocks) {
-        if (block.kind === 'heading' && block.text === section.heading) continue;
         if (block.kind === 'caption') {
           captionBuffer.push(block.text);
           continue;
         }
         flushCaption();
-        if (block.kind === 'heading') {
-          out.push('', `### ${block.text}`, '');
+        if (block.kind === 'feature') {
+          out.push(`**${block.text}**`, '');
         } else {
           out.push(block.text, '');
         }
