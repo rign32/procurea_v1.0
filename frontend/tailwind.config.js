@@ -1,4 +1,7 @@
 /** @type {import('tailwindcss').Config} */
+const tokens = require('../packages/procurea-tokens/src/tailwind-shared.cjs');
+const cool = tokens.surfaceProduct;
+
 export default {
     darkMode: ["class"],
     content: [
@@ -53,16 +56,23 @@ export default {
                     ring: "hsl(var(--sidebar-ring))",
                 },
 
-                /* ─── New product design system (hex-based, Wave 1+) ─── */
+                /* ─── Product design system (sourced from @procurea/tokens) ─── */
+                /* Surfaces flipped warm → COOL (#f8fafc family) per Option B.    */
                 bg: {
-                    DEFAULT: '#fafaf7',
-                    2: '#f3f3ee',
-                    3: '#ebebe4',
+                    DEFAULT: cool.bg,    // #f8fafc
+                    2:       cool.bg2,   // #f1f5f9
+                    3:       cool.bg3,   // #e2e8f0
                 },
                 surface: {
-                    DEFAULT: '#ffffff',
-                    2: '#fbfbf8',
+                    DEFAULT: cool.surface,    // #ffffff
+                    2:       cool.surface2,   // #f8fafc
                 },
+                rule: {
+                    DEFAULT: cool.rule,    // #cbd5e1
+                    2:       cool.rule2,   // #a8bcc8
+                    3:       cool.rule3,   // #94a3b8
+                },
+                /* Brand & signals — values match @procurea/tokens (hex). */
                 ink: {
                     DEFAULT: '#0e1614',
                     2: '#2a3330',
@@ -71,11 +81,6 @@ export default {
                 'muted-ink': {
                     DEFAULT: '#6b7672',
                     2: '#98a19c',
-                },
-                rule: {
-                    DEFAULT: '#e4e4dc',
-                    2: '#d6d6cc',
-                    3: '#c2c2b5',
                 },
                 brand: {
                     DEFAULT: '#162a52',

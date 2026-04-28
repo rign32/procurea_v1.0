@@ -17,20 +17,22 @@
 
 @layer base {
   :root {
-    /* ─── NEUTRALS (warm off-white paper) ─── */
-    --bg:           #fafaf7;
-    --bg-2:         #f3f3ee;
-    --bg-3:         #ebebe4;
+    /* ─── NEUTRALS (cool product surfaces — Option B token migration) ───
+       Sourced from @procurea/tokens surfaceProduct.
+       Marketing repos (landing, content-os) keep warm #fafaf7 family. */
+    --bg:           #f8fafc;
+    --bg-2:         #f1f5f9;
+    --bg-3:         #e2e8f0;
     --surface:      #ffffff;
-    --surface-2:    #fbfbf8;
+    --surface-2:    #f8fafc;
     --ink:          #0e1614;
     --ink-2:        #2a3330;
     --ink-3:        #4a5551;
     --muted-ink:    #6b7672;
     --muted-ink-2:  #98a19c;
-    --rule:         #e4e4dc;
-    --rule-2:       #d6d6cc;
-    --rule-3:       #c2c2b5;
+    --rule:         #cbd5e1;
+    --rule-2:       #a8bcc8;
+    --rule-3:       #94a3b8;
 
     /* ─── BRAND (navy — matches landing) ─── */
     --brand:        #162a52;
@@ -88,10 +90,9 @@
 
     /* ─── SHADCN COMPATIBILITY LAYER ───
        HSL components, back every primitive in components/ui/*.
-       Remapped from teal to navy + warm paper so primitives adopt new brand.
-       Values below are exact round-trip of hex tokens above (verified with
-       colorsys.rgb_to_hls). DO NOT rename — tailwind.config.js refs by name. */
-    --background:          60 23% 97%;        /* #fafaf7 */
+       Surfaces flipped warm → COOL per Option B (#f8fafc family).
+       Brand stays navy. DO NOT rename — tailwind.config.js refs by name. */
+    --background:          210 40% 98%;       /* #f8fafc cool */
     --foreground:          165 22% 7%;        /* #0e1614 */
     --card:                0 0% 100%;
     --card-foreground:     165 22% 7%;
@@ -99,26 +100,26 @@
     --popover-foreground:  165 22% 7%;
     --primary:             220 58% 20%;       /* #162a52 navy */
     --primary-foreground:  0 0% 100%;
-    --secondary:           60 17% 94%;        /* #f3f3ee */
+    --secondary:           210 40% 96%;       /* #f1f5f9 cool */
     --secondary-foreground:160 10% 18%;       /* #2a3330 */
-    --muted:               60 17% 94%;
+    --muted:               210 40% 96%;       /* #f1f5f9 cool */
     --muted-foreground:    158 5% 44%;        /* #6b7672 */
-    --accent:              219 41% 93%;       /* #e7ecf5 brand-soft */
+    --accent:              219 41% 93%;       /* #e7ecf5 brand-soft (kept) */
     --accent-foreground:   220 58% 20%;
     --destructive:         8 52% 48%;         /* #b94a3a */
     --destructive-foreground: 0 0% 100%;
-    --border:              60 13% 88%;        /* #e4e4dc */
-    --input:               60 13% 88%;
+    --border:              213 27% 84%;       /* #cbd5e1 cool */
+    --input:               213 27% 84%;       /* #cbd5e1 cool */
     --ring:                220 58% 20%;
     --radius:              0.625rem;          /* 10px = --r-4 */
 
-    --sidebar-background:         60 23% 97%;
+    --sidebar-background:         210 40% 98%;       /* #f8fafc cool */
     --sidebar-foreground:         160 10% 18%;
     --sidebar-primary:            220 58% 20%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent:             219 41% 93%;
     --sidebar-accent-foreground:  220 58% 20%;
-    --sidebar-border:             60 13% 88%;
+    --sidebar-border:             213 27% 84%;       /* #cbd5e1 cool */
     --sidebar-ring:               220 58% 20%;
   }
 
