@@ -7,12 +7,14 @@ import {
     Plug,
     Bell,
     Activity,
+    BookOpen,
     LogOut,
 } from 'lucide-react';
 
 const navItems = [
     { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/users', icon: Users, label: 'Użytkownicy' },
+    { to: '/lead-magnets', icon: BookOpen, label: 'Lead Magnets' },
     { to: '/events', icon: Bell, label: 'Events' },
     { to: '/errors', icon: AlertTriangle, label: 'Logi błędów' },
     { to: '/integrations', icon: Plug, label: 'API & Koszty' },

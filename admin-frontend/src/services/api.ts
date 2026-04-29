@@ -180,4 +180,26 @@ export const getMonitoringHistory = (hours?: number) =>
 export const getMonitoringIncidents = (status?: string) =>
     api.get('/monitoring/incidents', { params: { status } });
 
+// Lead Magnets — list + Figma sync trigger
+export interface LeadMagnetEntry {
+    slug: string;
+    title: string;
+    figmaPageName: string;
+    audience: string;
+    category: string;
+    isPublished: boolean;
+    figmaUrl: string;
+    hostedPdf: { pl: string; en: string } | null;
+    hostedMarkdown: { pl: string; en: string } | null;
+}
+
+export const getLeadMagnets = () =>
+    api.get<LeadMagnetEntry[]>('/admin/lead-magnets');
+
+export const syncLeadMagnet = (slug?: string) =>
+    api.post<{ ok: true; runUrl: string; slug: string | null }>(
+        '/admin/lead-magnets/sync',
+        slug ? { slug } : {},
+    );
+
 export default api;

@@ -1,0 +1,76 @@
+name: Sync Lead Magnets from Figma
+
+# Triggered manually or via the admin panel (POST /admin/lead-magnets/sync).
+# Runs the local sync script against the Figma file, regenerates PDFs from
+# the actual Figma design (vector renders + pdf-lib merge), commits the
+# resulting .md + .pdf files to staging — the existing deploy-staging.yml
+# then publishes them to procurea-app-staging.web.app.
+#
+# Production rollout is still gated: someone (admin or another session)
+# must merge staging → main when the staging copy looks right.
+
+on:
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: 'Magnet slug to sync (leave empty to sync all)'
+        required: false
+        default: ''
+        type: string
+
+concurrency:
+  group: sync-lead-magnets
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync from Figma → commit to staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: staging
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: landing/package-lock.json
+
+      - name: Install landing deps
+        working-directory: landing
+        run: npm ci
+
+      - name: Run sync
+        working-directory: landing
+        env:
+          FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
+        run: |
+          if [ -z "${{ inputs.slug }}" ]; then
+            echo "Syncing ALL magnets…"
+            node scripts/sync-magnet-from-figma.mjs --all
+          else
+            echo "Syncing slug=${{ inputs.slug }}…"
+            node scripts/sync-magnet-from-figma.mjs --slug=${{ inputs.slug }}
+          fi
+
+      - name: Commit + push (only if anything actually changed)
+        run: |
+          git config user.name "Procurea Sync Bot"
+          git config user.email "noreply@procurea.pl"
+          git add landing/public/resources/downloads/ landing/src/content/resources.ts
+          if git diff --cached --quiet; then
+            echo "No changes — Figma is already in sync with the repo."
+            exit 0
+          fi
+          if [ -z "${{ inputs.slug }}" ]; then
+            MSG="content: sync all lead magnets from Figma (admin trigger)"
+          else
+            MSG="content: sync ${{ inputs.slug }} from Figma (admin trigger)"
+          fi
+          git commit -m "$MSG"
+          git push origin staging

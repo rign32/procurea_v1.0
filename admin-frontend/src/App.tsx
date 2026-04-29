@@ -7,6 +7,7 @@ import ErrorLogsPage from './pages/ErrorLogsPage';
 import EventsPage from './pages/EventsPage';
 import IntegrationsPage from './pages/IntegrationsPage';
 import SystemStatusPage from './pages/SystemStatusPage';
+import LeadMagnetsPage from './pages/LeadMagnetsPage';
 import Layout from './components/Layout';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -32,6 +33,7 @@ export default function App() {
                                     <Route path="/errors" element={<ErrorLogsPage />} />
                                     <Route path="/integrations" element={<IntegrationsPage />} />
                                     <Route path="/status" element={<SystemStatusPage />} />
+                                    <Route path="/lead-magnets" element={<LeadMagnetsPage />} />
                                     <Route path="*" element={<Navigate to="/" replace />} />
                                 </Routes>
                             </Layout>
