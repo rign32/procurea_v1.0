@@ -6,6 +6,7 @@ import { FigmaClient } from './figma-client.mjs';
 import { FrameExtractor } from './frame-extractor.mjs';
 import { MarkdownRenderer } from './markdown-renderer.mjs';
 import { FileWriter } from './file-writer.mjs';
+import { FigmaPdfExporter } from './figma-pdf-export.mjs';
 import { FIGMA_FILE_KEY, MAGNET_CONFIG } from './magnet-config.mjs';
 
 export class SyncAgent {
@@ -19,7 +20,8 @@ export class SyncAgent {
     }
     this.figma = new FigmaClient(token, { verbose: options.verbose });
     this.extractor = new FrameExtractor(this.figma, { verbose: options.verbose });
-    this.writer = new FileWriter({ verbose: options.verbose });
+    this.pdfExporter = new FigmaPdfExporter(token, { verbose: options.verbose });
+    this.writer = new FileWriter({ verbose: options.verbose, pdfExporter: this.pdfExporter });
     this.verbose = options.verbose ?? false;
     this.fileKey = options.fileKey ?? FIGMA_FILE_KEY;
   }
@@ -70,6 +72,10 @@ export class SyncAgent {
       skipPdf: options.skipPdf ?? false,
       updateManifest: options.updateManifest ?? true,
       skipDiff: options.skipDiff ?? false,
+      // Pass the live Figma page node so the writer can pipe it into the
+      // PDF exporter without re-fetching the file.
+      figmaPage: page,
+      figmaFileKey: this.fileKey,
     });
     return { slug, sections, markdown, write, preview: null };
   }

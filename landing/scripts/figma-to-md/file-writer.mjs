@@ -1,19 +1,20 @@
-// Persist sync output: write markdown, regenerate PDF (pandoc + wkhtmltopdf
-// when available — same toolchain as scripts/build-lead-magnets.mjs), update
-// the resources.ts manifest publishedAt, and surface a git diff preview.
+// Persist sync output: write markdown, regenerate PDF straight from Figma
+// (cover + numbered spreads merged via pdf-lib — preserves the actual
+// designed layout), update the resources.ts manifest publishedAt, and
+// surface a git diff preview.
 //
 // All paths are anchored to landing/ (the CWD when running via `npm run`).
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { execSync, spawnSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 
 import { DOWNLOADS_DIR, RESOURCES_MANIFEST } from './magnet-config.mjs';
 
 export class FileWriter {
   constructor(options = {}) {
     this.verbose = options.verbose ?? false;
-    this.pandocAvailable = pandocAvailable();
+    this.pdfExporter = options.pdfExporter ?? null;
   }
 
   // Returns { mdPath, pdfPath, pdfBytes, manifestUpdated, diff }.
@@ -28,7 +29,7 @@ export class FileWriter {
 
     let pdfBytes = null;
     if (!options.skipPdf) {
-      pdfBytes = await this.#regeneratePdf(mdPath, pdfPath);
+      pdfBytes = await this.#exportPdfFromFigma(pdfPath, options.figmaPage, options.figmaFileKey);
     }
 
     const manifestUpdated = options.updateManifest === false
@@ -51,22 +52,20 @@ export class FileWriter {
 
   // ── PDF ───────────────────────────────────────────────────────────────
 
-  async #regeneratePdf(mdPath, pdfPath) {
-    if (!this.pandocAvailable) {
-      console.warn(`  ⚠ pandoc not installed — skipping PDF (install: brew install pandoc wkhtmltopdf)`);
+  // Render the actual Figma design (cover + spreads) into a multi-page PDF
+  // via the Image API — far better fidelity than markdown→PDF, since
+  // Figma's renderer preserves layouts, charts, maps, type, colour, etc.
+  async #exportPdfFromFigma(pdfPath, figmaPage, fileKey) {
+    if (!this.pdfExporter) {
+      console.warn(`  ⚠ no pdfExporter wired — skipping PDF`);
+      return null;
+    }
+    if (!figmaPage || !fileKey) {
+      console.warn(`  ⚠ no Figma page/fileKey passed — skipping PDF`);
       return null;
     }
     try {
-      execSync(
-        [
-          `pandoc "${mdPath}" -o "${pdfPath}"`,
-          `--pdf-engine=wkhtmltopdf`,
-          `-V margin-top=20mm -V margin-bottom=20mm`,
-          `-V margin-left=20mm -V margin-right=20mm`,
-        ].join(' '),
-        { stdio: this.verbose ? 'inherit' : 'pipe' },
-      );
-      const size = statSync(pdfPath).size;
+      const size = await this.pdfExporter.writeToFile(fileKey, figmaPage, pdfPath);
       if (size < 50_000) {
         console.warn(`  ⚠ PDF suspiciously small (${size}B) — verify content`);
       }
@@ -74,7 +73,7 @@ export class FileWriter {
       return size;
     } catch (err) {
       const msg = err.message?.split('\n')[0] ?? String(err);
-      console.warn(`  ⚠ PDF generation failed (continuing): ${msg}`);
+      console.warn(`  ⚠ Figma PDF export failed (continuing without PDF): ${msg}`);
       return null;
     }
   }

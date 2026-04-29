@@ -40,6 +40,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.17",
     "exceljs": "^4.4.0",
+    "pdf-lib": "^1.17.1",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.17",
     "typescript": "~5.6.0",
