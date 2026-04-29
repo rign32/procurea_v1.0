@@ -187,8 +187,24 @@ export class GeminiService {
                 lastError = e;
                 this.consecutiveFailures++;
                 this.lastFailureTime = Date.now();
-                const isTimeout = e.message?.includes('timeout');
-                const isRetryable = isTimeout || e.message?.includes('429') || e.message?.includes('503') || e.message?.includes('RESOURCE_EXHAUSTED');
+                const msg = e.message || '';
+                const code = e.code || '';
+                const isTimeout = msg.includes('timeout');
+                // Cloud Run → Gemini endpoint occasionally drops TLS mid-handshake under load
+                // (same pattern Serper had). Treat network-layer failures as retryable so the
+                // pipeline doesn't false-fail the campaign on a transient network blip.
+                const isNetworkError =
+                    code === 'ECONNRESET' ||
+                    code === 'ECONNREFUSED' ||
+                    code === 'ETIMEDOUT' ||
+                    code === 'EPIPE' ||
+                    code === 'ECONNABORTED' ||
+                    msg.includes('socket disconnected') ||
+                    msg.includes('socket hang up') ||
+                    msg.includes('TLS connection') ||
+                    msg.includes('fetch failed') ||
+                    msg.includes('ECONNRESET');
+                const isRetryable = isTimeout || isNetworkError || msg.includes('429') || msg.includes('503') || msg.includes('RESOURCE_EXHAUSTED');
 
                 if (!isRetryable || attempt >= this.MAX_RETRIES) {
                     status = 'error';
