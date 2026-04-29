@@ -27,6 +27,7 @@ import {
   parseLooseDate,
   type ExtractedCertificate,
 } from '../suppliers/certificate-types';
+import { checkRequiredCerts } from './cert-taxonomy';
 import { v4 as uuidv4 } from 'uuid';
 import pLimit = require('p-limit');
 import * as XLSX from 'xlsx';
@@ -386,18 +387,23 @@ export class SourcingService {
         const sc = (dto.searchCriteria || {}) as any;
 
         // A) Required certificates — buyer demanded these explicitly.
+        // Hard-reject only on missing CORPORATE certifications (ISO/GMP/DMF/etc.) using
+        // the alias-aware taxonomy. Per-batch project documents (CoA, Written confirmation,
+        // MSDS) and unrecognized strings soft-pass — they belong at RFQ time, not pipeline gate.
         const required: string[] = (sc.requiredCertificates || []).map((c: string) => c.trim()).filter(Boolean);
         if (required.length > 0) {
             const found: string[] = [
                 ...(golden?.certificates || []),
                 ...(screenerExtracted?.certificates || []),
-            ].map((c: string) => String(c).toUpperCase().trim());
-            const missing = required.filter(req => {
-                const reqUp = req.toUpperCase();
-                return !found.some(f => f.includes(reqUp) || reqUp.includes(f));
-            });
-            if (missing.length > 0) {
-                return { passes: false, bucket: 'HARD_FILTER_CERT', reason: `missing required cert(s): ${missing.join(', ')}` };
+            ];
+            const certCheck = checkRequiredCerts(required, found);
+            if (certCheck.missing.length > 0) {
+                return { passes: false, bucket: 'HARD_FILTER_CERT', reason: `missing required cert(s): ${certCheck.missing.join(', ')}` };
+            }
+            if (certCheck.softPass.length > 0 || certCheck.unknown.length > 0) {
+                this.logger.debug?.(
+                    `[HARD_FILTER_CERT soft-pass] project-docs=${JSON.stringify(certCheck.softPass)} unknown=${JSON.stringify(certCheck.unknown)}`,
+                );
             }
         }
 
