@@ -383,28 +383,30 @@ export class SourcingService {
         golden: any,
         screenerExtracted: any,
         dto: CreateCampaignDto,
-    ): { passes: boolean; bucket?: string; reason?: string } {
+    ): { passes: boolean; bucket?: string; reason?: string; certificateMatch?: { status: 'verified' | 'unknown'; missing: string[]; verified: string[] } } {
         const sc = (dto.searchCriteria || {}) as any;
 
-        // A) Required certificates — buyer demanded these explicitly.
-        // Hard-reject only on missing CORPORATE certifications (ISO/GMP/DMF/etc.) using
-        // the alias-aware taxonomy. Per-batch project documents (CoA, Written confirmation,
-        // MSDS) and unrecognized strings soft-pass — they belong at RFQ time, not pipeline gate.
+        // A) Required certificates — annotate, don't reject.
+        // Buyer-listed certs that the supplier publicly advertises → status 'verified'.
+        // Anything missing (could be unpublished, per-batch doc, or unknown term) →
+        // status 'unknown'. The supplier still passes; UI sorts verified to the top
+        // and labels the rest "needs supplier confirmation". A hard reject here drops
+        // valid manufacturers whose homepage simply doesn't list every cert.
         const required: string[] = (sc.requiredCertificates || []).map((c: string) => c.trim()).filter(Boolean);
+        let certificateMatch: { status: 'verified' | 'unknown'; missing: string[]; verified: string[] } | undefined;
         if (required.length > 0) {
             const found: string[] = [
                 ...(golden?.certificates || []),
                 ...(screenerExtracted?.certificates || []),
             ];
             const certCheck = checkRequiredCerts(required, found);
-            if (certCheck.missing.length > 0) {
-                return { passes: false, bucket: 'HARD_FILTER_CERT', reason: `missing required cert(s): ${certCheck.missing.join(', ')}` };
-            }
-            if (certCheck.softPass.length > 0 || certCheck.unknown.length > 0) {
-                this.logger.debug?.(
-                    `[HARD_FILTER_CERT soft-pass] project-docs=${JSON.stringify(certCheck.softPass)} unknown=${JSON.stringify(certCheck.unknown)}`,
-                );
-            }
+            const missingFromHomepage = [...certCheck.missing, ...certCheck.softPass, ...certCheck.unknown];
+            const verifiedOnHomepage = required.filter(r => !missingFromHomepage.includes(r) && !certCheck.softPass.includes(r) && !certCheck.unknown.includes(r));
+            certificateMatch = {
+                status: certCheck.missing.length === 0 ? 'verified' : 'unknown',
+                missing: certCheck.missing,
+                verified: verifiedOnHomepage,
+            };
         }
 
         // B) MOQ ceiling — supplier MOQ above buyer's tolerance is non-viable.
@@ -462,7 +464,7 @@ export class SourcingService {
             }
         }
 
-        return { passes: true };
+        return { passes: true, certificateMatch };
     }
 
     private inferLogSeverity(message: string): 'info' | 'warning' | 'error' | 'critical' {
@@ -2977,9 +2979,11 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             }
 
             // Sprint 3 — HARD FILTERS: deterministic post-Auditor checks. Wizard-collected
-            // requirements (CE, MOQ, lead time, voivodeships, nearshore) must drop the
-            // supplier here, not just lower its score. The buyer chose them because they
-            // matter — bypass means we silently delivered junk.
+            // requirements (MOQ, lead time, voivodeships, nearshore) must drop the supplier
+            // here. Certificates DO NOT hard-reject anymore — they annotate the supplier as
+            // 'verified' (homepage shows the cert) or 'unknown' (need to confirm with supplier
+            // at RFQ time). UI sorts verified to the top. Hard reject on certs dropped valid
+            // manufacturers whose homepage simply didn't list every doc the buyer typed.
             const hardFilter = this.applyHardFilters(auditorResult.golden_record, screenerResult.extracted_data, dto);
             if (!hardFilter.passes) {
                 const bucket = hardFilter.bucket || 'HARD_FILTER';
@@ -2989,6 +2993,10 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                     stats.rejectionReasons.set(bucket, (stats.rejectionReasons.get(bucket) || 0) + 1);
                 }
                 return 0;
+            }
+            const certificateMatch = hardFilter.certificateMatch;
+            if (certificateMatch) {
+                await this.log(campaignId, `${workerTag} CERT_${certificateMatch.status.toUpperCase()}: ${domain} (verified=[${certificateMatch.verified.join(', ')}], unknown=[${certificateMatch.missing.join(', ')}])`);
             }
 
             // BORDERLINE suppliers need higher auditor confidence to pass
@@ -3287,8 +3295,13 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                     enrichmentResult: JSON.stringify(enrichmentResult),
                     auditorResult: JSON.stringify(auditorResult),
                     analysisScore: finalScore / 10,
-                    // Flexible blob — currently: VIES VAT check result (used by UI badge).
-                    metadata: vatMetadata ? JSON.stringify({ vat: vatMetadata }) : null,
+                    // Flexible blob: VIES VAT check + certificate match status (used by UI for sort/badge).
+                    metadata: (vatMetadata || certificateMatch)
+                      ? JSON.stringify({
+                          ...(vatMetadata ? { vat: vatMetadata } : {}),
+                          ...(certificateMatch ? { certificateMatch } : {}),
+                        })
+                      : null,
 
                     analysisReason: enrichmentResult.verification?.verification_notes || screenerResult.match_reason,
                     originLanguage: originLanguage,
@@ -3591,6 +3604,21 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             // Increment usage in registry (and ensure it exists/get ID)
             const registryEntry = await this.companyRegistry.upsert(cachedSupplier.domain, {}, campaignId);
 
+            // Compute cert match from cached certificates so cache-hit suppliers also get the badge
+            const requiredCerts: string[] = ((dto.searchCriteria as any)?.requiredCertificates || []).map((c: string) => String(c).trim()).filter(Boolean);
+            let cachedCertificateMatch: { status: 'verified' | 'unknown'; missing: string[]; verified: string[] } | undefined;
+            if (requiredCerts.length > 0) {
+                const found: string[] = Array.isArray(enrichedData.certificates)
+                    ? enrichedData.certificates
+                    : String(enrichedData.certificates || '').split(',').map((s: string) => s.trim()).filter(Boolean);
+                const certCheck = checkRequiredCerts(requiredCerts, found);
+                cachedCertificateMatch = {
+                    status: certCheck.missing.length === 0 ? 'verified' : 'unknown',
+                    missing: certCheck.missing,
+                    verified: requiredCerts.filter(r => !certCheck.missing.includes(r) && !certCheck.softPass.includes(r) && !certCheck.unknown.includes(r)),
+                };
+            }
+
             // Save to campaign suppliers
             const newSupplier = await this.prisma.supplier.create({
                 data: {
@@ -3609,6 +3637,7 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                     enrichmentResult: JSON.stringify(cachedSupplier.enrichmentResult || {}),
                     auditorResult: JSON.stringify(cachedSupplier.auditorResult || {}),
                     analysisScore: finalScore / 10,
+                    metadata: cachedCertificateMatch ? JSON.stringify({ certificateMatch: cachedCertificateMatch }) : null,
 
                     analysisReason: 'Data from Global Registry Cache',
                     originLanguage: originLanguage,
