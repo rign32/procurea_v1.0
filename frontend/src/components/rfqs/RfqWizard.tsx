@@ -219,6 +219,26 @@ export const RETAIL_BRAND_MODELS: { value: string; pl: string; en: string }[] = 
   { value: 'oem_design', pl: 'OEM z naszym designem', en: 'OEM (our design)' },
 ];
 
+// Unit dropdown options — universal across industries. Avoids free-text mistakes
+// (kg vs Kg vs kilo) and lets us aggregate volumes downstream.
+export const UNIT_OPTIONS: { value: string; pl: string; en: string }[] = [
+  { value: 'pcs', pl: 'szt.', en: 'pcs' },
+  { value: 'kg', pl: 'kg', en: 'kg' },
+  { value: 'tonnes', pl: 't', en: 'tonnes' },
+  { value: 'meters', pl: 'm', en: 'meters' },
+  { value: 'm2', pl: 'm²', en: 'm²' },
+  { value: 'm3', pl: 'm³', en: 'm³' },
+  { value: 'liters', pl: 'l', en: 'liters' },
+  { value: 'pallets', pl: 'palety', en: 'pallets' },
+  { value: 'boxes', pl: 'kartony', en: 'boxes' },
+  { value: 'sets', pl: 'kpl.', en: 'sets' },
+  { value: 'hours', pl: 'godz.', en: 'hours' },
+  { value: 'days', pl: 'dni', en: 'days' },
+  { value: 'months', pl: 'mies.', en: 'months' },
+  { value: 'people', pl: 'os.', en: 'people' },
+  { value: 'services', pl: 'usługi', en: 'services' },
+];
+
 // One-click sample briefs per industry — break the blank-canvas freeze.
 export const SAMPLE_BRIEFS: Record<Industry, { pl: string; en: string }[]> = {
   manufacturing: [
@@ -477,17 +497,8 @@ export function RfqWizard({ onComplete, prefillIndustry, prefillMode }: RfqWizar
     saveWizardDraft({ formData, certificates, selectedCountries, excludedCountries, selectedVoivodeships, selectedIncoterms });
   }, [formData, certificates, selectedCountries, excludedCountries, selectedVoivodeships, selectedIncoterms]);
 
-  // Auto-add industry-required certs when user picks the branch.
-  useEffect(() => {
-    const industry = formData.industry as Industry | undefined;
-    if (!industry) return;
-    const required = INDUSTRY_CERTIFICATES[industry]?.required || [];
-    if (!required.length) return;
-    setCertificates(prev => {
-      const missing = required.filter(c => !prev.includes(c));
-      return missing.length ? [...prev, ...missing] : prev;
-    });
-  }, [formData.industry]);
+  // No auto-add of "industry-required" certs — user wants full control over
+  // which certs filter suppliers. Suggestions still appear via INDUSTRY_CERTIFICATES.
 
   // Load sequences + locations
   useEffect(() => {
@@ -815,7 +826,7 @@ export function RfqWizard({ onComplete, prefillIndustry, prefillMode }: RfqWizar
                 </Field>
               </div>
               <div className="grid grid-cols-3 gap-4">
-                <Field id="quantity" label={t.campaigns.wizard.specs.quantity} optional>
+                <Field id="quantity" label={t.campaigns.wizard.specs.quantity} required>
                   <input
                     type="text"
                     inputMode="numeric"
@@ -826,14 +837,15 @@ export function RfqWizard({ onComplete, prefillIndustry, prefillMode }: RfqWizar
                   />
                 </Field>
                 <Field id="unit" label={t.campaigns.wizard.specs.unit} optional>
-                  <input
-                    type="text"
-                    value={formData.unit || ''}
+                  <select
+                    value={formData.unit || 'pcs'}
                     onChange={(e) => setFormData(prev => ({ ...prev, unit: e.target.value }))}
-                    maxLength={20}
-                    placeholder={t.campaigns.wizard.specs.unitDefault}
                     className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                  />
+                  >
+                    {UNIT_OPTIONS.map(u => (
+                      <option key={u.value} value={u.value}>{isEN ? u.en : u.pl}</option>
+                    ))}
+                  </select>
                 </Field>
                 <Field id="eau" label={t.campaigns.wizard.specs.eau} optional>
                   <input
@@ -1312,27 +1324,21 @@ export function RfqWizard({ onComplete, prefillIndustry, prefillMode }: RfqWizar
           title={isEN ? 'Logistics & quality' : 'Logistyka i jakość'}
           subtitle={isEN ? 'Certificates, MOQ, lead time, Incoterms.' : 'Certyfikaty, MOQ, lead time, Incoterms.'}
         >
-          {/* Certificates */}
+          {/* Certificates — user picks freely. No pre-locked / forced certs;
+              suggestions surface common ones for the branch. */}
           <div>
             <label className="block text-sm font-medium mb-2">{t.campaigns.wizard.search.certificates}</label>
-            {certSet.required.length > 0 && (
-              <div className="mb-2 flex flex-wrap items-center gap-1.5 text-xs">
-                <span className="text-muted-foreground">
-                  {isEN ? 'Required for this industry — pipeline drops suppliers without:' : 'Wymagane dla tej branży — pipeline odrzuca bez:'}
-                </span>
-                {certSet.required.map(cert => (
-                  <Badge key={cert} variant="secondary" className="bg-primary/10 text-primary border border-primary/20">
-                    {cert}
-                  </Badge>
-                ))}
-              </div>
-            )}
             <TagInput
               value={certificates}
               onChange={setCertificates}
               placeholder={t.campaigns.wizard.search.certificatesPlaceholder}
               suggestions={certSuggestions}
             />
+            <p className="text-xs text-muted-foreground mt-1.5">
+              {isEN
+                ? 'Empty = any certification is acceptable. Add only what you genuinely need.'
+                : 'Puste = każdy certyfikat jest OK. Dodaj tylko to, czego naprawdę potrzebujesz.'}
+            </p>
           </div>
 
           {/* Incoterms — product/mixed only */}
@@ -1373,10 +1379,12 @@ export function RfqWizard({ onComplete, prefillIndustry, prefillMode }: RfqWizar
             </div>
           )}
 
-          {/* MOQ + Lead time */}
+          {/* MOQ + Lead time — applied at RFQ stage in the supplier portal,
+              NOT as a hard filter on sourcing search. Suppliers above the limit
+              just get blocked from offering, not from being found. */}
           {showMoqLeadTime && (
             <div className="grid grid-cols-2 gap-4">
-              <Field id="moq" label={isEN ? 'MOQ (min. order)' : 'MOQ (min. zamówienie)'} optional>
+              <Field id="moq" label={isEN ? 'MOQ ceiling (optional)' : 'Maks. MOQ (opcjonalne)'} optional>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -1386,10 +1394,10 @@ export function RfqWizard({ onComplete, prefillIndustry, prefillMode }: RfqWizar
                   className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  {isEN ? 'Hard filter: drops suppliers above this.' : 'Filtr twardy: odrzuca dostawców z wyższym MOQ.'}
+                  {isEN ? 'Applied at RFQ stage — supplier portal blocks offers above this MOQ.' : 'Stosowane na etapie RFQ — portal dostawcy blokuje oferty powyżej tego MOQ.'}
                 </p>
               </Field>
-              <Field id="leadTimeWeeks" label={isEN ? 'Lead time (weeks)' : 'Lead time (tygodnie)'} optional>
+              <Field id="leadTimeWeeks" label={isEN ? 'Max lead time (weeks, optional)' : 'Maks. lead time (tygodnie, opcjonalne)'} optional>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -1399,7 +1407,7 @@ export function RfqWizard({ onComplete, prefillIndustry, prefillMode }: RfqWizar
                   className="w-full px-3 py-2.5 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  {isEN ? 'Hard filter: drops longer lead times.' : 'Filtr twardy: odrzuca dłuższy lead time.'}
+                  {isEN ? 'Applied at RFQ stage — supplier portal blocks offers above this lead time.' : 'Stosowane na etapie RFQ — portal dostawcy blokuje oferty z dłuższym lead time.'}
                 </p>
               </Field>
             </div>
