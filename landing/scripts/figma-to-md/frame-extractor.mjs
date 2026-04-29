@@ -61,34 +61,152 @@ export class FrameExtractor {
     };
   }
 
-  // Classify text nodes into body vs caption vs feature.
-  // - body:    main paragraph text (most nodes)
-  // - feature: large stat numbers / pull quotes (rendered bold + italic)
-  // - caption: small footnote / source / label text
-  // Chrome (running headers, page numbers, ALL-CAPS column eyebrows) is
-  // filtered out before classification — it doesn't read well in markdown
-  // and creates noise in diffs.
+  // Classify text nodes into body / feature / eyebrow / caption, then run
+  // two post-processing passes that capture how Procurea spreads are laid
+  // out: pull quotes split across multiple text nodes get merged, and stat
+  // numbers get paired with their nearby labels.
+  //
+  // Block kinds (output):
+  //   body:    main paragraph text
+  //   feature: large stat numbers ("73%") and pull quotes (merged)
+  //   eyebrow: ALL-CAPS short labels — only emitted when not consumed as
+  //            a stat-card label
+  //   caption: small footnote / source / column-header text
+  //   pair:    feature + label combined into one rendered line
+  //
+  // x/y coordinates are kept on each block through the pipeline so the
+  // post-processing passes can reason about spatial relationships.
   #classifyBlocks(texts) {
     const filtered = texts.filter((t) => !this.#isChrome(t));
     if (filtered.length === 0) return [];
 
     const sizes = filtered.map((t) => t.fontSize ?? 0).filter((s) => s > 0);
-    if (sizes.length === 0) {
-      return filtered.map((t) => ({ kind: 'body', text: t.text.trim() }));
-    }
-
-    const sorted = [...sizes].sort((a, b) => a - b);
-    const median = sorted[Math.floor(sorted.length / 2)];
+    const median = sizes.length
+      ? [...sizes].sort((a, b) => a - b)[Math.floor(sizes.length / 2)]
+      : 12;
     const featureMin = median * 1.6;
     const captionMax = median * 0.78;
 
-    return filtered.map((t) => {
+    const initial = filtered.map((t) => {
       const size = t.fontSize ?? median;
       let kind = 'body';
       if (size >= featureMin) kind = 'feature';
       else if (size <= captionMax) kind = 'caption';
-      return { kind, text: t.text.trim() };
+      else if (this.#isAllCapsShort(t.text)) kind = 'eyebrow';
+      return {
+        kind,
+        text:   t.text.trim(),
+        x:      t.x ?? 0,
+        y:      t.y ?? 0,
+        height: t.height ?? 0,
+        size,
+      };
     }).filter((b) => b.text.length > 0);
+
+    const merged = this.#mergePullQuotes(initial);
+    const paired = this.#pairStatLabels(merged);
+    return paired;
+  }
+
+  // Detect ALL-CAPS short phrases (eyebrow labels): "WESTERN BUYERS TRIED",
+  // "TIME PERIOD", "THE DIAGNOSTIC". Allow digits/punctuation, demand at
+  // least one letter, reject anything with a lowercase letter. Cap at ~60
+  // chars so we don't flag short ALL-CAPS sentences as eyebrows.
+  #isAllCapsShort(s) {
+    const text = (s ?? '').trim();
+    if (text.length === 0 || text.length > 60) return false;
+    if (!/[A-Z]/.test(text)) return false;
+    if (/[a-z]/.test(text)) return false;
+    return true;
+  }
+
+  // Merge consecutive feature text nodes that look like fragments of the
+  // same pull quote (similar X column, small Y gap). Procurea pull quotes
+  // in Figma are typically 3–5 separate TEXT layers stacked on top of each
+  // other to control line breaks visually.
+  #mergePullQuotes(blocks) {
+    const out = [];
+    let i = 0;
+    while (i < blocks.length) {
+      const head = blocks[i];
+      if (head.kind !== 'feature') { out.push(head); i++; continue; }
+
+      let j = i;
+      const parts = [head.text];
+      while (j + 1 < blocks.length) {
+        const next = blocks[j + 1];
+        if (next.kind !== 'feature') break;
+        const xDelta = Math.abs(next.x - head.x);
+        const yGap   = next.y - blocks[j].y;
+        // Same column (X aligned) AND small vertical gap (next line down).
+        if (xDelta > 40) break;
+        if (yGap < 0 || yGap > Math.max(80, head.size * 1.6)) break;
+        parts.push(next.text);
+        j++;
+      }
+      out.push({
+        ...head,
+        text: parts.join(' ').replace(/\s+/g, ' ').trim(),
+      });
+      i = j + 1;
+    }
+    return out;
+  }
+
+  // Pair short feature blocks (stat numbers) with their nearest label below
+  // them in the same X column. The label is the next eyebrow OR short body
+  // block whose X overlaps and whose Y sits within ~250px.
+  //
+  // We restrict pairing to "stat-shaped" features: short text (<= 25 chars)
+  // OR text that begins with a digit (like "73%", "2020", "1,847"). Pull
+  // quotes (long prose features) are never paired.
+  #pairStatLabels(blocks) {
+    const isStatFeature = (b) =>
+      b.kind === 'feature' && (b.text.length <= 25 || /^\d/.test(b.text));
+    const isCandidateLabel = (b) =>
+      (b.kind === 'eyebrow') ||
+      (b.kind === 'body' && b.text.length <= 60);
+
+    const consumed = new Set();
+    const out = [];
+    for (let i = 0; i < blocks.length; i++) {
+      if (consumed.has(i)) continue;
+      const b = blocks[i];
+      if (!isStatFeature(b)) { out.push(b); continue; }
+
+      let labelIdx = -1;
+      for (let j = i + 1; j < blocks.length; j++) {
+        if (consumed.has(j)) continue;
+        const c = blocks[j];
+        const dy = c.y - b.y;
+        if (dy < 0 || dy > 250) continue;
+        if (Math.abs(c.x - b.x) > 90) continue;
+        if (!isCandidateLabel(c)) {
+          // Don't skip features above the candidate; they're a different stat.
+          // But we can pass over a caption-class node in between (sources,
+          // footnotes drift around stat cards).
+          if (c.kind === 'caption') continue;
+          break;
+        }
+        labelIdx = j;
+        break;
+      }
+
+      if (labelIdx >= 0) {
+        consumed.add(labelIdx);
+        out.push({
+          kind:  'pair',
+          text:  b.text,
+          label: blocks[labelIdx].text,
+          x:     b.x,
+          y:     b.y,
+          size:  b.size,
+        });
+      } else {
+        out.push(b);
+      }
+    }
+    return out;
   }
 
   // Drop chrome that pollutes the markdown output. Patterns:

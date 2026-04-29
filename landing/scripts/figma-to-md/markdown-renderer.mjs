@@ -61,9 +61,13 @@ export class MarkdownRenderer {
         out.push(section.marker);
       }
 
-      // Body blocks → paragraphs (blank-line separated).
-      // Feature blocks (stat numbers, pull quotes) → bold lines.
-      // Caption blocks → buffered then flushed as a single italic line.
+      // Block-kind rendering:
+      //   body    → paragraph (blank-line separated)
+      //   feature → bold standalone line (pull quote, lone stat)
+      //   pair    → "**number** — label" line (stat card)
+      //   eyebrow → italic small breadcrumb (only those not consumed
+      //             as stat-card labels reach here)
+      //   caption → buffered, flushed as single italic source line
       let captionBuffer = [];
       const flushCaption = () => {
         if (captionBuffer.length) {
@@ -78,8 +82,12 @@ export class MarkdownRenderer {
           continue;
         }
         flushCaption();
-        if (block.kind === 'feature') {
+        if (block.kind === 'pair') {
+          out.push(`**${block.text}** — ${block.label}`, '');
+        } else if (block.kind === 'feature') {
           out.push(`**${block.text}**`, '');
+        } else if (block.kind === 'eyebrow') {
+          out.push(`*${block.text}*`, '');
         } else {
           out.push(block.text, '');
         }
