@@ -271,7 +271,8 @@ describe('RFQ → Offer Full Flow (e2e)', () => {
 
     describe('Step 7: Manual offer creation', () => {
         it('should create offer for a supplier', async () => {
-            // Create a new RFQ for this test
+            // Create a new RFQ for this test (unlinked — RfqRequest.campaignId
+            // is @unique and scenario.campaign already owns scenario.rfq).
             const newRfq = await ctx.prisma.rfqRequest.create({
                 data: {
                     productName: 'Manual Offer Test',
@@ -279,7 +280,6 @@ describe('RFQ → Offer Full Flow (e2e)', () => {
                     currency: 'EUR',
                     status: 'ACTIVE',
                     ownerId: scenario.user.id,
-                    campaignId: scenario.campaign.id,
                 },
             });
 
