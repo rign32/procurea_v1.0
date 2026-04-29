@@ -1,536 +1,1550 @@
 ---
 title: "Supplier Risk Checklist 2026"
-subtitle: "The 20-Point Verification Guide for Procurement Teams"
-author: "Procurea"
-date: "April 2026"
-version: "1.0"
+subtitle: "A field manual for procurement teams"
+slug: "supplier-risk-checklist-2026"
+audience: "P1"
+category: "risk-management"
+format: pdf
+updatedAt: "2026-04-29"
 ---
 
-\newpage
+## Why 20
 
-# Supplier Risk Checklist 2026
+*01 · WHY 20 POINTS NOT 12*
 
-## The 20-Point Verification Guide for Procurement Teams
+**Three regulatory shifts turned ESG and cyber into compliance, not values.**
 
-A practitioner checklist — not a consulting framework. Twenty verification points across five risk dimensions, each with a named data source, a concrete red-flag threshold, and a re-check cadence. Designed to be run once per new supplier and re-run on a rolling schedule for the existing panel.
+In 2019, a 12-point checklist was sufficient. By 2026, three new directives have moved ESG, cyber, and forced labour from "monitor" to "verify per supplier" — under penalty.
 
-Built from the patterns we see in Procurea's beta cohort: mid-market manufacturers and importers running 200-2000 SKUs across multi-country supply bases, where a single bad qualification costs more than a year of platform fees.
+Phase 1 (large EU listed) reporting Y2024 data Jan 2025. Phase 2 (large non-listed) Y2025 data. Phase 3 (SMEs listed) Y2026 data. Each scope-in company must report supplier ESG data.
 
-**Published:** April 2026
-**Next revision:** October 2026 (quarterly refresh for geopolitical indicators, annual for regulatory)
+*CSRD · IN FORCE 2024*
 
----
+**50,000** — EU companies in scope by 2026
 
-\newpage
+SOURCE: EU Directive 2022/2464 · ESMA implementing standards
 
-# Table of Contents
+Iron, steel, aluminium, cement, fertiliser, electricity, hydrogen. Importers must verify supplier emissions. Plastics + chemicals scope expansion proposal 2025-2026.
 
-1. Why 20 points (page 3)
-2. The five risk dimensions (page 3)
-3. How to use this checklist (page 4)
-4. The 20 verification points (pages 5-9)
-   - Financial health: checks 1-4
-   - Operational resilience: checks 5-8
-   - Geopolitical & regulatory: checks 9-12
-   - ESG & compliance: checks 13-16
-   - Cyber & information security: checks 17-20
-5. Red-flag summary matrix (page 10)
-6. Re-check cadence template (page 11)
-7. Printable one-page version (page 12)
+*CBAM · DEFINITIVE PHASE*
 
----
+**€85-170** — per tonne (steel) 2026 → 2028
 
-\newpage
+SOURCE: EU Reg 2023/956 + Implementing Reg 2023/1773 · S&P Global Carbon Q1 2026
 
-# Why 20 points
+US CBP detained 9,800+ shipments 2022-2025 under UFLPA. 62 entities on banned list (May 2024). Burden of proof on importer. Detention costs $50k-200k per container.
 
-In 2019 a 12-point checklist was enough. In 2026 it isn't. Three things changed.
+*UFLPA · ENFORCED*
 
-**Geopolitics stopped being background context.** Ukraine, Red Sea routing, US-China tariff rounds, and the CBAM phase-in all moved from "monitor" to "verify per supplier." Five years ago a procurement team could qualify a Vietnamese electronics supplier without opening a tariff-exposure tab. Today that's negligence.
+**75%** — of detained shipments rebuttable presumption
 
-**Cyber became everyone's problem.** When a mid-tier metal stamping supplier in Germany gets ransomware and can't ship for six weeks, your production line is down regardless of what's in your ISO 27001 audit. The SolarWinds and MOVEit incidents proved that supplier cyber posture is buyer cyber exposure.
+SOURCE: 19 USC § 1307(b) · CBP UFLPA Enforcement Statistics 2025
 
-**ESG regulation got teeth.** CSRD, CBAM, and the EU CSDDD (Corporate Sustainability Due Diligence Directive, phased in 2027-2029) mean that supplier ESG data is now a compliance input, not a values statement. You need the documentation, not a pledge.
+Sources: EU Directive 2022/2464 · 19 USC § 1307(b) · CBP statistics 2025
 
-Twenty points is the minimum to cover the five dimensions without over-engineering. A good mid-market procurement team can run all twenty on a new supplier in 45 minutes if the data sources are pre-bookmarked. That's the version of "due diligence" that actually happens, which is the only version that matters.
+## Regulatory Timeline
 
-# The five risk dimensions
+*02 · REGULATORY TIMELINE*
 
-| Dimension | What it protects against | Primary data sources |
-|---|---|---|
-| **Financial health** | Bankruptcy, insolvency, supply interruption mid-contract | National business registries, D&B, Creditreform, Bisnode, bank references |
-| **Operational resilience** | Capacity failure, single-site dependence, quality collapse | Factory audit reports, ISO 9001 certificate, customer references, insurance |
-| **Geopolitical & regulatory** | Sanctions exposure, tariff shocks, export control violations | OFAC SDN list, EU sanctions map, export classification, CBAM registry |
-| **ESG & compliance** | Reputational damage, CSRD non-compliance, Scope 3 gaps | EcoVadis, Sedex, ISO 14001 certificate, Scope 1+2 disclosure |
-| **Cyber & information security** | Ransomware shutdown, data breach, IP leakage | ISO 27001, SOC 2 Type II, Have I Been Pwned, security questionnaire |
+**2024 → 2030. Four directives. Six phase-in milestones.**
 
-Dimensions are weighted by exposure. A supplier for non-critical office supplies does not need a SOC 2 review. A tier-one electronics supplier building boards that ship to your customers does. The checklist is a menu — apply the checks proportional to the category criticality.
+Each directive's phase-in creates new audit obligations on your suppliers. Plan ahead — by Q2 2027, your supplier audit cycle will need to cover all four regimes simultaneously.
 
----
+*PHASE-IN TIMELINE · 4 DIRECTIVES*
 
-\newpage
+2024
 
-# How to use this checklist
+2025
 
-## Quick-scan version (5 minutes)
+2026
 
-If you're qualifying a supplier for a one-off purchase under €25,000, run these four checks and stop:
+2027
 
-1. Check 1 — Legal entity exists (business registry lookup)
-2. Check 9 — Sanctions screening (OFAC / EU lists)
-3. Check 5 — ISO 9001 current (for relevant categories)
-4. Check 17 — Has the domain been in a breach (Have I Been Pwned)
+2028
 
-If any of these four fails, stop. If all four pass, proceed with the purchase and deferred full review only if volume grows.
+2029
 
-## Deep audit version (45 minutes)
+2030
 
-For a supplier who will become panel-resident (expected 3+ POs over 12 months, or single-PO value above €50k):
+*CSRD*
 
-- Run all 20 checks in sequence.
-- Document findings in a risk scoring sheet (we use a simple 0-2 per check, 40 max; ≥32 = approved, 24-31 = conditional, <24 = reject or remediation).
-- Archive the evidence PDFs (certificate copies, registry screenshots, sanctions-list results with date). Internal Audit will ask for these when a supplier is eventually involved in an incident.
-- Schedule the next review per the cadence table on page 11.
+P1 large listed
 
-## Who does what
+P2 large non-listed
 
-- **Buyer / category manager** — runs checks 1, 5, 6, 7, 8, 12, 13 (operational + compliance evidence)
-- **Finance / controller** — runs checks 2, 3, 4 (financial health)
-- **Trade compliance / legal** — runs checks 9, 10, 11 (sanctions, export, regulatory)
-- **InfoSec (or outsourced advisor)** — runs checks 17, 18, 19, 20 (cyber)
-- **Sustainability lead or procurement** — runs checks 14, 15, 16 (ESG)
+P3 SME listed
 
-If you don't have a dedicated sustainability lead or InfoSec team (typical at <300 employees), the buyer does a lighter version of each using the documentary evidence-only method: request the certificate PDF, verify the certificate number on the issuing body's database, archive. Skip live audits.
+steady state
 
----
+phased reporting
 
-\newpage
+*CBAM*
 
-# The 20 verification points
+transitional rep.
 
-## Financial health (checks 1-4)
+definitive €85-170/t
 
-### Check 1: Legal entity verification
+full rate · 2034 sunset
 
-**What to check:** The supplier exists as a registered legal entity with the name, address, and tax ID shown on their quote.
+definitive phase
 
-**Source of truth:**
-- EU: VIES (ec.europa.eu/taxation_customs/vies) for VAT validation, national business registries (e.g. KRS in Poland, Handelsregister in Germany, Ticari Sicil in Turkey)
-- US: Secretary of State registry for the supplier's state, EIN via TIN Matching (buyer-accessible via CP575 letter)
-- UK: Companies House (companieshouse.gov.uk)
-- Global: D&B D-U-N-S lookup
+*CSDDD*
 
-**Red flag threshold:** Any mismatch between the name on the quote and the registered entity; registration less than 12 months old for a supplier claiming 10+ years of operations; registered address that maps to a residential building or a mailbox service for a manufacturing supplier.
+transposition into NL
 
-**Re-check cadence:** Annual, or immediately if supplier announces restructuring, acquisition, or name change.
+phase 1 large
 
----
+phase 2 mid+civil liability
 
-### Check 2: Financial stability indicator
+due diligence
 
-**What to check:** Creditworthiness signal from a third-party credit bureau. You're not doing forensic accounting — you're confirming no major red flag (recent default, court judgment, drastic turnover contraction).
+*FLR*
 
-**Source of truth:**
-- EU: Creditreform, Bisnode, Coface, Atradius
-- Global: D&B, Moody's
-- Country-specific: Infogreffe (FR), KBIS (FR), Cerved (IT), BIK (PL)
+Reg 2024/1781 · enforcement Jun 2025
 
-**Red flag threshold:** Credit score in the bottom quartile for the country/sector; publicly recorded payment defaults in the past 24 months; DSO deterioration trend of >20 days year-over-year.
+forced labour
 
-**Re-check cadence:** Annual for panel suppliers; at each contract renewal.
+*UFLPA*
 
----
+rebuttable presumption · weekly entity list
 
-### Check 3: Audited financial statements availability
+ongoing US
 
-**What to check:** The supplier publishes or shares audited statements for the last two fiscal years. Private firms in some jurisdictions (US LLCs, Turkish private A.Ş.) are not required to publish — in that case request under NDA.
+*CRITICAL — Q2 2027 INFLECTION*
 
-**Source of truth:**
-- EU: official registries publish balance sheets for most corporate forms (KRS, Handelsregister, Companies House)
-- Private firms: direct request under NDA, signed by supplier CFO
+By Q2 2027, your supplier audit cycle covers CSRD ESG data + CBAM verified emissions + CSDDD due diligence + FLR forced-labour + UFLPA verification. 5 frameworks per supplier. Build the muscle now.
 
-**Red flag threshold:** Refusal to share under NDA for a supplier above €2M revenue; negative equity two years running; interest coverage ratio (EBIT/Interest) below 1.5 for a supplier carrying debt.
+Sources: EU 2022/2464 · 2023/956 · 2024/1760 · 2024/1781 · 19 USC § 1307(b)
 
-**Re-check cadence:** Annual.
+## Pentagon
 
----
+*03 · FIVE-DIMENSION PENTAGON*
 
-### Check 4: Concentration risk (revenue dependence)
+**Score every supplier on five axes. Single low score = walk away.**
 
-**What to check:** What percentage of the supplier's revenue comes from their single largest customer? A supplier who depends on one customer for 60%+ of revenue is one contract renewal away from layoffs and capacity collapse.
+Financial · Operational · Geopolitical · ESG · Cyber. The 20 checks distribute 4 per axis. A supplier scoring 4/5 on average but 0/5 on any single axis is a walk-away — supply chain failure modes are dimensional.
 
-**Source of truth:** Direct question in qualification interview. Cross-check against LinkedIn employee count trends and any public statements about major customer wins/losses.
+*SAMPLE SUPPLIER · 5-DIMENSION SCORE · 1-5 SCALE*
 
-**Red flag threshold:** Single-customer concentration >40%; top-3 customer concentration >70%. These suppliers deserve qualification but flag them for higher review cadence.
+*FINANCIAL*
 
-**Re-check cadence:** Annual.
+*CYBER*
 
----
+*OPERATIONAL*
 
-\newpage
+*ESG*
 
-## Operational resilience (checks 5-8)
+*GEOPOLITICAL*
 
-### Check 5: ISO 9001 (or equivalent) current
+*FINANCIAL*
 
-**What to check:** Valid, current ISO 9001:2015 quality management system certificate — or the sector equivalent (IATF 16949 automotive, ISO 13485 medical, AS9100 aerospace, ISO 22000 food). Certificate must name the facility that will produce your goods, not a holding company.
+*OPERATIONAL*
 
-**Source of truth:** Certificate PDF from supplier + verification on issuing body's database (e.g. IATF OASIS, TÜV SÜD directory, Bureau Veritas verify, Lloyd's Register findings).
+*GEOPOLITICAL*
 
-**Red flag threshold:** Certificate expired; certificate covers a different facility than the one producing your goods; issuing body not accredited by IAF (International Accreditation Forum) — there's a non-trivial market of unaccredited "ISO" certificates especially for suppliers in lower-compliance jurisdictions.
+*ESG*
 
-**Re-check cadence:** Annual for validity; re-verify issuing body accreditation on first qualification only.
+*CYBER*
 
----
+*GOOD*
 
-### Check 6: Capacity and single-site dependence
+*WATCH*
 
-**What to check:** Does the supplier produce your goods at a single facility? What's the monthly capacity at that facility, and what percentage will your order consume? A supplier producing 100% of your category at one site with 80%+ capacity utilization is a fragile dependency.
+*FLAG*
 
-**Source of truth:** Capacity declaration in qualification questionnaire + cross-check during factory audit (physical or virtual). Ask for hours-of-operation, shifts, and headcount — the math should reconcile with the claimed throughput.
+*GOOD*
 
-**Red flag threshold:** Single facility producing all of your demand + that facility running at >75% utilisation + no documented alternate production site within the supplier's own network. Your order becomes the first thing bumped when bigger customers escalate.
+*WATCH*
 
-**Re-check cadence:** Annual; immediate review if supplier announces expansion, M&A, or layoffs.
+audited Y3 + bank ref OK
 
----
+single-site dependency
 
-### Check 7: Defect rate and warranty history
+sanctions partial match
 
-**What to check:** PPM (parts per million) defect rate over trailing 12 months from the supplier's existing customer base, or for new suppliers, the defect rate from their internal final-inspection data.
+EcoVadis Silver
 
-**Source of truth:** Quality report from supplier (usually quarterly). For first-time qualification, ask for their internal PPM by product family.
+ISO 27001 expired 8mo
 
-**Red flag threshold:** PPM >500 for commodity mechanical parts; >100 for safety-critical assemblies; no PPM data at all from a supplier claiming ISO 9001 (the certification requires you to measure this — absence = they don't).
+Methodology: composite scoring framework · ISO 31000 + COSO ERM aligned
 
-**Re-check cadence:** Quarterly for panel suppliers; drive continuous-improvement targets through the annual review cycle.
+## Source Library
 
----
+*04 · SOURCE LIBRARY*
 
-### Check 8: Business continuity and insurance
+**Twenty-three named data sources. By region and access tier.**
 
-**What to check:** Does the supplier carry product liability insurance, and do they have a documented business continuity plan for the top three disruption scenarios (fire, key-person loss, single-supplier raw material failure)?
+Each check has 1-3 named primary data sources. Bookmark these in your team's audit toolkit. Free sources first, paid only when criticality justifies.
 
-**Source of truth:** Certificate of Insurance (COI) from their broker, named to your company as additional insured if the category is risk-heavy. Business Continuity Plan (BCP) summary — 2-page document minimum.
+*FREE*
 
-**Red flag threshold:** Product liability cover below €2M for commercial suppliers, below €10M for automotive/medical/aerospace; no BCP at all for a supplier >50 employees; insurance policy expiring within 60 days and no renewal evidence.
+*FREEMIUM*
 
-**Re-check cadence:** Annual (insurance expiry) + at each contract renewal.
+*PAID*
 
----
+9 sources
 
-\newpage
+6 sources
 
-## Geopolitical & regulatory (checks 9-12)
+8 sources
 
-### Check 9: Sanctions and watchlist screening
+*KRS*
 
-**What to check:** Supplier legal entity, its owners (ultimate beneficial owners where available), and its directors do not appear on any applicable sanctions list.
+Creditreform
 
-**Source of truth:**
-- OFAC SDN List (treasury.gov/ofac) — US
-- EU Consolidated Financial Sanctions List (sanctionsmap.eu)
-- UK Financial Sanctions (gov.uk/government/publications/financial-sanctions-consolidated-list-of-targets)
-- UN Security Council Consolidated List
-- For ongoing monitoring: paid services like Refinitiv World-Check, Dow Jones Risk Center, or Sanctions.io
+D&B Financial Stress
 
-**Red flag threshold:** Any exact or fuzzy match on legal entity, owners, or directors. Fuzzy matches require manual review — do not auto-clear on a "close but not exact" match.
+krs.ms.gov.pl
 
-**Re-check cadence:** Before PO, then monthly for panel suppliers. Sanctions lists update weekly; a supplier cleared in January can be listed in March.
+creditreform.de
 
----
+dnb.com
 
-### Check 10: Export control classification
+PL legal entity registry
 
-**What to check:** For goods that might be dual-use (sensor electronics, certain machine tools, advanced materials, encryption-capable hardware), verify the supplier knows their export classification and can supply documentation for customs clearance.
+Basic free · full €
 
-**Source of truth:**
-- EU Dual-Use Regulation Annex I classification
-- US: Export Administration Regulations (EAR) ECCN number, or International Traffic in Arms (ITAR) USML category
-- Self-declaration from supplier on their product data sheet, cross-checked against published BIS commodity classification
+Default probability
 
-**Red flag threshold:** Supplier unable to produce the ECCN/EAR99 status for dual-use-capable goods; self-declaration of "EAR99" for goods that obviously include controlled components (semiconductors above specific compute thresholds, encryption above AES-256 keys, certain CNC machinery).
+*VIES*
 
-**Re-check cadence:** Per product on introduction; annual review for changes in product scope.
+ITC Standards Map
 
----
+LSEG World-Check
 
-### Check 11: CBAM exposure (EU buyers, 2026+)
+ec.europa.eu/.../vies
 
-**What to check:** If you are an EU importer and the supplier is in a non-EU country producing iron/steel, aluminium, cement, fertilisers, electricity, or hydrogen, the Carbon Border Adjustment Mechanism applies from 2026. You need the supplier's embedded emissions data and a CBAM declaration capability.
+standardsmap.org
 
-**Source of truth:**
-- European Commission CBAM guidance (taxation-customs.ec.europa.eu/carbon-border-adjustment-mechanism_en)
-- Supplier's direct emissions data, verified by an accredited verifier per CBAM implementing regulations
+lseg.com
 
-**Red flag threshold:** Non-EU supplier in covered category with no CBAM awareness; no emissions data; no plan to provide verified emissions by 2026 definitive-period deadlines. The financial impact: expected CBAM cost for Chinese steel was estimated at €30-50/tonne in 2025 forecasts — factor this into landed cost comparison.
+EU-wide VAT verification
 
-**Re-check cadence:** Semi-annual through 2026-2027 phase-in; annual once definitive.
+Cert verification
 
----
+PEP · sanctions · adverse
 
-### Check 12: Import tariff and country-of-origin verification
+Companies House
 
-**What to check:** The declared country of origin matches the production reality, and current applicable tariff rates are built into the landed cost calculation. Country-of-origin fraud is a real risk when tariff differentials are high (for example US Section 301 tariffs on Chinese goods have led to mis-declared Vietnam origin).
+IATF Database
 
-**Source of truth:**
-- Certificate of Origin from supplier, issued by chamber of commerce in production country
-- HTS/CN code classification (your customs broker or the EU TARIC database: taxation-customs.ec.europa.eu/customs/customs-duties_en)
-- Physical audit or supplier on-site visit confirms production happens at the declared facility
+LSEG Credit Ratings
 
-**Red flag threshold:** Supplier unwilling to provide Certificate of Origin; production address on quote differs from address on CoO; country of origin claimed is a common transshipment hub without matching production footprint (Malaysia, Vietnam, Mexico for certain categories).
+companieshouse.gov.uk
 
-**Re-check cadence:** Per shipment for high-risk categories; annual for stable low-risk supply.
+iatf.org
 
----
+lseg.com/refinitiv
 
-\newpage
+UK entity + directors
 
-## ESG & compliance (checks 13-16)
+IATF cert holders search
 
-### Check 13: Environmental management certification
+Counterparty ratings
 
-**What to check:** ISO 14001 (environmental management system) or equivalent sector certification. Valid certificate, accredited issuing body, covering the producing facility.
+Bundesanzeiger
 
-**Source of truth:** Certificate PDF + verification on issuing body database. For high-regulation categories (chemicals, textiles), additional certifications matter: OEKO-TEX Standard 100 for textiles, GOTS for organic textiles, Responsible Wool Standard, RJC for jewellery, FSC for forestry.
+CDP Supply Chain
 
-**Red flag threshold:** No environmental certification for a category where your own customers ask for one; expired certificate; unaccredited issuing body.
+EcoVadis Full
 
-**Re-check cadence:** Annual.
+bundesanzeiger.de
 
----
+cdp.net
 
-### Check 14: Scope 1 + 2 emissions disclosure
+ecovadis.com
 
-**What to check:** Does the supplier measure and report its own (Scope 1 direct + Scope 2 purchased energy) greenhouse gas emissions? For CSRD-subject buyers, your Scope 3 category 1 (purchased goods and services) requires supplier data.
+DE filings + audited fin.
 
-**Source of truth:**
-- Supplier's own sustainability report or annual report disclosure
-- CDP (Carbon Disclosure Project) filings for suppliers who respond to CDP
-- Direct supplier questionnaire for smaller suppliers
+Climate disclosure
 
-**Red flag threshold:** Supplier >100 employees with zero GHG measurement capability; suppliers in energy-intensive categories (metals, chemicals, ceramics) with no Scope 1+2 data by 2026; refusal to share data under NDA.
+Sustainability scorecard
 
-**Re-check cadence:** Annual (aligned with their fiscal-year disclosure cycle).
+*OFAC SDN*
 
----
+ICRG Risk
 
-### Check 15: Social compliance audit
+Sedex SMETA
 
-**What to check:** Evidence that the supplier's labour practices meet minimum international standards — no forced labour, no child labour, working-hour and pay conformance. Evidence is typically via a third-party audit (Sedex/SMETA, BSCI, SA8000, WRAP for textiles, or EcoVadis scorecard).
+sanctionssearch.ofac.treas.gov
 
-**Source of truth:** SMETA audit report (on the Sedex platform), BSCI audit rating (on amfori.org), EcoVadis scorecard (client portal access via the supplier). Direct audit for high-risk origins (Xinjiang for cotton, specific mining regions for minerals).
+prsgroup.com
 
-**Red flag threshold:**
-- For textiles/apparel: no SMETA or BSCI within last 24 months; audit score "Needs Improvement" on critical categories (wages, health & safety)
-- For minerals/metals: no Responsible Minerals Initiative (RMI) conformance or equivalent conflict-minerals due diligence
-- Universal: refusal to participate in any social audit scheme
+sedex.com
 
-**Re-check cadence:** Annual; immediate re-audit on any credible allegation.
+US sanctions · weekly
 
----
+Country risk scoring
 
-### Check 16: Anti-bribery and anti-corruption (ABAC)
+Ethical 4-pillar audit
 
-**What to check:** Supplier has an anti-bribery policy, provides basic training to sales and commercial staff, and will accept the ABAC clauses in your standard supply agreement.
+EU Sanctions
 
-**Source of truth:** Supplier's ABAC policy document (often part of their Code of Conduct); signed acknowledgement of your ABAC clause; ISO 37001 certification for high-risk jurisdictions.
+NCSC Alerts
 
-**Red flag threshold:** No ABAC policy at all; refusal to sign your ABAC clause; recent publicly-reported corruption case involving the supplier or its directors (Google the supplier name + "bribery" / "corruption" / "indictment" in the supplier's local language).
+DarkOwl
 
-**Re-check cadence:** At contract signing; refresh at renewal.
+webgate.ec.europa.eu/fsd
 
----
+ncsc.gov.uk
 
-\newpage
+darkowl.com
 
-## Cyber & information security (checks 17-20)
+Consolidated EU list
 
-### Check 17: Domain breach history
+UK cyber alerts
 
-**What to check:** Has the supplier's email domain appeared in a publicly-known data breach? This is a crude signal but fast and free.
+Deep · dark web monitor
 
-**Source of truth:** Have I Been Pwned (haveibeenpwned.com/DomainSearch) — requires domain ownership verification, or proxy via supplier's self-reported breach history.
+Have I Been Pwned
 
-**Red flag threshold:** Supplier domain appears in a major breach within the past 24 months and supplier cannot demonstrate post-breach remediation (password reset, MFA enforcement, credential rotation). Note: most domains have some breach exposure — the question is whether the supplier knew and responded.
+SpyCloud
 
-**Re-check cadence:** At qualification; alerted via subscription services thereafter.
+haveibeenpwned.com
 
----
+spycloud.com
 
-### Check 18: ISO 27001 or SOC 2 Type II
+Breach exposure check
 
-**What to check:** Does the supplier hold an information security management system certification proportional to the data they handle? For a metal stamping supplier who sees only purchase orders, ISO 27001 is overkill. For an electronics supplier with access to your product designs or a logistics supplier with your customer address book, it is not.
+Stolen creds · breach
 
-**Source of truth:**
-- ISO 27001 certificate + accredited issuing body verification
-- SOC 2 Type II report (annual, issued by a CPA firm) — provided under NDA
-- For smaller suppliers: completed vendor security questionnaire (SIG Lite, CAIQ, or your own)
+*ECHA SVHC*
 
-**Red flag threshold:** Category where supplier has access to PII, IP, or production systems + supplier has no ISO 27001, no SOC 2, and refuses to complete a security questionnaire = reject.
+FT/Reuters/Bloomberg
 
-**Re-check cadence:** Annual; SOC 2 is annually renewed by design.
+echa.europa.eu
 
----
+subscriptions
 
-### Check 19: Multi-factor authentication enforcement
+REACH chemicals list
 
-**What to check:** Does the supplier enforce multi-factor authentication on their email and any systems that touch your data? Credential stuffing and business email compromise (BEC) are the most common vectors, and MFA blocks both cheaply.
+Adverse media coverage
 
-**Source of truth:** Direct question in security questionnaire, cross-checked by attempting a password-only login on their portal if they have one (confirm an MFA challenge appears).
+Sources: see Block 3 — research brief; methodology references compiled Apr 2026
 
-**Red flag threshold:** Supplier commercial contact uses personal @gmail, @yahoo, @outlook for business communications; supplier admits no MFA on their email; past BEC incident disclosed.
+*CISA KEV*
 
-**Re-check cadence:** At qualification; re-check if supplier changes email infrastructure.
+cisa.gov/known-exploited
 
----
+Active CVEs
 
-### Check 20: Incident response and notification commitment
+## Decision Flow
 
-**What to check:** Does the supplier have a documented incident response plan, and will they commit contractually to notify you within 72 hours of a breach that could affect your data?
+*05 · WHICH AUDIT FOR WHICH SUPPLIER*
 
-**Source of truth:** Supplier's IR plan summary; notification clause in your supply agreement (standard language: "Supplier shall notify Buyer within 72 hours of Supplier becoming aware of any data breach or security incident affecting Buyer's data or operations").
+**5-min quick-scan · 45-min standard · Full-day deep audit.**
 
-**Red flag threshold:** Refusal to accept 72-hour notification clause; no IR plan; supplier's answer to "who do I contact if you're breached" is a blank stare.
+Decision flow based on category criticality, spend, and tier. Run quick-scan on 80% of suppliers. Reserve deep audit for Tier-1 strategic + safety-critical.
 
-**Re-check cadence:** At contract signing; review at renewal.
+1. New supplier or
+re-check?
 
----
+*RE-CHECK*
 
-\newpage
+*NEW*
 
-# Red-flag summary matrix
+→ Run quarterly
+cadence cycle (p.16)
 
-| # | Check | Auto-reject threshold |
-|---|---|---|
-| 1 | Legal entity | Mismatch between quoted name and registered entity |
-| 2 | Financial stability | Credit score bottom quartile + recorded default in 24 months |
-| 3 | Audited financials | Negative equity two consecutive years |
-| 4 | Customer concentration | Single customer >60% of supplier revenue |
-| 5 | ISO 9001 | Expired, wrong facility, or unaccredited issuer |
-| 6 | Single-site risk | One facility + >75% utilisation + your PO displaces existing demand |
-| 7 | PPM quality | >500 PPM commodity / >100 PPM safety-critical / no data despite ISO claim |
-| 8 | Insurance + BCP | No product liability cover + no BCP |
-| 9 | Sanctions screening | Any exact match on OFAC, EU, UK, UN lists |
-| 10 | Export control | Dual-use goods without ECCN/classification |
-| 11 | CBAM | Non-EU covered category + no emissions plan by 2026 |
-| 12 | Origin verification | No CoO + origin country cannot be confirmed |
-| 13 | ISO 14001 | Absent for regulated categories (chemicals, textiles) |
-| 14 | Scope 1+2 | >100 employees, energy-intensive category, no GHG measurement |
-| 15 | Social audit | No SMETA/BSCI/EcoVadis for textiles/apparel within 24 months |
-| 16 | ABAC | No policy + refusal to sign clause |
-| 17 | Breach history | Major breach <24 months + no remediation evidence |
-| 18 | ISO 27001 / SOC 2 | Sensitive-data access + no cert + refused questionnaire |
-| 19 | MFA | No MFA + past BEC disclosed |
-| 20 | IR notification | Refuses 72-hour breach notification clause |
+2. Single-PO purchase
+< €25k?
 
-Any single auto-reject threshold triggers a "Do Not Approve" recommendation unless written remediation is accepted by the category director and procurement risk lead, in writing, with a re-review date within 90 days.
+*YES*
 
----
+*NO*
 
-\newpage
+QUICK-SCAN · 5 MIN
+Checks #1, 9 only · approve
+or escalate
 
-# Re-check cadence template
+3. Tier-1 strategic
+or safety-critical?
 
-| Check | New supplier | Panel supplier | Trigger-based re-check |
-|---|---|---|---|
-| 1. Legal entity | Before first PO | Annual | M&A, name change, restructuring announcement |
-| 2. Financial stability | Before first PO | Annual | Missed delivery, supplier request for payment terms change, press reports |
-| 3. Audited financials | Before first PO | Annual | Missed delivery, covenant breach signal |
-| 4. Customer concentration | Before first PO | Annual | Large customer loss/gain |
-| 5. ISO 9001 | Before first PO | Annual | Customer complaint spike |
-| 6. Single-site | Before first PO | Annual | Expansion announcement, layoffs |
-| 7. PPM | Quarterly from go-live | Quarterly | Complaint spike |
-| 8. Insurance + BCP | Before first PO | Annual | Insurance market hardening, claim filed |
-| 9. Sanctions | Before first PO | Monthly | New sanctions round announcement |
-| 10. Export control | Per product | Annual | New product introduction |
-| 11. CBAM | 2026-H1 | Semi-annual | EU CBAM regulation updates |
-| 12. Origin | Per shipment (high-risk) | Annual | Tariff rule changes |
-| 13. ISO 14001 | Before first PO | Annual | New ESG regulation |
-| 14. Scope 1+2 | Before first PO | Annual | CDP annual cycle |
-| 15. Social audit | Before first PO | Annual | Credible allegation |
-| 16. ABAC | At contract signing | At renewal | New ABAC law, corruption reports |
-| 17. Breach history | Before first PO | Ongoing via subscription | New breach disclosure |
-| 18. ISO 27001 / SOC 2 | Before first PO | Annual | Scope change |
-| 19. MFA | At qualification | Ad hoc | Email infrastructure change |
-| 20. IR notification | At contract signing | At renewal | Contract template update |
+*YES*
 
-### Monthly tasks (assign to one person, calendar block every first Tuesday)
+*NO*
 
-- Sanctions screening refresh across all panel suppliers (check 9) — 20 minutes
-- Review news alerts for panel suppliers (Google Alerts set to supplier name in local language) — 20 minutes
+STANDARD · 45 MIN
+All 20 checks · 2-3 days
+for red-flag resolution
 
-### Quarterly tasks
+4. >€500k spend or
+IP-sensitive?
 
-- PPM review for top 20 panel suppliers (check 7)
-- Open-item list: suppliers in remediation, status update
+*YES*
 
-### Annual tasks
+*NO*
 
-- Full 20-point re-check for top 20 panel suppliers (80/20: these account for most risk exposure)
-- Lighter 8-point re-check (1, 2, 5, 9, 13, 17, 18, 20) for the long tail
+DEEP AUDIT · 1-2 DAYS
+3rd-party + on-site
 
----
+STANDARD + sample audit
 
-\newpage
+Framework: Procurea decision tree · ISO 31000 risk-tiering aligned
 
-# Printable one-page version
+## Financial
 
-**Supplier:** _________________________________________
-**Reviewer:** _________________________________________
-**Date:** _____________   **Category:** _________________
+*06 · FINANCIAL HEALTH · CHECKS 1-4*
 
-## Financial (0-2 each, 8 max)
+**Financial. The basics non-negotiable.**
 
-- [ ] 1. Legal entity verified
-- [ ] 2. Credit score acceptable
-- [ ] 3. Audited financials available or NDA'd
-- [ ] 4. Customer concentration <40%
+Legal entity exists & matches quote
 
-## Operational (0-2 each, 8 max)
+Credit score acceptable · no recent default
 
-- [ ] 5. ISO 9001 (or equivalent) current
-- [ ] 6. No single-site / >75% util concern
-- [ ] 7. PPM data available and within threshold
-- [ ] 8. Product liability insurance + BCP
+#01
 
-## Geopolitical (0-2 each, 8 max)
+#02
 
-- [ ] 9. Sanctions screening clear
-- [ ] 10. Export control classification confirmed
-- [ ] 11. CBAM exposure documented (if applicable)
-- [ ] 12. Country of origin verified
+*SOURCE*
 
-## ESG (0-2 each, 8 max)
+*SOURCE*
 
-- [ ] 13. ISO 14001 (or sector equivalent)
-- [ ] 14. Scope 1+2 emissions disclosed
-- [ ] 15. Social audit (SMETA/BSCI/EcoVadis) current
-- [ ] 16. ABAC policy + clause accepted
+KRS · krs.ms.gov.pl/krs · public REST API
+VIES · ec.europa.eu/taxation_customs/vies
+Companies House · api.companieshouse.gov.uk
 
-## Cyber (0-2 each, 8 max)
+Creditreform Bonität · creditreform.de
+D&B Financial Stress Score · dnb.com
+LSEG (Refinitiv) credit ratings
 
-- [ ] 17. No unresolved breach on domain
-- [ ] 18. ISO 27001 / SOC 2 / questionnaire complete
-- [ ] 19. MFA enforced
-- [ ] 20. 72-hour IR notification clause accepted
+*RED FLAG*
 
-**Total score:** ________ / 40
+*RED FLAG*
 
-- 32-40: Approve
-- 24-31: Conditional approval (remediation items list attached)
-- <24: Reject, or escalate for exception approval
+Entity not registered, dissolved, or different legal name on quote vs registry
 
-**Reviewer signature:** _____________________   **Date:** _______
+Creditreform 4 (POOR) or worse · D&B FSS >70 (high stress) · payment default last 24mo
 
-**Category Director signature (for conditional/reject):** _____________________
+*YELLOW FLAG*
 
----
+*YELLOW FLAG*
 
-## About this checklist
+Active <12 months OR registered name + DBA differ (verify which entity owns the contract)
 
-Published by Procurea, April 2026. Procurea is an AI-native supplier discovery and outreach platform — we find and verify 100-250 suppliers per campaign across 26 languages, so your 30-hour manual sourcing project becomes roughly 20 minutes of workflow plus the human judgement that this checklist protects.
+Creditreform 3.5 OR D&B FSS 50-70 · single late payment last 12mo
 
-This checklist is free to use, copy, and adapt to your organisation's SOP. No attribution required. If it saves you a painful incident, we'd love to hear about it — hello@procurea.io.
+*HOW*
 
-Next revision: October 2026.
+*HOW*
+
+Pull entity record from registry. Match VAT/CRN/EIN to quote header. Check active status.
+
+Pull credit report. Compare to category benchmark. Flag if score worse than 90% of peers.
+
+TIME · 3 min · automated    CADENCE · ANNUAL
+
+TIME · 5 min · API    CADENCE · ANNUAL · TRIGGER
+
+Audited financials Y-1, Y-2, Y-3
+
+Bank reference + payment terms verified
+
+#03
+
+#04
+
+*SOURCE*
+
+*SOURCE*
+
+Bundesanzeiger · DE · bundesanzeiger.de
+KRS Annual Reports · PL
+Companies House filings · UK
+SEC EDGAR · US public
+
+Bank reference letter (issued <90 days)
+SWIFT/IBAN verification via VIES
+Reference call to bank relationship mgr
+
+*RED FLAG*
+
+*RED FLAG*
+
+No filed financials in 2+ countries · self-declared only · refused to share audited
+
+Bank refused reference · IBAN doesn't validate · payment terms shifted >30 days mid-contract
+
+*YELLOW FLAG*
+
+*YELLOW FLAG*
+
+Y-1 audited · Y-2 unaudited · or single-year auditor change without explanation
+
+Net-30 terms requested when peer is Net-60 (cash flow stress) · partial bank ref only
+
+*HOW*
+
+*HOW*
+
+Pull 3-year audited statements. Check revenue trend, EBITDA margin, working capital ratios.
+
+Request bank reference letter. Verify IBAN/SWIFT against official banking registry.
+
+TIME · 15 min    CADENCE · ANNUAL
+
+TIME · 10 min    CADENCE · AT ONBOARDING
+
+Sources: see Block 3 — Financial Health methodology references
+
+## Operational
+
+*07 · OPERATIONAL · CHECKS 5-8*
+
+**Operational. Capacity matches contract.**
+
+ISO 9001 certificate current
+
+Single-site dependency risk
+
+#05
+
+#06
+
+*SOURCE*
+
+*SOURCE*
+
+ITC Standards Map · standardsmap.org
+Direct verify with issuing body (BSI, DNV, TÜV)
+IAF MLA-recognized certification body check
+
+Supplier-disclosed facility list
+Satellite imagery (Sentinel free tier)
+Site-visit photos · 3rd-party audit reports
+
+*RED FLAG*
+
+*RED FLAG*
+
+Cert expired · cert from non-IAF-recognized body · cert scope doesn't cover this product
+
+100% capacity from 1 facility · facility in known earthquake zone · no business continuity plan
+
+*YELLOW FLAG*
+
+*YELLOW FLAG*
+
+Cert expires in <6 months without renewal evidence · scope limitation language unclear
+
+80%+ from 1 facility · plan not tested · BCP last reviewed >24mo
+
+*HOW*
+
+*HOW*
+
+Verify cert# with issuing body. Check IAF MLA status. Match cert scope to product code.
+
+Map all production sites. Calculate concentration risk. Verify with on-site visit if Tier-1.
+
+TIME · 8 min    CADENCE · ANNUAL · ON RENEWAL
+
+TIME · 30 min    CADENCE · ANNUAL
+
+PPM defect rate & quality trending
+
+Customer concentration risk
+
+#07
+
+#08
+
+*SOURCE*
+
+*SOURCE*
+
+Customer-supplied PPM data Y-1, Y-2, Y-3
+Incoming inspection rejection reports
+3rd-party CAPA investigation reports
+
+Supplier-disclosed top 10 customers
+Dun & Bradstreet customer-mix
+Public filings (10-K, annual report)
+
+*RED FLAG*
+
+*RED FLAG*
+
+PPM >500 commodity OR >100 safety-critical · trending up Y-over-Y · CAPA not implemented
+
+Single customer >60% of revenue · top-3 customers >85% · key customer in distress (cred. risk)
+
+*YELLOW FLAG*
+
+*YELLOW FLAG*
+
+PPM 200-500 · stable but no improvement program · single material spike unexplained
+
+Single customer 40-60% · sector concentration (e.g. all auto OEMs) · churn risk in top-5
+
+*HOW*
+
+*HOW*
+
+Pull PPM data 3 years. Calculate trend. Compare to category benchmark.
+
+Request top-10 customer disclosure under NDA. Calculate Herfindahl. Map to category.
+
+TIME · 12 min · per-product    CADENCE · QUARTERLY
+
+TIME · 10 min    CADENCE · ANNUAL
+
+Sources: ITC Standards Map · IAF MLA · supplier-disclosed PPM data 2024-25
+
+## Geopolitical
+
+*08 · GEOPOLITICAL · CHECKS 9-12*
+
+**Geopolitical. Five frameworks per supplier.**
+
+Sanctions & watchlist screening
+
+Tariff exposure (HS-code level)
+
+#09
+
+#10
+
+*SOURCE*
+
+*SOURCE*
+
+OFAC SDN List · sanctionssearch.ofac.treas.gov
+EU Consolidated Sanctions · webgate.ec.europa.eu/fsd
+LSEG World-Check · refinitiv.com
+
+EU TARIC · ec.europa.eu/taxation_customs
+US HTS · hts.usitc.gov
+USTR Section 301 list · current
+
+*RED FLAG*
+
+*RED FLAG*
+
+ANY exact-match hit on entity, owner ≥25%, or top-3 management = walk away
+
+Total tariff burden >18% FOB · category on Section 301 list AND tariff escalation pending
+
+*YELLOW FLAG*
+
+*YELLOW FLAG*
+
+Fuzzy-match score >85% · sanctioned entity in same address building · former officer match
+
+12-18% FOB · single-country exposure on rising-tariff category · CBAM-covered HS
+
+*HOW*
+
+*HOW*
+
+Run name + address + DOB through OFAC + EU + UK + UN. Triple-check fuzzy matches.
+
+Pull HS code from invoice. Calculate landed tariff burden. Compare to peer suppliers.
+
+TIME · 5 min · automated    CADENCE · QUARTERLY · ON LIST UPDATE
+
+TIME · 8 min · per-shipment-type    CADENCE · PER SHIPMENT
+
+Export control · dual-use classification
+
+CBAM exposure (verified emissions)
+
+#11
+
+#12
+
+*SOURCE*
+
+*SOURCE*
+
+EU Dual-Use List · Annex I Reg 821/2021
+US BIS Commerce Control List (CCL) ECCN
+Wassenaar Arrangement controlled items
+
+EU CBAM Transitional Registry · dipl.cbam.europa.eu
+Supplier emissions verification (3rd-party)
+ETS-equivalent jurisdictions list
+
+*RED FLAG*
+
+*RED FLAG*
+
+Dual-use classification without license · ITAR/CCL controls without auth · re-export control miss
+
+Iron/steel/aluminium/cement origin Asia + no verified emissions data = €30-150/tonne added cost
+
+*YELLOW FLAG*
+
+*YELLOW FLAG*
+
+Borderline classification (e.g. ECCN 3A001) without internal review · single country control
+
+Self-reported emissions only · auditor not on EU-recognized list · data older than Y-2
+
+*HOW*
+
+*HOW*
+
+Match HS code to dual-use schedule. Verify export license status. Check re-export controls.
+
+Pull supplier emissions data. Verify auditor. Calculate CBAM exposure. Add to landed cost.
+
+TIME · 12 min    CADENCE · AT ONBOARDING · TRIGGER
+
+TIME · 15 min · per-supplier    CADENCE · QUARTERLY
+
+Sources: OFAC · EU sanctions · USTR · EU CBAM Reg 2023/956 · BIS CCL
+
+## Esg
+
+*09 · ESG · CHECKS 13-16*
+
+**ESG. Not values, compliance.**
+
+EcoVadis or Sedex SMETA score
+
+Scope 1+2 emissions disclosure
+
+#13
+
+#14
+
+*SOURCE*
+
+*SOURCE*
+
+EcoVadis · ecovadis.com (paid · supplier-paid disclosure)
+Sedex Members Ethical Trade Audit · sedex.com
+NQA · external 3rd-party audit
+
+Supplier-supplied (verified by 3rd-party · GHG Protocol)
+CDP supply chain disclosure
+ISO 14064-3 verification reports
+
+*RED FLAG*
+
+*RED FLAG*
+
+No EcoVadis · no SMETA · supplier refuses to share OR score 25 or below
+
+No emissions disclosure · self-declared without 3rd-party verify · refuses CSRD-aligned format
+
+*YELLOW FLAG*
+
+*YELLOW FLAG*
+
+EcoVadis Bronze (45-54) · expired audit >24mo · no improvement plan
+
+Estimated only (no measurement) · auditor not GHG-Protocol recognized · data >Y-2
+
+*HOW*
+
+*HOW*
+
+Request EcoVadis card or SMETA report. Verify with platform (not just supplier-supplied PDF).
+
+Request Scope 1+2 with verifier letter. Match to category benchmark via SBTi tools.
+
+TIME · 5 min · platform check    CADENCE · ANNUAL
+
+TIME · 10 min    CADENCE · ANNUAL · CSRD-ALIGNED
+
+ISO 14001 environmental cert
+
+Modern slavery + forced labour declaration
+
+#15
+
+#16
+
+*SOURCE*
+
+*SOURCE*
+
+ITC Standards Map · standardsmap.org
+Issuing body verify (BSI, DNV, TÜV NORD)
+Supplier-supplied cert + scope letter
+
+EU Forced Labour Reg 2024/1781 attestation
+UK Modern Slavery Act statement (2015 Act)
+UFLPA Section 307 attestation
+
+*RED FLAG*
+
+*RED FLAG*
+
+No ISO 14001 · cert from non-IAF body · scope excludes the production process for your product
+
+No FLR-aligned attestation by Jun 2025 · UFLPA-listed entity · Xinjiang origin not disclosed
+
+*YELLOW FLAG*
+
+*YELLOW FLAG*
+
+Cert expires <6mo without renewal · scope language unclear · single-site cert, multi-site supplier
+
+Statement on file but not 2024-aligned · subcontractor visibility incomplete · Tier-2 not declared
+
+*HOW*
+
+*HOW*
+
+Verify cert# via issuing body API. Confirm scope covers product. Check renewal.
+
+Request signed FLR + UFLPA attestation. Map Tier-2 visibility (esp. cotton, polysilicon, tomatoes).
+
+TIME · 8 min    CADENCE · ANNUAL
+
+TIME · 12 min    CADENCE · ANNUAL · ENFORCEMENT JUN 2025
+
+Sources: EU 2024/1781 · 19 USC § 1307(b) · GHG Protocol · EcoVadis methodology
+
+## Cyber
+
+*10 · CYBER · CHECKS 17-20*
+
+**Cyber. Supplier breach = your breach.**
+
+ISO 27001 information security
+
+Email breach exposure (HIBP)
+
+#17
+
+#18
+
+*SOURCE*
+
+*SOURCE*
+
+ITC Standards Map verify
+Issuing body API check (BSI, DNV)
+SOC 2 Type II — alternative for US suppliers
+
+Have I Been Pwned · haveibeenpwned.com (free API)
+SpyCloud breach intelligence
+DarkOwl deep-web monitoring
+
+*RED FLAG*
+
+*RED FLAG*
+
+No ISO 27001 OR SOC 2 · cert expired >12mo · scope excludes systems handling your data
+
+Domain in any 2024-25 breach · admin email pwned · password reuse detected on critical accounts
+
+*YELLOW FLAG*
+
+*YELLOW FLAG*
+
+Cert expires <6mo · scope on info-only system not production · cert from non-IAF body
+
+Domain in 2022-23 breach (resolved) · single user pwned not admin
+
+*HOW*
+
+*HOW*
+
+Verify cert. Match scope to data flows. Request statement of applicability (SoA) for high-risk.
+
+Run domain through HIBP API. Check breach details. Verify remediation status.
+
+TIME · 10 min    CADENCE · ANNUAL
+
+TIME · 3 min · automated    CADENCE · QUARTERLY
+
+Active breach / incident in last 24mo
+
+Data residency + processing agreement
+
+#19
+
+#20
+
+*SOURCE*
+
+*SOURCE*
+
+FT/Reuters/Bloomberg breach reporting
+NCSC supplier alerts (UK)
+CISA known exploited vulnerabilities
+
+Supplier-disclosed data centers (city-level)
+GDPR Art. 28 DPA in place
+Standard Contractual Clauses (SCC) for non-EU
+
+*RED FLAG*
+
+*RED FLAG*
+
+Breach last 24mo · no public disclosure · supplier refuses to confirm/deny
+
+Data flows to non-adequate country without SCC · no DPA · no breach notification SLA
+
+*YELLOW FLAG*
+
+*YELLOW FLAG*
+
+Breach 24-48mo ago · resolved · no contractual breach-notification clause now in place
+
+Single SCC missing (e.g. recent Schrems II requirement) · DPA outdated (pre-2023)
+
+*HOW*
+
+*HOW*
+
+News scan supplier name + 'breach' + 'incident'. Request breach disclosure letter.
+
+Request data flow map. Verify DPA terms. Check residency claims with on-site visit if Tier-1.
+
+TIME · 8 min    CADENCE · QUARTERLY · ON ALERT
+
+TIME · 15 min    CADENCE · ANNUAL · CONTRACT RENEWAL
+
+Sources: ISO 27001:2022 · HIBP · GDPR Art. 28 · Schrems II SCC · CISA KEV
+
+## Redflag Matrix
+
+*11 · CONSOLIDATED RED-FLAG MATRIX*
+
+**All 20 thresholds. One reference card.**
+
+Yellow = investigate · Red = walk away unless overridden by exec sponsor with documented business case.
+
+*CHECK*
+
+*YELLOW*
+
+*RED*
+
+*FINANCIAL · #1-4*
+
+#1
+
+Legal entity exists
+
+registered <12mo
+
+not registered / dissolved
+
+#2
+
+Credit score
+
+Cred. 3.5 / FSS 50-70
+
+Cred. 4 / FSS >70
+
+#3
+
+Audited financials
+
+Y-1 only
+
+none filed
+
+#4
+
+Bank reference
+
+partial only
+
+refused
+
+*OPERATIONAL · #5-8*
+
+#5
+
+*ISO 9001*
+
+expires <6mo
+
+expired / non-IAF
+
+#6
+
+Single-site
+
+80%+ from 1 site
+
+100% / earthquake zone
+
+#7
+
+PPM defect
+
+200-500 / no plan
+
+>500 commodity / >100 safety
+
+#8
+
+Customer concentration
+
+40-60% one customer
+
+>60% one / >85% top-3
+
+*GEOPOLITICAL · #9-12*
+
+#9
+
+Sanctions screening
+
+fuzzy match >85%
+
+exact match / sanctioned
+
+#10
+
+Tariff exposure
+
+*12-18% FOB*
+
+*>18% FOB*
+
+#11
+
+Export control
+
+borderline classification
+
+unclassified dual-use
+
+#12
+
+CBAM exposure
+
+self-reported only
+
+no data · Asia steel
+
+*ESG · #13-16*
+
+#13
+
+EcoVadis / SMETA
+
+Bronze / >24mo
+
+none / score ≤25
+
+#14
+
+Scope 1+2
+
+estimated only
+
+none disclosed
+
+#15
+
+*ISO 14001*
+
+expires <6mo
+
+none / non-IAF
+
+#16
+
+Modern slavery
+
+subcontractor gap
+
+UFLPA-listed / no attestation
+
+*CYBER · #17-20*
+
+#17
+
+*ISO 27001 / SOC 2*
+
+expires <6mo
+
+none / scope excludes
+
+#18
+
+Email breach
+
+2022-23 resolved
+
+2024-25 active
+
+#19
+
+Active incident
+
+resolved 24-48mo
+
+unresolved last 24mo
+
+#20
+
+Data residency
+
+DPA outdated
+
+non-adequate · no SCC
+
+Sources: composite from Block 2 — all 20 verification points · Procurea audit framework
+
+## Cost Cases
+
+*12 · COST OF FAILURE · 4 NAMED CASES*
+
+**$15B VW. $50M+ Inditex. $30M FCPA. $5M SolarWinds.**
+
+Four publicly-known supplier qualification failures. Each had a missed check that could have prevented the loss. The cost of one failure exceeds 100 years of audit budget.
+
+*APR 2013*
+
+*SEP 2015*
+
+Rana Plaza · Inditex / Zara
+
+Volkswagen emissions · Tier-1 firmware
+
+Apparel · facility safety
+
+Automotive · supplier control units
+
+*COST*
+
+*COST*
+
+$15M settlement · $50M+ customer penalty · 8-week supply disruption
+
+$15B recalls · $2.8B US fines · €900M EU · $4.3B class-action
+
+*CHECKS MISSED*
+
+*CHECKS MISSED*
+
+#5 ISO 9001 facility scope · Sedex/SMETA structural audit
+
+#17 ISO 27001 supplier scope · #19 firmware integrity audit · ABAC
+
+*LESSON*
+
+*LESSON*
+
+Single-facility + earthquake zone + zero structural assessment = systemic failure
+
+Tech supplier (firmware) needs deeper cyber audit than commodity hardware
+
+*SRC: Inditex 2013-14 corporate filings · CNN/BBC reporting SRC: VW Group 10-K filings 2015-20 · DOJ FCPA reports*
+
+2018-2020
+
+*DEC 2020*
+
+FCPA via mining supplier
+
+SolarWinds Orion · 18,000+ orgs
+
+Mining equipment · Sub-Saharan Africa
+
+Software supplier · supply-chain attack
+
+*COST*
+
+*COST*
+
+$800k legal + fines · $30M lost contracts (3-yr blacklist)
+
+$500k-2M IR per org · $1M-5M remediation per org
+
+*CHECKS MISSED*
+
+*CHECKS MISSED*
+
+#16 ABAC supplier audit · beneficial ownership check (CEO's brother = mining minister)
+
+#17 SOC 2 Type II · build-environment access controls · #20 breach SLA
+
+*LESSON*
+
+*LESSON*
+
+ABAC + beneficial ownership is not optional — prevents this exact pattern
+
+Software ≠ secure by default — demand SOC 2 Type II for all SaaS
+
+*SRC: FT investigation 2020 · DOJ FCPA enforcement actions SRC: CISA AA20-352A · CNN/Reuters tech reporting · NIST SP 800-218*
+
+Sources: 10-Ks · DOJ enforcement · CISA · CNN/FT/Reuters reporting
+
+## Industry Addendum
+
+*13 · INDUSTRY-SPECIFIC ADDENDUM*
+
+**Six industries. Additional checks beyond the 20.**
+
+Run all 20 baseline checks. Then add industry-specific checks below depending on supplier category. Pharma, electronics, and food typically need 8-12 additional checks.
+
+*INDUSTRY*
+
+*KEY ADDITIONAL CHECKS*
+
+*PRIMARY SOURCE*
+
+FDA inspection list (Form 483)
+
+accessdata.fda.gov · 483 letters
+
+*PHARMACEUTICALS*
+
+GMP certification (current)
+
+WHO PQS · supplier-direct
+
+EMA ASMF / supplier docs
+
+ema.europa.eu/asmf
+
+Tier-2 contract mfr disclosure
+
+supplier-disclosed (40% hide T-2)
+
+RoHS 2.0 declaration
+
+supplier · ECHA test reports
+
+*ELECTRONICS*
+
+REACH SVHC list (Q-updated)
+
+echa.europa.eu/candidate-list
+
+Conflict minerals (3TG)
+
+RMI Conflict Minerals Reporting
+
+IPC standards (-A-610, -A-620)
+
+IPC.org · supplier audit
+
+HACCP plan + audit
+
+FDA / EFSA · 3rd-party audit
+
+*FOOD & BEVERAGE*
+
+BRC Global Standard cert
+
+brcgs.com · ITC verify
+
+FSSC 22000 certification
+
+fssc.com · IAF MLA
+
+Allergen control + traceability
+
+supplier-direct + audit
+
+Higg Index BRM (annual)
+
+apparelcoalition.org
+
+*TEXTILES*
+
+BCI cotton license / OEKO-TEX
+
+bettercotton.org · OEKO-TEX
+
+ZDHC Roadmap to Zero
+
+roadmaptozero.com · Gateway
+
+Modern slavery (CSDDD-aligned)
+
+*UK MSA · EU CSDDD*
+
+IATF 16949 certification
+
+iatf.org · supplier-direct
+
+*AUTOMOTIVE*
+
+VDA 6.3 process audit
+
+VDA · 3rd-party audit
+
+Customer-specific approvals (PPAP)
+
+CSA per OEM
+
+IATF supplier self-assessment
+
+SAQ in IATF database
+
+AS9100D certification
+
+ITC · OASIS database
+
+*AEROSPACE*
+
+Customer + Nadcap process audit
+
+Nadcap.com · OEM audit
+
+ITAR/EAR export classification
+
+*DDTC · BIS CCL*
+
+Counterfeit parts prevention (CCAP)
+
+*SAE AS5553 / NIST*
+
+Sources: FDA · ECHA · IATF · Higg Index · ZDHC · WHO PQS · industry standard bodies
+
+## Cadence Calendar
+
+*14 · RE-CHECK CADENCE CALENDAR*
+
+**Quarterly cadence. Trigger-event overrides.**
+
+Standard rhythm: re-check 4-7 dimensions every quarter, all 20 annually. Trigger events (sanctions list update, breach disclosure) override the calendar.
+
+*QUARTERLY RE-CHECK CALENDAR · MIN VIABLE*
+
+*Q1*
+
+*Q2*
+
+*Q3*
+
+*Q4*
+
+*FINANCIAL*
+
+#1 · #2
+
+#3, #4 annual
+
+*OPERATIONAL*
+
+#7
+
+#5, #6, #8 annual
+
+*GEOPOLITICAL*
+
+#9 · #10 · #12
+
+sanctions: trigger-based
+
+*ESG*
+
+#13 · #14
+
+H1 + H2 due dates
+
+*CYBER*
+
+#18 · #19
+
+breach: trigger-based
+
+*TRIGGER EVENTS — OVERRIDE CALENDAR*
+
+OFAC/EU sanctions list update · CBP UFLPA entity addition · CISA KEV catalog update · supplier breach disclosure · FDA Form 483 issuance · public bankruptcy filing · audit firm change · facility relocation · senior management change
+
+Sources: composite from Block 2 cadence guidance · Procurea audit framework
+
+## Workflow Gantt
+
+*15 · 45-MINUTE AUDIT WORKFLOW*
+
+**Standard new-supplier audit. 45 minutes. Five phases.**
+
+Procurement analyst runs minutes 0-30. Risk + IT specialists pick up minutes 30-45 if escalated. Most suppliers complete clear within 45 min if data sources pre-bookmarked.
+
+*WORKFLOW · 45 MIN · 5 ROLES*
+
+0m
+
+5m
+
+10m
+
+15m
+
+20m
+
+25m
+
+30m
+
+35m
+
+40m
+
+45m
+
+*PROCUREMENT*
+
+Phase 1 · Financial #1-4
+
+Phase 2 · Operational #5-8
+
+Phase 3 · Geo #9-12
+
+Analyst
+
+*RISK MGR*
+
+Geo escalation
+
+Phase 4 · ESG #13-16
+
+Risk specialist
+
+*IT SECURITY*
+
+Phase 5 · Cyber #17-20
+
+InfoSec specialist
+
+*LEGAL*
+
+Sanctions verify
+
+DPA + SCC review
+
+Compliance
+
+*DECISION*
+
+*GO/NO-GO*
+
+Procurement lead
+
+ESCALATION GATE · 18m
+
+**45m** — STANDARD AUDIT
+
+**5m** — QUICK-SCAN
+
+**1d** — DEEP AUDIT
+
+**45/yr** — PER ANALYST
+
+all 20 checks · pre-bookmarked sources
+
+checks #1, #9 · single PO < €25k
+
+Tier-1 strategic + safety-critical
+
+~1 supplier audit per business day
+
+Methodology: EcoVadis 45-min protocol · ISO 31000 risk-tier audit framework
+
+## Printable Onepager
+
+*16 · PRINTABLE ONE-PAGER*
+
+**Twenty checks. One A4. Pin to your wall.**
+
+Run on every new supplier · 45 min · re-check quarterly
+
+*FINANCIAL · CHECKS 1–4*
+
+*FINANCIAL HEALTH*
+
+1. Legal entity exists · KRS · VIES
+
+2. Credit score · Creditreform / D&B
+
+3. Audited financials Y-1 to Y-3
+
+4. Bank reference + payment terms
+
+*OPERATIONAL · CHECKS 5–8*
+
+*OPERATIONAL RESILIENCE*
+
+5. ISO 9001 cert current · IAF MLA
+
+6. Single-site dependency check
+
+7. PPM defect trending Y-3
+
+8. Customer concentration ≤60%
+
+*GEOPOLITICAL · CHECKS 9–12*
+
+*GEOPOLITICAL & REGULATORY*
+
+9. Sanctions screening · OFAC + EU
+
+10. Tariff exposure HS-code (≤18%)
+
+11. Export control · ECCN · dual-use
+
+12. CBAM verified emissions
+
+*ESG · CHECKS 13–16*
+
+*ESG & COMPLIANCE*
+
+13. EcoVadis or Sedex SMETA
+
+14. Scope 1+2 emissions verified
+
+15. ISO 14001 environmental cert
+
+16. Modern slavery + FLR attestation
+
+*CYBER · CHECKS 17–20*
+
+*CYBER & INFOSEC*
+
+17. ISO 27001 / SOC 2 Type II
+
+18. HIBP breach exposure check
+
+19. Active incident last 24mo
+
+20. Data residency + DPA + SCC
+
+PROCUREA.IO · v3.0 · APRIL 2026 · NEXT REVISION OCT 2026
+
+Print A4 portrait · share with team · pin to audit-room wall
+
+## Back Cover Cta
+
+*END · NEXT STEPS*
+
+**Find audit-ready vendors in 20 minutes.**
+
+Need to run this 20-point checklist on a clean panel? Procurea sources 50-250 verified vendors per category — registry data and certificates verified during the pipeline. Then you run the audit.
+
+BUILT FOR EU MID-MARKET PROCUREMENT TEAMS · GDPR-NATIVE · €30M–€500M REVENUE
+
+NOT FOR: ENTERPRISES WITH ACTIVE SAP ARIBA / COUPA CONTRACTS — STAY THERE
+
+*PLAYBOOK READER OFFER*
+
+**10 campaigns. Free.** — Worth $119 — yours free as a playbook reader.
+
+Start your first campaign →
+
+procurea.io / signup
+
+*20 MIN PIPELINE*
+
+*NO CREDIT CARD*
+
+*50–250 VENDORS / CAMPAIGN*
+
+Talk to a procurement engineer
+
+Book →
+
+30 min · we walk through your panel · live audit demo
+
+*METHODOLOGY · 40+ PRIMARY SOURCES*
+
+EU 2022/2464 (CSRD) · 2023/956 (CBAM) · 2024/1760 (CSDDD) · 2024/1781 (FLR) · 19 USC § 1307(b) (UFLPA) · OFAC SDN · LSEG World-Check · KRS · Bundesanzeiger · Companies House · VIES · Have I Been Pwned · ISO Survey 2024 · IAF MLA · ITC Standards Map · CBP UFLPA Stats 2025 · CISA AA20-352A · GHG Protocol · EcoVadis · Sedex SMETA · GDPR Art. 28 · Schrems II SCC · CBP audit data 2024

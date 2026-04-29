@@ -126,7 +126,7 @@ export const RESOURCES: Resource[] = [
     funnel: 'MOFU',
     relatedPosts: ['supplier-risk-management-2026', 'supplier-certifications-guide', 'supplier-database-stale-40-percent'],
     relatedFeatures: ['fCompanyRegistry', 'fEnrichment'],
-    publishedAt: '2026-04-18',
+    publishedAt: '2026-04-29',
     status: 'published',
   },
   {
@@ -251,7 +251,7 @@ export const RESOURCES: Resource[] = [
     funnel: 'MOFU',
     relatedPosts: ['european-nearshoring-guide-2026', 'china-plus-one-strategy', 'turkey-vs-poland-vs-portugal-textiles'],
     relatedFeatures: ['fMultilingualOutreach', 'fAiSourcing'],
-    publishedAt: '2026-04-18',
+    publishedAt: '2026-04-29',
     status: 'published',
   },
 ]
