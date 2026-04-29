@@ -217,8 +217,12 @@ export function PendingCertificatesInbox() {
                                     {' · '}
                                     <span className="font-mono">{row.code}</span>
                                     {row.issuer && <> · {row.issuer}</>}
-                                    {' · ważny do '}
-                                    <strong>{row.validUntil.slice(0, 10)}</strong>
+                                    {row.validUntil && (
+                                        <>
+                                            {' · ważny do '}
+                                            <strong>{row.validUntil.slice(0, 10)}</strong>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                             <div className="flex items-center gap-1 shrink-0">
