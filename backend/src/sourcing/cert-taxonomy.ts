@@ -1,3 +1,4 @@
+// Cert taxonomy module — see Procurea hard-filter pipeline.
 /**
  * Cert taxonomy for HARD_FILTER_CERT.
  *
