@@ -1,6 +1,17 @@
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import axios from 'axios';
+import * as https from 'https';
 import { ApiUsageService } from './api-usage.service';
+
+// Dedicated HTTPS agent with keep-alive DISABLED. Cloud Run egress to serper.dev
+// drops idle keep-alive sockets at the proxy layer; reusing them produces TLS
+// "socket disconnected before secure TLS connection was established" mid-handshake.
+// Fresh connection per request trades a few ms of TLS for reliability.
+const serperHttpsAgent = new https.Agent({
+  keepAlive: false,
+  maxSockets: 50,
+  rejectUnauthorized: true,
+});
 
 /**
  * Search budget tracker per campaign
@@ -90,7 +101,7 @@ export class GoogleSearchService {
 
   private async withRetry<T>(
     requestFn: () => Promise<T>,
-    maxRetries: number = 3,
+    maxRetries: number = 4,
     baseDelayMs: number = 2000
   ): Promise<T> {
     let lastError: any;
@@ -99,13 +110,29 @@ export class GoogleSearchService {
         return await this.rateLimitedRequest(requestFn);
       } catch (e: any) {
         lastError = e;
-        if (e.response?.status === 429 || e.message?.includes('429')) {
-          const delay = baseDelayMs * Math.pow(2, attempt);
-          this.logger.warn(`[RATE LIMIT] Attempt ${attempt + 1}/${maxRetries}, waiting ${delay}ms...`);
-          await this.delay(delay);
-        } else {
-          throw e;
-        }
+        const status = e.response?.status;
+        const code = e.code || '';
+        const msg = e.message || '';
+        const isRateLimit = status === 429 || msg.includes('429');
+        // Cloud Run → serper.dev TLS handshake aborts midway under load. Treat
+        // these network-layer failures as retryable with exponential backoff.
+        const isNetworkError =
+          code === 'ECONNRESET' ||
+          code === 'ECONNREFUSED' ||
+          code === 'ETIMEDOUT' ||
+          code === 'EPIPE' ||
+          code === 'ECONNABORTED' ||
+          msg.includes('socket disconnected') ||
+          msg.includes('socket hang up') ||
+          msg.includes('TLS connection') ||
+          msg.includes('ECONNRESET') ||
+          msg.includes('timeout');
+        const isRetryable = isRateLimit || isNetworkError;
+        if (!isRetryable || attempt >= maxRetries - 1) throw e;
+        const jitter = Math.floor(Math.random() * 500);
+        const delay = baseDelayMs * Math.pow(2, attempt) + jitter;
+        this.logger.warn(`[SEARCH RETRY] ${isRateLimit ? '429' : code || msg.slice(0, 60)} on attempt ${attempt + 1}/${maxRetries}, waiting ${delay}ms...`);
+        await this.delay(delay);
       }
     }
     throw lastError;
@@ -198,6 +225,7 @@ export class GoogleSearchService {
           'Content-Type': 'application/json',
         },
         timeout: 30000,
+        httpsAgent: serperHttpsAgent,
       });
     });
 
