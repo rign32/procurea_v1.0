@@ -96,9 +96,25 @@ jobs:
             exit 1
           fi
 
-      - name: Run database migrations
+      # Retry on transient connection-pool exhaustion (same issue as staging).
+      # Cloud SQL `max_connections` is shared with the running Cloud Function;
+      # if a function instance is mid-warmup and holding connections, migrate
+      # may fail to grab a slot. Backing off lets connections drain.
+      - name: Run database migrations (with retry)
         working-directory: backend
-        run: npx prisma migrate deploy
+        run: |
+          for i in 1 2 3 4; do
+            if npx prisma migrate deploy; then
+              exit 0
+            fi
+            if [ $i -eq 4 ]; then
+              echo "::error::Migration failed after 4 attempts. Check Cloud SQL max_connections or stuck queries."
+              exit 1
+            fi
+            WAIT=$((i * 20))
+            echo "Migration attempt $i/4 failed. Retrying in ${WAIT}s…"
+            sleep $WAIT
+          done
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 

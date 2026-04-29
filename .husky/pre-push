@@ -1,0 +1,103 @@
+#!/usr/bin/env sh
+# Pre-push gate for Procurea (multi-session safety net).
+#
+# Context: ~10 parallel Claude Code chats push to staging continuously.
+# Without this hook, one session can push code that breaks shared CI for
+# every other session. Incident 2026-04-29: cert-taxonomy refactor
+# changed Campaign schema but didn't update backend/test/helpers/factories.ts;
+# E2E tests broke; staging CI red for hours; every other session inherited
+# the failure on their next push.
+#
+# What this hook does:
+#   - Skip checks if no relevant files changed in the commits being pushed.
+#   - Backend changed (src or test) → backend `tsc --noEmit`.
+#   - Frontend changed                 → frontend `tsc -b`.
+#   - Landing changed                  → landing `tsc -b`.
+#   - Admin-frontend changed           → admin-frontend `tsc -b`.
+#   - Total time: 10–60s when something changed, ~1s when nothing relevant.
+#
+# Bypass for emergencies: `git push --no-verify` (DON'T make a habit).
+# Tune timeout: `PROCUREA_PREPUSH_TIMEOUT=120 git push` (default 60s/check).
+
+set -e
+
+# Read remote/url from stdin (git push protocol). We act on any branch —
+# the hook trades 30s of typecheck for hours of debugging shared CI.
+REMOTE="${1:-origin}"
+
+# Resolve the range of commits being pushed.
+#
+# Strategy: read the upstream tracking ref and diff against it. If we have
+# no upstream (new branch), diff against origin/main as a reasonable base.
+# This errs on the side of MORE checks rather than fewer.
+LOCAL_REF=$(git rev-parse HEAD)
+UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || echo '')
+if [ -n "$UPSTREAM" ]; then
+  REMOTE_REF=$(git rev-parse "$UPSTREAM" 2>/dev/null || echo '')
+fi
+if [ -z "$REMOTE_REF" ]; then
+  REMOTE_REF=$(git rev-parse origin/main 2>/dev/null || echo '')
+fi
+if [ -z "$REMOTE_REF" ]; then
+  echo "pre-push: no remote ref to diff against; skipping checks."
+  exit 0
+fi
+
+CHANGED=$(git diff --name-only "$REMOTE_REF" "$LOCAL_REF" 2>/dev/null || echo '')
+if [ -z "$CHANGED" ]; then
+  exit 0
+fi
+
+# Detect which apps to check based on file paths.
+HAS_BACKEND=$(echo "$CHANGED" | grep -E '^backend/(src|test|prisma)/' | head -1 || true)
+HAS_FRONTEND=$(echo "$CHANGED" | grep -E '^frontend/(src|public|index\.html|tailwind|tsconfig|vite)' | head -1 || true)
+HAS_LANDING=$(echo "$CHANGED" | grep -E '^landing/(src|public|scripts|index\.html|tailwind|tsconfig|vite)' | head -1 || true)
+HAS_ADMIN=$(echo "$CHANGED" | grep -E '^admin-frontend/(src|public|index\.html|tailwind|tsconfig|vite)' | head -1 || true)
+
+# Nothing checkable changed (e.g. only docs, .md, content-os/) → fast pass.
+if [ -z "$HAS_BACKEND$HAS_FRONTEND$HAS_LANDING$HAS_ADMIN" ]; then
+  exit 0
+fi
+
+echo "pre-push: typecheck on changed apps…"
+FAIL=0
+
+# Run a check, suppressing noise on success (matches the rest of the toolchain).
+run_check() {
+  LABEL="$1"
+  DIR="$2"
+  CMD="$3"
+  printf "  · %-22s " "$LABEL"
+  if (cd "$DIR" && eval "$CMD") > /tmp/procurea-prepush-$$.log 2>&1; then
+    echo "✓"
+    rm -f /tmp/procurea-prepush-$$.log
+  else
+    echo "✗"
+    echo ""
+    echo "   --- $LABEL output (last 30 lines) ---"
+    tail -30 /tmp/procurea-prepush-$$.log | sed 's/^/   /'
+    echo ""
+    rm -f /tmp/procurea-prepush-$$.log
+    FAIL=1
+  fi
+}
+
+if [ -n "$HAS_BACKEND" ]; then
+  run_check "backend tsc"  "backend"        "npx tsc --noEmit"
+fi
+if [ -n "$HAS_FRONTEND" ]; then
+  run_check "frontend tsc" "frontend"       "npx tsc -b"
+fi
+if [ -n "$HAS_LANDING" ]; then
+  run_check "landing tsc"  "landing"        "npx tsc -b"
+fi
+if [ -n "$HAS_ADMIN" ]; then
+  run_check "admin tsc"    "admin-frontend" "npx tsc -b"
+fi
+
+if [ "$FAIL" != "0" ]; then
+  echo ""
+  echo "pre-push: typecheck failed. Push blocked."
+  echo "  Fix the errors above and retry, or bypass with --no-verify (last resort)."
+  exit 1
+fi

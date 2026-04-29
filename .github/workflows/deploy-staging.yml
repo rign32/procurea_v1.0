@@ -156,9 +156,28 @@ jobs:
             exit 1
           fi
 
-      - name: Run database migrations
+      # Retry on transient connection-pool exhaustion. With ~10 parallel
+      # Claude Code sessions pushing to staging, the Cloud SQL instance
+      # occasionally hits its `max_connections` cap when several CI runs
+      # land within a few seconds of each other. The error is "FATAL:
+      # remaining connection slots are reserved for roles with privileges
+      # of the pg_use_reserved_connections role" — backing off lets the
+      # earlier connections drain so we can grab a slot.
+      - name: Run database migrations (with retry)
         working-directory: backend
-        run: npx prisma migrate deploy
+        run: |
+          for i in 1 2 3 4; do
+            if npx prisma migrate deploy; then
+              exit 0
+            fi
+            if [ $i -eq 4 ]; then
+              echo "::error::Migration failed after 4 attempts. Check Cloud SQL max_connections or stuck queries."
+              exit 1
+            fi
+            WAIT=$((i * 20))
+            echo "Migration attempt $i/4 failed. Retrying in ${WAIT}s…"
+            sleep $WAIT
+          done
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL_STAGING }}
 
