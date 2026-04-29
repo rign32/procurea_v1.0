@@ -36,9 +36,10 @@ export async function createTestUser(prisma: PrismaService, overrides: any = {})
 }
 
 export async function createTestCampaign(prisma: PrismaService, overrides: any = {}) {
-    // Campaign has no userId — ownership is via RfqRequest.ownerId
-    // If rfqRequestId provided, link to existing RFQ; otherwise create standalone
-    const { rfqRequestId, ...rest } = overrides;
+    // Campaign has no userId — ownership is via RfqRequest.ownerId.
+    // Strip legacy userId override silently so older test code keeps working.
+    // If rfqRequestId provided, link to existing RFQ; otherwise create standalone.
+    const { rfqRequestId, userId: _legacyUserId, ...rest } = overrides;
     const campaign = await prisma.campaign.create({
         data: {
             name: rest.name || `Campaign ${nextId()}`,

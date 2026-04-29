@@ -24,6 +24,11 @@ export const createMockTranslationService = () => ({
         return `<html><body><h1>RFQ: ${data.productName}</h1><a href="${data.portalUrl}">Submit offer</a></body></html>`;
     }),
     translateText: jest.fn().mockImplementation(async (text: string) => text),
+    translatePortalUI: jest.fn().mockImplementation(async (langCode: string) => ({
+        success: true,
+        language: langCode,
+        translations: {},
+    })),
 });
 
 export const createMockCurrencyService = () => ({
