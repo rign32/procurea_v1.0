@@ -3015,8 +3015,13 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 productCategory: productContext.productCategory,
             } : undefined, { industry: dto.searchCriteria?.industry, sourcingMode: (dto.searchCriteria as any)?.sourcingMode, city: (dto.searchCriteria as any)?.city });
 
-            // CRITICAL: Filter out rejected records
-            if (auditorResult.validation_result === 'REJECTED' || auditorResult.is_valid === false) {
+            // SHORTLIST MODE — Auditor REJECT only on hard cases (blog/article, completely
+            // wrong industry, fabricated data, distributor when buyer wants producer).
+            // is_valid=false from data-integrity heuristics (domain mismatch, suspicious
+            // location vs TLD) is NOT a reason to drop a lead — it goes in metadata as a
+            // warning, supplier still surfaces with appropriate match_score. The buyer
+            // contacts; the conversation resolves what the website couldn't.
+            if (auditorResult.validation_result === 'REJECTED') {
                 await this.log(campaignId, `${workerTag} REJECTED: ${auditorResult.rejection_reason || 'Validation failed'}`);
                 if (stats) {
                     stats.auditorRejected++;
