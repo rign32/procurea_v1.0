@@ -293,6 +293,66 @@ export class GeminiService {
         }
     }
 
+    /**
+     * Live health check that does ONE actual minimal Gemini call. Cached 60s to avoid
+     * billing cost. Used pre-flight before campaign creation — if unhealthy we don't
+     * even start the pipeline, preventing wasted Serper credits when Gemini is down.
+     */
+    private healthCheckCache: { healthy: boolean; checkedAt: number } | null = null;
+    private readonly HEALTH_CHECK_TTL_MS = 60_000;
+
+    async isLiveHealthy(): Promise<boolean> {
+        if (process.env.USE_MOCK_AI === 'true') return true;
+
+        // Use cached result if fresh
+        if (this.healthCheckCache && (Date.now() - this.healthCheckCache.checkedAt) < this.HEALTH_CHECK_TTL_MS) {
+            return this.healthCheckCache.healthy;
+        }
+
+        // Circuit breaker shortcut: if 5+ consecutive failures within last 60s, definitely unhealthy
+        if (this.consecutiveFailures >= 5 && (Date.now() - this.lastFailureTime) < 60_000) {
+            this.healthCheckCache = { healthy: false, checkedAt: Date.now() };
+            return false;
+        }
+
+        // Probe with minimal prompt — try Vertex first (preferred path)
+        const probePrompt = 'ping';
+        let healthy = false;
+        try {
+            if (this.vertexClient) {
+                const model = this.vertexClient.getGenerativeModel({ model: this.modelName });
+                const result = await Promise.race([
+                    model.generateContent({ contents: [{ role: 'user', parts: [{ text: probePrompt }] }] }),
+                    new Promise<never>((_, reject) => setTimeout(() => reject(new Error('probe timeout')), 8000)),
+                ]) as any;
+                if (result?.response?.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    healthy = true;
+                }
+            }
+        } catch (e) {
+            this.logger.warn(`[HEALTH] Vertex probe failed: ${e.message}`);
+        }
+
+        // If Vertex failed, try AI Studio REST as fallback
+        if (!healthy && this.apiKey) {
+            try {
+                const text = await Promise.race([
+                    this.aiStudioGenerateRest(probePrompt),
+                    new Promise<never>((_, reject) => setTimeout(() => reject(new Error('probe timeout')), 8000)),
+                ]) as string;
+                if (text) healthy = true;
+            } catch (e) {
+                this.logger.warn(`[HEALTH] AI Studio probe failed: ${e.message}`);
+            }
+        }
+
+        this.healthCheckCache = { healthy, checkedAt: Date.now() };
+        if (!healthy) {
+            this.logger.warn(`[HEALTH] Gemini unhealthy — both Vertex and AI Studio probes failed`);
+        }
+        return healthy;
+    }
+
     async executeGeneration(prompt: string): Promise<string> {
         this.logger.log(`[GEMINI] executeGeneration called. Prompt length: ${prompt.length} chars`);
         this.logger.log(`[GEMINI] aiStudioClient: ${!!this.aiStudioClient}, apiKey: ${!!this.apiKey}, vertexClient: ${!!this.vertexClient}`);
