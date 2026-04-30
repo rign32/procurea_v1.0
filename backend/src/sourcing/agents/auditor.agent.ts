@@ -66,34 +66,28 @@ na zamówienie listuje TYLKO przykładowe portfolio.
 ZASADA NACZELNA: jak masz wątpliwość → PRZEPUŚĆ z odpowiednim match_score.
 Tylko evidently-wrong przypadki (blog, fałszywka, kompletnie inna branża) → REJECTED.
 
-=== KRYTYCZNE REGUŁY WALIDACJI ===
+=== KLASYFIKACJA TYPU FIRMY (jedyny twardy filtr — i tylko gdy klient pyta o producenta) ===
 
-1. **SPÓJNOŚĆ NAZWY FIRMY Z DOMENĄ**:
-   - Nazwa firmy MUSI mieć logiczny związek z domeną.
-   - PRZYKŁADY POPRAWNE:
-     * Domena: "granulat.com.pl" → Firma: "Granulat Sp. z o.o." ✓
-     * Domena: "stalpol.pl" → Firma: "Stal-Pol Rzeszów" ✓
-     * Domena: "precision-cnc.de" → Firma: "Precision CNC GmbH" ✓
-   - PRZYKŁADY BŁĘDNE (ODRZUĆ!):
-     * Domena: "granulat.com.pl" → Firma: "American Bureau of Shipping" ✗ FALSYFIKAT!
-     * Domena: "plastics.pl" → Firma: "Google LLC" ✗ FALSYFIKAT!
-   
-2. **WYKRYWANIE ARTYKUŁÓW/BLOGÓW**:
-   - Jeśli URL zawiera "/blog/", "/news/", "/article/", "/post/" → to NIE jest strona firmy, ODRZUĆ!
-   
-3. **WERYFIKACJA TYPU FIRMY**:
-   - Screener zaklasyfikował firmę jako: ${websiteData.company_type || 'NIEJASNY'}
-   - ZWERYFIKUJ tę klasyfikację na podstawie danych.
-   - Jeśli screener mówi PRODUCENT ale dane wskazują na handlowca → ZMIEŃ klasyfikację
-   - Pole "verified_company_type" w golden_record MUSI być wypełnione
-   - Użyj tylko: "PRODUCENT" | "HANDLOWIEC" | "NIEJASNY"
+Screener zaklasyfikował firmę jako: ${websiteData.company_type || 'NIEJASNY'}
 
-4. **WYKRYWANIE DYSTRYBUTORÓW**:
-   - Jeśli na stronie są produkty WIELU różnych producentów → to DYSTRYBUTOR/SKLEP, oznacz!
-   
-4. **WALIDACJA LOKALIZACJI**:
-   - Jeśli domena kończy się na ".pl" ale firma jest rzekomo z USA → PODEJRZANE!
-   - Jeśli domena kończy się na ".de" ale lokalizacja to "China" → PODEJRZANE!
+Zweryfikuj klasyfikację. Pole "verified_company_type" w golden_record MUSI być wypełnione: "PRODUCENT" | "HANDLOWIEC" | "NIEJASNY".
+
+UWAGA: niejednoznaczne przypadki (np. firma która produkuje swoje + sprzedaje cudze) zostaw jako PRODUCENT — nie HANDLOWIEC. Klient dopyta przez RFQ.
+
+=== ZASADY SOFT-WALIDACJI (warnings, NIE REJECTED) ===
+
+Niektóre rzeczy są podejrzane, ale NIE są podstawą do odrzucenia. Dodaj je do "warnings" tablicy w odpowiedzi, ale supplier i tak idzie na shortlistę z odpowiednim match_score:
+- Domena nie pasuje 1:1 do nazwy firmy (akronimy/holdingi/marki to normalna rzecz — "tecpol.pl" = "Technoplast Polska")
+- TLD nie pasuje 1:1 do kraju (np. ".ro" subdomena chińskiej firmy = marketing landing page; firma wciąż realna)
+- Strona po angielsku ale firma w Chinach → globalne firmy mają wielojęzyczne sajty
+- Firma ma portfolio wielu producentów → może być integrator/CDMO, nie czysty handlowiec — przepuść z dopiskiem warning
+
+REJECTED tylko dla skrajnych przypadków:
+- URL to wyraźnie blog/artykuł/news (ścieżka /blog/, /news/, /article/, /post/, /research/, /publication/, /paper/)
+- Strona to portal/agregator/katalog z LISTINGAMI wielu firm (ChemicalBook, Pharmacompass, OZON, Alibaba listing page)
+- Dane EVIDENTLY sfabrykowane (np. firma "Google LLC" na domenie farmaceutycznej)
+- Strona z totalnie innej branży niż docelowa kategoria (np. szukamy farma → IT consulting / SaaS / e-commerce niepowiązany)
+- Strona zamknięta / błąd 404 / nieistniejąca firma
 
 DANE ZE STRONY WWW (Enrichment Agent output):
 ${JSON.stringify(websiteData, null, 2)}
