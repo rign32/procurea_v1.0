@@ -303,28 +303,13 @@ export class GeminiService {
             return this.getMockResponse(prompt);
         }
 
-        // 1. Try AI Studio via REST (bypass SDK fetch — keep-alive=off agent prevents
-        //    "fetch failed" / TLS-aborts under parallel load on Cloud Run)
-        if (this.apiKey) {
-            try {
-                this.logger.log('[GEMINI] Trying AI Studio with API Key (REST + keep-alive off)...');
-                const text = await this.aiStudioGenerateRest(prompt);
-                this.logger.log(`[GEMINI] AI Studio SUCCESS - response length: ${text.length} chars`);
-                return text;
-            } catch (e) {
-                this.logger.error(`[GEMINI] AI Studio FAILED: ${e.message}`);
-                if (e.response?.status) {
-                    this.logger.error(`[GEMINI] AI Studio HTTP ${e.response.status}: ${JSON.stringify(e.response.data).substring(0, 300)}`);
-                }
-            }
-        } else {
-            this.logger.warn('[GEMINI] AI Studio API key is null - skipping');
-        }
-
-        // 2. Try Vertex SDK (ADC) — Vertex REST with API key is not supported, only OAuth2/ADC
+        // 1. Try Vertex SDK (PRIMARY) — uses europe-west1-aiplatform.googleapis.com endpoint
+        //    with ADC OAuth, different network path than AI Studio. Empirically more reliable
+        //    from Cloud Run europe-west1 because Vertex egress doesn't hit the same proxy
+        //    layer that drops keep-alive sockets to generativelanguage.googleapis.com.
         try {
             if (this.vertexClient) {
-                this.logger.log('[GEMINI] Trying Vertex SDK with ADC...');
+                this.logger.log('[GEMINI] Trying Vertex SDK with ADC (PRIMARY)...');
                 const model = this.vertexClient.getGenerativeModel({ model: this.modelName });
                 const result = await model.generateContent({
                     contents: [{ role: 'user', parts: [{ text: prompt }] }]
@@ -338,8 +323,24 @@ export class GeminiService {
                 this.logger.warn('[GEMINI] Vertex SDK client is null - skipping');
             }
         } catch (e) {
-            console.error('VERTEX SDK ERROR DETAILS:', JSON.stringify(e, null, 2));
-            this.logger.error(`[GEMINI] Vertex SDK FAILED: ${e.message}`, e.stack);
+            this.logger.error(`[GEMINI] Vertex SDK FAILED: ${e.message}`);
+        }
+
+        // 2. Fallback: AI Studio via REST (with custom https.Agent keep-alive=off)
+        if (this.apiKey) {
+            try {
+                this.logger.log('[GEMINI] Falling back to AI Studio (REST + keep-alive off)...');
+                const text = await this.aiStudioGenerateRest(prompt);
+                this.logger.log(`[GEMINI] AI Studio SUCCESS - response length: ${text.length} chars`);
+                return text;
+            } catch (e) {
+                this.logger.error(`[GEMINI] AI Studio FAILED: ${e.message}`);
+                if (e.response?.status) {
+                    this.logger.error(`[GEMINI] AI Studio HTTP ${e.response.status}: ${JSON.stringify(e.response.data).substring(0, 300)}`);
+                }
+            }
+        } else {
+            this.logger.warn('[GEMINI] AI Studio API key is null - skipping');
         }
 
         this.logger.error('[GEMINI] ALL METHODS FAILED - throwing error');
