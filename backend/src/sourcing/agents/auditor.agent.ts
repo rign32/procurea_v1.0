@@ -46,7 +46,7 @@ export class AuditorAgentService {
         },
         sourcingContext?: { industry?: string; sourcingMode?: 'product' | 'service' | 'mixed'; city?: string },
     ): Promise<any> {
-        this.logger.log('Executing Auditor Agent - STRICT VALIDATION MODE...');
+        this.logger.log('Executing Auditor Agent - LEAD CLASSIFIER MODE...');
 
         // Pre-validation checks
         const websiteDomain = websiteData?.website || websiteData?.url || '';
@@ -56,8 +56,15 @@ export class AuditorAgentService {
         this.logger.log(`Validating: Domain="${coreDomainName}" vs Company="${companyName}"`);
 
         const systemPrompt = `
-Jesteś Specjalistą ds. Compliance i Walidacji Danych (Data Auditor).
-Twoją GŁÓWNĄ odpowiedzialnością jest WYKRYCIE I ODRZUCENIE fałszywych lub niespójnych danych.
+Jesteś Specjalistą ds. Klasyfikacji Dostawców (Lead Classifier).
+
+CEL TWOJEJ PRACY: stworzyć SHORTLISTĘ potencjalnych dostawców do skontaktowania się przez RFQ.
+NIE jesteś bramkarzem. Klient sam zdecyduje z kim się skontaktuje na podstawie scoringu.
+Producent NIE musi mieć każdego produktu wymienionego na stronie — większość firm produkujących
+na zamówienie listuje TYLKO przykładowe portfolio.
+
+ZASADA NACZELNA: jak masz wątpliwość → PRZEPUŚĆ z odpowiednim match_score.
+Tylko evidently-wrong przypadki (blog, fałszywka, kompletnie inna branża) → REJECTED.
 
 === KRYTYCZNE REGUŁY WALIDACJI ===
 
@@ -97,21 +104,32 @@ ${JSON.stringify(registryData, null, 2)}
 DOMENA DO WALIDACJI: ${websiteDomain}
 RDZEŃ DOMENY: ${coreDomainName}
 
-=== WAŻNE: NIE ODRZUCAJ ZBYT AGRESYWNIE ===
-Wiele LEGALNYCH firm ma nazwy domen RÓŻNE od nazwy firmy. Oto POPRAWNE przykłady:
-- Domena "tecpol.pl" → Firma "Technoplast Polska Sp. z o.o." = POPRAWNE (skrót)
-- Domena "abc-solutions.de" → Firma "ABC Kunststofftechnik GmbH" = POPRAWNE (osobna marka)
-- Domena "mkg.pl" → Firma "MKG Granulaty Sp. z o.o." = POPRAWNE (akronim)
-- Domena "eurocomposites.lu" → Firma "Euro-Composites S.A." = POPRAWNE (wariant nazwy)
+=== ZASADA NACZELNA — PROGI ODRZUCENIA ===
+Reject (REJECTED) TYLKO gdy zachodzi jeden z poniższych:
+1. Blog/artykuł/news (URL zawiera /blog/, /news/, /article/, /post/, /research/)
+2. Strona ewidentnie z innej branży niż docelowa kategoria (np. szukamy pharma → IT consulting)
+3. Dystrybutor / sklep / hurtownia (gdy klient szuka PRODUCENTA)
+4. Firma kompletnie zmyślona / dane sfabrykowane (nierealna kombinacja)
+5. Strona to portal/agregator/katalog z listingami wielu firm (np. ChemicalBook, Pharmacompass)
 
-Odrzuć (REJECTED) TYLKO gdy:
-1. Domena i nazwa firmy są KOMPLETNIE NIEZWIĄZANE (np. domena o plastiku, firma stalowa)
-2. URL wyraźnie wskazuje na blog/artykuł (/blog/, /news/, /article/)
-3. Dane są ewidentnie sfabrykowane (nierealna kombinacja)
+We wszystkich INNYCH przypadkach → APPROVED z odpowiednim match_score (skala 0-100):
+- 90-100: silne dopasowanie (kategoria pasuje + ślady produktu na stronie + wiarygodny producent)
+- 70-89: dobre dopasowanie (producent w pasującej kategorii, brak explicit produktu, ale kategoria zgodna)
+- 50-69: prawdopodobne dopasowanie (producent o szerszej specjalizacji obejmującej kategorię)
+- 30-49: spekulatywne (producent w pokrewnej branży, dalekie dopasowanie)
+- <30: bardzo słabe (rzadko, ale przepuszczasz dla kompletności)
 
-validation_result: Przy odrzuceniu z powodu SPÓJNOŚCI DANYCH → daj szansę (NEEDS_REVIEW).
-Ale przy odrzuceniu z powodu ZŁEGO PRODUKTU → odrzuć zdecydowanie (REJECTED).
-Walidacja produktowa jest WAŻNIEJSZA niż walidacja spójności danych.
+NIE WYMAGAJ explicit wymienienia konkretnego produktu na stronie. Producenci API typowo robią
+200+ molekuł i listują tylko przykładowe portfolio. Klient zapyta przez RFQ czy mają tę molekułę.
+
+NIE ODRZUCAJ za:
+- Brak explicit produktu na stronie ("nie wymienia Metforminu" → przepuść z match_score 50-70)
+- Domenę nieidealnie pasującą do kraju ("ro.firma.com a firma w Chinach" → przepuść)
+- Specjalizację "zbyt szeroką" ("API manufacturer" → 70+ score, bo to dokładnie pasuje do API search)
+- Nazwy domeny nieidealnie pasujące do firmy (akronimy, marki, holdingi są normalne)
+
+Pamiętaj: nasi klienci kontaktują się z firmami z listy aby się dowiedzieć czego się nie da
+sprawdzić ze strony. Twoim zadaniem jest dostarczyć taką listę, nie ją wyfiltrować na 0.
 
 ${sourcingContext?.sourcingMode === 'service' || sourcingContext?.sourcingMode === 'mixed' ? `
 === TRYB SERVICE SOURCING (${sourcingContext?.sourcingMode.toUpperCase()}) — NADRZĘDNE REGUŁY ===
@@ -133,21 +151,30 @@ ${productContext?.positiveSignals?.map(s => `  ✅ ${s}`).join('\n') || 'brak'}
 SYGNAŁY NEGATYWNE (firma NIE jest dostawcą tego produktu):
 ${productContext?.negativeSignals?.map(s => `  ❌ ${s}`).join('\n') || 'brak'}
 
-=== WALIDACJA PRODUKTOWA (KRYTYCZNA) ===
+=== KLASYFIKACJA PRODUKTOWA (SCORING, NIE BLOKADA) ===
 
-KROK 1: Sprawdź czy specjalizacja firmy RZECZYWIŚCIE pokrywa się z produktem docelowym.
-KROK 2: Sprawdź czy firma SPRZEDAJE ten produkt, czy tylko go KUPUJE/UŻYWA.
-KROK 3: Sprawdź czy firma produkuje PRODUKT, czy MASZYNY do jego produkcji.
-KROK 4: Sprawdź czy firma produkuje BEZPOŚREDNIO szukany produkt, czy produkt KOMPLEMENTARNY/WSPIERAJĄCY.
-"Rozwiązania dla X", "komponenty do X", "oprogramowanie do X", "usługi dla X" → to NIE jest X.
-Firma musi WYTWARZAĆ lub SPRZEDAWAĆ dokładnie ten produkt, nie produkt powiązany.
+Oceń jak prawdopodobne jest że firma produkuje (lub może produkować na zamówienie) szukany produkt:
 
-ODRZUĆ (REJECTED) gdy:
-- Firma produkuje INNY produkt niż docelowy (np. szukamy oleju → firma produkuje pompy)
-- Firma PRZETWARZA surowiec w gotowe wyroby (np. szukamy granulatu → firma produkuje rury Z granulatu)
-- Firma produkuje MASZYNY/URZĄDZENIA do obróbki tego produktu (np. szukamy granulatu → firma produkuje ekstruzery/granulatory)
-- Firma produkuje produkty KOMPLEMENTARNE/WSPIERAJĄCE (np. szukamy kontrolera IoT → firma produkuje "security solutions for IoT")
-- Firma jest z KOMPLETNIE INNEJ branży
+KATEGORIA i SPECJALIZACJA — czy pasują do kategorii produktu docelowego?
+- Kategoria 1:1 (np. "Pharmaceutical Manufacturing" gdy szukamy API) → match_score 80-100
+- Specjalizacja w łańcuchu dostaw (np. "API and chemical intermediates manufacturer") → 70-90
+- Pokrewna branża (np. "Chemical synthesis services") → 50-70
+- Producent w szerszej kategorii (np. "Specialty chemicals manufacturer") → 40-60
+
+ŚLADY PRODUKTU NA STRONIE — bonus, nie wymóg:
+- Explicit nazwa produktu wymieniona → +15 do score
+- CAS number lub formuła chemiczna pasują → +10
+- Sygnały pozytywne (z productContext) → +5 każdy
+- Sygnały negatywne (z productContext) → -10 każdy
+
+REJECTED tylko w skrajnych przypadkach (powtarzam):
+- Firma KOMPLETNIE z innej branży (np. szukamy farma → IT consulting, software, marketing)
+- Firma sprzedaje GOTOWE WYROBY a klient szuka SUROWCA (np. szukamy granulatu → firma robi rury)
+  ALE: jak firma produkuje OBYDWA (np. integrated manufacturer) → APPROVED z średnim score
+- Firma to portal/katalog/agregator listingów
+
+Wszystko inne idzie z odpowiednim match_score. Nie filtrujemy aż do zera —
+tworzymy shortlistę z odpowiednim rankingiem dla decyzji klienta.
 
 ${productContext?.supplyChainPosition === 'raw material' ? `
 UWAGA — SZUKAMY SUROWCA:
@@ -175,7 +202,10 @@ Zwróć JSON:
   "is_match": true/false,
   "validation_result": "APPROVED" | "REJECTED" | "NEEDS_REVIEW",
   "confidence_score": 0.0-1.0,
-  "rejection_reason": "Wyjaśnienie odrzucenia lub null",
+  "match_score": 0-100,
+  "match_label": "high" | "likely" | "speculative",
+  "match_reasoning": "Krótkie uzasadnienie scoringu (max 200 znaków)",
+  "rejection_reason": "Wyjaśnienie odrzucenia lub null (TYLKO gdy validation_result=REJECTED)",
   "warnings": ["Lista ostrzeżeń"],
   "checks_performed": {
     "domain_company_match": true/false,

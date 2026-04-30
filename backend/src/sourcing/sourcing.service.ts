@@ -2999,17 +2999,16 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 await this.log(campaignId, `${workerTag} CERT_${certificateMatch.status.toUpperCase()}: ${domain} (verified=[${certificateMatch.verified.join(', ')}], unknown=[${certificateMatch.missing.join(', ')}])`);
             }
 
-            // BORDERLINE suppliers need higher auditor confidence to pass
-            // But when auditor is in fallback mode (AI unavailable), use a lower threshold
-            // to avoid cascading 0-supplier failures
-            const isAuditorFallback = auditorResult.warnings?.some(
-                (w: string) => w.includes('AI verification unavailable') || w.includes('AI verification failed'),
-            );
-            const borderlineThreshold = isAuditorFallback ? 0.35 : (isLowYield ? 0.5 : 0.7);
-            if (isBorderline && (auditorResult.confidence_score || 0) < borderlineThreshold) {
-                await this.log(campaignId, `${workerTag} BORDERLINE REJECTED: confidence ${auditorResult.confidence_score} < ${borderlineThreshold} (fallback=${isAuditorFallback}, lowYield=${isLowYield}) for ${domain}`);
-                return 0;
-            }
+            // SHORTLIST MODE — Pipeline rolą jest dostarczyć ranked-list potencjalnych dostawców
+            // do RFQ, a nie filtrować do "perfect match". Auditor już REJECTED tylko wyraźny syf
+            // (blog/portal/wrong industry). Tu nie odrzucamy więcej. match_score idzie w metadata
+            // i UI sortuje po nim.
+            const matchScore: number = typeof auditorResult.match_score === 'number'
+                ? auditorResult.match_score
+                : Math.round((auditorResult.confidence_score || 0.5) * 100);
+            const matchLabel: string = auditorResult.match_label
+                || (matchScore >= 80 ? 'high' : matchScore >= 50 ? 'likely' : 'speculative');
+            const matchReasoning: string = auditorResult.match_reasoning || '';
 
             // 3.05. AUDITOR RECLASSIFICATION — auditor may override screener's company_type
             const verifiedType = auditorResult?.golden_record?.verified_company_type;
@@ -3295,13 +3294,17 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                     enrichmentResult: JSON.stringify(enrichmentResult),
                     auditorResult: JSON.stringify(auditorResult),
                     analysisScore: finalScore / 10,
-                    // Flexible blob: VIES VAT check + certificate match status (used by UI for sort/badge).
-                    metadata: (vatMetadata || certificateMatch)
-                      ? JSON.stringify({
-                          ...(vatMetadata ? { vat: vatMetadata } : {}),
-                          ...(certificateMatch ? { certificateMatch } : {}),
-                        })
-                      : null,
+                    // Flexible blob: VIES VAT + cert match status + match scoring (used by UI sort/badge).
+                    // matchScore (0-100) drives the supplier list ranking — high → likely → speculative.
+                    metadata: JSON.stringify({
+                      ...(vatMetadata ? { vat: vatMetadata } : {}),
+                      ...(certificateMatch ? { certificateMatch } : {}),
+                      match: {
+                        score: matchScore,
+                        label: matchLabel,
+                        reasoning: matchReasoning,
+                      },
+                    }),
 
                     analysisReason: enrichmentResult.verification?.verification_notes || screenerResult.match_reason,
                     originLanguage: originLanguage,
