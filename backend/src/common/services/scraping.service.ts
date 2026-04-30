@@ -52,6 +52,10 @@ export class ScrapingService {
      * Fast and cheap — the default path for most pages.
      */
     private async fetchStatic(url: string): Promise<string> {
+        // Bumped 10s → 20s. Government registry sites + slow PDFs were hitting the
+        // 10s ceiling on Cloud Run egress; the per-URL outer cap is 90s so we have
+        // budget. Tunable via SCRAPE_TIMEOUT_MS env.
+        const timeoutMs = parseInt(process.env.SCRAPE_TIMEOUT_MS || '20000', 10);
         for (let attempt = 1; attempt <= this.MAX_RETRIES; attempt++) {
             try {
                 const { data } = await axios.get(url, {
@@ -60,7 +64,7 @@ export class ScrapingService {
                         'Accept': 'text/html,application/xhtml+xml',
                         'Accept-Language': 'en-US,en;q=0.9,pl;q=0.8,de;q=0.7',
                     },
-                    timeout: 10000,
+                    timeout: timeoutMs,
                     maxContentLength: 5 * 1024 * 1024,
                     maxBodyLength: 5 * 1024 * 1024,
                     maxRedirects: 3,

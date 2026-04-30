@@ -1,10 +1,24 @@
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { VertexAI } from '@google-cloud/vertexai';
+import axios from 'axios';
+import * as https from 'https';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as crypto from 'crypto';
+
+// Dedicated HTTPS agent with keep-alive DISABLED for direct Gemini REST calls.
+// Same fix that solved Serper TLS aborts: under parallel load Cloud Run drops
+// idle keep-alive sockets at the proxy layer, so reusing them produces
+// "fetch failed" / "socket disconnected before secure TLS connection was
+// established" mid-handshake. The Gemini SDK uses Node's native fetch with no
+// hook for custom dispatcher, so we bypass the SDK and hit REST directly.
+const geminiHttpsAgent = new https.Agent({
+    keepAlive: false,
+    maxSockets: 50,
+    rejectUnauthorized: true,
+});
 import {
     getMockStrategy,
     getMockExplorerRelevant,
@@ -187,8 +201,24 @@ export class GeminiService {
                 lastError = e;
                 this.consecutiveFailures++;
                 this.lastFailureTime = Date.now();
-                const isTimeout = e.message?.includes('timeout');
-                const isRetryable = isTimeout || e.message?.includes('429') || e.message?.includes('503') || e.message?.includes('RESOURCE_EXHAUSTED');
+                const msg = e.message || '';
+                const code = e.code || '';
+                const isTimeout = msg.includes('timeout');
+                // Cloud Run → Gemini endpoint occasionally drops TLS mid-handshake under load
+                // (same pattern Serper had). Treat network-layer failures as retryable so the
+                // pipeline doesn't false-fail the campaign on a transient network blip.
+                const isNetworkError =
+                    code === 'ECONNRESET' ||
+                    code === 'ECONNREFUSED' ||
+                    code === 'ETIMEDOUT' ||
+                    code === 'EPIPE' ||
+                    code === 'ECONNABORTED' ||
+                    msg.includes('socket disconnected') ||
+                    msg.includes('socket hang up') ||
+                    msg.includes('TLS connection') ||
+                    msg.includes('fetch failed') ||
+                    msg.includes('ECONNRESET');
+                const isRetryable = isTimeout || isNetworkError || msg.includes('429') || msg.includes('503') || msg.includes('RESOURCE_EXHAUSTED');
 
                 if (!isRetryable || attempt >= this.MAX_RETRIES) {
                     status = 'error';
@@ -273,29 +303,13 @@ export class GeminiService {
             return this.getMockResponse(prompt);
         }
 
-        // 1. Try AI Studio
-        try {
-            if (this.aiStudioClient) {
-                this.logger.log('[GEMINI] Trying AI Studio with API Key...');
-                const model = this.aiStudioClient.getGenerativeModel({ model: this.modelName });
-                const result = await model.generateContent({
-                    contents: [{ role: 'user', parts: [{ text: prompt }] }]
-                });
-                const text = result.response.text();
-                this.logger.log(`[GEMINI] AI Studio SUCCESS - response length: ${text.length} chars`);
-                return text;
-            } else {
-                this.logger.warn('[GEMINI] AI Studio client is null - skipping');
-            }
-        } catch (e) {
-            this.logger.error(`[GEMINI] AI Studio FAILED: ${e.message}`);
-            this.logger.error(`[GEMINI] AI Studio error details: ${JSON.stringify(e, null, 2).substring(0, 500)}`);
-        }
-
-        // 2. Try Vertex SDK (ADC) — Vertex REST with API key is not supported, only OAuth2/ADC
+        // 1. Try Vertex SDK (PRIMARY) — uses europe-west1-aiplatform.googleapis.com endpoint
+        //    with ADC OAuth, different network path than AI Studio. Empirically more reliable
+        //    from Cloud Run europe-west1 because Vertex egress doesn't hit the same proxy
+        //    layer that drops keep-alive sockets to generativelanguage.googleapis.com.
         try {
             if (this.vertexClient) {
-                this.logger.log('[GEMINI] Trying Vertex SDK with ADC...');
+                this.logger.log('[GEMINI] Trying Vertex SDK with ADC (PRIMARY)...');
                 const model = this.vertexClient.getGenerativeModel({ model: this.modelName });
                 const result = await model.generateContent({
                     contents: [{ role: 'user', parts: [{ text: prompt }] }]
@@ -309,12 +323,51 @@ export class GeminiService {
                 this.logger.warn('[GEMINI] Vertex SDK client is null - skipping');
             }
         } catch (e) {
-            console.error('VERTEX SDK ERROR DETAILS:', JSON.stringify(e, null, 2));
-            this.logger.error(`[GEMINI] Vertex SDK FAILED: ${e.message}`, e.stack);
+            this.logger.error(`[GEMINI] Vertex SDK FAILED: ${e.message}`);
+        }
+
+        // 2. Fallback: AI Studio via REST (with custom https.Agent keep-alive=off)
+        if (this.apiKey) {
+            try {
+                this.logger.log('[GEMINI] Falling back to AI Studio (REST + keep-alive off)...');
+                const text = await this.aiStudioGenerateRest(prompt);
+                this.logger.log(`[GEMINI] AI Studio SUCCESS - response length: ${text.length} chars`);
+                return text;
+            } catch (e) {
+                this.logger.error(`[GEMINI] AI Studio FAILED: ${e.message}`);
+                if (e.response?.status) {
+                    this.logger.error(`[GEMINI] AI Studio HTTP ${e.response.status}: ${JSON.stringify(e.response.data).substring(0, 300)}`);
+                }
+            }
+        } else {
+            this.logger.warn('[GEMINI] AI Studio API key is null - skipping');
         }
 
         this.logger.error('[GEMINI] ALL METHODS FAILED - throwing error');
         throw new Error('All Gemini generation methods failed. Check API Key, Project ID, or Permissions.');
+    }
+
+    /**
+     * Direct Gemini AI Studio REST call — bypasses @google/generative-ai SDK so we can
+     * use a custom https.Agent with keep-alive disabled. The SDK uses Node's native
+     * fetch which has no hook for swapping the dispatcher; under Cloud Run parallel
+     * load the proxy drops idle keep-alive sockets, producing mid-handshake TLS
+     * aborts that surface as "fetch failed".
+     */
+    private async aiStudioGenerateRest(prompt: string): Promise<string> {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.modelName}:generateContent?key=${this.apiKey}`;
+        const response = await axios.post(url, {
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        }, {
+            httpsAgent: geminiHttpsAgent,
+            timeout: this.GEMINI_TIMEOUT_MS,
+            headers: { 'Content-Type': 'application/json' },
+        });
+        const text: string | undefined = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!text) {
+            throw new Error(`AI Studio returned empty response: ${JSON.stringify(response.data).substring(0, 200)}`);
+        }
+        return text;
     }
 
     private getMockResponse(prompt: string): string {
