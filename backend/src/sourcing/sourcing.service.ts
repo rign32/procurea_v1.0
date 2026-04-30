@@ -655,6 +655,33 @@ export class SourcingService {
             }
         }
 
+        // PRE-FLIGHT HEALTH CHECK — verify Gemini + Serper actually respond before
+        // we kick off the pipeline. If either external service is down, mark campaign
+        // PENDING_INFRA and don't start. Saves Serper credits when Gemini is down (and
+        // vice versa), and gives the user a clear "service temporarily unavailable"
+        // status instead of a half-failed campaign with random 0-N suppliers.
+        const [geminiOk, serperOk] = await Promise.all([
+            this.geminiService.isLiveHealthy().catch(() => false),
+            this.searchService.isLiveHealthy().catch(() => false),
+        ]);
+        if (!geminiOk || !serperOk) {
+            const reasons: string[] = [];
+            if (!geminiOk) reasons.push('AI generation (Gemini)');
+            if (!serperOk) reasons.push('search (Serper)');
+            const reason = `Service temporarily unavailable: ${reasons.join(' + ')}. We'll auto-resume the campaign as soon as the service is back.`;
+            await this.prisma.campaign.update({
+                where: { id: campaign.id },
+                data: { status: 'PENDING_INFRA', stage: 'WAITING_FOR_INFRA' },
+            });
+            await this.log(campaign.id, `[PRE-FLIGHT] ${reason}`);
+            this.observability.recordEvent('campaign', 'preflight_unhealthy', 'warning', {
+                title: `Campaign ${campaign.name || campaign.id} paused — infra unhealthy`,
+                campaignId: campaign.id,
+                message: reason,
+            }).catch(() => {});
+            return { id: campaign.id, status: 'PENDING_INFRA', reason };
+        }
+
         // Run async to not block request
         this.runMultimodalPipeline(campaign.id, dto, userLanguage).catch(async err => {
             this.logger.error(`Campaign ${campaign.id} failed`, err);
@@ -1436,6 +1463,27 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 strategyResult = await this.strategyAgent.execute(strategyParams);
                 await this.log(id, `[STRATEGY] Retry ${retry} returned ${strategyResult.strategies?.length || 0} strategies`);
             }
+
+            // SMART ABORT — if all 4 strategy retries exhausted and we still have nothing,
+            // Gemini is down. Don't continue to fallback queries that burn Serper budget for
+            // a campaign that won't have any meaningful AI screening anyway. Mark as
+            // PENDING_INFRA and exit so the user gets a clear "we'll resume when AI is back"
+            // signal instead of a 0-supplier campaign.
+            if (!strategyResult.strategies || strategyResult.strategies.length === 0) {
+                await this.log(id, `[STRATEGY] ❌ All ${STRATEGY_RETRIES} retries exhausted — Gemini unhealthy. Aborting before burning Serper credits.`);
+                await this.prisma.campaign.update({
+                    where: { id },
+                    data: { status: 'PENDING_INFRA', stage: 'WAITING_FOR_INFRA' },
+                });
+                this.observability.recordEvent('campaign', 'aborted_gemini_down', 'warning', {
+                    title: `Campaign ${id} aborted — Gemini unavailable after ${STRATEGY_RETRIES} retries`,
+                    campaignId: id,
+                    message: 'Search budget preserved. Will auto-resume when Gemini health check passes.',
+                }).catch(() => {});
+                this.sourcingGateway?.emitError(id, 'Gemini AI service is temporarily unavailable. Your campaign is paused and will resume automatically.');
+                return;
+            }
+
             this.sourcingGateway?.emitProgress(id, 'STRATEGY', 100);
 
             // Check timeout after strategy generation

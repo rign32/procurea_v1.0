@@ -247,4 +247,38 @@ export class GoogleSearchService {
   async searchGlobal(query: string, userId?: string, campaignId?: string): Promise<{ title: string; link: string; snippet: string }[]> {
     return this.searchExtended(query, { gl: 'us', hl: 'en', num: 15 }, userId, campaignId);
   }
+
+  /**
+   * Live health check — minimal Serper call (1 result). Cached 60s.
+   * Used pre-flight: if Serper is down, we abort campaign before burning Gemini credits.
+   */
+  private healthCheckCache: { healthy: boolean; checkedAt: number } | null = null;
+  private readonly HEALTH_CHECK_TTL_MS = 60_000;
+
+  async isLiveHealthy(): Promise<boolean> {
+    if (!this.serperApiKey) return false;
+
+    if (this.healthCheckCache && (Date.now() - this.healthCheckCache.checkedAt) < this.HEALTH_CHECK_TTL_MS) {
+      return this.healthCheckCache.healthy;
+    }
+
+    let healthy = false;
+    try {
+      const response = await axios.post('https://google.serper.dev/search', {
+        q: 'health-check',
+        num: 1,
+      }, {
+        headers: { 'X-API-KEY': this.serperApiKey, 'Content-Type': 'application/json' },
+        httpsAgent: serperHttpsAgent,
+        timeout: 8000,
+      });
+      healthy = response.status === 200;
+    } catch (e: any) {
+      this.logger.warn(`[HEALTH] Serper probe failed: ${e.message}`);
+      healthy = false;
+    }
+
+    this.healthCheckCache = { healthy, checkedAt: Date.now() };
+    return healthy;
+  }
 }
