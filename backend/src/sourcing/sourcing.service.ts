@@ -1723,14 +1723,17 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 })
             );
 
-            // Wait for all search workers to finish collecting (5 min max)
-            await this.allSettledWithTimeout(searchPromises, 300000, id);
+            // Wait for search workers (3 min max — was 5; with concurrent processing
+            // we don't need search to finish, only to provide enough URLs to chew on).
+            await this.allSettledWithTimeout(searchPromises, 180_000, id);
             this.sourcingGateway?.emitProgress(id, 'SEARCH', 100);
             await this.log(id, `✅ [PHASE 2] Search complete: ${totalCollected} URLs collected, ${globalSeenDomains.size} unique. Waiting for processing to finish...`);
 
-            // Wait for all URL processing to complete (dynamic timeout based on URL count)
-            // Base: 10 min. Scale: 1.5s per URL. Cap: 20 min. allSettledWithTimeout caps to remaining pipeline time.
-            const dynamicProcessingTimeout = Math.max(600_000, Math.min(globalSeenDomains.size * 1500, 1_200_000));
+            // Wait for URL processing — dynamic timeout, but tighter:
+            // Base: 4 min (was 10). Scale: 1s per URL (was 1.5s). Cap: 10 min (was 20).
+            // With max-instances bumped to 50 and per-URL timeout cut to 60s, the old
+            // 10-20 min cap was silently consuming pipeline time; this matches reality.
+            const dynamicProcessingTimeout = Math.max(240_000, Math.min(globalSeenDomains.size * 1000, 600_000));
             await this.log(id, `[PHASE 2] Processing timeout: ${Math.round(dynamicProcessingTimeout / 1000)}s for ${globalSeenDomains.size} URLs`);
             await this.allSettledWithTimeout(processingPromises, dynamicProcessingTimeout, id);
 
@@ -1751,8 +1754,11 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             }
 
             // --- PHASE 2.5: EXPANSION PASS (second sweep for missed suppliers) ---
-            // Trigger expansion more aggressively: max(30, 40% of target) instead of min(20, 30%)
-            const EXPANSION_THRESHOLD = Math.max(30, Math.ceil(MAX_TOTAL_QUALIFIED * 0.4));
+            // Threshold lowered: only run expansion if we have very low yield (<15 suppliers
+            // OR <10% of target). Expansion was running by default and adding 5-10 min for
+            // marginal gain — better to spend that time letting Phase 2 process more URLs
+            // by raising search budget upfront.
+            const EXPANSION_THRESHOLD = Math.max(15, Math.ceil(MAX_TOTAL_QUALIFIED * 0.1));
             if (!stopAfter2B && qualifiedCounter.value < EXPANSION_THRESHOLD) {
                 await this.log(id, `[EXPANSION] Coverage at ${qualifiedCounter.value}/${MAX_TOTAL_QUALIFIED} (${Math.round(qualifiedCounter.value / MAX_TOTAL_QUALIFIED * 100)}%) — running expansion pass...`);
                 this.sourcingGateway?.emitProgress(id, 'EXPANSION', 0);
