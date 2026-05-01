@@ -663,33 +663,37 @@ Używaj następujących JĘZYKÓW w zapytaniach:
 ${languageInstructions}
 
 === KRYTYCZNE WYMAGANIA ===
-1. Generuj 20-30 zapytań PER JĘZYK/KRAJ — potrzebujemy MAKSYMALNEJ RÓŻNORODNOŚCI i pokrycia!
+1. **Generuj 50-100 zapytań PER JĘZYK/KRAJ** — to jest cel pokrycia 80-250 firm na shortlist.
+   Mniej zapytań = mniejsza shortlist. Klient płaci za pokrycie rynku.
 2. Zapytania muszą być powiązane z "${effectiveProductName}" — ale na RÓŻNYCH poziomach szczegółowości!
-3. Używaj RÓŻNYCH strategii (WSZYSTKIE poniższe typy dla każdego języka):
+3. Używaj WSZYSTKICH poniższych typów strategii dla każdego języka (zaplanuj ~5-8 zapytań na typ):
    - DOKŁADNA: pełna nazwa produktu + producent/manufacturer
    - OGÓLNA: szersza kategoria produktu + producent (np. samo "HDPE" zamiast "HDPE virgin granulat")
-   - SYNONIMOWA: synonimy i warianty nazwy (pellets, granules, resin, compound)
-   - TECHNOLOGICZNA: proces produkcyjny / technologia
-   - KATALOGOWA: "lista producentów" / "list of manufacturers"
-   - CERTYFIKACYJNA: certyfikaty + produkt + producent
+   - SYNONIMOWA: synonimy i warianty nazwy (pellets, granules, resin, compound, kompozyt, material)
+   - CHEMICZNA: nazwa IUPAC, INN, CAS-number (jeśli farma/chemia), formuła
+   - TECHNOLOGICZNA: proces produkcyjny / technologia / metoda syntezy
+   - KATALOGOWA: "lista producentów" / "list of manufacturers" / "directory of"
+   - CERTYFIKACYJNA: certyfikaty + produkt + producent (GMP, ISO, FDA, etc.)
    - BRANŻOWA: targi branżowe / industrial fair + exhibitor list
-   - KATALOG B2B: europages / kompass / thomasnet / wlw.de
-   - SUROWCOWA: dostawca surowca / raw material supplier
+   - KATALOG B2B: europages, kompass, thomasnet, wlw.de, alibaba, made-in-china
+   - SUROWCOWA: dostawca surowca / raw material supplier / API supplier
    - STOWARZYSZENIOWA: lista członków stowarzyszenia branżowego
    - TARGOWA: "lista wystawców" / "exhibitor list" + targi branżowe + 2024 OR 2025 OR 2026
    - EKSPORTOWA: "baza eksporterów" / "export directory" + kraj
    - ŁAŃCUCH DOSTAW: "nasi dostawcy" / "our suppliers" / "approved vendors"
-4. Dla każdego kraju generuj zapytania w LOKALNYM JĘZYKU (tłumacz nazwę produktu!)
+   - REGIONALNA: prowincja/region wewnątrz kraju + producent (np. "Zhejiang API manufacturer")
+   - SUBKATEGORIA: warianty molekuły / typu produktu (różne soles, izomery, gatunki)
+4. Dla każdego kraju generuj zapytania w LOKALNYM JĘZYKU + 30% w angielskim (international SEO)
 5. LIMIT: max 15 krajów/języków dla EU, max 30 dla GLOBAL (wybierz najważniejsze gospodarczo)
 6. NIE opakowuj nazwy produktu w cudzysłowy ("") w zapytaniach — to zbyt restrykcyjne!
 
 KRYTYCZNE ZASADY:
-1. Zapytania powinny zawierać nazwę produktu (lub synonim/ogólniejszy termin) + słowo producent/manufacturer/Hersteller
+1. Zapytania powinny zawierać nazwę produktu (lub synonim/ogólniejszy termin) + słowo producent/manufacturer/Hersteller/制造商
 2. Generuj zapytania na RÓŻNYCH poziomach szczegółowości — od dokładnych po ogólne
 3. Dodaj negatywne słowa kluczowe: ${negativeKeywords}
-4. 25-40 queries per kraj — każde unikalne, pokrywające INNY typ strategii
+4. **MINIMUM 50 queries per kraj** — preferowane 70-100. Każde unikalne, pokrywające INNY typ strategii.
 5. WYKLUCZ kraje objęte sankcjami: Rosja, Iran, Korea Północna, Syria, Afganistan, Kuba, Wenezuela, Myanmar, Białoruś
-6. Dla KAŻDEGO kraju musisz mieć przynajmniej po 1 zapytaniu z typów: TARGOWA, STOWARZYSZENIOWA, KATALOG B2B, ŁAŃCUCH DOSTAW
+6. Dla KAŻDEGO kraju musisz mieć przynajmniej po 2 zapytania z typów: TARGOWA, STOWARZYSZENIOWA, KATALOG B2B, ŁAŃCUCH DOSTAW, CHEMICZNA, REGIONALNA
 
 Output Format (JSON Only):
 {
