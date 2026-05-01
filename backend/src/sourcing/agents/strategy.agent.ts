@@ -663,8 +663,8 @@ Używaj następujących JĘZYKÓW w zapytaniach:
 ${languageInstructions}
 
 === KRYTYCZNE WYMAGANIA ===
-1. **Generuj 50-100 zapytań PER JĘZYK/KRAJ** — to jest cel pokrycia 80-250 firm na shortlist.
-   Mniej zapytań = mniejsza shortlist. Klient płaci za pokrycie rynku.
+1. **Generuj 30-50 zapytań PER JĘZYK/KRAJ** (twardy minimum 30, optymalnie 40-50).
+   To jest cel pokrycia 80-250 firm na shortlist. Mniej zapytań = mniejsza shortlist.
 2. Zapytania muszą być powiązane z "${effectiveProductName}" — ale na RÓŻNYCH poziomach szczegółowości!
 3. Używaj WSZYSTKICH poniższych typów strategii dla każdego języka (zaplanuj ~5-8 zapytań na typ):
    - DOKŁADNA: pełna nazwa produktu + producent/manufacturer
@@ -691,7 +691,7 @@ KRYTYCZNE ZASADY:
 1. Zapytania powinny zawierać nazwę produktu (lub synonim/ogólniejszy termin) + słowo producent/manufacturer/Hersteller/制造商
 2. Generuj zapytania na RÓŻNYCH poziomach szczegółowości — od dokładnych po ogólne
 3. Dodaj negatywne słowa kluczowe: ${negativeKeywords}
-4. **MINIMUM 50 queries per kraj** — preferowane 70-100. Każde unikalne, pokrywające INNY typ strategii.
+4. **MINIMUM 30 queries per kraj** — preferowane 40-50. Każde unikalne, pokrywające INNY typ strategii.
 5. WYKLUCZ kraje objęte sankcjami: Rosja, Iran, Korea Północna, Syria, Afganistan, Kuba, Wenezuela, Myanmar, Białoruś
 6. Dla KAŻDEGO kraju musisz mieć przynajmniej po 2 zapytania z typów: TARGOWA, STOWARZYSZENIOWA, KATALOG B2B, ŁAŃCUCH DOSTAW, CHEMICZNA, REGIONALNA
 

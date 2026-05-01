@@ -1723,9 +1723,10 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 })
             );
 
-            // Wait for search workers (3 min max — was 5; with concurrent processing
-            // we don't need search to finish, only to provide enough URLs to chew on).
-            await this.allSettledWithTimeout(searchPromises, 180_000, id);
+            // Wait for search workers (5 min max — gives 30-50 queries × 1-3s each
+            // per worker time to actually complete. Was 3 min; under Serper TLS retries
+            // queries can take 15-30s in worst case, so 3 min was cutting search short).
+            await this.allSettledWithTimeout(searchPromises, 300_000, id);
             this.sourcingGateway?.emitProgress(id, 'SEARCH', 100);
             await this.log(id, `✅ [PHASE 2] Search complete: ${totalCollected} URLs collected, ${globalSeenDomains.size} unique. Waiting for processing to finish...`);
 
