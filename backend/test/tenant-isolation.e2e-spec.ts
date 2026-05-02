@@ -91,7 +91,7 @@ describe('Tenant Isolation (e2e)', () => {
                 .set('Authorization', `Bearer ${aliceToken}`)
                 .expect(200);
 
-            const rfqNames = res.body.map((r: any) => r.productName);
+            const rfqNames = (res.body.rfqs || res.body).map((r: any) => r.productName);
             expect(rfqNames).toContain('Alice Widget');
             expect(rfqNames).not.toContain('Bob Gadget');
         });
@@ -102,7 +102,7 @@ describe('Tenant Isolation (e2e)', () => {
                 .set('Authorization', `Bearer ${bobToken}`)
                 .expect(200);
 
-            const rfqNames = res.body.map((r: any) => r.productName);
+            const rfqNames = (res.body.rfqs || res.body).map((r: any) => r.productName);
             expect(rfqNames).toContain('Bob Gadget');
             expect(rfqNames).not.toContain('Alice Widget');
         });
@@ -195,7 +195,7 @@ describe('Tenant Isolation (e2e)', () => {
                 .set('Authorization', `Bearer ${aliceMateToken}`)
                 .expect(200);
 
-            const names = res.body.map((r: any) => r.productName);
+            const names = (res.body.rfqs || res.body).map((r: any) => r.productName);
             expect(names).not.toContain('Alice Widget');
         });
 
@@ -225,7 +225,7 @@ describe('Tenant Isolation (e2e)', () => {
                 .set('Authorization', `Bearer ${aliceMateToken}`)
                 .expect(200);
 
-            const names = res.body.map((r: any) => r.productName);
+            const names = (res.body.rfqs || res.body).map((r: any) => r.productName);
             expect(names).toContain('Alice Widget');
         });
     });
@@ -244,7 +244,7 @@ describe('Tenant Isolation (e2e)', () => {
                 .set('Authorization', `Bearer ${charlieToken}`)
                 .expect(200);
 
-            const names = res.body.map((r: any) => r.productName);
+            const names = (res.body.rfqs || res.body).map((r: any) => r.productName);
             expect(names).toContain('Charlie Solo Item');
             expect(names).not.toContain('Alice Widget');
             expect(names).not.toContain('Bob Gadget');

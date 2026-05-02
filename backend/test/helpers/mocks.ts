@@ -3,17 +3,26 @@
  * These replace Resend, Gemini, SMS etc. so tests don't hit real APIs.
  */
 
-export const createMockEmailService = () => ({
-    sendEmail: jest.fn().mockResolvedValue(true),
-    sendMagicLink: jest.fn().mockResolvedValue(true),
-    sendWelcomeEmail: jest.fn().mockResolvedValue(true),
-    sendNotificationEmail: jest.fn().mockResolvedValue(true),
-    sendTeamInvite: jest.fn().mockResolvedValue(true),
-    sendTrialEndedEmail: jest.fn().mockResolvedValue(true),
-    sendFeedbackRequestEmail: jest.fn().mockResolvedValue(true),
-    buildFooterHtml: jest.fn().mockReturnValue(''),
-    getFooterHtmlForOrg: jest.fn().mockResolvedValue(''),
-});
+export const createMockEmailService = () => {
+    let counter = 0;
+    return {
+        // EmailService.sendEmail returns { sent: boolean, emailId?: string } — callers
+        // (e.g. requests.service.sendRfqToCampaign) check result.sent, NOT the boolean
+        // shorthand the old mock returned.
+        sendEmail: jest.fn().mockImplementation(async () => ({
+            sent: true,
+            emailId: `mock-email-${++counter}`,
+        })),
+        sendMagicLink: jest.fn().mockResolvedValue(true),
+        sendWelcomeEmail: jest.fn().mockResolvedValue(true),
+        sendNotificationEmail: jest.fn().mockResolvedValue(true),
+        sendTeamInvite: jest.fn().mockResolvedValue(true),
+        sendTrialEndedEmail: jest.fn().mockResolvedValue(true),
+        sendFeedbackRequestEmail: jest.fn().mockResolvedValue(true),
+        buildFooterHtml: jest.fn().mockReturnValue(''),
+        getFooterHtmlForOrg: jest.fn().mockResolvedValue(''),
+    };
+};
 
 export const createMockNotificationService = () => ({
     send: jest.fn().mockResolvedValue(undefined),

@@ -205,7 +205,9 @@ export class RequestsService {
             },
         });
         if (!rfq) throw new NotFoundException('RFQ not found');
-        if (userId && rfq.ownerId !== userId) throw new ForbiddenException('Not authorized to access this RFQ');
+        // Cross-tenant access → return 404 instead of 403 so we don't leak existence
+        // of RFQs owned by other organizations to unauthorized users.
+        if (userId && rfq.ownerId !== userId) throw new NotFoundException('RFQ not found');
         return rfq;
     }
 
