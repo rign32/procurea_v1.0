@@ -435,7 +435,9 @@ describe('CertificatesService', () => {
         beforeEach(() => {
             prisma.supplierCertificate.findMany.mockResolvedValue([
                 { id: '1', reviewStatus: 'APPROVED', status: 'ACTIVE', validUntil: new Date('2030-01-01') },
-                { id: '2', reviewStatus: 'APPROVED', status: 'EXPIRING_SOON', validUntil: new Date('2026-05-01') },
+                // Use a relative date so the fixture stays inside the EXPIRING_SOON window
+                // (90 days) regardless of when the test runs.
+                { id: '2', reviewStatus: 'APPROVED', status: 'EXPIRING_SOON', validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
                 { id: '3', reviewStatus: 'PENDING', status: 'ACTIVE', validUntil: new Date('2030-01-01') },
                 { id: '4', reviewStatus: 'PENDING', status: 'EXPIRED', validUntil: new Date('2020-01-01') },
                 { id: '5', reviewStatus: 'REJECTED', status: 'ACTIVE', validUntil: new Date('2030-01-01') },
