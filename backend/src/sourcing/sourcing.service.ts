@@ -2748,7 +2748,19 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
 
             const screenerResult = await this.screenerAgent.execute(effectiveUrl, content, dto, productContext, userLanguage, dto.searchCriteria?.requiredCertificates, { industry: dto.searchCriteria?.industry, sourcingMode: (dto.searchCriteria as any)?.sourcingMode, city: (dto.searchCriteria as any)?.city });
 
-            if (!screenerResult.is_relevant) {
+            // SHORTLIST MODE — screener verdict triage:
+            //   1. page_type === 'Directory' with leads → mine the leads (always, regardless of is_relevant)
+            //   2. page_type ∈ {Blog, Article, News, Research, Publication, Paper, Journal} → hard reject
+            //   3. anything else (incl. "Irrelevant"/"Wrong Product Manufacturer"/unset) → pass through
+            //      with the match_score the screener computed; auditor + cert annotation
+            //      decide the final shortlist position. Buyer contacts top, gets answers
+            //      via RFQ for the rest.
+            const HARD_REJECT_PAGE_TYPES = ['Blog', 'Article', 'News', 'Research', 'Publication', 'Paper', 'Journal'];
+            const pageType = screenerResult.page_type || '';
+            const isHardRejectPage = HARD_REJECT_PAGE_TYPES.includes(pageType);
+            const isDirectoryWithLeads = pageType === 'Directory' && (screenerResult.mentioned_companies?.length || 0) > 0 && depth === 0;
+
+            if (isDirectoryWithLeads || isHardRejectPage) {
                 // DIRECTORY MINING: extract leads from industry portals
                 const mentionedCompanies = screenerResult.mentioned_companies || [];
                 if (depth === 0
@@ -2788,38 +2800,35 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             const capScore = screenerResult.capability_match_score || 0;
             let isBorderline = false;
 
-            const capScoreRejectThreshold = isLowYield ? 25 : 35;
-            if (capScore < capScoreRejectThreshold) {
-                // HARD REJECT — clearly irrelevant, but still mine directory leads
-                const mentionedFromLowScore = screenerResult.mentioned_companies || [];
-                if (depth === 0 && mentionedFromLowScore.length > 0) {
-                    await this.log(campaignId, `${workerTag} [DIRECTORY] Low-score page ${domain} (${capScore}%) has ${mentionedFromLowScore.length} leads — mining before rejecting`);
-                    const MAX_LOW_SCORE_LEADS = 8;
-                    const lowScoreLeads: typeof mentionedFromLowScore = [];
-                    for (const company of mentionedFromLowScore) {
-                        if (lowScoreLeads.length >= MAX_LOW_SCORE_LEADS) break;
-                        if (!company.url) continue;
-                        const companyDomain = this.extractDomain(company.url);
-                        if (globalProcessedDomains?.has(companyDomain)) continue;
-                        globalProcessedDomains?.add(companyDomain);
-                        lowScoreLeads.push(company);
-                    }
-                    await this.log(campaignId, `${workerTag} [DIRECTORY] Following ${lowScoreLeads.length} low-score leads in parallel`);
-                    const lowScoreResults = await Promise.allSettled(
-                        lowScoreLeads.map(company =>
-                            this.processSupplierUrl(
-                                campaignId, dto, company.url!, workerTag,
-                                processedCompanyNames, originLanguage, originCountry,
-                                productContext, globalProcessedDomains, 1,
-                                userLanguage, knownManufacturers
-                            ).catch(() => 0)
-                        )
-                    );
-                    return lowScoreResults.reduce((sum, r) => sum + (r.status === 'fulfilled' ? r.value : 0), 0);
+            // SHORTLIST MODE — no hard-reject on low cap_score. Even score=10 candidates
+            // pass to auditor with that score in metadata; UI sorts them to the bottom of
+            // the shortlist with "speculative" label. Buyer can investigate or skip.
+            // Still mine directory leads from low-score pages (those are signal-rich).
+            const mentionedFromLowScore = screenerResult.mentioned_companies || [];
+            if (capScore < 35 && depth === 0 && mentionedFromLowScore.length > 0) {
+                await this.log(campaignId, `${workerTag} [DIRECTORY] Low-score page ${domain} (${capScore}%) has ${mentionedFromLowScore.length} leads — mining in parallel`);
+                const MAX_LOW_SCORE_LEADS = 8;
+                const lowScoreLeads: typeof mentionedFromLowScore = [];
+                for (const company of mentionedFromLowScore) {
+                    if (lowScoreLeads.length >= MAX_LOW_SCORE_LEADS) break;
+                    if (!company.url) continue;
+                    const companyDomain = this.extractDomain(company.url);
+                    if (globalProcessedDomains?.has(companyDomain)) continue;
+                    globalProcessedDomains?.add(companyDomain);
+                    lowScoreLeads.push(company);
                 }
-
-                await this.log(campaignId, `${workerTag} Skipped: Low match (${capScore}%)`);
-                return 0;
+                await this.log(campaignId, `${workerTag} [DIRECTORY] Following ${lowScoreLeads.length} low-score leads in parallel`);
+                Promise.allSettled(
+                    lowScoreLeads.map(company =>
+                        this.processSupplierUrl(
+                            campaignId, dto, company.url!, workerTag,
+                            processedCompanyNames, originLanguage, originCountry,
+                            productContext, globalProcessedDomains, 1,
+                            userLanguage, knownManufacturers
+                        ).catch(() => 0)
+                    )
+                ).catch(() => { /* fire-and-forget directory mining */ });
+                // Continue processing the low-score URL itself — don't return early.
             }
 
             if (capScore < 60) {
@@ -2929,18 +2938,15 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 }
             }
 
-            // 1.8. NIEJASNY GATE — require minimum confidence for unclassified companies
+            // 1.8. NIEJASNY GATE — SHORTLIST MODE: NIEJASNY (unclear classification) is
+            // NOT a rejection. Per product spec only HANDLOWIEC vs PRODUCENT is the hard
+            // filter; NIEJASNY means screener couldn't tell with confidence — auditor will
+            // attempt reclassification, otherwise the supplier surfaces with low match
+            // score and the buyer asks via RFQ. Logged for telemetry but no longer drops.
             const finalCompanyType = screenerResult.company_type || 'NIEJASNY';
             const finalConfidence = screenerResult.company_type_confidence || 0;
-            const niejasnyThreshold = isLowYield ? 35 : 50;
             if (finalCompanyType === 'NIEJASNY') {
-                if (finalConfidence >= niejasnyThreshold) {
-                    // Leave as NIEJASNY — auditor will verify and reclassify
-                    await this.log(campaignId, `${workerTag} NIEJASNY PRZEPUSZCZONY: ${domain} (conf=${finalConfidence})`);
-                } else {
-                    await this.log(campaignId, `${workerTag} NIEJASNY ODRZUCONY: ${domain} (conf=${finalConfidence})`);
-                    return 0;
-                }
+                await this.log(campaignId, `${workerTag} NIEJASNY PRZEPUSZCZONY: ${domain} (conf=${finalConfidence})`);
             }
 
             // 2. ENRICHMENT (skip Gemini call for high-confidence results — screener data is sufficient)
