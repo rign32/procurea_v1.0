@@ -3086,7 +3086,14 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 }
             }
 
-            // GATE: Supply chain mismatch — hardcoded safety net
+            // SOFT GATE: Supply chain mismatch — keyword-based heuristic that flagged
+            // "machine maker" / "downstream processor" when buyer wanted raw material.
+            // Per product spec only PRODUCENT-vs-HANDLOWIEC + GEO are HARD; supply chain
+            // mismatch becomes a match_score penalty + warning instead of hard reject.
+            // (Frequent false positives — e.g., a granulate producer that also sells
+            // "extruder lines" gets dropped as machine manufacturer.)
+            let supplyChainPenalty = 0;
+            const supplyChainWarnings: string[] = [];
             if (productContext?.supplyChainPosition === 'raw material') {
                 const spec = (enrichedData.specialization || auditorResult?.golden_record?.specialization || '').toLowerCase();
                 const machinePatterns = [
@@ -3098,13 +3105,12 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                     'pipe production', 'packaging production', 'thermoform', 'termoform',
                     'injection mold', 'wtrysk', 'blow mold', 'rozdmuch'
                 ];
-
                 const isMachineManufacturer = machinePatterns.some(p => spec.includes(p));
                 const isDownstreamProcessor = downstreamPatterns.some(p => spec.includes(p));
-
                 if (isMachineManufacturer || isDownstreamProcessor) {
-                    await this.log(campaignId, `${workerTag} SUPPLY CHAIN MISMATCH: "${enrichedData.company_name}" spec="${spec}" → looking for raw material, found ${isMachineManufacturer ? 'machine manufacturer' : 'downstream processor'}`);
-                    return 0;
+                    supplyChainPenalty = 25; // drops match_score down toward "speculative"
+                    supplyChainWarnings.push(isMachineManufacturer ? 'machine_manufacturer' : 'downstream_processor');
+                    await this.log(campaignId, `${workerTag} SUPPLY CHAIN WARNING (-${supplyChainPenalty}): "${enrichedData.company_name}" — ${supplyChainWarnings.join(',')}`);
                 }
             }
 
@@ -3360,15 +3366,19 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                     enrichmentResult: JSON.stringify(enrichmentResult),
                     auditorResult: JSON.stringify(auditorResult),
                     analysisScore: finalScore / 10,
-                    // Flexible blob: VIES VAT + cert match status + match scoring (used by UI sort/badge).
-                    // matchScore (0-100) drives the supplier list ranking — high → likely → speculative.
+                    // Flexible blob: VIES VAT + cert match status + match scoring + warnings.
+                    // adjustedMatchScore drives the supplier list ranking; warnings show
+                    // soft-gate notes (supply chain mismatch, etc.) so the buyer knows
+                    // why score is lower without us hard-rejecting the lead.
                     metadata: JSON.stringify({
                       ...(vatMetadata ? { vat: vatMetadata } : {}),
                       ...(certificateMatch ? { certificateMatch } : {}),
                       match: {
-                        score: matchScore,
-                        label: matchLabel,
+                        score: Math.max(0, matchScore - supplyChainPenalty),
+                        baseScore: matchScore,
+                        label: (matchScore - supplyChainPenalty) >= 80 ? 'high' : (matchScore - supplyChainPenalty) >= 50 ? 'likely' : 'speculative',
                         reasoning: matchReasoning,
+                        warnings: supplyChainWarnings,
                       },
                     }),
 
