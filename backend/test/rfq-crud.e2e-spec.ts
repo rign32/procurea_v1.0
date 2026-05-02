@@ -70,14 +70,14 @@ describe('RFQ CRUD (e2e)', () => {
             expect(res.body.productName).toBe(rfq.productName);
         });
 
-        it('should deny access to other user\'s RFQ', async () => {
+        it('should deny access to other user\'s RFQ (404, not 403, to avoid leaking existence)', async () => {
             const otherUser = await createTestUser(ctx.prisma);
             const otherRfq = await createTestRfq(ctx.prisma, { ownerId: otherUser.id });
 
             await request(ctx.app.getHttpServer())
                 .get(`/requests/${otherRfq.id}`)
                 .set('Authorization', `Bearer ${authToken}`)
-                .expect(403);
+                .expect(404);
         });
     });
 
