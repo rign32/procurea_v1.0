@@ -9,6 +9,7 @@ import { ScreenerAgentService } from './agents/screener.agent';
 import { EnrichmentAgentService } from './agents/enrichment.agent';
 import { AuditorAgentService } from './agents/auditor.agent';
 import { ExpansionAgentService } from './agents/expansion.agent';
+import { MarketSizeAgentService } from './agents/market-size.agent';
 import { ApolloEnrichmentAgent } from './agents/apollo-enrichment.agent';
 import { BriefParserAgent } from './agents/brief-parser.agent';
 import { EmailFallbackService } from './agents/email-fallback.service';
@@ -32,6 +33,7 @@ import { SuppliersModule } from '../suppliers/suppliers.module';
     EnrichmentAgentService,
     AuditorAgentService,
     ExpansionAgentService,
+    MarketSizeAgentService,
     ApolloEnrichmentAgent,
     BriefParserAgent,
     EmailFallbackService,

@@ -7,6 +7,7 @@ import { ScreenerAgentService } from './agents/screener.agent';
 import { EnrichmentAgentService } from './agents/enrichment.agent';
 import { AuditorAgentService } from './agents/auditor.agent';
 import { ExpansionAgentService } from './agents/expansion.agent';
+import { MarketSizeAgentService, MarketSizeResult } from './agents/market-size.agent';
 import { GoogleSearchService } from '../common/services/google-search.service';
 import { ScrapingService } from '../common/services/scraping.service';
 import { QueryCacheService, CachedSearchResult } from '../common/services/query-cache.service';
@@ -261,6 +262,7 @@ export class SourcingService {
         private readonly enrichmentAgent: EnrichmentAgentService,
         private readonly auditorAgent: AuditorAgentService,
         private readonly expansionAgent: ExpansionAgentService,
+        private readonly marketSizeAgent: MarketSizeAgentService,
         private readonly searchService: GoogleSearchService,
         private readonly scrapingService: ScrapingService,
         @Optional() private readonly sourcingGateway: SourcingGateway,
@@ -1415,6 +1417,40 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
             }
             await this.log(id, `[INTELLIGENCE] Identified ${knownManufacturers.length} known manufacturers: ${knownManufacturers.map(m => m.name).join(', ')}`);
 
+            // --- PHASE 0.7: MARKET SIZING (drives coverageTarget for auto-expansion) ---
+            await this.log(id, `📐 [MARKET_SIZE] Estimating market size for "${cleanProductName}" in ${(dto.searchCriteria.targetCountries || []).join(', ') || rawRegion}...`);
+            const marketSize: MarketSizeResult = await this.marketSizeAgent.execute({
+                productName: cleanProductName,
+                productCategory: productContext?.productCategory,
+                supplyChainPosition: productContext?.supplyChainPosition,
+                positiveSignals: productContext?.positiveSignals,
+                negativeSignals: productContext?.negativeSignals,
+                targetCountries: dto.searchCriteria.targetCountries || [],
+                region: rawRegion,
+                knownManufacturers: knownManufacturers.map(m => ({ name: m.name, country: m.country })),
+                industry: dto.searchCriteria.industry,
+                sourcingMode: (dto.searchCriteria as any).sourcingMode,
+                requiredCertificates: dto.searchCriteria.requiredCertificates,
+            });
+            await this.log(id, `📐 [MARKET_SIZE] estimatedTotal=${marketSize.estimatedTotal} range=[${marketSize.estimatedRange[0]}, ${marketSize.estimatedRange[1]}] tier=${marketSize.marketTier} confidence=${marketSize.confidenceBand} source=${marketSize.source}`);
+            await this.log(id, `🎯 [MARKET_SIZE] coverageTarget=${marketSize.coverageTarget} minimumTarget=${marketSize.minimumTarget} (anchors=${marketSize.anchorCompaniesUsed})`);
+            if (marketSize.reasoning) {
+                await this.log(id, `📐 [MARKET_SIZE] Reasoning: ${marketSize.reasoning}`);
+            }
+            // Persist marketSize on Campaign (non-blocking — never fail pipeline on DB write)
+            this.prisma.campaign.update({
+                where: { id },
+                data: {
+                    marketSize: marketSize as any,
+                    marketSizeEstimatedAt: new Date(),
+                },
+            }).catch(err => this.logger.warn(`[${id}] Failed to persist marketSize: ${err.message}`));
+
+            // effectiveTarget — clamp coverageTarget to global hard ceiling MAX_TOTAL_QUALIFIED.
+            // Auto-expansion loop terminates when qualifiedCounter.value >= effectiveTarget.
+            const effectiveTarget = Math.min(MAX_TOTAL_QUALIFIED, Math.max(marketSize.minimumTarget, marketSize.coverageTarget));
+            await this.log(id, `🎯 [TARGET] effectiveTarget=${effectiveTarget} (min(${MAX_TOTAL_QUALIFIED}, max(${marketSize.minimumTarget}, ${marketSize.coverageTarget})))`);
+
             // --- PHASE 1: STRATEGY GENERATION ---
             const strategyParams = {
                 productName: cleanProductName,
@@ -1447,6 +1483,8 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 logisticsSla: (dto.searchCriteria as any).logisticsSla || undefined,
                 mfgTolerance: (dto.searchCriteria as any).mfgTolerance || undefined,
                 retailBrandModel: (dto.searchCriteria as any).retailBrandModel || undefined,
+                coverageTarget: marketSize.coverageTarget,
+                marketTier: marketSize.marketTier,
             };
 
             await this.log(id, `🎯 [STRATEGY] Generating multimodal search strategy for region: ${strategyParams.region}`);
@@ -1754,14 +1792,24 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 await this.log(id, `⚠️ LOW YIELD MODE activated: ${qualifiedCounter.value} suppliers after ${statsNow.processedUrls} URLs — relaxing thresholds`);
             }
 
-            // --- PHASE 2.5: EXPANSION PASS (second sweep for missed suppliers) ---
-            // Threshold lowered: only run expansion if we have very low yield (<15 suppliers
-            // OR <10% of target). Expansion was running by default and adding 5-10 min for
-            // marginal gain — better to spend that time letting Phase 2 process more URLs
-            // by raising search budget upfront.
-            const EXPANSION_THRESHOLD = Math.max(15, Math.ceil(MAX_TOTAL_QUALIFIED * 0.1));
-            if (!stopAfter2B && qualifiedCounter.value < EXPANSION_THRESHOLD) {
-                await this.log(id, `[EXPANSION] Coverage at ${qualifiedCounter.value}/${MAX_TOTAL_QUALIFIED} (${Math.round(qualifiedCounter.value / MAX_TOTAL_QUALIFIED * 100)}%) — running expansion pass...`);
+            // --- PHASE 2.5: AUTO-EXPANSION LOOP (target-driven) ---
+            // Loop expansion passes until we hit the MarketSizeAgent.coverageTarget, run out
+            // of time (18min cap), or run 3 iterations max. Each iteration tries different
+            // keyword strategies via the expansionAgent. Replaces the old single-shot pass.
+            const EXPANSION_LOOP_DEADLINE = (this.campaignStartTimes.get(id) || Date.now()) + 18 * 60 * 1000; // 18 min from start
+            const MAX_EXPANSION_ITERATIONS = 3;
+            const previouslyRunQueries = new Set<string>();
+            let expansionIteration = 0;
+            let stopExpansionLoop = !!stopAfter2B;
+            while (
+                !stopExpansionLoop &&
+                qualifiedCounter.value < effectiveTarget &&
+                expansionIteration < MAX_EXPANSION_ITERATIONS &&
+                Date.now() < EXPANSION_LOOP_DEADLINE
+            ) {
+                expansionIteration++;
+                const remainingMs = EXPANSION_LOOP_DEADLINE - Date.now();
+                await this.log(id, `[EXPANSION] Iteration ${expansionIteration}/${MAX_EXPANSION_ITERATIONS} — coverage ${qualifiedCounter.value}/${effectiveTarget} (${Math.round(qualifiedCounter.value / effectiveTarget * 100)}%), ${Math.round(remainingMs / 1000)}s remaining in loop budget`);
                 this.sourcingGateway?.emitProgress(id, 'EXPANSION', 0);
 
                 try {
@@ -1855,6 +1903,24 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                         }
                     }
 
+                    // Auto-expansion loop: each iteration must produce queries that haven't run
+                    // yet, otherwise we'd burn search budget on identical Serper requests.
+                    const beforeDedup = filteredExpansionQueries.length;
+                    filteredExpansionQueries = filteredExpansionQueries.filter(eq => {
+                        const key = (eq.query || '').toLowerCase().trim();
+                        if (!key || previouslyRunQueries.has(key)) return false;
+                        previouslyRunQueries.add(key);
+                        return true;
+                    });
+                    if (beforeDedup !== filteredExpansionQueries.length) {
+                        await this.log(id, `[EXPANSION] Iter ${expansionIteration}: dropped ${beforeDedup - filteredExpansionQueries.length} duplicate queries vs prior iterations`);
+                    }
+                    if (filteredExpansionQueries.length === 0) {
+                        await this.log(id, `[EXPANSION] Iter ${expansionIteration}: no new queries available — stopping expansion loop`);
+                        stopExpansionLoop = true;
+                        break;
+                    }
+
                     // Group expansion queries by language/country
                     const expansionStrategies = new Map<string, { country: string; language: string; queries: string[]; negatives: string[] }>();
 
@@ -1920,13 +1986,31 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
 
                     await this.allSettledWithTimeout(expansionProcessPromises, 120000, id);
 
-                    await this.log(id, `[EXPANSION] Expansion pass found ${expansionFound} additional suppliers. Total: ${qualifiedCounter.value}`);
-                    this.sourcingGateway?.emitProgress(id, 'EXPANSION', 100);
+                    await this.log(id, `[EXPANSION] Iter ${expansionIteration} found ${expansionFound} additional suppliers. Total: ${qualifiedCounter.value}/${effectiveTarget}`);
+                    this.sourcingGateway?.emitProgress(id, 'EXPANSION', Math.min(100, Math.round((qualifiedCounter.value / effectiveTarget) * 100)));
+
+                    // Stop if this iteration produced no new suppliers (diminishing returns)
+                    if (expansionFound === 0) {
+                        await this.log(id, `[EXPANSION] Iter ${expansionIteration} found 0 new suppliers — stopping expansion loop (diminishing returns)`);
+                        stopExpansionLoop = true;
+                    }
+                    // Stop if shouldStop signals timeout/abort
+                    if (this.shouldStop(id, qualifiedCounter.value)) {
+                        stopExpansionLoop = true;
+                    }
                 } catch (expansionErr: any) {
-                    await this.log(id, `[EXPANSION] Expansion pass error (non-fatal): ${expansionErr.message}`);
+                    await this.log(id, `[EXPANSION] Iter ${expansionIteration} error (non-fatal): ${expansionErr.message}`);
+                    stopExpansionLoop = true;
                 }
+            } // end while(expansion loop)
+            if (qualifiedCounter.value >= effectiveTarget) {
+                await this.log(id, `[EXPANSION] ✅ Coverage target reached: ${qualifiedCounter.value}/${effectiveTarget} after ${expansionIteration} iteration(s).`);
+                this.sourcingGateway?.emitProgress(id, 'EXPANSION', 100);
+            } else if (expansionIteration === 0) {
+                await this.log(id, `[EXPANSION] Coverage at ${qualifiedCounter.value}/${effectiveTarget} — expansion loop skipped (already stopped).`);
             } else {
-                await this.log(id, `[EXPANSION] Coverage at ${qualifiedCounter.value}/${MAX_TOTAL_QUALIFIED} — expansion pass not needed.`);
+                await this.log(id, `[EXPANSION] Loop ended: ${qualifiedCounter.value}/${effectiveTarget} after ${expansionIteration} iteration(s).`);
+                this.sourcingGateway?.emitProgress(id, 'EXPANSION', 100);
             }
 
             // --- PHASE 2.7: COVERAGE CHECK — find missing known manufacturers ---
@@ -3195,13 +3279,19 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 }
             }
 
-            // 3.2. EMPLOYEE SIZE FILTER — skip mega-corporations
+            // 3.2. EMPLOYEE SIZE FILTER — soft penalty for mega-corporations.
+            // Per product spec only TYPE/GEO/SANCTIONS are HARD; size mismatch is annotation
+            // territory (a Fortune-500 supplier may not respond to small RFQs but the buyer
+            // should still see them and decide). 2026-04-29: converted from hard-reject.
             const employeeStr = enrichmentResult?.enriched_data?.employee_count
                 || screenerResult.extracted_data?.employee_count;
             const employeeCount = parseEmployeeCount(employeeStr);
+            let sizePenalty = 0;
+            const sizeWarnings: string[] = [];
             if (employeeCount !== null && employeeCount > MAX_EMPLOYEE_COUNT) {
-                await this.log(campaignId, `${workerTag} TOO LARGE: "${enrichedData.company_name}" (${employeeStr} employees)`);
-                return 0;
+                sizePenalty = 20;
+                sizeWarnings.push(`Mega-korporacja (${employeeStr} pracowników) — może nie odpowiadać na małe RFQ`);
+                await this.log(campaignId, `${workerTag} TOO LARGE (kept, -20 score): "${enrichedData.company_name}" (${employeeStr} employees)`);
             }
 
             // 3.5. EMAIL — collect if available, but don't reject without it
@@ -3374,11 +3464,11 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                       ...(vatMetadata ? { vat: vatMetadata } : {}),
                       ...(certificateMatch ? { certificateMatch } : {}),
                       match: {
-                        score: Math.max(0, matchScore - supplyChainPenalty),
+                        score: Math.max(0, matchScore - supplyChainPenalty - sizePenalty),
                         baseScore: matchScore,
-                        label: (matchScore - supplyChainPenalty) >= 80 ? 'high' : (matchScore - supplyChainPenalty) >= 50 ? 'likely' : 'speculative',
+                        label: (matchScore - supplyChainPenalty - sizePenalty) >= 80 ? 'high' : (matchScore - supplyChainPenalty - sizePenalty) >= 50 ? 'likely' : 'speculative',
                         reasoning: matchReasoning,
-                        warnings: supplyChainWarnings,
+                        warnings: [...supplyChainWarnings, ...sizeWarnings],
                       },
                     }),
 
@@ -3624,11 +3714,14 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                 }
             }
 
-            // EMPLOYEE SIZE FILTER — same as fresh pipeline
+            // EMPLOYEE SIZE FILTER — soft penalty for cache hits (matches fresh pipeline behavior).
             const employeeCount = parseEmployeeCount(enrichedData.employee_count);
+            let cacheSizePenalty = 0;
+            const cacheSizeWarnings: string[] = [];
             if (employeeCount !== null && employeeCount > MAX_EMPLOYEE_COUNT) {
-                await this.log(campaignId, `${workerTag} CACHE TOO LARGE: "${companyName}" (${enrichedData.employee_count})`);
-                return false;
+                cacheSizePenalty = 20;
+                cacheSizeWarnings.push(`Mega-korporacja (${enrichedData.employee_count} pracowników) — może nie odpowiadać na małe RFQ`);
+                await this.log(campaignId, `${workerTag} CACHE TOO LARGE (kept, -20 score): "${companyName}" (${enrichedData.employee_count})`);
             }
 
             // PORTAL URL GUARD — same as fresh pipeline
@@ -3654,12 +3747,24 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                     disambiguationNote: productContext.disambiguationNote,
                     productCategory: productContext.productCategory,
                 }, { industry: dto.searchCriteria?.industry, sourcingMode: (dto.searchCriteria as any)?.sourcingMode, city: (dto.searchCriteria as any)?.city });
+                // SHORTLIST MODE: cache hits also follow soft-rejection rules.
+                // Auditor REJECTED only flags blog/portal/blatant mismatch — those still drop.
+                // Other "validation_result=REJECTED" reasons (e.g., "wrong product family")
+                // become a -15 score penalty + warning instead of dropping the lead.
+                let cacheProductMismatchPenalty = 0;
+                const cacheProductMismatchWarnings: string[] = [];
                 if (auditorResult.validation_result === 'REJECTED' || auditorResult.is_valid === false) {
-                    await this.log(campaignId, `${workerTag} CACHE PRODUCT MISMATCH: "${enrichedData.company_name}" (${enrichedData.specialization}) — ${auditorResult.rejection_reason || 'not matching product'}`);
-                    return false;
+                    const reason = (auditorResult.rejection_reason || '').toLowerCase();
+                    const isHardSyf = /\b(blog|article|portal|news|directory|katalog|blogger)\b/.test(reason);
+                    if (isHardSyf) {
+                        await this.log(campaignId, `${workerTag} CACHE PRODUCT MISMATCH (hard reject — content site): "${enrichedData.company_name}" — ${auditorResult.rejection_reason}`);
+                        return false;
+                    }
+                    cacheProductMismatchPenalty = 15;
+                    cacheProductMismatchWarnings.push(`Auditor: ${auditorResult.rejection_reason || 'soft mismatch'}`);
+                    await this.log(campaignId, `${workerTag} CACHE PRODUCT MISMATCH (kept, -15 score): "${enrichedData.company_name}" (${enrichedData.specialization}) — ${auditorResult.rejection_reason || 'not matching product'}`);
                 }
-                // Hard filters apply to cache hits too — buyer's wizard rules must be
-                // enforced regardless of where the supplier came from.
+                // HARD filters (TYPE/GEO/SANCTIONS/BLACKLIST) still apply to cache hits.
                 const cacheHardFilter = this.applyHardFilters(
                     auditorResult.golden_record,
                     cachedSupplier.explorerResult?.extracted_data || enrichedData,
@@ -3669,11 +3774,17 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                     await this.log(campaignId, `${workerTag} CACHE HARD FILTER ${cacheHardFilter.bucket}: ${cacheHardFilter.reason}`);
                     return false;
                 }
+                // Stash penalties for the metadata block below.
+                (cachedSupplier as any).__cacheSoftPenalty = cacheSizePenalty + cacheProductMismatchPenalty;
+                (cachedSupplier as any).__cacheSoftWarnings = [...cacheSizeWarnings, ...cacheProductMismatchWarnings];
             }
 
             const contactEmails = enrichedData.contact_emails || [];
             const contactEmailsString = Array.isArray(contactEmails) ? contactEmails.join(', ') : contactEmails;
-            const finalScore = (cachedSupplier.lastAnalysisScore || 5) * 10;
+            const cacheBaseScore = (cachedSupplier.lastAnalysisScore || 5) * 10;
+            const cacheTotalPenalty = ((cachedSupplier as any).__cacheSoftPenalty || 0);
+            const cacheSoftWarnings: string[] = ((cachedSupplier as any).__cacheSoftWarnings || []) as string[];
+            const finalScore = Math.max(10, cacheBaseScore - cacheTotalPenalty);
 
             // Translate specialization if needed
             const translatedSpecialization = await this.translateSpecialization(
@@ -3716,7 +3827,22 @@ LIMIT: 10-20 most important manufacturers. Quality over quantity.
                     enrichmentResult: JSON.stringify(cachedSupplier.enrichmentResult || {}),
                     auditorResult: JSON.stringify(cachedSupplier.auditorResult || {}),
                     analysisScore: finalScore / 10,
-                    metadata: cachedCertificateMatch ? JSON.stringify({ certificateMatch: cachedCertificateMatch }) : null,
+                    metadata: (cachedCertificateMatch || cacheSoftWarnings.length > 0)
+                      ? JSON.stringify({
+                          ...(cachedCertificateMatch ? { certificateMatch: cachedCertificateMatch } : {}),
+                          ...(cacheSoftWarnings.length > 0
+                            ? {
+                                match: {
+                                  score: finalScore,
+                                  baseScore: cacheBaseScore,
+                                  label: finalScore >= 80 ? 'high' : finalScore >= 50 ? 'likely' : 'speculative',
+                                  reasoning: 'Cache hit with soft-penalty warnings',
+                                  warnings: cacheSoftWarnings,
+                                },
+                              }
+                            : {}),
+                        })
+                      : null,
 
                     analysisReason: 'Data from Global Registry Cache',
                     originLanguage: originLanguage,

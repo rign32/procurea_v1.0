@@ -282,6 +282,12 @@ model Campaign {
   aiSummary            String?
   aiSummaryGeneratedAt DateTime?
 
+  // MarketSize Phase 0 estimate — drives coverageTarget + auto-expansion loop.
+  // JSON shape: { estimatedTotal, estimatedRange, marketTier, coverageTarget,
+  //              minimumTarget, confidenceBand, reasoning, source, perCountry }
+  marketSize             Json?
+  marketSizeEstimatedAt  DateTime?
+
   // Apollo Enrichment
   apolloEnrichmentStatus String?
 

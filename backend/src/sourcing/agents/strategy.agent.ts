@@ -500,6 +500,10 @@ ${modeLine}${locationBlock}${constraintsBlock}${subcatBlock}${briefBlock}
     moq?: number;
     leadTimeWeeks?: number;
     sourcingGeography?: string;
+    /** From MarketSizeAgent — drives queries-per-language scaling. */
+    coverageTarget?: number;
+    /** From MarketSizeAgent — narrow|medium|broad. */
+    marketTier?: 'narrow' | 'medium' | 'broad';
   }): Promise<any> {
     this.logger.log(`Executing Strategy Agent for "${params.productName}" in region: ${params.region}`);
 
@@ -598,6 +602,26 @@ ${translationsBlock || '  (brak — przetłumacz samodzielnie)'}
     // Use clean product name from context when available (avoids "Kampania:" prefix leaking)
     const effectiveProductName = pc ? pc.coreProduct : params.productName;
 
+    // Dynamic query volume — driven by MarketSizeAgent.coverageTarget (Phase 0.7).
+    // Narrow markets (≤30 firms global) need fewer queries (~15-25 per lang) — over-querying
+    // creates noise. Broad markets (>300) want max coverage (~40-60 per lang).
+    const coverageTarget = params.coverageTarget ?? 80;
+    const marketTier = params.marketTier ?? 'medium';
+    let queryMin: number, queryMax: number, headlineGoal: string;
+    if (marketTier === 'narrow') {
+      queryMin = 15;
+      queryMax = 25;
+      headlineGoal = `CEL POKRYCIA: ${coverageTarget}+ unikalnych dostawców (rynek niszowy — szukamy WSZYSTKICH realnych firm).`;
+    } else if (marketTier === 'broad') {
+      queryMin = 40;
+      queryMax = 60;
+      headlineGoal = `CEL POKRYCIA: ${coverageTarget} dostawców z dużego rynku — generuj zapytania szeroko, na wszystkich poziomach szczegółowości.`;
+    } else {
+      queryMin = 30;
+      queryMax = 50;
+      headlineGoal = `CEL POKRYCIA: ${coverageTarget} dostawców z rynku średniej wielkości.`;
+    }
+
     // Build certificates block
     const requiredCerts = params.requiredCertificates || [];
     const certificatesBlock = requiredCerts.length > 0
@@ -631,7 +655,8 @@ ${translationsBlock || '  (brak — przetłumacz samodzielnie)'}
     const systemPrompt = `
 Jesteś Ekspertem Strategii Sourcingu Przemysłowego (Industrial Sourcing Strategist).
 Twoim celem jest znalezienie JAK NAJWIĘKSZEJ LICZBY REALNYCH PRODUCENTÓW/WYKONAWCÓW dla podanego produktu lub usługi.
-CHCEMY ZNALEŹĆ 200-300 DOSTAWCÓW w wybranym regionie. GENERUJ MAKSYMALNĄ LICZBĘ UNIKALNYCH ZAPYTAŃ.
+${headlineGoal}
+TIER RYNKU: ${marketTier} (narrow ≤30 firm | medium 31-300 | broad >300).
 ${industryModeBlock}${productContextBlock}
 === PRODUKT / SUROWIEC / USŁUGA DO ZNALEZIENIA ===
 **NAZWA:** "${effectiveProductName}"
@@ -663,8 +688,8 @@ Używaj następujących JĘZYKÓW w zapytaniach:
 ${languageInstructions}
 
 === KRYTYCZNE WYMAGANIA ===
-1. **Generuj 30-50 zapytań PER JĘZYK/KRAJ** (twardy minimum 30, optymalnie 40-50).
-   To jest cel pokrycia 80-250 firm na shortlist. Mniej zapytań = mniejsza shortlist.
+1. **Generuj ${queryMin}-${queryMax} zapytań PER JĘZYK/KRAJ** (twardy minimum ${queryMin}, optymalnie ${queryMax}).
+   Cel pokrycia: ${coverageTarget} dostawców (tier=${marketTier}). Mniej zapytań niż minimum = ryzyko niedopokrycia rynku.
 2. Zapytania muszą być powiązane z "${effectiveProductName}" — ale na RÓŻNYCH poziomach szczegółowości!
 3. Używaj WSZYSTKICH poniższych typów strategii dla każdego języka (zaplanuj ~5-8 zapytań na typ):
    - DOKŁADNA: pełna nazwa produktu + producent/manufacturer
@@ -691,7 +716,7 @@ KRYTYCZNE ZASADY:
 1. Zapytania powinny zawierać nazwę produktu (lub synonim/ogólniejszy termin) + słowo producent/manufacturer/Hersteller/制造商
 2. Generuj zapytania na RÓŻNYCH poziomach szczegółowości — od dokładnych po ogólne
 3. Dodaj negatywne słowa kluczowe: ${negativeKeywords}
-4. **MINIMUM 30 queries per kraj** — preferowane 40-50. Każde unikalne, pokrywające INNY typ strategii.
+4. **MINIMUM ${queryMin} queries per kraj** — preferowane ${queryMax}. Każde unikalne, pokrywające INNY typ strategii.
 5. WYKLUCZ kraje objęte sankcjami: Rosja, Iran, Korea Północna, Syria, Afganistan, Kuba, Wenezuela, Myanmar, Białoruś
 6. Dla KAŻDEGO kraju musisz mieć przynajmniej po 2 zapytania z typów: TARGOWA, STOWARZYSZENIOWA, KATALOG B2B, ŁAŃCUCH DOSTAW, CHEMICZNA, REGIONALNA
 
